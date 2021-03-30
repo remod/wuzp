@@ -1,9 +1,9 @@
 #pragma once
 
-#include <iostream>
 #include <typeinfo>
 #include <string_view>
 #include <tuple>
+#include <array>
 
 namespace ctm {
 
