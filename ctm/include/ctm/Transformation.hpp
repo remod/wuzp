@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Eigen/Core>
-
 namespace ctm {
 
 template <typename Transformation, typename Object>
@@ -30,8 +28,8 @@ class TransformationBase {
   Rotation rotation_;
 };
 
-template <typename Scalar, typename From, typename To>
-using TransformationUsingQuaternion = TransformationBase<Eigen::Matrix<Scalar, 3, 1> , Eigen::Quaternion<Scalar>, From, To>;
+//template <typename Scalar, typename From, typename To>
+//using TransformationUsingQuaternion = TransformationBase<Eigen::Matrix<Scalar, 3, 1> , Eigen::Quaternion<Scalar>, From, To>;
 
 
 

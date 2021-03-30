@@ -7,6 +7,12 @@
 
 namespace ctm {
 
+template <typename T>
+struct FakeDependency : public std::false_type {};
+
+template <int Size, typename T>
+using ToTuple = decltype(std::tuple_cat(std::declval<std::array<T, Size>>()));
+
 template<bool>
 struct SelectIf {
   template<typename T>

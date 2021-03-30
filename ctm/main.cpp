@@ -1,10 +1,11 @@
 #include <iostream>
 
+#include "ctm/Frame.hpp"
 #include "ctm/Matrix.hpp"
 #include "ctm/Transformation.hpp"
-#include "ctm/core.hpp"
-#include "ctm/Frame.hpp"
-#include "ctm/boost_units.hpp"
+#include "ctm/TypeMatrix.hpp"
+#include "ctm/boost.hpp"
+#include "ctm/eigen.hpp"
 
 using namespace ctm;
 using namespace boost::units;
@@ -45,25 +46,27 @@ int main() {
   static_assert(std::is_same<Sum<length>::type, length>::value);
   static_assert(std::is_same<Sum<length, length>::type, length>::value);
   static_assert(std::is_same<Sum<length, length, length>::type, length>::value);
-//  static_assert(std::is_same<Sum<Matrix<2, 2, length, length, length, length>, Matrix<2, 2, length, length, length, length>>::type, Matrix<2, 2, length, length, length, length>>::value);
+  static_assert(std::is_same<Product<length, length>::type, area>::value);
 
   static_assert(std::is_same<ToTuple<3, int>, std::tuple<int, int, int>>::value);
-  static_assert(std::is_same<CtMatrixSimple<3, 2, int>, CtMatrix<3, 2, std::tuple<int, int, int, int, int, int>>>::value);
-  static_assert(std::is_same<CtMatrixSimple<3, 2, int, int, int, int, int, int>, CtMatrix<3, 2, std::tuple<int, int, int, int, int, int>>>::value);
+  static_assert(std::is_same<TypeMatrix<3, 2, int>, TypeMatrixImpl<3, 2, std::tuple<int, int, int, int, int, int>>>::value);
+  static_assert(std::is_same<TypeMatrix<3, 2, int, int, int, int, int, int>, TypeMatrixImpl<3, 2, std::tuple<int, int, int, int, int, int>>>::value);
 
-  static_assert(std::is_same<Product<length, length>::type, area>::value);
-  static_assert(std::is_same<Product<CtMatrixSimple<2, 2, length, length, length, length>, CtMatrixSimple<2, 2, length>>::type, CtMatrixSimple<2, 2, area, area, area, area>>::value);
-//
-//  using ctm::Frame;
-//
-//  struct FrameAImpl {};
-//  using FrameA = Frame<FrameAImpl>;
-//  using MyFrames = CtMatrix<3, 2, FrameA, FrameA, FrameA, FrameA, FrameA, FrameA>;
-//  using MyUnits = CtMatrix<3, 2, length, area, volume, mass, force, energy>;
-//  using MyMatrix = Matrix<3, 2, double, MyFrames, MyUnits>;
-//  static_assert(std::is_same<Sum<MyFrames, MyFrames>::type, MyFrames>::value);
-//  static_assert(std::is_same<Sum<MyUnits, MyUnits>::type, MyUnits>::value);
-//  static_assert(std::is_same<Sum<MyMatrix, MyMatrix>::type, MyMatrix>::value);
+  static_assert(std::is_same<Sum<TypeMatrix<2, 2, length, length, length, length>, TypeMatrix<2, 2, length>>::type,
+                             TypeMatrix<2, 2, length, length, length, length>>::value);
+  static_assert(std::is_same<Product<TypeMatrix<2, 2, length, length, length, length>, TypeMatrix<2, 2, length>>::type,
+                             TypeMatrix<2, 2, area, area, area, area>>::value);
+
+  struct FrameAImpl {};
+  using FrameA = Frame<FrameAImpl>;
+  using MyValues = Eigen::Matrix<double, 3, 2>;
+  using MyFrames = TypeMatrix<3, 2, FrameA, FrameA, FrameA, FrameA, FrameA, FrameA>;
+  using MyUnits = TypeMatrix<3, 2, length, area, volume, mass, force, energy>;
+  using MyMatrix = Matrix<MyValues, MyFrames, MyUnits>;
+  static_assert(std::is_same<Sum<MyValues, MyValues>::type, MyValues>::value);
+  static_assert(std::is_same<Sum<MyFrames, MyFrames>::type, MyFrames>::value);
+  static_assert(std::is_same<Sum<MyUnits, MyUnits>::type, MyUnits>::value);
+  static_assert(std::is_same<Sum<MyMatrix, MyMatrix>::type, MyMatrix>::value);
 
 
 //  using lengthInv = Divide<dimensionless, length>;
