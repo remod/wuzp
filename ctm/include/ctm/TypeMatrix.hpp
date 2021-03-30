@@ -5,6 +5,7 @@
 #include <tuple>
 
 #include "ctm/helpers.hpp"
+#include "ctm/traits.hpp"
 
 namespace ctm {
 
@@ -34,30 +35,6 @@ struct ToColsImpl<Cols, std::tuple<Ts...>, std::index_sequence<ColIs...>> {
 
 template <size_t Cols, typename... Ts>
 using ToCols = ToColsImpl<Cols, std::tuple<Ts...>, std::make_index_sequence<Cols>>;
-
-template <typename... Ts>
-struct Sum;
-
-template <typename Lhs>
-struct Sum<Lhs> {
-  using type = Lhs;
-};
-
-template <typename T>
-struct fake_dependency: public std::false_type {};
-
-template <typename Lhs, typename Rhs>
-struct Sum<Lhs, Rhs> {
-  static_assert(fake_dependency<Sum<Lhs, Rhs>>::value, "'Sum' trait not specialized.");
-};
-
-template <typename Lhs, typename Rhs, typename... Others>
-struct Sum<Lhs, Rhs, Others...> {
-  using type = typename Sum<typename Sum<Lhs, Rhs>::type, Others...>::type;
-};
-
-template <typename Lhs, typename Rhs>
-struct Product;
 
 template <typename Lhs, typename Rhs, typename IndexSequence>
 struct AddTwoTuplesImpl;
@@ -104,67 +81,46 @@ struct MultiplyTuples<std::tuple<TuplesLhs...>, std::tuple<TuplesRhs...>, std::i
 
 
 template <int Rows, int Cols, typename Units>
-class CtMatrix;
+class TypeMatrixImpl;
 
 template <int Rows, int Cols, typename... Units>
-class CtMatrix<Rows, Cols, std::tuple<Units...>> {
+class TypeMatrixImpl<Rows, Cols, std::tuple<Units...>> {
   static_assert(sizeof...(Units) == Rows * Cols, "Number of units does not match matrix size.");
 
  public:
   static constexpr bool isHomogeneous = areSame<Units...>;
 };
 
-//template <int Size, typename Unit, int Counter>
-//struct ToTupleImpl {
-//  type = ToTupleImpl<Size, Unit>;
-//};
-//
-//template <int Size, typename Unit>
-//using ToTuple = typename ToTupleImpl<Size, Unit, Size>::type;
+template <int RowsLhs, int ColsLhs, typename... UnitsLhs, int RowsRhs, int ColsRhs, typename... UnitsRhs>
+struct Sum<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<UnitsRhs...>>> {
+  static_assert(RowsLhs == RowsRhs, "Matrix size mismatch.");
+  static_assert(ColsLhs == ColsRhs, "Matrix size mismatch.");
+  using type = TypeMatrixImpl<RowsLhs, ColsRhs, typename AddTwoTuples<std::tuple<UnitsLhs...>, std::tuple<UnitsRhs...>>::type>;
+};
 
-//template <int Rows, int Cols, typename Unit0, typename Unit1, typename... Units>
-//using CtMatrixSimple = CtMatrix<Rows, Cols, std::tuple<Units...>>;
-
-template <int Size, typename T>
-using ToTuple = decltype(std::tuple_cat(std::declval<std::array<T, Size>>()));
+template <int RowsLhs, int ColsLhs, typename... UnitsLhs, int RowsRhs, int ColsRhs, typename... UnitsRhs>
+struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<UnitsRhs...>>> {
+  static_assert(ColsLhs == RowsRhs, "Matrix size mismatch.");
+  using type =
+      TypeMatrixImpl<RowsLhs, ColsRhs, typename MultiplyTuples<typename ToRows<ColsLhs, UnitsLhs...>::type, typename ToCols<ColsRhs, UnitsRhs...>::type, std::make_index_sequence<
+      RowsLhs * ColsRhs>>::type>;
+};
 
 template <int Rows, int Cols, typename... Units>
-struct CtMatrixSimpleImpl;
+struct TypeMatrixHelper;
 
 template <int Rows, int Cols, typename Unit0, typename... Units>
-struct CtMatrixSimpleImpl<Rows, Cols, Unit0, Units...> {
+struct TypeMatrixHelper<Rows, Cols, Unit0, Units...> {
   static_assert(sizeof...(Units) + 1 == Rows * Cols, "Number of units does not match matrix size.");
-  using type = CtMatrix<Rows, Cols, std::tuple<Unit0, Units...>>;
+  using type = TypeMatrixImpl<Rows, Cols, std::tuple<Unit0, Units...>>;
 };
 
 template <int Rows, int Cols, typename Unit>
-struct CtMatrixSimpleImpl<Rows, Cols, Unit> {
-  using type = CtMatrix<Rows, Cols, ToTuple<Rows * Cols, Unit>>;
+struct TypeMatrixHelper<Rows, Cols, Unit> {
+  using type = TypeMatrixImpl<Rows, Cols, ToTuple<Rows * Cols, Unit>>;
 };
 
 template <int Rows, int Cols, typename... Units>
-using CtMatrixSimple = typename CtMatrixSimpleImpl<Rows, Cols, Units...>::type;
-
-template <int Rows, int Cols, typename Units>
-struct ToCtMatrix;
-
-template <int Rows, int Cols, typename... Units>
-struct ToCtMatrix<Rows, Cols, std::tuple<Units...>> {
-  using type = CtMatrix<Rows, Cols, Units...>;
-};
-
-template <int RowsLhs, int ColsLhs, typename... UnitsLhs, int RowsRhs, int ColsRhs, typename... UnitsRhs>
-struct Sum<CtMatrix<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, CtMatrix<RowsRhs, ColsRhs, std::tuple<UnitsRhs...>>> {
-  static_assert(RowsLhs == RowsRhs, "Matrix size mismatch.");
-  static_assert(ColsLhs == ColsRhs, "Matrix size mismatch.");
-  using type = CtMatrix<RowsLhs, ColsRhs, typename AddTwoTuples<std::tuple<UnitsLhs...>, std::tuple<UnitsRhs...>>::type>;
-};
-
-template <int RowsLhs, int ColsLhs, typename... UnitsLhs, int RowsRhs, int ColsRhs, typename... UnitsRhs>
-struct Product<CtMatrix<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, CtMatrix<RowsRhs, ColsRhs, std::tuple<UnitsRhs...>>> {
-  static_assert(ColsLhs == RowsRhs, "Matrix size mismatch.");
-  using type = CtMatrix<RowsLhs, ColsRhs, typename MultiplyTuples<typename ToRows<ColsLhs, UnitsLhs...>::type, typename ToCols<ColsRhs, UnitsRhs...>::type, std::make_index_sequence<
-      RowsLhs * ColsRhs>>::type>;
-};
+using TypeMatrix = typename TypeMatrixHelper<Rows, Cols, Units...>::type;
 
 }

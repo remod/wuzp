@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ctm/traits.hpp"
+
 namespace ctm {
 
 template <typename Type>
