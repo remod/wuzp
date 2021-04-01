@@ -13,7 +13,8 @@ struct Sum<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, Sys
 
 template <typename DimLhs, typename SystemLhs, typename DimRhs, typename SystemRhs>
 struct Product<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, SystemRhs>> {
-  using type = typename boost::units::multiply_typeof_helper<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, SystemRhs>>::type;
+  using type =
+      typename boost::units::multiply_typeof_helper<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, SystemRhs>>::type;
 };
 
-}
+}  // namespace ctm

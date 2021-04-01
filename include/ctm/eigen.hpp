@@ -12,4 +12,4 @@ struct Sum<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::Matrix<Scalar, Rows, Cols>>
   using type = Eigen::Matrix<Scalar, Rows, Cols>;
 };
 
-}
+}  // namespace ctm
