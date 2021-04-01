@@ -13,4 +13,4 @@ struct Sum<Frame<Lhs>, Frame<Rhs>> {
   using type = Frame<Lhs>;
 };
 
-}
+}  // namespace ctm

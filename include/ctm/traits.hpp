@@ -25,4 +25,4 @@ struct Sum<Lhs, Rhs, Others...> {
 template <typename Lhs, typename Rhs>
 struct Product;
 
-}
+}  // namespace ctm

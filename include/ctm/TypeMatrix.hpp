@@ -13,9 +13,7 @@ struct ToRowsImpl;
 template <size_t Cols, typename... Ts, size_t... RowIs>
 struct ToRowsImpl<Cols, std::tuple<Ts...>, std::index_sequence<RowIs...>> {
   using type = decltype(std::tuple_cat(
-      std::declval<typename std::tuple<typename GetSubset<
-          RowIs * Cols, RowIs * Cols + Cols, 1, std::tuple<Ts...>>::type>>()...
-  ));
+      std::declval<typename std::tuple<typename GetSubset<RowIs * Cols, RowIs * Cols + Cols, 1, std::tuple<Ts...>>::type>>()...));
 };
 
 template <size_t Cols, typename... Ts>
@@ -26,9 +24,8 @@ struct ToColsImpl;
 
 template <size_t Cols, typename... Ts, size_t... ColIs>
 struct ToColsImpl<Cols, std::tuple<Ts...>, std::index_sequence<ColIs...>> {
-  using type = decltype(std::tuple_cat(
-      std::declval<typename std::tuple<typename GetSubset<ColIs, sizeof...(Ts), Cols, std::tuple<Ts...>>::type>>()...
-  ));
+  using type = decltype(
+      std::tuple_cat(std::declval<typename std::tuple<typename GetSubset<ColIs, sizeof...(Ts), Cols, std::tuple<Ts...>>::type>>()...));
 };
 
 template <size_t Cols, typename... Ts>
@@ -39,7 +36,8 @@ struct AddTwoTuplesImpl;
 
 template <typename... TsLhs, typename... TsRhs, size_t... Is>
 struct AddTwoTuplesImpl<std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::index_sequence<Is...>> {
-  using type = std::tuple<typename Sum<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type, typename std::tuple_element<Is, std::tuple<TsRhs...>>::type>::type...>;
+  using type = std::tuple<typename Sum<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type,
+                                       typename std::tuple_element<Is, std::tuple<TsRhs...>>::type>::type...>;
 };
 
 template <typename Lhs, typename Rhs>
@@ -56,7 +54,8 @@ struct MultiplyTwoTuplesImpl;
 
 template <typename... TsLhs, typename... TsRhs, size_t... Is>
 struct MultiplyTwoTuplesImpl<std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::index_sequence<Is...>> {
-  using type = typename Sum<typename Product<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type, typename std::tuple_element<Is, std::tuple<TsRhs...>>::type>::type...>::type;
+  using type = typename Sum<typename Product<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type,
+                                             typename std::tuple_element<Is, std::tuple<TsRhs...>>::type>::type...>::type;
 };
 
 template <typename Lhs, typename Rhs>
@@ -72,11 +71,10 @@ struct MultiplyTuples;
 
 template <typename... TuplesLhs, typename... TuplesRhs, size_t... Is>
 struct MultiplyTuples<std::tuple<TuplesLhs...>, std::tuple<TuplesRhs...>, std::index_sequence<Is...>> {
-  using type = std::tuple<typename MultiplyTwoTuples<typename std::tuple_element<
-      Is / sizeof...(TuplesRhs), std::tuple<TuplesLhs...>>::type, typename std::tuple_element<
-      Is % sizeof...(TuplesRhs), std::tuple<TuplesRhs...>>::type>::type...>;
+  using type = std::tuple<
+      typename MultiplyTwoTuples<typename std::tuple_element<Is / sizeof...(TuplesRhs), std::tuple<TuplesLhs...>>::type,
+                                 typename std::tuple_element<Is % sizeof...(TuplesRhs), std::tuple<TuplesRhs...>>::type>::type...>;
 };
-
 
 template <int Rows, int Cols, typename Units>
 class TypeMatrixImpl;
@@ -100,8 +98,9 @@ template <int RowsLhs, int ColsLhs, typename... UnitsLhs, int RowsRhs, int ColsR
 struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<UnitsRhs...>>> {
   static_assert(ColsLhs == RowsRhs, "Matrix size mismatch.");
   using type =
-      TypeMatrixImpl<RowsLhs, ColsRhs, typename MultiplyTuples<typename ToRows<ColsLhs, UnitsLhs...>::type, typename ToCols<ColsRhs, UnitsRhs...>::type, std::make_index_sequence<
-      RowsLhs * ColsRhs>>::type>;
+      TypeMatrixImpl<RowsLhs, ColsRhs,
+                     typename MultiplyTuples<typename ToRows<ColsLhs, UnitsLhs...>::type, typename ToCols<ColsRhs, UnitsRhs...>::type,
+                                             std::make_index_sequence<RowsLhs * ColsRhs>>::type>;
 };
 
 template <int Rows, int Cols, typename... Units>
@@ -121,4 +120,4 @@ struct TypeMatrixHelper<Rows, Cols, Unit> {
 template <int Rows, int Cols, typename... Units>
 using TypeMatrix = typename TypeMatrixHelper<Rows, Cols, Units...>::type;
 
-}
+}  // namespace ctm
