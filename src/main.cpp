@@ -86,5 +86,7 @@ int main() {
 //  quantity<length> q1 = 1.0*meters;
 //  Matrix<2, 2, dimensionless, dimensionless, dimensionless, Divide<mass, length>> temp = matrix2 / q1;
 
+  std::cout << "Hello from main." << std::endl;
+
   return 0;
 }
