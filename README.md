@@ -1,5 +1,18 @@
 # ctm
 
+## Build
+
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
+## Format
+
+Instead of `make`, run `make format`.
+
 ## TODO
 
 * Rotations
