@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 #include "ctm/TypeMatrix.hpp"
 
 namespace ctm {
@@ -76,5 +78,17 @@ typename Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs
 // Matrix<RowsRhs, ColsRhs, ScalarRhs, FramesRhs, UnitsRhs> &rhs) {
 //  return add(lhs, rhs);
 //}
+
+template <typename Values, typename Frames, typename Units>
+struct GetFrame<Matrix<Values, Frames, Units>> {
+  static_assert(Frames::isHomogeneous, "Frames are heterogeneous.");
+  using type = std::tuple_element<0, typename Frames::AsTuple>;
+};
+
+template <typename Values, typename Frames, typename Units>
+std::ostream& operator<< (std::ostream& stream, const Matrix<Values, Frames, Units>& matrix) {
+  stream << matrix.getValues();
+  return stream;
+}
 
 }  // namespace ctm

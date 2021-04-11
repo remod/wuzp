@@ -84,6 +84,8 @@ class TypeMatrixImpl<Rows, Cols, std::tuple<Units...>> {
   static_assert(sizeof...(Units) == Rows * Cols, "Number of units does not match matrix size.");
 
  public:
+  using AsTuple = std::tuple<Units...>;
+
   static constexpr bool isHomogeneous = areSame<Units...>;
 };
 
