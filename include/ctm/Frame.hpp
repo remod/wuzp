@@ -4,8 +4,11 @@
 
 namespace ctm {
 
-template <typename Type>
+template <typename Name>
 struct Frame {};
+
+template <typename Object>
+struct GetFrame;
 
 template <typename Lhs, typename Rhs>
 struct Sum<Frame<Lhs>, Frame<Rhs>> {

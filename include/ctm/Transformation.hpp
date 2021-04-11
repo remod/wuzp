@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ctm/Frame.hpp"
+
 namespace ctm {
 
 template <typename Transformation, typename Object>
@@ -29,6 +31,7 @@ class ProperRigidTransformation : public PassiveTransformation<From, To> {
 
   template <typename Object>
   auto transform(const Object& object) const {
+    static_assert(!std::is_same<typename GetFrame<Object>::type, From>::value, "Frame mismatch.");
     return TransformationTraits<This, Object>::transform(*this, object);
   }
 
