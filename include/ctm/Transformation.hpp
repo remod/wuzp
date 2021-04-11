@@ -5,33 +5,38 @@ namespace ctm {
 template <typename Transformation, typename Object>
 struct TransformationTraits;
 
-template <typename Translation, typename Rotation, typename From, typename To>
-class TransformationBase {
-  TransformationBase() = default;
-  TransformationBase(Translation translation, Rotation rotation) : translation_(std::move(translation)), rotation_(std::move(rotation)) {}
+class Transformation {};
 
-  void setTranslation(const Translation& translation) { translation_ = translation; }
-  const Translation& getTranslation() const { return translation_; }
+// Translation, Rotation, Reflection, Dilation.
+
+class ActiveTransformation : public Transformation {};
+
+template <typename From, typename To>
+class PassiveTransformation : public Transformation {};
+
+// First rotate, then translate.
+template <typename From, typename To, typename Rotation, typename Translation>
+class ProperRigidTransformation : public PassiveTransformation<From, To> {
+ public:
+  ProperRigidTransformation() = default;
+  ProperRigidTransformation(Rotation rotation, Translation translation) : rotation_(std::move(rotation)), translation_(std::move(translation)) {}
 
   void setRotation(const Rotation& rotation) { rotation_ = rotation; }
   const Rotation& getRotation() const { return rotation_; }
 
-  template <typename Object, typename Return>
-  Return transform(const Object& object) {
-    return TransformationTraits<This, Object>(*this, object);
+  void setTranslation(const Translation& translation) { translation_ = translation; }
+  const Translation& getTranslation() const { return translation_; }
+
+  template <typename Object>
+  auto transform(const Object& object) const {
+    return TransformationTraits<This, Object>::transform(*this, object);
   }
 
  private:
-  using This = TransformationBase<Translation, Rotation, From, To>;
+  using This = ProperRigidTransformation<From, To, Rotation, Translation>;
 
-  Translation translation_;
   Rotation rotation_;
+  Translation translation_;
 };
-
-// template <typename Scalar, typename From, typename To>
-// using TransformationUsingQuaternion = TransformationBase<Eigen::Matrix<Scalar, 3, 1> , Eigen::Quaternion<Scalar>, From, To>;
-
-template <typename Transformation, typename Object>
-struct TransformationTraits;
 
 }  // namespace ctm

@@ -87,6 +87,13 @@ int main() {
   //  quantity<length> q1 = 1.0*meters;
   //  Matrix<2, 2, dimensionless, dimensionless, dimensionless, Divide<mass, length>> temp = matrix2 / q1;
 
+  const Eigen::Quaterniond rotation{1.0, 0.0, 0.0, 0.0};
+  const Eigen::Vector3d translation(1.0, 2.0, 3.0);
+  const ProperRigidTransformationEigen<FrameA, FrameA, double> transformation(rotation, translation);
+  const Eigen::Vector3d object(1.0, 2.0, 3.0);
+  auto result = transformation.transform(object);
+
+  std::cout << result << std::endl;
   std::cout << "Hello from main." << std::endl;
 
   return 0;
