@@ -17,29 +17,28 @@ add_executable(main src/main.cpp)
 target_include_directories(main PRIVATE include ${Boost_INCLUDE_DIRS})
 target_link_libraries(main Eigen3::Eigen)
 
-enable_testing()
-find_package(GTest REQUIRED)
-include(GoogleTest)
+if (ENABLE_TEST)
+    enable_testing()
+    find_package(GTest REQUIRED)
+    add_executable(tests tests/test.cpp)
+    target_include_directories(tests PRIVATE include ${Boost_INCLUDE_DIRS} GoogleTest)
+    target_link_libraries(tests Eigen3::Eigen GTest::GTest GTest::Main)
+    gtest_discover_tests(tests)
+endif()
 
-add_executable(tests tests/test.cpp)
-target_include_directories(tests PRIVATE include ${Boost_INCLUDE_DIRS})
-target_link_libraries(tests Eigen3::Eigen GTest::GTest GTest::Main)
-gtest_discover_tests(tests)
-
-#find_program(CLANG_FORMAT "clang-format")
-#if (CLANG_FORMAT)
-#    file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
-#            ${PROJECT_SOURCE_DIR}/*.[ch]pp
-#            )
-#
-#    add_custom_target(
-#            format
-#            COMMAND clang-format
-#            -i
-#            -style=file
-#            ${ALL_CXX_SOURCE_FILES}
-#    )
-#endif()
+if (ENABLE_CLANG_FORMAT)
+    find_program(CLANG_FORMAT "clang-format")
+    file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
+        ${PROJECT_SOURCE_DIR}/*.[ch]pp
+    )
+    add_custom_target(
+        format
+        COMMAND clang-format
+        -i
+        -style=file
+        ${ALL_CXX_SOURCE_FILES}
+    )
+endif()
 
 #find_program(CLANG_TIDY "clang-tidy")
 #if(CLANG_TIDY)

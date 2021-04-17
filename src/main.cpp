@@ -39,7 +39,6 @@ int main() {
   //  static_assert(std::false_type::value);
   //  static_assert(!is_type_complete_v<Sum<length, area, length>::type>);
 
-
   //  using lengthInv = Divide<dimensionless, length>;
   //  using massInv = Divide<dimensionless, mass>;
   //  Matrix<2, 2, length, length, length, length> matrix1;
@@ -68,7 +67,7 @@ int main() {
   const Vector object(VectorValues(1.0, 2.0, 3.0));
   const Eigen::Quaterniond rotation{1.0, 0.0, 0.0, 0.0};
   const Eigen::Vector3d translation(1.0, 2.0, 3.0);
-  const ProperRigidTransformationEigen<FromFrame , ToFrame, double> transformation(rotation, translation);
+  const ProperRigidTransformationEigen<FromFrame, ToFrame, double> transformation(rotation, translation);
   const auto result = transformation.transform(object);
 
   std::cout << result << std::endl;
