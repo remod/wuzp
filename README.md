@@ -3,6 +3,9 @@
 ## Preparations
 
 ```
+sudo apt install git cmake libboost-dev libeigen3-dev
+git clone https://github.com/remod/ctm.git
+cd ctm
 mkdir build
 cd build
 ```
@@ -17,6 +20,7 @@ make
 ## Test
 
 ```
+sudo apt install libgtest-dev
 cmake -DENABLE_TEST=On ..
 make
 ctest ..
@@ -25,8 +29,17 @@ ctest ..
 ## Format
 
 ```
-cmake -DENABLE_CLANG_FORMAT=On ..
+sudo apt install clang-format
+cmake -DENABLE_FORMAT=On ..
 make format
+```
+
+## Tidy
+
+```
+sudo apt install clang-tidy
+cmake -DENABLE_TIDY=On ..
+make tidy
 ```
 
 ## Roadmap
@@ -41,6 +54,10 @@ Improvements:
 
 * Use TypeMatrix with rows or cols == 1 instead of std::tuple.
 * Support Eigen lazy evaluation.
+
+Minor:
+
+* Downgrade C++ and CMake version as much as possible.
 
 Documentation:  
 

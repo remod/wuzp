@@ -20,23 +20,8 @@ jobs:
     - name: Update Package Index
       run: sudo apt update
 
-    - name: Install Git
-      run: sudo apt install git
-
-    - name: Install CMake
-      run: sudo apt install cmake
-
-    - name: Install CLang Format
-      run: sudo apt install clang-format
-
-    - name: Install Boost
-      run: sudo apt install libboost-dev
-    
-    - name: Install Eigen3
-      run: sudo apt install libeigen3-dev
-
-    - name: Install GTest
-      run: sudo apt install libgtest-dev
+    - name: Install Dependencies
+      run: sudo apt install git cmake libboost-dev libeigen3-dev libgtest-dev clang-format clang-tidy
 
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
@@ -51,7 +36,7 @@ jobs:
       # Note the current convention is to use the -S and -B options here to specify source 
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TEST=On -DENABLE_CLANG_FORMAT=On
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TEST=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -71,7 +56,12 @@ jobs:
       shell: bash
       run: make format
 
-    - name: Check if format is correct
+    - name: Check Format
       working-directory: ${{github.workspace}}
       shell: bash
       run: git diff --exit-code --quiet
+
+    - name: Tidy
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: make tidy
