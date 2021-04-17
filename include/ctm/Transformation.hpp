@@ -21,7 +21,8 @@ template <typename From, typename To, typename Rotation, typename Translation>
 class ProperRigidTransformation : public PassiveTransformation<From, To> {
  public:
   ProperRigidTransformation() = default;
-  ProperRigidTransformation(Rotation rotation, Translation translation) : rotation_(std::move(rotation)), translation_(std::move(translation)) {}
+  ProperRigidTransformation(Rotation rotation, Translation translation)
+      : rotation_(std::move(rotation)), translation_(std::move(translation)) {}
 
   void setRotation(const Rotation& rotation) { rotation_ = rotation; }
   const Rotation& getRotation() const { return rotation_; }

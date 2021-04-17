@@ -1,17 +1,33 @@
 # ctm
 
-## Build
+## Preparations
 
 ```
 mkdir build
 cd build
-cmake ..
+```
+
+## Build
+
+```
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 make
+```
+
+## Test
+
+```
+cmake -DENABLE_TEST=On ..
+make
+ctest ..
 ```
 
 ## Format
 
-Instead of `make`, run `make format`.
+```
+cmake -DENABLE_CLANG_FORMAT=On ..
+make format
+```
 
 ## Roadmap
 

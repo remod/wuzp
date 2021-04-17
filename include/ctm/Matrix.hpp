@@ -86,7 +86,7 @@ struct GetFrame<Matrix<Values, Frames, Units>> {
 };
 
 template <typename Values, typename Frames, typename Units>
-std::ostream& operator<< (std::ostream& stream, const Matrix<Values, Frames, Units>& matrix) {
+std::ostream& operator<<(std::ostream& stream, const Matrix<Values, Frames, Units>& matrix) {
   stream << matrix.getValues();
   return stream;
 }

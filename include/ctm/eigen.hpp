@@ -3,9 +3,9 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "ctm/traits.hpp"
 #include "ctm/Matrix.hpp"
 #include "ctm/Transformation.hpp"
+#include "ctm/traits.hpp"
 
 namespace ctm {
 
@@ -20,8 +20,10 @@ using ProperRigidTransformationEigen = ProperRigidTransformation<From, To, Eigen
 
 template <typename From, typename To, typename Scalar, typename Frames, typename Units>
 struct TransformationTraits<ProperRigidTransformationEigen<From, To, Scalar>, Matrix<Eigen::Matrix<Scalar, 3, 1>, Frames, Units>> {
-  static auto transform(const ProperRigidTransformationEigen<From, To, Scalar>& transformation, const Matrix<Eigen::Matrix<Scalar, 3, 1>, Frames, Units>& object) {
-    return Matrix<Eigen::Matrix<Scalar, 3, 1>, TypeMatrix<3, 1, To>, Units>(transformation.getRotation() * object.getValues() + transformation.getTranslation());
+  static auto transform(const ProperRigidTransformationEigen<From, To, Scalar>& transformation,
+                        const Matrix<Eigen::Matrix<Scalar, 3, 1>, Frames, Units>& object) {
+    return Matrix<Eigen::Matrix<Scalar, 3, 1>, TypeMatrix<3, 1, To>, Units>(transformation.getRotation() * object.getValues() +
+                                                                            transformation.getTranslation());
   }
 };
 
