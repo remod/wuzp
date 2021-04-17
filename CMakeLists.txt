@@ -16,7 +16,15 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 add_executable(main src/main.cpp)
 target_include_directories(main PRIVATE include ${Boost_INCLUDE_DIRS})
 target_link_libraries(main Eigen3::Eigen)
-set_property(TARGET main PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
+
+enable_testing()
+find_package(GTest REQUIRED)
+include(GoogleTest)
+
+add_executable(tests tests/test.cpp)
+target_include_directories(tests PRIVATE include ${Boost_INCLUDE_DIRS})
+target_link_libraries(tests Eigen3::Eigen GTest::GTest GTest::Main)
+gtest_discover_tests(tests)
 
 #find_program(CLANG_FORMAT "clang-format")
 #if (CLANG_FORMAT)
@@ -52,3 +60,5 @@ set_property(TARGET main PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
 #            -I{PROJECT_ROOT_DIR}/include
 #    )
 #endif()
+
+#set_property(TARGET main PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
