@@ -30,7 +30,7 @@ TEST(Test, Test) {  // NOLINT
   static_assert(std::is_same<Sum<TypeMatrix<2, 2, length, length, length, length>, TypeMatrix<2, 2, length>>::type,
                              TypeMatrix<2, 2, length, length, length, length>>::value);
   static_assert(std::is_same<Product<TypeMatrix<2, 2, length, length, length, length>, TypeMatrix<2, 2, length>>::type,
-                              TypeMatrix<2, 2, area, area, area, area>>::value);
+                             TypeMatrix<2, 2, area, area, area, area>>::value);
 
   struct FrameAName {};
   using FrameA = Frame<FrameAName>;
