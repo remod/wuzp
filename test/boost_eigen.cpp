@@ -8,19 +8,19 @@
 #include "ctm/eigen.hpp"
 #include "ctm/traits.hpp"
 
-using ctm::Frame;
-using ctm::TypeMatrix;
-using ctm::Matrix;
-using ctm::Sum;
-using ctm::ProperRigidTransformationEigen;
-using boost::units::si::length;
 using boost::units::si::area;
-using boost::units::si::volume;
-using boost::units::si::mass;
-using boost::units::si::force;
 using boost::units::si::energy;
+using boost::units::si::force;
+using boost::units::si::length;
+using boost::units::si::mass;
+using boost::units::si::volume;
+using ctm::Frame;
+using ctm::Matrix;
+using ctm::ProperRigidTransformationEigen;
+using ctm::Sum;
+using ctm::TypeMatrix;
 
-TEST(BoostEigen, Matrix) { // NOLINT
+TEST(BoostEigen, Matrix) {  // NOLINT
   struct FrameAName {};
   using FrameA = Frame<FrameAName>;
   using MyValues = Eigen::Matrix<double, 3, 2>;
@@ -30,7 +30,7 @@ TEST(BoostEigen, Matrix) { // NOLINT
   static_assert(std::is_same<Sum<MyMatrix, MyMatrix>::type, MyMatrix>::value);
 }
 
-TEST(BoostEigen, ProperRigidTransformation) { // NOLINT
+TEST(BoostEigen, ProperRigidTransformation) {  // NOLINT
   struct FromFrameName {};
   struct ToFrameName {};
   using FromFrame = Frame<FromFrameName>;
