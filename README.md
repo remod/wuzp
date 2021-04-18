@@ -21,7 +21,7 @@ make
 
 ```
 sudo apt install libgtest-dev
-cmake -DENABLE_TEST=On ..
+cmake -DENABLE_TEST=ON ..
 make
 ctest ..
 ```
@@ -30,7 +30,7 @@ ctest ..
 
 ```
 sudo apt install clang-format
-cmake -DENABLE_FORMAT=On ..
+cmake -DENABLE_FORMAT=ON ..
 make format
 ```
 
@@ -38,7 +38,7 @@ make format
 
 ```
 sudo apt install clang-tidy
-cmake -DENABLE_TIDY=On ..
+cmake -DENABLE_TIDY=ON ..
 make tidy
 ```
 
