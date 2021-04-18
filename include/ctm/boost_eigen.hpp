@@ -10,20 +10,38 @@
 
 namespace ctm {
 
-template <typename Scalar, typename Frame>
-using Position = PositionTemplate<Eigen::Matrix<Scalar, 3, 1>, Frame, boost::units::absolute<boost::units::si::length>>;
+template <int Dimension, typename Scalar, typename Frame>
+using Position = PositionTemplate<Dimension, Eigen::Matrix<Scalar, Dimension, 1>, Frame, boost::units::absolute<boost::units::si::length>>;
 
 template <typename Scalar, typename Frame>
-using Translation = TranslationTemplate<Eigen::Matrix<Scalar, 3, 1>, Frame, boost::units::si::length>;
+using Position2D = Position<2, Scalar, Frame>;
+
+template <typename Scalar, typename Frame>
+using Position3D = Position<3, Scalar, Frame>;
+
+template <int Dimension, typename Scalar, typename Frame>
+using Translation = TranslationTemplate<Dimension, Eigen::Matrix<Scalar, Dimension, 1>, Frame, boost::units::si::length>;
+
+template <typename Scalar, typename Frame>
+using Translation2D = Translation<2, Scalar, Frame>;
+
+template <typename Scalar, typename Frame>
+using Translation3D = Translation<3, Scalar, Frame>;
+
+template <int Dimension, typename From, typename To, typename Scalar>
+using ProperRigidTransformation = ProperRigidTransformationTemplate<From, To, Eigen::Quaternion<Scalar>, Translation<Dimension, Scalar, To>>;
 
 template <typename From, typename To, typename Scalar>
-using ProperRigidTransformation = ProperRigidTransformationTemplate<From, To, Eigen::Quaternion<Scalar>, Translation<Scalar, To>>;
+using ProperRigidTransformation2D = ProperRigidTransformation<2, From, To, Scalar>;
 
 template <typename From, typename To, typename Scalar>
-struct TransformationTraits<ProperRigidTransformation<From, To, Scalar>, Position<Scalar, From>> {
-  static auto transform(const ProperRigidTransformation<From, To, Scalar>& transformation,
-                        const Position<Scalar, From>& object) {
-    return Matrix<Eigen::Matrix<Scalar, 3, 1>, TypeMatrix<3, 1, To>, TypeMatrix<3, 1, boost::units::si::length>>(transformation.getRotation() * object.getValues()) +
+using ProperRigidTransformation3D = ProperRigidTransformation<3, From, To, Scalar>;
+
+template <int Dimension, typename From, typename To, typename Scalar>
+struct TransformationTraits<ProperRigidTransformation<Dimension, From, To, Scalar>, Position<Dimension, Scalar, From>> {
+  static auto transform(const ProperRigidTransformation<Dimension, From, To, Scalar>& transformation,
+                        const Position<Dimension, Scalar, From>& object) {
+    return Matrix<Eigen::Matrix<Scalar, Dimension, 1>, TypeMatrix<Dimension, 1, To>, TypeMatrix<Dimension, 1, boost::units::si::length>>(transformation.getRotation() * object.getValues()) +
                                                                             transformation.getTranslation();
   }
 };
