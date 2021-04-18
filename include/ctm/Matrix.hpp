@@ -82,7 +82,7 @@ typename Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs
 
 template <typename Values, typename Frames, typename Units>
 struct GetFrame<Matrix<Values, Frames, Units>> {
-  static_assert(Frames::isHomogeneous, "Frames are heterogeneous.");
+  static_assert(IsHomogeneous<Frames>::value, "Frames are heterogeneous.");
   using type = std::tuple_element<0, typename Frames::AsTuple>;
 };
 
