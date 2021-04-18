@@ -85,8 +85,6 @@ class TypeMatrixImpl<Rows, Cols, std::tuple<Units...>> {
 
  public:
   using AsTuple = std::tuple<Units...>;
-
-  static constexpr bool isHomogeneous = areSame<Units...>;
 };
 
 template <int RowsLhs, int ColsLhs, typename... UnitsLhs, int RowsRhs, int ColsRhs, typename... UnitsRhs>

@@ -40,6 +40,16 @@ using GetSubset = GetSubsetImpl<Start, End, Increment, Tuple, std::make_index_se
 template <class T, class... Ts>
 inline constexpr bool areSame = std::conjunction_v<std::is_same<T, Ts>...>;
 
+template <typename... Ts>
+struct IsHomogeneous {
+  static constexpr bool value = areSame<Ts...>;
+};
+
+template <typename... Ts>
+struct IsHomogeneous<std::tuple<Ts...>> {
+  static constexpr bool value = areSame<Ts...>;
+};
+
 template <typename T>
 constexpr auto getTypeName() noexcept {
   std::string_view name, prefix, suffix;
