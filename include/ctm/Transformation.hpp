@@ -4,8 +4,10 @@
 
 namespace ctm {
 
-template <typename Transformation, typename Object>
-struct TransformationTraits;
+template <typename Lhs, typename Rhs>
+struct TransformationTraits {
+  static_assert(FakeDependency<TransformationTraits<Lhs, Rhs>>::value, "'TransformationTraits' trait not specialized.");
+};
 
 class Transformation {};
 
@@ -18,10 +20,10 @@ class PassiveTransformation : public Transformation {};
 
 // First rotate, then translate.
 template <typename From, typename To, typename Rotation, typename Translation>
-class ProperRigidTransformation : public PassiveTransformation<From, To> {
+class ProperRigidTransformationTemplate : public PassiveTransformation<From, To> {
  public:
-  ProperRigidTransformation() = default;
-  ProperRigidTransformation(Rotation rotation, Translation translation)
+  ProperRigidTransformationTemplate() = default;
+  ProperRigidTransformationTemplate(Rotation rotation, Translation translation)
       : rotation_(std::move(rotation)), translation_(std::move(translation)) {}
 
   void setRotation(const Rotation& rotation) { rotation_ = rotation; }
@@ -37,7 +39,7 @@ class ProperRigidTransformation : public PassiveTransformation<From, To> {
   }
 
  private:
-  using This = ProperRigidTransformation<From, To, Rotation, Translation>;
+  using This = ProperRigidTransformationTemplate<From, To, Rotation, Translation>;
 
   Rotation rotation_;
   Translation translation_;

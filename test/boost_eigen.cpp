@@ -5,6 +5,7 @@
 #include "ctm/Transformation.hpp"
 #include "ctm/TypeMatrix.hpp"
 #include "ctm/boost.hpp"
+#include "ctm/boost_eigen.hpp"
 #include "ctm/eigen.hpp"
 #include "ctm/traits.hpp"
 
@@ -16,8 +17,10 @@ using boost::units::si::mass;
 using boost::units::si::volume;
 using ctm::Frame;
 using ctm::Matrix;
-using ctm::ProperRigidTransformationEigen;
+using ctm::Position;
+using ctm::ProperRigidTransformation;
 using ctm::Sum;
+using ctm::Translation;
 using ctm::TypeMatrix;
 
 TEST(BoostEigen, Matrix) {  // NOLINT
@@ -35,13 +38,11 @@ TEST(BoostEigen, ProperRigidTransformation) {  // NOLINT
   struct ToFrameName {};
   using FromFrame = Frame<FromFrameName>;
   using ToFrame = Frame<ToFrameName>;
-  using VectorValues = Eigen::Vector3d;
-  using VectorFrames = TypeMatrix<3, 1, FromFrame>;
-  using VectorUnits = TypeMatrix<3, 1, length>;
-  using Vector = Matrix<VectorValues, VectorFrames, VectorUnits>;
-  const Vector object(VectorValues(1.0, 2.0, 3.0));
+  const Position<double, FromFrame> object(Eigen::Vector3d(1.0, 2.0, 3.0));
   const Eigen::Quaterniond rotation{1.0, 0.0, 0.0, 0.0};
-  const Eigen::Vector3d translation(1.0, 2.0, 3.0);
-  const ProperRigidTransformationEigen<FromFrame, ToFrame, double> transformation(rotation, translation);
+  const Translation<double, ToFrame> translation(Eigen::Vector3d(1.0, 2.0, 3.0));
+  const ProperRigidTransformation<FromFrame, ToFrame, double> transformation(rotation, translation);
+  ctm::TransformationTraits<ProperRigidTransformation<FromFrame, ToFrame, double>, Position<double, FromFrame>>::transform(transformation,
+                                                                                                                           object);
   const auto result = transformation.transform(object);
 }
