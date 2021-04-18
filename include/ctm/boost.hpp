@@ -2,6 +2,7 @@
 
 #include <boost/units/systems/si.hpp>
 
+#include "ctm/Translation.hpp"
 #include "ctm/traits.hpp"
 
 namespace ctm {

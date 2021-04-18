@@ -52,7 +52,9 @@ struct IsHomogeneous<std::tuple<Ts...>> {
 
 template <typename T>
 constexpr auto getTypeName() noexcept {
-  std::string_view name, prefix, suffix;
+  std::string_view name;
+  std::string_view prefix;
+  std::string_view suffix;
 #ifdef __clang__
   name = __PRETTY_FUNCTION__;
   prefix = "auto type_name() [T = ";

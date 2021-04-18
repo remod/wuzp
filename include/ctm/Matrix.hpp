@@ -47,7 +47,8 @@ struct Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs, 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
 typename Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs, UnitsRhs>>::type add(
     const Matrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const Matrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
-  return Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs, UnitsRhs>>::type(lhs.toValues() + rhs.toValues());
+  return
+      typename Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs, UnitsRhs>>::type(lhs.getValues() + rhs.getValues());
 }
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
