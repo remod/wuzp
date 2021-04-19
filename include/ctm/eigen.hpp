@@ -3,7 +3,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "ctm/Matrix.hpp"
+#include "ctm/QuantityMatrix.hpp"
 #include "ctm/Transformation.hpp"
 #include "ctm/Translation.hpp"
 #include "ctm/traits.hpp"

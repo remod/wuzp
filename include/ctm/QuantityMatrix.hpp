@@ -26,12 +26,11 @@ namespace ctm {
 //};
 
 template <typename Values, typename Frames, typename Units>
-class Matrix {
+class QuantityMatrix {
  public:
-  explicit Matrix(const Values& values) : values_(values) {}
+  explicit QuantityMatrix(const Values& values) : values_(values) {}
 
   void setValues(const Values& values) { values_ = values; }
-
   const Values& getValues() const { return values_; }
 
  private:
@@ -39,21 +38,19 @@ class Matrix {
 };
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
-struct Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs, UnitsRhs>> {
-  using type =
-      Matrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<FramesLhs, FramesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
+struct Sum<QuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>> {
+  using type = QuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<FramesLhs, FramesRhs>::type,
+                              typename Sum<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
-typename Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs, UnitsRhs>>::type add(
-    const Matrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const Matrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
-  return
-      typename Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs, UnitsRhs>>::type(lhs.getValues() + rhs.getValues());
+auto add(const QuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
+  return typename Sum<QuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>>::type(
+      lhs.getValues() + rhs.getValues());
 }
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
-typename Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs, UnitsRhs>>::type operator+(
-    const Matrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const Matrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
+auto operator+(const QuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
   return add(lhs, rhs);
 }
 
@@ -82,13 +79,13 @@ typename Sum<Matrix<ValuesLhs, FramesLhs, UnitsLhs>, Matrix<ValuesRhs, FramesRhs
 //}
 
 template <typename Values, typename Frames, typename Units>
-struct GetFrame<Matrix<Values, Frames, Units>> {
+struct GetFrame<QuantityMatrix<Values, Frames, Units>> {
   static_assert(IsHomogeneous<Frames>::value, "Frames are heterogeneous.");
   using type = std::tuple_element<0, typename Frames::AsTuple>;
 };
 
 template <typename Values, typename Frames, typename Units>
-std::ostream& operator<<(std::ostream& stream, const Matrix<Values, Frames, Units>& matrix) {
+std::ostream& operator<<(std::ostream& stream, const QuantityMatrix<Values, Frames, Units>& matrix) {
   stream << matrix.getValues();
   return stream;
 }
