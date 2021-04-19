@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "ctm/Frame.hpp"
-#include "ctm/Matrix.hpp"
+#include "ctm/QuantityMatrix.hpp"
 #include "ctm/Transformation.hpp"
 #include "ctm/TypeMatrix.hpp"
 #include "ctm/boost.hpp"
