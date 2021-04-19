@@ -15,10 +15,14 @@ using boost::units::si::length;
 using boost::units::si::mass;
 using boost::units::si::volume;
 using ctm::Frame;
+using ctm::Position2D;
 using ctm::Position3D;
+using ctm::ProperRigidTransformation2D;
 using ctm::ProperRigidTransformation3D;
 using ctm::QuantityMatrix;
+using ctm::Quaternion;
 using ctm::Sum;
+using ctm::Translation2D;
 using ctm::Translation3D;
 using ctm::TypeMatrix;
 
@@ -32,13 +36,25 @@ TEST(BoostEigen, Matrix) {  // NOLINT
   static_assert(std::is_same<Sum<MyMatrix, MyMatrix>::type, MyMatrix>::value);
 }
 
+TEST(BoostEigen, ProperRigidTransformation2D) {  // NOLINT
+  //  struct FromFrameName {};
+  //  struct ToFrameName {};
+  //  using FromFrame = Frame<FromFrameName>;
+  //  using ToFrame = Frame<ToFrameName>;
+  //  const Position2D<double, FromFrame> object(Eigen::Vector2d(1.0, 2.0));
+  //  const Eigen::Quaterniond rotation{1.0, 0.0, 0.0, 0.0};
+  //  const Translation2D<double, ToFrame> translation(Eigen::Vector2d(1.0, 2.0));
+  //  const ProperRigidTransformation2D<FromFrame, ToFrame, double> transformation(rotation, translation);
+  //  const auto result = transformation.transform(object);
+}
+
 TEST(BoostEigen, ProperRigidTransformation) {  // NOLINT
   struct FromFrameName {};
   struct ToFrameName {};
   using FromFrame = Frame<FromFrameName>;
   using ToFrame = Frame<ToFrameName>;
   const Position3D<double, FromFrame> object(Eigen::Vector3d(1.0, 2.0, 3.0));
-  const Eigen::Quaterniond rotation{1.0, 0.0, 0.0, 0.0};
+  const Quaternion<double, FromFrame, ToFrame> rotation{1.0, 0.0, 0.0, 0.0};
   const Translation3D<double, ToFrame> translation(Eigen::Vector3d(1.0, 2.0, 3.0));
   const ProperRigidTransformation3D<FromFrame, ToFrame, double> transformation(rotation, translation);
   const auto result = transformation.transform(object);

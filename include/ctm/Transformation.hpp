@@ -4,9 +4,9 @@
 
 namespace ctm {
 
-template <typename Lhs, typename Rhs>
+template <typename Transformation, typename Object>
 struct TransformationTraits {
-  static_assert(FakeDependency<TransformationTraits<Lhs, Rhs>>::value, "'TransformationTraits' trait not specialized.");
+  static_assert(FakeDependency<TransformationTraits<Transformation, Object>>::value, "'TransformationTraits' trait not specialized.");
 };
 
 class Transformation {};
@@ -15,12 +15,23 @@ class Transformation {};
 
 class ActiveTransformation : public Transformation {};
 
-template <typename From, typename To>
-class PassiveTransformation : public Transformation {};
+template <typename Derived, typename From, typename To>
+class PassiveTransformation : public Transformation {
+ public:
+  template <typename Object>
+  auto transform(const Object& object) const {
+    static_assert(!std::is_same<typename GetFrame<Object>::type, From>::value, "Frame mismatch.");
+    return TransformationTraits<Derived, Object>::transform(derived(), object);
+  }
+
+ private:
+  const Derived& derived() const { return static_cast<const Derived&>(*this); }
+};
 
 // First rotate, then translate.
 template <typename From, typename To, typename Rotation, typename Translation>
-class ProperRigidTransformationTemplate : public PassiveTransformation<From, To> {
+class ProperRigidTransformationTemplate
+    : public PassiveTransformation<ProperRigidTransformationTemplate<From, To, Rotation, Translation>, From, To> {
  public:
   ProperRigidTransformationTemplate() = default;
   ProperRigidTransformationTemplate(Rotation rotation, Translation translation)
@@ -32,15 +43,7 @@ class ProperRigidTransformationTemplate : public PassiveTransformation<From, To>
   void setTranslation(const Translation& translation) { translation_ = translation; }
   const Translation& getTranslation() const { return translation_; }
 
-  template <typename Object>
-  auto transform(const Object& object) const {
-    static_assert(!std::is_same<typename GetFrame<Object>::type, From>::value, "Frame mismatch.");
-    return TransformationTraits<This, Object>::transform(*this, object);
-  }
-
  private:
-  using This = ProperRigidTransformationTemplate<From, To, Rotation, Translation>;
-
   Rotation rotation_;
   Translation translation_;
 };
