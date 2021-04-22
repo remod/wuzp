@@ -54,7 +54,7 @@ jobs:
     - name: Format
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: make format && git diff --exit-code --quiet ${{github.workspace}}
+      run: make format && git diff --exit-code ${{github.workspace}}
 
     - name: Tidy
       working-directory: ${{github.workspace}}/build
