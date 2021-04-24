@@ -16,4 +16,4 @@ class QuaternionBase : public PassiveTransformation<Derived, From, To> {
 
 class Rotation2D {};
 
-}
+}  // namespace ctm
