@@ -25,8 +25,9 @@ using ctm::Sum;
 using ctm::Translation2D;
 using ctm::Translation3D;
 using ctm::TypeMatrix;
+using ctm::Vector3D;
 
-TEST(BoostEigen, Matrix) {  // NOLINT
+TEST(BoostEigen_Matrix, IsSame) {  // NOLINT
   struct FrameAName {};
   using FrameA = Frame<FrameAName>;
   using MyValues = Eigen::Matrix<double, 3, 2>;
@@ -36,7 +37,7 @@ TEST(BoostEigen, Matrix) {  // NOLINT
   static_assert(std::is_same<Sum<MyMatrix, MyMatrix>::type, MyMatrix>::value);
 }
 
-TEST(BoostEigen, ProperRigidTransformation2D) {  // NOLINT
+TEST(BoostEigen_ProperRigidTransformation2D, TrasnformPosition) {  // NOLINT
   //  struct FromFrameName {};
   //  struct ToFrameName {};
   //  using FromFrame = Frame<FromFrameName>;
@@ -48,14 +49,32 @@ TEST(BoostEigen, ProperRigidTransformation2D) {  // NOLINT
   //  const auto result = transformation.transform(object);
 }
 
-TEST(BoostEigen, ProperRigidTransformation) {  // NOLINT
+TEST(BoostEigen_ProperRigidTransformation3D, TransformVector) {  // NOLINT
   struct FromFrameName {};
+  struct IntermediateFrameName {};
   struct ToFrameName {};
   using FromFrame = Frame<FromFrameName>;
+  using IntermediateFrame = Frame<IntermediateFrameName>;
   using ToFrame = Frame<ToFrameName>;
-  const Position3D<double, FromFrame> object(Eigen::Vector3d(1.0, 2.0, 3.0));
-  const Quaternion<double, FromFrame, ToFrame> rotation{1.0, 0.0, 0.0, 0.0};
-  const Translation3D<double, ToFrame> translation(Eigen::Vector3d(1.0, 2.0, 3.0));
-  const ProperRigidTransformation3D<FromFrame, ToFrame, double> transformation(rotation, translation);
-  const auto result = transformation.transform(object);
+  using Object = Vector3D<double, FromFrame>;
+  const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
+  const Quaternion<double, FromFrame, IntermediateFrame> rotation{0.0, 1.0, 0.0, 0.0};
+  const Translation3D<double, IntermediateFrame, ToFrame> translation(Vector3D<double, IntermediateFrame>(Eigen::Vector3d(4.0, 2.0, 1.0)));
+  const ProperRigidTransformation3D<FromFrame, IntermediateFrame, ToFrame, double> transformation(rotation, translation);
+  EXPECT_EQ(transformation.transform(object), Object(Eigen::Vector3d(1.0, -2.0, -3.0)));
+}
+
+TEST(BoostEigen_ProperRigidTransformation3D, TransformPosition) {  // NOLINT
+  struct FromFrameName {};
+  struct IntermediateFrameName {};
+  struct ToFrameName {};
+  using FromFrame = Frame<FromFrameName>;
+  using IntermediateFrame = Frame<IntermediateFrameName>;
+  using ToFrame = Frame<ToFrameName>;
+  using Object = Position3D<double, FromFrame>;
+  const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
+  const Quaternion<double, FromFrame, IntermediateFrame> rotation{0.0, 1.0, 0.0, 0.0};
+  const Translation3D<double, IntermediateFrame, ToFrame> translation(Vector3D<double, IntermediateFrame>(Eigen::Vector3d(4.0, 2.0, 1.0)));
+  const ProperRigidTransformation3D<FromFrame, IntermediateFrame, ToFrame, double> transformation(rotation, translation);
+  EXPECT_EQ(transformation.transform(object), Object(Eigen::Vector3d(5.0, 0.0, -2.0)));
 }

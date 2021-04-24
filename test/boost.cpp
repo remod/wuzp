@@ -13,14 +13,14 @@ using ctm::Product;
 using ctm::Sum;
 using ctm::TypeMatrix;
 
-TEST(Boost, UnitTypes) {  // NOLINT
+TEST(Boost_UnitTypes, IsSame) {  // NOLINT
   static_assert(std::is_same<Sum<length>::type, length>::value);
   static_assert(std::is_same<Sum<length, length>::type, length>::value);
   static_assert(std::is_same<Sum<length, length, length>::type, length>::value);
   static_assert(std::is_same<Product<length, length>::type, area>::value);
 }
 
-TEST(Boost, UnitTypeMatrices) {  // NOLINT
+TEST(Boost_UnitTypeMatrices, IsSame) {  // NOLINT
   static_assert(std::is_same<Sum<TypeMatrix<2, 2, length, length, length, length>, TypeMatrix<2, 2, length>>::type,
                              TypeMatrix<2, 2, length, length, length, length>>::value);
   static_assert(std::is_same<Product<TypeMatrix<2, 2, length, length, length, length>, TypeMatrix<2, 2, length>>::type,

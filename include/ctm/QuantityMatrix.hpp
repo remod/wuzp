@@ -38,6 +38,16 @@ class QuantityMatrix {
 };
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
+bool operator==(const QuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
+  return lhs.getValues() == rhs.getValues();
+}
+
+template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
+bool operator!=(const QuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
+  return !(lhs == rhs);
+}
+
+template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
 struct Sum<QuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>> {
   using type = QuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<FramesLhs, FramesRhs>::type,
                               typename Sum<UnitsLhs, UnitsRhs>::type>;
