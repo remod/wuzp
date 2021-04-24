@@ -25,7 +25,7 @@ class PassiveTransformation : public Transformation {
   }
 
  private:
-  const Derived& derived() const { return static_cast<const Derived&>(*this); }
+  const Derived& derived() const { return static_cast<const Derived&>(*this); }  // TODO(remod): Use CRTP class template from web.
 };
 
 // First rotate, then translate.

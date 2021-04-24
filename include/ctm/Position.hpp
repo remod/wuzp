@@ -5,7 +5,7 @@
 
 namespace ctm {
 
-template <int Dimension, typename Values, typename Frame, typename Unit>
-using PositionTemplate = QuantityMatrix<Values, TypeMatrix<Dimension, 1, Frame>, TypeMatrix<Dimension, 1, Unit>>;
+template <int Dimension, typename Values, typename Frame, typename AbsoluteUnit>
+using PositionTemplate = QuantityMatrix<Values, TypeMatrix<Dimension, 1, Frame>, TypeMatrix<Dimension, 1, AbsoluteUnit>>;
 
 }  // namespace ctm

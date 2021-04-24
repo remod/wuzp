@@ -5,6 +5,7 @@
 #include "ctm/Rotation.hpp"
 #include "ctm/Transformation.hpp"
 #include "ctm/Translation.hpp"
+#include "ctm/Vector.hpp"
 #include "ctm/boost.hpp"
 #include "ctm/eigen.hpp"
 #include "ctm/traits.hpp"
@@ -24,9 +25,20 @@ using Position2D = Position<2, Scalar, Frame>;
 template <typename Scalar, typename Frame>
 using Position3D = Position<3, Scalar, Frame>;
 
+template <int Dimension, typename Scalar, typename Frame>
+using Vector = VectorTemplate<Dimension, Eigen::Matrix<Scalar, Dimension, 1>, Frame, boost::units::si::length>;
+
+template <typename Scalar, typename Frame>
+using Vector2D = Vector<2, Scalar, Frame>;
+
+template <typename Scalar, typename Frame>
+using Vector3D = Vector<3, Scalar, Frame>;
+
 template <typename Scalar, typename From, typename To>
 class Quaternion
     : public QuaternionBase<Quaternion<Scalar, From, To>, From, To, boost::units::quantity<boost::units::si::dimensionless, Scalar>> {
+  // TODO(remod): Using friend is non-extendable. Change this.
+  friend TransformationTraits<Quaternion<Scalar, From, To>, Vector<3, Scalar, From>>;
   friend TransformationTraits<Quaternion<Scalar, From, To>, Position<3, Scalar, From>>;
 
  public:
@@ -42,23 +54,55 @@ class Quaternion
   Eigen::Quaternion<Scalar> impl_;
 };
 
-template <int Dimension, typename Scalar, typename Frame>
-using Translation = TranslationTemplate<Dimension, Eigen::Matrix<Scalar, Dimension, 1>, Frame, boost::units::si::length>;
+template <int Dimension, typename Scalar, typename From, typename To>
+class Translation : public TranslationBase<Translation<Dimension, Scalar, From, To>, From, To> {
+  friend TransformationTraits<Translation<Dimension, Scalar, From, To>, Position<Dimension, Scalar, From>>;
 
-template <typename Scalar, typename Frame>
-using Translation2D = Translation<2, Scalar, Frame>;
+ public:
+  using Impl = Vector<Dimension, Scalar, From>;  // TODO(remod): Use eigen directly? Interface should be consistent with Quaternion
 
-template <typename Scalar, typename Frame>
-using Translation3D = Translation<3, Scalar, Frame>;
+  explicit Translation(Impl impl) : impl_(impl) {}
 
-template <int Dimension, typename From, typename To, typename Rotation, typename TranslationScalar>
-using ProperRigidTransformation = ProperRigidTransformationTemplate<From, To, Rotation, Translation<Dimension, TranslationScalar, To>>;
+ private:
+  Impl impl_;
+};
+
+template <typename Scalar, typename From, typename To>
+using Translation2D = Translation<2, Scalar, From, To>;
+
+template <typename Scalar, typename From, typename To>
+using Translation3D = Translation<3, Scalar, From, To>;
+
+template <int Dimension, typename From, typename Intermediate, typename To, typename Rotation, typename TranslationScalar>
+using ProperRigidTransformation =
+    ProperRigidTransformationTemplate<From, Intermediate, Rotation, Translation<Dimension, TranslationScalar, Intermediate, To>>;
+
+template <typename From, typename Intermediate, typename To, typename Scalar>
+using ProperRigidTransformation2D = ProperRigidTransformation<2, From, Intermediate, To, Scalar, Scalar>;
+
+template <typename From, typename Intermediate, typename To, typename Scalar>
+using ProperRigidTransformation3D = ProperRigidTransformation<3, From, Intermediate, To, Quaternion<Scalar, From, Intermediate>, Scalar>;
+
+template <int Dimension, typename From, typename To, typename Scalar>
+struct TransformationTraits<Translation<Dimension, Scalar, From, To>, Vector<Dimension, Scalar, From>> {
+  static auto transform(const Translation<Dimension, Scalar, From, To>& /*transformation*/, const Vector<Dimension, Scalar, From>& object) {
+    return Vector<Dimension, Scalar, To>(object.getValues());
+  }
+};
+
+template <int Dimension, typename From, typename To, typename Scalar>
+struct TransformationTraits<Translation<Dimension, Scalar, From, To>, Position<Dimension, Scalar, From>> {
+  static auto transform(const Translation<Dimension, Scalar, From, To>& transformation, const Position<Dimension, Scalar, From>& object) {
+    return Position<Dimension, Scalar, To>((transformation.impl_ + object).getValues());
+  }
+};
 
 template <typename From, typename To, typename Scalar>
-using ProperRigidTransformation2D = ProperRigidTransformation<2, From, To, Scalar, Scalar>;
-
-template <typename From, typename To, typename Scalar>
-using ProperRigidTransformation3D = ProperRigidTransformation<3, From, To, Quaternion<Scalar, From, To>, Scalar>;
+struct TransformationTraits<Quaternion<Scalar, From, To>, Vector<3, Scalar, From>> {
+  static auto transform(const Quaternion<Scalar, From, To>& transformation, const Vector<3, Scalar, From>& object) {
+    return Vector<3, Scalar, To>(transformation.impl_ * object.getValues());
+  }
+};
 
 template <typename From, typename To, typename Scalar>
 struct TransformationTraits<Quaternion<Scalar, From, To>, Position<3, Scalar, From>> {
@@ -67,11 +111,10 @@ struct TransformationTraits<Quaternion<Scalar, From, To>, Position<3, Scalar, Fr
   }
 };
 
-template <int Dimension, typename From, typename To, typename Scalar>
-struct TransformationTraits<ProperRigidTransformation3D<From, To, Scalar>, Position<Dimension, Scalar, From>> {
-  static auto transform(const ProperRigidTransformation3D<From, To, Scalar>& transformation,
-                        const Position<Dimension, Scalar, From>& object) {
-    return transformation.getRotation().transform(object) + transformation.getTranslation();
+template <typename From, typename Intermediate, typename To, typename Scalar, typename Object>
+struct TransformationTraits<ProperRigidTransformation3D<From, Intermediate, To, Scalar>, Object> {
+  static auto transform(const ProperRigidTransformation3D<From, Intermediate, To, Scalar>& transformation, const Object& object) {
+    return transformation.getTranslation().transform(transformation.getRotation().transform(object));
   }
 };
 
