@@ -37,7 +37,7 @@ TEST(BoostEigen_Matrix, IsSame) {  // NOLINT
   static_assert(std::is_same<Sum<MyMatrix, MyMatrix>::type, MyMatrix>::value);
 }
 
-TEST(BoostEigen_ProperRigidTransformation2D, TrasnformPosition) {  // NOLINT
+TEST(BoostEigen_ProperRigidTransformation2D, TransformPosition) {  // NOLINT
   //  struct FromFrameName {};
   //  struct ToFrameName {};
   //  using FromFrame = Frame<FromFrameName>;
