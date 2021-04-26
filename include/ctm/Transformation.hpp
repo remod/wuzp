@@ -29,6 +29,7 @@ class PassiveTransformation : public Transformation {
 };
 
 // First rotate, then translate.
+// TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
 template <typename From, typename To, typename Rotation, typename Translation>
 class ProperRigidTransformationTemplate
     : public PassiveTransformation<ProperRigidTransformationTemplate<From, To, Rotation, Translation>, From, To> {

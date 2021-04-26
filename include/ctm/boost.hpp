@@ -11,6 +11,12 @@ namespace ctm {
 template <typename Scalar, typename Unit>
 using Quantity = boost::units::quantity<Unit, Scalar>;
 
+// TODO(remod): Wrap boost unit like to make it handier.
+// template <typename Impl>
+// struct Unit {};
+//
+// using Length = Unit<boost::units::si::length>;
+
 template <typename DimLhs, typename SystemLhs, typename DimRhs, typename SystemRhs>
 struct Sum<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, SystemRhs>> {
   using type = typename boost::units::add_typeof_helper<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, SystemRhs>>::type;
@@ -32,6 +38,11 @@ template <typename DimLhs, typename SystemLhs, typename DimRhs, typename SystemR
 struct Product<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, SystemRhs>> {
   using type =
       typename boost::units::multiply_typeof_helper<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, SystemRhs>>::type;
+};
+
+template <typename Dim, typename System>
+struct Inverse<boost::units::unit<Dim, System>> {
+  using type = typename boost::units::power_typeof_helper<boost::units::unit<Dim, System>, boost::units::static_rational<-1>>::type;
 };
 
 }  // namespace ctm
