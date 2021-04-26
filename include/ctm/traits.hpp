@@ -4,6 +4,7 @@
 
 namespace ctm {
 
+// TODO(remod): Extend Product like we did with Sum.
 template <typename... Ts>
 struct Sum;
 
@@ -24,5 +25,10 @@ struct Sum<Lhs, Rhs, Others...> {
 
 template <typename Lhs, typename Rhs>
 struct Product;
+
+template <typename T>
+struct Inverse {
+  static_assert(FakeDependency<Inverse<T>>::value, "'Inverse' trait not specialized.");
+};
 
 }  // namespace ctm

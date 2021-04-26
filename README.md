@@ -48,6 +48,9 @@ Features:
 
 * Rotations
 * Transformations
+* Dynamic matrices
+* Run-time frames
+* Run-time units
 * Unit tests
 
 Improvements:
