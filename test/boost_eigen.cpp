@@ -59,11 +59,13 @@ TEST(BoostEigen_ProperRigidTransformation3D, TransformVector) {  // NOLINT
   using IntermediateFrame = Frame<IntermediateFrameName>;
   using ToFrame = Frame<ToFrameName>;
   using Object = Vector3D<double, FromFrame>;
+  using TransformedObject = Vector3D<double, ToFrame>;
   const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
+  const TransformedObject transformedObject(Eigen::Vector3d(1.0, -2.0, -3.0));
   const Quaternion<double, FromFrame, IntermediateFrame> rotation{0.0, 1.0, 0.0, 0.0};
   const Translation3D<double, IntermediateFrame, ToFrame> translation(Vector3D<double, IntermediateFrame>(Eigen::Vector3d(4.0, 2.0, 1.0)));
   const ProperRigidTransformation3D<FromFrame, IntermediateFrame, ToFrame, double> transformation(rotation, translation);
-  EXPECT_EQ(transformation.transform(object), Object(Eigen::Vector3d(1.0, -2.0, -3.0)));
+  EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
 TEST(BoostEigen_ProperRigidTransformation3D, TransformPosition) {  // NOLINT
@@ -74,9 +76,11 @@ TEST(BoostEigen_ProperRigidTransformation3D, TransformPosition) {  // NOLINT
   using IntermediateFrame = Frame<IntermediateFrameName>;
   using ToFrame = Frame<ToFrameName>;
   using Object = Position3D<double, FromFrame>;
+  using TransformedObject = Position3D<double, ToFrame>;
   const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
+  const TransformedObject transformedObject(Eigen::Vector3d(5.0, 0.0, -2.0));
   const Quaternion<double, FromFrame, IntermediateFrame> rotation{0.0, 1.0, 0.0, 0.0};
   const Translation3D<double, IntermediateFrame, ToFrame> translation(Vector3D<double, IntermediateFrame>(Eigen::Vector3d(4.0, 2.0, 1.0)));
   const ProperRigidTransformation3D<FromFrame, IntermediateFrame, ToFrame, double> transformation(rotation, translation);
-  EXPECT_EQ(transformation.transform(object), Object(Eigen::Vector3d(5.0, 0.0, -2.0)));
+  EXPECT_EQ(transformation.transform(object), transformedObject);
 }
