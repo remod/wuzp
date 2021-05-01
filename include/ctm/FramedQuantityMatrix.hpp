@@ -22,20 +22,22 @@ class FramedQuantityMatrix {
 };
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
-bool operator==(const FramedQuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const FramedQuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
+bool operator==(const FramedQuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs,
+                const FramedQuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
   static_assert(std::is_same<FramesLhs, FramesRhs>::value && "Frames mismatch.");
   return lhs.getQuantityMatrix() == rhs.getQuantityMatrix();
 }
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
-bool operator!=(const FramedQuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const FramedQuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
+bool operator!=(const FramedQuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs,
+                const FramedQuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
   return !(lhs == rhs);
 }
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
 struct Sum<FramedQuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>, FramedQuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>> {
   using type = FramedQuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<FramesLhs, FramesRhs>::type,
-                              typename Sum<UnitsLhs, UnitsRhs>::type>;
+                                    typename Sum<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
@@ -45,7 +47,8 @@ auto add(const FramedQuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const 
 }
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
-auto operator+(const FramedQuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const FramedQuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
+auto operator+(const FramedQuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs,
+               const FramedQuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
   return add(lhs, rhs);
 }
 
