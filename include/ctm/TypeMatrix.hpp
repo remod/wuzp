@@ -77,13 +77,11 @@ struct MultiplyTuples<std::tuple<TuplesLhs...>, std::tuple<TuplesRhs...>, std::i
 };
 
 template <int Rows, int Cols, typename Units>
-class TypeMatrixImpl;
+struct TypeMatrixImpl;
 
 template <int Rows, int Cols, typename... Units>
-class TypeMatrixImpl<Rows, Cols, std::tuple<Units...>> {
+struct TypeMatrixImpl<Rows, Cols, std::tuple<Units...>> {
   static_assert(sizeof...(Units) == Rows * Cols, "Number of units does not match matrix size.");
-
- public:
   using AsTuple = std::tuple<Units...>;
 };
 
@@ -101,6 +99,22 @@ struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, TypeMa
       TypeMatrixImpl<RowsLhs, ColsRhs,
                      typename MultiplyTuples<typename ToRows<ColsLhs, UnitsLhs...>::type, typename ToCols<ColsRhs, UnitsRhs...>::type,
                                              std::make_index_sequence<RowsLhs * ColsRhs>>::type>;
+};
+
+template <typename T>
+struct Cat {};
+
+template <typename... Tuples>
+struct Cat<std::tuple<Tuples...>> {
+  using type =decltype(std::tuple_cat(
+      std::declval<Tuples>()...));
+};
+
+template <int Rows, int Cols, typename... Units>
+struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>> {
+//  using type = TypeMatrixImpl<Cols, Rows, decltype(std::tuple_cat(
+//      std::declval<typename ToRows<Cols, Units...>::type>))>;
+  using type = TypeMatrixImpl<Cols, Rows, typename Cat<typename ToCols<Cols, Units...>::type>::type>;
 };
 
 template <int Rows, int Cols, typename... Units>

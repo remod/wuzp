@@ -8,6 +8,7 @@ using ctm::ToCols;
 using ctm::ToRows;
 using ctm::ToTuple;
 using ctm::TypeMatrix;
+using ctm::Transpose;
 
 TEST(TypeMatrix, Interface) {  // NOLINT
   static_assert(std::is_same<TypeMatrix<3, 2, int>, TypeMatrix<3, 2, int, int, int, int, int, int>>::value);
@@ -43,12 +44,18 @@ TEST(TypeMatrix, Sum) {  // NOLINT
   using A = ValueMatrix<2, 2, 0, 1, 2, 3>;
   using B = ValueMatrix<2, 2, -1, 3, 4, 2>;
   using C = ValueMatrix<2, 2, -1, 4, 6, 5>;
-  static_assert(std::is_same<typename Sum<A, B>::type, C>::value);
+  static_assert(std::is_same<Sum<A, B>::type, C>::value);
 }
 
 TEST(TypeMatrix, Product) {  // NOLINT
   using A = ValueMatrix<2, 2, 0, 1, 2, 3>;
   using B = ValueMatrix<2, 2, -1, 3, 4, 2>;
   using C = ValueMatrix<2, 2, 4, 2, 10, 12>;
-  static_assert(std::is_same<typename Product<A, B>::type, C>::value);
+  static_assert(std::is_same<Product<A, B>::type, C>::value);
+}
+
+TEST(TypeMatrix, Transpose) {  // NOLINT
+  using A = ValueMatrix<2, 3, 0, 1, 2, 3, 4, 5>;
+  using B = ValueMatrix<3, 2, 0, 3, 1, 4, 2, 5>;
+  static_assert(std::is_same<typename Transpose<A>::type, B>::value);
 }
