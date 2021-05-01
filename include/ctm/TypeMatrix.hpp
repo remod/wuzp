@@ -12,8 +12,8 @@ struct ToRowsImpl;
 
 template <size_t Cols, typename... Ts, size_t... RowIs>
 struct ToRowsImpl<Cols, std::tuple<Ts...>, std::index_sequence<RowIs...>> {
-  using type = decltype(std::tuple_cat(
-      std::declval<typename std::tuple<typename GetSubset<RowIs * Cols, RowIs * Cols + Cols, 1, std::tuple<Ts...>>::type>>()...));
+  using type =
+      typename Cat<typename std::tuple<typename GetSubset<RowIs * Cols, RowIs * Cols + Cols, 1, std::tuple<Ts...>>::type>...>::type;
 };
 
 template <size_t Cols, typename... Ts>
@@ -24,8 +24,7 @@ struct ToColsImpl;
 
 template <size_t Cols, typename... Ts, size_t... ColIs>
 struct ToColsImpl<Cols, std::tuple<Ts...>, std::index_sequence<ColIs...>> {
-  using type = decltype(
-      std::tuple_cat(std::declval<typename std::tuple<typename GetSubset<ColIs, sizeof...(Ts), Cols, std::tuple<Ts...>>::type>>()...));
+  using type = typename Cat<typename std::tuple<typename GetSubset<ColIs, sizeof...(Ts), Cols, std::tuple<Ts...>>::type>...>::type;
 };
 
 template <size_t Cols, typename... Ts>
@@ -101,19 +100,8 @@ struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, TypeMa
                                              std::make_index_sequence<RowsLhs * ColsRhs>>::type>;
 };
 
-template <typename T>
-struct Cat {};
-
-template <typename... Tuples>
-struct Cat<std::tuple<Tuples...>> {
-  using type =decltype(std::tuple_cat(
-      std::declval<Tuples>()...));
-};
-
 template <int Rows, int Cols, typename... Units>
 struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>> {
-//  using type = TypeMatrixImpl<Cols, Rows, decltype(std::tuple_cat(
-//      std::declval<typename ToRows<Cols, Units...>::type>))>;
   using type = TypeMatrixImpl<Cols, Rows, typename Cat<typename ToCols<Cols, Units...>::type>::type>;
 };
 

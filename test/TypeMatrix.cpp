@@ -7,8 +7,8 @@ using ctm::Sum;
 using ctm::ToCols;
 using ctm::ToRows;
 using ctm::ToTuple;
-using ctm::TypeMatrix;
 using ctm::Transpose;
+using ctm::TypeMatrix;
 
 TEST(TypeMatrix, Interface) {  // NOLINT
   static_assert(std::is_same<TypeMatrix<3, 2, int>, TypeMatrix<3, 2, int, int, int, int, int, int>>::value);
