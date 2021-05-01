@@ -2,11 +2,11 @@
 
 #include "ctm/TypeMatrix.hpp"
 
+using ctm::HomogeneousTuple;
 using ctm::Product;
 using ctm::Sum;
 using ctm::ToCols;
 using ctm::ToRows;
-using ctm::ToTuple;
 using ctm::Transpose;
 using ctm::TypeMatrix;
 
@@ -15,7 +15,7 @@ TEST(TypeMatrix, Interface) {  // NOLINT
 }
 
 TEST(TypeMatrix, Conversions) {  // NOLINT
-  static_assert(std::is_same<ToTuple<3, int>, std::tuple<int, int, int>>::value);
+  static_assert(std::is_same<HomogeneousTuple<3, int>, std::tuple<int, int, int>>::value);
   static_assert(std::is_same<ToRows<3, int, double, int, float, char, double>::type,
                              std::tuple<std::tuple<int, double, int>, std::tuple<float, char, double>>>::value);
   static_assert(std::is_same<ToCols<3, int, double, int, float, char, double>::type,

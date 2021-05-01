@@ -116,7 +116,7 @@ struct TypeMatrixHelper<Rows, Cols, Unit0, Units...> {
 
 template <int Rows, int Cols, typename Unit>
 struct TypeMatrixHelper<Rows, Cols, Unit> {
-  using type = TypeMatrixImpl<Rows, Cols, ToTuple<Rows * Cols, Unit>>;
+  using type = TypeMatrixImpl<Rows, Cols, HomogeneousTuple<Rows * Cols, Unit>>;
 };
 
 template <int Rows, int Cols, typename... Units>

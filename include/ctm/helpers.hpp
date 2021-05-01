@@ -10,8 +10,8 @@ namespace ctm {
 template <typename T>
 struct FakeDependency : public std::false_type {};
 
-template <int Size, typename T>
-using ToTuple = decltype(std::tuple_cat(std::declval<std::array<T, Size>>()));
+template <std::size_t Size, typename T>
+using HomogeneousTuple = decltype(std::tuple_cat(std::declval<std::array<T, Size>>()));
 
 template <typename... Tuples>
 struct Cat {
