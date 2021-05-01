@@ -2,7 +2,6 @@
 
 #include "ctm/Frame.hpp"
 #include "ctm/FramedQuantityMatrix.hpp"
-#include "ctm/QuantityMatrix.hpp"
 #include "ctm/TypeMatrix.hpp"
 #include "ctm/boost.hpp"
 #include "ctm/boost_eigen.hpp"
@@ -21,7 +20,6 @@ using ctm::Position2D;
 using ctm::Position3D;
 using ctm::ProperRigidTransformation2D;
 using ctm::ProperRigidTransformation3D;
-using ctm::QuantityMatrix;
 using ctm::Quaternion;
 using ctm::Sum;
 using ctm::Translation2D;

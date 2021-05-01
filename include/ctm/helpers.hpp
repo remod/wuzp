@@ -18,10 +18,10 @@ struct Cat {
   using type = decltype(std::tuple_cat(std::declval<Tuples>()...));
 };
 
-template <template <typename> typename X, typename T>
+template <template <typename...> typename X, typename T>
 struct ExtractAndApply;
 
-template <template <typename> typename X, typename... Ts>
+template <template <typename...> typename X, typename... Ts>
 struct ExtractAndApply<X, std::tuple<Ts...>> {
   using type = typename X<Ts...>::type;
 };
