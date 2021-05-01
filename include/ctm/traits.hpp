@@ -27,6 +27,11 @@ template <typename Lhs, typename Rhs>
 struct Product;
 
 template <typename T>
+struct Transpose {
+  static_assert(FakeDependency<Transpose<T>>::value, "'Transpose' trait not specialized.");
+};
+
+template <typename T>
 struct Inverse {
   static_assert(FakeDependency<Inverse<T>>::value, "'Inverse' trait not specialized.");
 };
