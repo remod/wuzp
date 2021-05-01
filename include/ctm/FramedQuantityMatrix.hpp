@@ -8,20 +8,23 @@
 namespace ctm {
 
 template <typename Values, typename Units, typename Frames>
-class FramedQuantityMatrix : public QuantityMatrix<Values, Units> {
+class FramedQuantityMatrix {
  public:
-  explicit FramedQuantityMatrix(const Values& values) : QuantityMatrix<Values, Units>(values) {}
+  explicit FramedQuantityMatrix(const Values& values) : quantityMatrix_(values) {}
 
-//  void setValues(const Values& values) { values_ = values; }
-//  const Values& getValues() const { return values_; }
-//
-// private:
-//  Values values_;
+  const QuantityMatrix<Values, Units>& getQuantityMatrix() const { return quantityMatrix_; }
+
+  void setValues(const Values& values) { quantityMatrix_.setValues(values); }
+  const Values& getValues() const { return quantityMatrix_.getValues(); }
+
+ private:
+  QuantityMatrix<Values, Units> quantityMatrix_;
 };
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
 bool operator==(const FramedQuantityMatrix<ValuesLhs, FramesLhs, UnitsLhs>& lhs, const FramedQuantityMatrix<ValuesRhs, FramesRhs, UnitsRhs>& rhs) {
-  return lhs.getValues() == rhs.getValues();
+  static_assert(std::is_same<FramesLhs, FramesRhs>::value && "Frames mismatch.");
+  return lhs.getQuantityMatrix() == rhs.getQuantityMatrix();
 }
 
 template <typename ValuesLhs, typename FramesLhs, typename UnitsLhs, typename ValuesRhs, typename FramesRhs, typename UnitsRhs>
@@ -54,7 +57,7 @@ struct GetFrame<FramedQuantityMatrix<Values, Frames, Units>> {
 
 template <typename Values, typename Frames, typename Units>
 std::ostream& operator<<(std::ostream& stream, const FramedQuantityMatrix<Values, Frames, Units>& framedQuantityMatrix) {
-  stream << framedQuantityMatrix.getValues();
+  stream << framedQuantityMatrix.getQuantityMatrix();
   return stream;
 }
 
