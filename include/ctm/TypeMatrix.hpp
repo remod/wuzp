@@ -102,7 +102,7 @@ struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, TypeMa
 
 template <int Rows, int Cols, typename... Units>
 struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>> {
-  using type = TypeMatrixImpl<Cols, Rows, typename Cat<typename ToCols<Cols, Units...>::type>::type>;
+  using type = TypeMatrixImpl<Cols, Rows, typename ExtractAndApply<Cat, typename ToCols<Cols, Units...>::type>::type>;
 };
 
 template <int Rows, int Cols, typename... Units>

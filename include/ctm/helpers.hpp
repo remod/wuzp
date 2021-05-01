@@ -18,9 +18,12 @@ struct Cat {
   using type = decltype(std::tuple_cat(std::declval<Tuples>()...));
 };
 
-template <typename... Ts>
-struct Cat<std::tuple<Ts...>> {
-  using type = typename Cat<Ts...>::type;
+template <template <typename> typename X, typename T>
+struct ExtractAndApply;
+
+template <template <typename> typename X, typename... Ts>
+struct ExtractAndApply<X, std::tuple<Ts...>> {
+  using type = typename X<Ts...>::type;
 };
 
 template <bool>
@@ -31,7 +34,7 @@ struct SelectIf {
 
 template <>
 struct SelectIf<false> {
-  template <class T>
+  template <typename T>
   using type = std::tuple<>;
 };
 
@@ -46,7 +49,7 @@ struct GetSubsetImpl<Start, End, Increment, std::tuple<Ts...>, std::index_sequen
 template <int Start, int End, int Increment, typename Tuple>
 using GetSubset = GetSubsetImpl<Start, End, Increment, Tuple, std::make_index_sequence<std::tuple_size<Tuple>::value>>;
 
-template <class T, class... Ts>
+template <typename T, typename... Ts>
 inline constexpr bool areSame = std::conjunction_v<std::is_same<T, Ts>...>;
 
 template <typename... Ts>
@@ -56,7 +59,7 @@ struct IsHomogeneous {
 
 template <typename... Ts>
 struct IsHomogeneous<std::tuple<Ts...>> {
-  static constexpr bool value = areSame<Ts...>;
+  static constexpr bool value = IsHomogeneous<Ts...>::value;
 };
 
 template <typename T>
