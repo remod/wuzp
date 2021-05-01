@@ -57,5 +57,5 @@ TEST(TypeMatrix, Product) {  // NOLINT
 TEST(TypeMatrix, Transpose) {  // NOLINT
   using A = ValueMatrix<2, 3, 0, 1, 2, 3, 4, 5>;
   using B = ValueMatrix<3, 2, 0, 3, 1, 4, 2, 5>;
-  static_assert(std::is_same<typename Transpose<A>::type, B>::value);
+  static_assert(std::is_same<Transpose<A>::type, B>::value);
 }
