@@ -13,6 +13,16 @@ struct FakeDependency : public std::false_type {};
 template <int Size, typename T>
 using ToTuple = decltype(std::tuple_cat(std::declval<std::array<T, Size>>()));
 
+template <typename... Tuples>
+struct Cat {
+  using type = decltype(std::tuple_cat(std::declval<Tuples>()...));
+};
+
+template <typename... Ts>
+struct Cat<std::tuple<Ts...>> {
+  using type = typename Cat<Ts...>::type;
+};
+
 template <bool>
 struct SelectIf {
   template <typename T>
@@ -30,8 +40,7 @@ struct GetSubsetImpl;
 
 template <int Start, int End, int Increment, typename... Ts, size_t... Is>
 struct GetSubsetImpl<Start, End, Increment, std::tuple<Ts...>, std::index_sequence<Is...>> {
-  using type = decltype(std::tuple_cat(
-      std::declval<typename SelectIf<(Is >= Start) && (Is < End) && ((Is - Start) % Increment == 0)>::template type<Ts>>()...));
+  using type = typename Cat<typename SelectIf<(Is >= Start) && (Is < End) && ((Is - Start) % Increment == 0)>::template type<Ts>...>::type;
 };
 
 template <int Start, int End, int Increment, typename Tuple>
