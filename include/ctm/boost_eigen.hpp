@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ctm/FramedQuantityMatrix.hpp"
 #include "ctm/Position.hpp"
 #include "ctm/QuantityMatrix.hpp"
 #include "ctm/Rotation.hpp"

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "ctm/Frame.hpp"
+#include "ctm/FramedQuantityMatrix.hpp"
 #include "ctm/QuantityMatrix.hpp"
 #include "ctm/TypeMatrix.hpp"
 #include "ctm/boost.hpp"
@@ -15,6 +16,7 @@ using boost::units::si::length;
 using boost::units::si::mass;
 using boost::units::si::volume;
 using ctm::Frame;
+using ctm::FramedQuantityMatrix;
 using ctm::Position2D;
 using ctm::Position3D;
 using ctm::ProperRigidTransformation2D;
@@ -33,7 +35,7 @@ TEST(BoostEigen_Matrix, IsSame) {  // NOLINT
   using MyValues = Eigen::Matrix<double, 3, 2>;
   using MyFrames = TypeMatrix<3, 2, FrameA, FrameA, FrameA, FrameA, FrameA, FrameA>;
   using MyUnits = TypeMatrix<3, 2, length, area, volume, mass, force, energy>;
-  using MyMatrix = QuantityMatrix<MyValues, MyFrames, MyUnits>;
+  using MyMatrix = FramedQuantityMatrix<MyValues, MyFrames, MyUnits>;
   static_assert(std::is_same<Sum<MyMatrix, MyMatrix>::type, MyMatrix>::value);
 }
 
