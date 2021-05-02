@@ -15,26 +15,26 @@ using ctm::Product;
 using ctm::Sum;
 using ctm::TypeMatrix;
 
-TEST(Boost_Unit, Sum) {  // NOLINT
+TEST(BoostUnit, Sum) {  // NOLINT
   static_assert(std::is_same<Sum<length>::type, length>::value);
   static_assert(std::is_same<Sum<length, length>::type, length>::value);
   static_assert(std::is_same<Sum<length, length, length>::type, length>::value);
 }
 
-TEST(Boost_Unit, Product) {  // NOLINT
+TEST(BoostUnit, Product) {  // NOLINT
   static_assert(std::is_same<Product<length, length>::type, area>::value);
 }
 
-TEST(Boost_Unit, Inverse) {  // NOLINT
+TEST(BoostUnit, Inverse) {  // NOLINT
   static_assert(std::is_same<Inverse<boost::units::si::time>::type, frequency>::value);
 }
 
-TEST(Boost_UnitMatrix, Sum) {  // NOLINT
+TEST(BoostUnitMatrix, Sum) {  // NOLINT
   static_assert(std::is_same<Sum<TypeMatrix<2, 2, length>, TypeMatrix<2, 2, length>>::type, TypeMatrix<2, 2, length>>::value);
   using MyUnits = TypeMatrix<3, 2, length, area, volume, mass, force, energy>;
   static_assert(std::is_same<Sum<MyUnits, MyUnits>::type, MyUnits>::value);
 }
 
-TEST(Boost_UnitMatrix, Product) {  // NOLINT
+TEST(BoostUnitMatrix, Product) {  // NOLINT
   static_assert(std::is_same<Product<TypeMatrix<2, 2, length>, TypeMatrix<2, 2, length>>::type, TypeMatrix<2, 2, area>>::value);
 }
