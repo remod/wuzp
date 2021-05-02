@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "ctm/Frame.hpp"
 #include "ctm/QuantityMatrix.hpp"
 #include "ctm/TypeMatrix.hpp"
 #include "ctm/boost.hpp"
-#include "ctm/boost_eigen.hpp"
 #include "ctm/eigen.hpp"
 #include "ctm/traits.hpp"
 
@@ -14,18 +12,8 @@ using boost::units::si::force;
 using boost::units::si::length;
 using boost::units::si::mass;
 using boost::units::si::volume;
-using ctm::Frame;
-using ctm::Position2D;
-using ctm::Position3D;
-using ctm::ProperRigidTransformation2D;
-using ctm::ProperRigidTransformation3D;
 using ctm::QuantityMatrix;
-using ctm::Quaternion;
-using ctm::Sum;
-using ctm::Translation2D;
-using ctm::Translation3D;
 using ctm::TypeMatrix;
-using ctm::Vector3D;
 
 class BoostEigenQuantityMatrix : public ::testing::Test {
  public:
