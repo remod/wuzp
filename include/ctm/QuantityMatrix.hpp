@@ -16,6 +16,8 @@ class QuantityMatrix {
   void setValues(const Values& values) { values_ = values; }
   const Values& getValues() const { return values_; }
 
+  auto transpose() const { return typename Transpose<QuantityMatrix<Values, Units>>::type(getValues().transpose()); }
+
  private:
   Values values_;
 };
@@ -34,6 +36,11 @@ bool operator!=(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMa
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
   using type = QuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
+};
+
+template <typename Values, typename Units>
+struct Transpose<QuantityMatrix<Values, Units>> {
+  using type = QuantityMatrix<typename Transpose<Values>::type, typename Transpose<Units>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
