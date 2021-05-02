@@ -10,6 +10,7 @@ namespace ctm {
 template <typename Values, typename Units>
 class QuantityMatrix {
  public:
+  QuantityMatrix() = default;
   explicit QuantityMatrix(const Values& values) : values_(values) {}
 
   void setValues(const Values& values) { values_ = values; }

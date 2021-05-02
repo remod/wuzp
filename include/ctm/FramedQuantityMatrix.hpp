@@ -10,6 +10,7 @@ namespace ctm {
 template <typename Values, typename Units, typename Frames>
 class FramedQuantityMatrix {
  public:
+  FramedQuantityMatrix() = default;
   explicit FramedQuantityMatrix(const Values& values) : quantityMatrix_(values) {}
 
   const QuantityMatrix<Values, Units>& getQuantityMatrix() const { return quantityMatrix_; }
@@ -18,7 +19,7 @@ class FramedQuantityMatrix {
   const Values& getValues() const { return quantityMatrix_.getValues(); }
 
   auto transpose() const {
-    return FramedQuantityMatrix<decltype(getValues().transpose()), typename Transpose<Units>::type, typename Transpose<Frames>::type>(getValues().transpose());
+    return FramedQuantityMatrix<typename Transpose<Values>::type, typename Transpose<Units>::type, typename Transpose<Frames>::type>(getValues().transpose());
   }
 
  private:
