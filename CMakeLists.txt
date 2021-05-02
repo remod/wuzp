@@ -15,7 +15,15 @@ target_link_libraries(main Eigen3::Eigen)
 if (ENABLE_TEST)
     enable_testing()
     find_package(GTest REQUIRED)
-    add_executable(tests test/TypeMatrix.cpp test/Frame.cpp test/boost.cpp test/eigen.cpp test/boost_eigen.cpp)
+    add_executable(tests
+        test/TypeMatrix.cpp
+        test/Frame.cpp
+        test/Boost.cpp
+        test/Eigen.cpp
+        test/BoostEigenQuantityMatrix.cpp
+        test/BoostEigenFramedQuantityMatrix.cpp
+        test/BoostEigenProperRigidTransformation.cpp
+    )
     target_include_directories(tests PRIVATE include ${Boost_INCLUDE_DIRS} GoogleTest)
     target_link_libraries(tests Eigen3::Eigen GTest::GTest GTest::Main)
     gtest_discover_tests(tests)

@@ -18,9 +18,7 @@ class FramedQuantityMatrix {
   void setValues(const Values& values) { quantityMatrix_.setValues(values); }
   const Values& getValues() const { return quantityMatrix_.getValues(); }
 
-  auto transpose() const {
-    return typename Transpose<FramedQuantityMatrix<Values, Units, Frames>>::type(getValues().transpose());
-  }
+  auto transpose() const { return typename Transpose<FramedQuantityMatrix<Values, Units, Frames>>::type(getValues().transpose()); }
 
  private:
   QuantityMatrix<Values, Units> quantityMatrix_;
@@ -41,8 +39,8 @@ bool operator!=(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs,
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 struct Sum<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
-  using type = FramedQuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type,
-      typename Sum<UnitsLhs, UnitsRhs>::type, typename Sum<FramesLhs, FramesRhs>::type>;
+  using type = FramedQuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type,
+                                    typename Sum<FramesLhs, FramesRhs>::type>;
 };
 
 template <typename Values, typename Units, typename Frames>
