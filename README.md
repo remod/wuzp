@@ -56,7 +56,6 @@ Features:
 Improvements:
 
 * Use TypeMatrix with rows or cols == 1 instead of std::tuple.
-* Support Eigen lazy evaluation.
 
 Minor:
 
