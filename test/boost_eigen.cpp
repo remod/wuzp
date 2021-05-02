@@ -27,14 +27,44 @@ using ctm::Translation3D;
 using ctm::TypeMatrix;
 using ctm::Vector3D;
 
-TEST(BoostEigen_Matrix, IsSame) {  // NOLINT
+TEST(BoostEigen_FramedQuantityMatrix, IsSame) {  // NOLINT
   struct FrameAName {};
   using FrameA = Frame<FrameAName>;
   using MyValues = Eigen::Matrix<double, 3, 2>;
-  using MyFrames = TypeMatrix<3, 2, FrameA, FrameA, FrameA, FrameA, FrameA, FrameA>;
   using MyUnits = TypeMatrix<3, 2, length, area, volume, mass, force, energy>;
-  using MyMatrix = FramedQuantityMatrix<MyValues, MyFrames, MyUnits>;
+  using MyFrames = TypeMatrix<3, 2, FrameA, FrameA, FrameA, FrameA, FrameA, FrameA>;
+  using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
   static_assert(std::is_same<Sum<MyMatrix, MyMatrix>::type, MyMatrix>::value);
+}
+
+TEST(BoostEigen_FramedQuantityMatrix, Transpose) {  // NOLINT
+  struct FrameAName {};
+  struct FrameBName {};
+  struct FrameCName {};
+  struct FrameDName {};
+  struct FrameEName {};
+  struct FrameFName {};
+  using FrameA = Frame<FrameAName>;
+  using FrameB = Frame<FrameBName>;
+  using FrameC = Frame<FrameCName>;
+  using FrameD = Frame<FrameDName>;
+  using FrameE = Frame<FrameEName>;
+  using FrameF = Frame<FrameFName>;
+  using MyValues = Eigen::Matrix<int, 2, 3>;
+  using MyValuesT = Eigen::Matrix<int, 3, 2>;
+  using MyUnits = TypeMatrix<2, 3, length, area, volume, mass, force, energy>;
+  using MyUnitsT = TypeMatrix<3, 2, length, mass, area, force, volume, energy>;
+  using MyFrames = TypeMatrix<2, 3, FrameA, FrameB, FrameC, FrameD, FrameE, FrameF>;
+  using MyFramesT = TypeMatrix<3, 2, FrameA, FrameD, FrameB, FrameE, FrameC, FrameF>;
+  using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
+  using MyMatrixT = FramedQuantityMatrix<MyValuesT, MyUnitsT, MyFramesT>;
+  MyValues values;
+  MyValuesT valuesT;
+  values << 1, 2, 3, 4, 5, 6;
+  valuesT << 1, 4, 2, 5, 3, 6;
+  MyMatrix matrix(values);
+  MyMatrixT matrixT(valuesT);
+  EXPECT_EQ(matrix.transpose(), matrixT);
 }
 
 TEST(BoostEigen_ProperRigidTransformation2D, TransformPosition) {  // NOLINT
