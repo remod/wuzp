@@ -16,4 +16,9 @@ struct Sum<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::Matrix<Scalar, Rows, Cols>>
   using type = Eigen::Matrix<Scalar, Rows, Cols>;
 };
 
+template <typename Scalar, int Rows, int Cols>
+struct Transpose<Eigen::Matrix<Scalar, Rows, Cols>> {
+  using type = Eigen::Matrix<Scalar, Cols, Rows>;
+};
+
 }  // namespace ctm

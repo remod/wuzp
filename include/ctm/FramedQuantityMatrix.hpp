@@ -17,6 +17,10 @@ class FramedQuantityMatrix {
   void setValues(const Values& values) { quantityMatrix_.setValues(values); }
   const Values& getValues() const { return quantityMatrix_.getValues(); }
 
+  auto transpose() const {
+    return FramedQuantityMatrix<decltype(getValues().transpose()), typename Transpose<Units>::type, typename Transpose<Frames>::type>(getValues().transpose());
+  }
+
  private:
   QuantityMatrix<Values, Units> quantityMatrix_;
 };
