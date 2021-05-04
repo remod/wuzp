@@ -2,7 +2,9 @@
 
 #include "ctm/TypeMatrix.hpp"
 
+using ctm::GetIdentity;
 using ctm::HomogeneousTuple;
+using ctm::Identity;
 using ctm::Product;
 using ctm::Sum;
 using ctm::ToCols;
@@ -27,6 +29,11 @@ struct ValueT {
   static constexpr int Value = Value_;
 };
 
+template <int Value>
+struct GetIdentity<ValueT<Value>> {
+  using type = ValueT<0>;
+};
+
 template <int ValueLhs, int ValueRhs>
 struct Sum<ValueT<ValueLhs>, ValueT<ValueRhs>> {
   using type = ValueT<ValueLhs + ValueRhs>;
@@ -39,6 +46,12 @@ struct Product<ValueT<ValueLhs>, ValueT<ValueRhs>> {
 
 template <int Rows, int Cols, int... Values>
 using ValueMatrix = TypeMatrix<Rows, Cols, ValueT<Values>...>;
+
+TEST(TypeMatrix, Identity) {  // NOLINT
+  static_assert(std::is_same<Identity<1, ValueT<1>>, TypeMatrix<1, 1, ValueT<0>>>::value);
+  static_assert(std::is_same<Identity<2, ValueT<-1>>, TypeMatrix<2, 2, ValueT<0>>>::value);
+  static_assert(std::is_same<Identity<3, ValueT<35>>, TypeMatrix<3, 3, ValueT<0>>>::value);
+}
 
 TEST(TypeMatrix, Sum) {  // NOLINT
   using A = ValueMatrix<2, 2, 0, 1, 2, 3>;

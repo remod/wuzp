@@ -10,7 +10,7 @@ namespace ctm {
 template <typename T>
 struct FakeDependency : public std::false_type {};
 
-template <std::size_t Size, typename T>
+template <int Size, typename T>
 using HomogeneousTuple = decltype(std::tuple_cat(std::declval<std::array<T, Size>>()));
 
 template <typename... Tuples>
@@ -28,6 +28,7 @@ struct ExtractAndApply<X, std::tuple<Ts...>> {
 
 template <bool>
 struct SelectIf {
+  // TODO(remod): Move type template to SelectIf?
   template <typename T>
   using type = std::tuple<T>;
 };
@@ -36,6 +37,19 @@ template <>
 struct SelectIf<false> {
   template <typename T>
   using type = std::tuple<>;
+};
+
+template <bool UseTypeA, typename TypeA, typename TypeB>
+struct Chose;
+
+template <typename TypeA, typename TypeB>
+struct Chose<true, TypeA, TypeB> {
+  using type = TypeA;
+};
+
+template <typename TypeA, typename TypeB>
+struct Chose<false, TypeA, TypeB> {
+  using type = TypeB;
 };
 
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>

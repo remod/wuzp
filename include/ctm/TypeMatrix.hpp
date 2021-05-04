@@ -105,8 +105,38 @@ struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>> {
   using type = TypeMatrixImpl<Cols, Rows, typename ExtractAndApply<Cat, typename ToCols<Cols, Units...>::type>::type>;
 };
 
+// template <int Size, typename ZeroType, typename OneType, typename IndexSequence>
+// struct IdentityImpl;
+//
+// template <int Size, typename ZeroType, typename OneType, size_t... Is>
+// struct IdentityImpl<Size, ZeroType, OneType, std::index_sequence<Is...>> {
+//  using type = TypeMatrixImpl<Size, Size, std::tuple<typename Chose<Is % (Size + 1) != 0, ZeroType, OneType>::type...>>;
+//};
+//
+// template <int Size, typename ZeroType, typename OneType>
+// using Identity = typename IdentityImpl<Size, ZeroType, OneType, std::make_index_sequence<Size * Size>>::type;
+
+template <int Size, typename TypeOfFamily>
+using Identity = TypeMatrixImpl<Size, Size, HomogeneousTuple<Size * Size, typename GetIdentity<TypeOfFamily>::type>>;
+
+template <int Rows, int Cols, typename... Units>
+struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>> {
+  static_assert(Rows == Cols, "Matrix is rectangular.");
+  // Note: Inverting the types individually gives a candidate for the result of the inversion.
+  using type = TypeMatrixImpl<Rows, Cols, std::tuple<typename Inverse<Units>::type...>>;
+  // Note: Verify the candidate by multiplying it with the original matrix.
+  static_assert(std::is_same<typename Product<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>, type>::type,
+                             Identity<Rows, typename std::tuple_element<0, std::tuple<Units...>>::type>>::value,
+                "Matrix is not invertable.");
+};
+
 template <int Rows, int Cols, typename... Units>
 struct TypeMatrixHelper;
+
+template <int Rows, int Cols>
+struct TypeMatrixHelper<Rows, Cols> {
+  static_assert(FakeDependency<TypeMatrixHelper<Rows, Cols>>::value, "Empty type matrix is not allowed.");
+};
 
 template <int Rows, int Cols, typename Unit0, typename... Units>
 struct TypeMatrixHelper<Rows, Cols, Unit0, Units...> {
