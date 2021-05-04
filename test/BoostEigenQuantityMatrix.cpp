@@ -9,6 +9,7 @@
 using boost::units::si::area;
 using boost::units::si::energy;
 using boost::units::si::force;
+using boost::units::si::frequency;
 using boost::units::si::length;
 using boost::units::si::mass;
 using boost::units::si::volume;
@@ -46,4 +47,32 @@ TEST_F(BoostEigenQuantityMatrix, Transpose) {  // NOLINT
   valuesT << 1, 4, 2, 5, 3, 6;
   MyMatrixT matrixT(valuesT);
   EXPECT_EQ(getMatrix().transpose(), matrixT);
+}
+
+class BoostEigenQuantityMatrix2 : public ::testing::Test {
+ public:
+  using MyValues = Eigen::Matrix<double, 2, 2>;
+  using MyUnits = TypeMatrix<2, 2, boost::units::si::time>;
+  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
+
+  const MyMatrix& getMatrix() const { return matrix_; }
+
+ protected:
+  void SetUp() override {
+    values_ << 4.0, 7.0, 2.0, 6.0;
+    matrix_.setValues(values_);
+  }
+
+ private:
+  MyValues values_;
+  MyMatrix matrix_;
+};
+
+TEST_F(BoostEigenQuantityMatrix2, Inverse) {  // NOLINT
+  using MyUnitsInv = TypeMatrix<2, 2, frequency>;
+  using MyMatrixInv = QuantityMatrix<MyValues, MyUnitsInv>;
+  MyValues valuesInv;
+  valuesInv << 0.6, -0.7, -0.2, 0.4;
+  MyMatrixInv matrixInv(valuesInv);
+  EXPECT_TRUE(getMatrix().inverse().isApprox(matrixInv));
 }

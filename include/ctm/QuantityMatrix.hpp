@@ -16,7 +16,14 @@ class QuantityMatrix {
   void setValues(const Values& values) { values_ = values; }
   const Values& getValues() const { return values_; }
 
+  // Note: We allow other values to support lazy evaluation.
+  template <typename ValuesOther>
+  bool isApprox(const QuantityMatrix<ValuesOther, Units>& other) const {
+    return getValues().isApprox(other.getValues());
+  }
+
   auto transpose() const { return typename Transpose<QuantityMatrix<Values, Units>>::type(getValues().transpose()); }
+  auto inverse() const { return typename Inverse<QuantityMatrix<Values, Units>>::type(getValues().inverse()); }
 
  private:
   Values values_;
@@ -41,6 +48,11 @@ struct Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsR
 template <typename Values, typename Units>
 struct Transpose<QuantityMatrix<Values, Units>> {
   using type = QuantityMatrix<typename Transpose<Values>::type, typename Transpose<Units>::type>;
+};
+
+template <typename Values, typename Units>
+struct Inverse<QuantityMatrix<Values, Units>> {
+  using type = QuantityMatrix<typename Inverse<Values>::type, typename Inverse<Units>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>

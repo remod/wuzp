@@ -17,6 +17,12 @@ using Quantity = boost::units::quantity<Unit, Scalar>;
 //
 // using Length = Unit<boost::units::si::length>;
 
+template <typename Dim, typename System>
+struct GetIdentity<boost::units::unit<Dim, System>> {
+  //  using type = boost::units::dimensionless_unit<System>;
+  using type = boost::units::si::dimensionless;
+};
+
 template <typename DimLhs, typename SystemLhs, typename DimRhs, typename SystemRhs>
 struct Sum<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, SystemRhs>> {
   using type = typename boost::units::add_typeof_helper<boost::units::unit<DimLhs, SystemLhs>, boost::units::unit<DimRhs, SystemRhs>>::type;

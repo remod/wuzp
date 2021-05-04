@@ -4,7 +4,9 @@
 
 namespace ctm {
 
-// TODO(remod): Extend Product like we did with Sum.
+template <typename TypeOfFamily>
+struct GetIdentity;
+
 template <typename... Ts>
 struct Sum;
 
@@ -23,6 +25,7 @@ struct Sum<Lhs, Rhs, Others...> {
   using type = typename Sum<typename Sum<Lhs, Rhs>::type, Others...>::type;
 };
 
+// TODO(remod): Extend Product like we did with Sum.
 template <typename Lhs, typename Rhs>
 struct Product;
 
