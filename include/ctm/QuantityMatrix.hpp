@@ -22,6 +22,11 @@ class QuantityMatrix {
     return getValues().isApprox(other.getValues());
   }
 
+  template <int RowId, int ColId, int Rows, int Cols>
+  auto block() const {
+    return typename GetBlock<QuantityMatrix<Values, Units>, RowId, ColId, Rows, Cols>::type(getValues().block<Rows, Cols>(RowId, ColId));
+  }
+
   auto transpose() const { return typename Transpose<QuantityMatrix<Values, Units>>::type(getValues().transpose()); }
   auto inverse() const { return typename Inverse<QuantityMatrix<Values, Units>>::type(getValues().inverse()); }
 
@@ -39,6 +44,12 @@ template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename Un
 bool operator!=(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
   return !(lhs == rhs);
 }
+
+template <typename Values, typename Units, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct GetBlock<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+  using type = QuantityMatrix<typename GetBlock<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+                              typename GetBlock<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+};
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {

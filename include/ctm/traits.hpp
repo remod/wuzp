@@ -5,7 +5,14 @@
 namespace ctm {
 
 template <typename TypeOfFamily>
-struct GetIdentity;
+struct GetIdentity {
+  static_assert(FakeDependency<GetIdentity<TypeOfFamily>>::value, "'GetIdentity' trait not specialized.");
+};
+
+template <typename Object, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct GetBlock {
+  static_assert(FakeDependency<GetBlock<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value, "'GetBlock' trait not specialized.");
+};
 
 template <typename... Ts>
 struct Sum;
