@@ -2,10 +2,8 @@
 
 #include "ctm/TypeMatrix.hpp"
 
-template <int Value_>
-struct ValueT {
-  static constexpr int Value = Value_;
-};
+template <int>
+struct ValueT {};
 
 namespace ctm {
 
