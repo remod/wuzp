@@ -39,6 +39,16 @@ TEST_F(BoostEigenQuantityMatrix, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getMatrix(), getMatrix());
 }
 
+TEST_F(BoostEigenQuantityMatrix, Block) {  // NOLINT
+  using MyValuesB = Eigen::Matrix<int, 2, 2>;
+  using MyUnitsB = TypeMatrix<2, 2, area, volume, force, energy>;
+  using MyMatrixB = QuantityMatrix<MyValuesB, MyUnitsB>;
+  MyValuesB valuesB;
+  valuesB << 2, 3, 5, 6;
+  MyMatrixB matrixB(valuesB);
+  EXPECT_EQ((getMatrix().block<0, 1, 2, 2>()), matrixB);
+}
+
 TEST_F(BoostEigenQuantityMatrix, Transpose) {  // NOLINT
   using MyValuesT = Eigen::Matrix<int, 3, 2>;
   using MyUnitsT = TypeMatrix<3, 2, length, mass, area, force, volume, energy>;

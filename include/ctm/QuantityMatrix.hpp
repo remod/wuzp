@@ -22,9 +22,10 @@ class QuantityMatrix {
     return getValues().isApprox(other.getValues());
   }
 
-  template <int RowId, int ColId, int Rows, int Cols>
+  template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
-    return typename GetBlock<QuantityMatrix<Values, Units>, RowId, ColId, Rows, Cols>::type(getValues().block<Rows, Cols>(RowId, ColId));
+    return typename GetBlock<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
+        getValues().template block<BlockRows, BlockCols>(BlockRowId, BlockColId));
   }
 
   auto transpose() const { return typename Transpose<QuantityMatrix<Values, Units>>::type(getValues().transpose()); }
