@@ -75,34 +75,53 @@ struct MultiplyTuples<std::tuple<TuplesLhs...>, std::tuple<TuplesRhs...>, std::i
                                  typename std::tuple_element<Is % sizeof...(TuplesRhs), std::tuple<TuplesRhs...>>::type>::type...>;
 };
 
-template <int Rows, int Cols, typename Units>
+template <int Rows, int Cols, typename Types>
 struct TypeMatrixImpl;
 
-template <int Rows, int Cols, typename... Units>
-struct TypeMatrixImpl<Rows, Cols, std::tuple<Units...>> {
-  static_assert(sizeof...(Units) == Rows * Cols, "Number of units does not match matrix size.");
-  using AsTuple = std::tuple<Units...>;
+template <int Rows, int Cols, typename... Types>
+struct TypeMatrixImpl<Rows, Cols, std::tuple<Types...>> {
+  static_assert(sizeof...(Types) == Rows * Cols, "Number of types does not match matrix size.");
+  using AsTuple = std::tuple<Types...>;
 };
 
-template <int RowsLhs, int ColsLhs, typename... UnitsLhs, int RowsRhs, int ColsRhs, typename... UnitsRhs>
-struct Sum<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<UnitsRhs...>>> {
+template <int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols, typename Tuple, typename IndexSequence>
+struct GetBlockImpl;
+
+template <int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols, typename... Ts, size_t... BlockRowIs>
+struct GetBlockImpl<Cols, BlockRowId, BlockColId, BlockRows, BlockCols, std::tuple<Ts...>, std::index_sequence<BlockRowIs...>> {
+  using type =
+      typename Cat<typename GetSubset<(BlockRowId + BlockRowIs) * Cols + BlockColId,
+                                      (BlockRowId + BlockRowIs) * Cols + BlockColId + BlockCols, 1, std::tuple<Ts...>>::type...>::type;
+};
+
+template <int Rows, int Cols, typename... Types, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct GetBlock<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+  static_assert(BlockRowId >= 0 && BlockColId >= 0, "Block top left corner is out of range.");
+  static_assert(BlockRowId + BlockRows <= Rows && BlockColId + BlockCols <= Cols, "Block bottom right corner is out of range.");
+  using type = TypeMatrixImpl<BlockRows, BlockCols,
+                              typename GetBlockImpl<Cols, BlockRowId, BlockColId, BlockRows, BlockCols, std::tuple<Types...>,
+                                                    std::make_index_sequence<BlockRows>>::type>;
+};
+
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
+struct Sum<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
   static_assert(RowsLhs == RowsRhs, "Matrix size mismatch.");
   static_assert(ColsLhs == ColsRhs, "Matrix size mismatch.");
-  using type = TypeMatrixImpl<RowsLhs, ColsRhs, typename AddTwoTuples<std::tuple<UnitsLhs...>, std::tuple<UnitsRhs...>>::type>;
+  using type = TypeMatrixImpl<RowsLhs, ColsRhs, typename AddTwoTuples<std::tuple<TypesLhs...>, std::tuple<TypesRhs...>>::type>;
 };
 
-template <int RowsLhs, int ColsLhs, typename... UnitsLhs, int RowsRhs, int ColsRhs, typename... UnitsRhs>
-struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<UnitsLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<UnitsRhs...>>> {
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
+struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
   static_assert(ColsLhs == RowsRhs, "Matrix size mismatch.");
   using type =
       TypeMatrixImpl<RowsLhs, ColsRhs,
-                     typename MultiplyTuples<typename ToRows<ColsLhs, UnitsLhs...>::type, typename ToCols<ColsRhs, UnitsRhs...>::type,
+                     typename MultiplyTuples<typename ToRows<ColsLhs, TypesLhs...>::type, typename ToCols<ColsRhs, TypesRhs...>::type,
                                              std::make_index_sequence<RowsLhs * ColsRhs>>::type>;
 };
 
-template <int Rows, int Cols, typename... Units>
-struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>> {
-  using type = TypeMatrixImpl<Cols, Rows, typename ExtractAndApply<Cat, typename ToCols<Cols, Units...>::type>::type>;
+template <int Rows, int Cols, typename... Types>
+struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
+  using type = TypeMatrixImpl<Cols, Rows, typename ExtractAndApply<Cat, typename ToCols<Cols, Types...>::type>::type>;
 };
 
 // template <int Size, typename ZeroType, typename OneType, typename IndexSequence>
@@ -119,37 +138,37 @@ struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>> {
 template <int Size, typename TypeOfFamily>
 using Identity = TypeMatrixImpl<Size, Size, HomogeneousTuple<Size * Size, typename GetIdentity<TypeOfFamily>::type>>;
 
-template <int Rows, int Cols, typename... Units>
-struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>> {
+template <int Rows, int Cols, typename... Types>
+struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
   static_assert(Rows == Cols, "Matrix is rectangular.");
   // Note: Inverting the types individually gives a candidate for the result of the inversion.
-  using type = TypeMatrixImpl<Rows, Cols, std::tuple<typename Inverse<Units>::type...>>;
+  using type = TypeMatrixImpl<Rows, Cols, std::tuple<typename Inverse<Types>::type...>>;
   // Note: Verify the candidate by multiplying it with the original matrix.
-  static_assert(std::is_same<typename Product<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>, type>::type,
-                             Identity<Rows, typename std::tuple_element<0, std::tuple<Units...>>::type>>::value,
+  static_assert(std::is_same<typename Product<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, type>::type,
+                             Identity<Rows, typename std::tuple_element<0, std::tuple<Types...>>::type>>::value,
                 "Matrix is not invertable.");
 };
 
-template <int Rows, int Cols, typename... Units>
-struct TypeMatrixHelper;
+template <int Rows, int Cols, typename... Types>
+struct TypeMatrixInterface;
 
 template <int Rows, int Cols>
-struct TypeMatrixHelper<Rows, Cols> {
-  static_assert(FakeDependency<TypeMatrixHelper<Rows, Cols>>::value, "Empty type matrix is not allowed.");
+struct TypeMatrixInterface<Rows, Cols> {
+  static_assert(FakeDependency<TypeMatrixInterface<Rows, Cols>>::value, "Empty type matrix is not allowed.");
 };
 
-template <int Rows, int Cols, typename Unit0, typename... Units>
-struct TypeMatrixHelper<Rows, Cols, Unit0, Units...> {
-  static_assert(sizeof...(Units) + 1 == Rows * Cols, "Number of units does not match matrix size.");
-  using type = TypeMatrixImpl<Rows, Cols, std::tuple<Unit0, Units...>>;
+template <int Rows, int Cols, typename Type0, typename... Types>
+struct TypeMatrixInterface<Rows, Cols, Type0, Types...> {
+  static_assert(sizeof...(Types) + 1 == Rows * Cols, "Number of types does not match matrix size.");
+  using type = TypeMatrixImpl<Rows, Cols, std::tuple<Type0, Types...>>;
 };
 
-template <int Rows, int Cols, typename Unit>
-struct TypeMatrixHelper<Rows, Cols, Unit> {
-  using type = TypeMatrixImpl<Rows, Cols, HomogeneousTuple<Rows * Cols, Unit>>;
+template <int Rows, int Cols, typename Type>
+struct TypeMatrixInterface<Rows, Cols, Type> {
+  using type = TypeMatrixImpl<Rows, Cols, HomogeneousTuple<Rows * Cols, Type>>;
 };
 
-template <int Rows, int Cols, typename... Units>
-using TypeMatrix = typename TypeMatrixHelper<Rows, Cols, Units...>::type;
+template <int Rows, int Cols, typename... Types>
+using TypeMatrix = typename TypeMatrixInterface<Rows, Cols, Types...>::type;
 
 }  // namespace ctm
