@@ -49,6 +49,24 @@ struct AddTwoTuples<std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
 };
 
 template <typename Lhs, typename Rhs, typename IndexSequence>
+struct SubtractTwoTuplesImpl;
+
+template <typename... TsLhs, typename... TsRhs, size_t... Is>
+struct SubtractTwoTuplesImpl<std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::index_sequence<Is...>> {
+  using type = std::tuple<typename Difference<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type,
+                                              typename std::tuple_element<Is, std::tuple<TsRhs...>>::type>::type...>;
+};
+
+template <typename Lhs, typename Rhs>
+struct SubtractTwoTuples;
+
+template <typename... TsLhs, typename... TsRhs>
+struct SubtractTwoTuples<std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
+  static_assert(sizeof...(TsLhs) == sizeof...(TsRhs), "Tuple size mismatch.");
+  using type = typename SubtractTwoTuplesImpl<std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::make_index_sequence<sizeof...(TsLhs)>>::type;
+};
+
+template <typename Lhs, typename Rhs, typename IndexSequence>
 struct MultiplyTwoTuplesImpl;
 
 template <typename... TsLhs, typename... TsRhs, size_t... Is>
@@ -85,22 +103,22 @@ struct TypeMatrixImpl<Rows, Cols, std::tuple<Types...>> {
 };
 
 template <int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols, typename Tuple, typename IndexSequence>
-struct GetBlockImpl;
+struct BlockImpl;
 
 template <int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols, typename... Ts, size_t... BlockRowIs>
-struct GetBlockImpl<Cols, BlockRowId, BlockColId, BlockRows, BlockCols, std::tuple<Ts...>, std::index_sequence<BlockRowIs...>> {
+struct BlockImpl<Cols, BlockRowId, BlockColId, BlockRows, BlockCols, std::tuple<Ts...>, std::index_sequence<BlockRowIs...>> {
   using type =
       typename Cat<typename GetSubset<(BlockRowId + BlockRowIs) * Cols + BlockColId,
                                       (BlockRowId + BlockRowIs) * Cols + BlockColId + BlockCols, 1, std::tuple<Ts...>>::type...>::type;
 };
 
 template <int Rows, int Cols, typename... Types, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct GetBlock<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+struct Block<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   static_assert(BlockRowId >= 0 && BlockColId >= 0, "Block top left corner is out of range.");
   static_assert(BlockRowId + BlockRows <= Rows && BlockColId + BlockCols <= Cols, "Block bottom right corner is out of range.");
   using type = TypeMatrixImpl<BlockRows, BlockCols,
-                              typename GetBlockImpl<Cols, BlockRowId, BlockColId, BlockRows, BlockCols, std::tuple<Types...>,
-                                                    std::make_index_sequence<BlockRows>>::type>;
+                              typename BlockImpl<Cols, BlockRowId, BlockColId, BlockRows, BlockCols, std::tuple<Types...>,
+                                                 std::make_index_sequence<BlockRows>>::type>;
 };
 
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
@@ -108,6 +126,13 @@ struct Sum<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrix
   static_assert(RowsLhs == RowsRhs, "Matrix size mismatch.");
   static_assert(ColsLhs == ColsRhs, "Matrix size mismatch.");
   using type = TypeMatrixImpl<RowsLhs, ColsRhs, typename AddTwoTuples<std::tuple<TypesLhs...>, std::tuple<TypesRhs...>>::type>;
+};
+
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
+struct Difference<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
+  static_assert(RowsLhs == RowsRhs, "Matrix size mismatch.");
+  static_assert(ColsLhs == ColsRhs, "Matrix size mismatch.");
+  using type = TypeMatrixImpl<RowsLhs, ColsRhs, typename SubtractTwoTuples<std::tuple<TypesLhs...>, std::tuple<TypesRhs...>>::type>;
 };
 
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
@@ -136,7 +161,7 @@ struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
 // using Identity = typename IdentityImpl<Size, ZeroType, OneType, std::make_index_sequence<Size * Size>>::type;
 
 template <int Size, typename TypeOfFamily>
-using Identity = TypeMatrixImpl<Size, Size, HomogeneousTuple<Size * Size, typename GetIdentity<TypeOfFamily>::type>>;
+using TypeMatrixIdentity = TypeMatrixImpl<Size, Size, HomogeneousTuple<Size * Size, typename Identity<TypeOfFamily>::type>>;
 
 template <int Rows, int Cols, typename... Types>
 struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
@@ -145,8 +170,8 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
   using type = TypeMatrixImpl<Rows, Cols, std::tuple<typename Inverse<Types>::type...>>;
   // Note: Verify the candidate by multiplying it with the original matrix.
   static_assert(std::is_same<typename Product<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, type>::type,
-                             Identity<Rows, typename std::tuple_element<0, std::tuple<Types...>>::type>>::value,
-                "Matrix is not invertable.");
+                             TypeMatrixIdentity<Rows, typename std::tuple_element<0, std::tuple<Types...>>::type>>::value,
+                "Matrix is not invertible.");
 };
 
 template <int Rows, int Cols, typename... Types>

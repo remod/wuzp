@@ -16,7 +16,7 @@ class QuantityMatrix {
   void setValues(const Values& values) { values_ = values; }
   const Values& getValues() const { return values_; }
 
-  // Note: We allow other values to support lazy evaluation.
+  // Note: Allow other value types to support lazy evaluation.
   template <typename ValuesOther>
   bool isApprox(const QuantityMatrix<ValuesOther, Units>& other) const {
     return getValues().isApprox(other.getValues());
@@ -24,7 +24,7 @@ class QuantityMatrix {
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
-    return typename GetBlock<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
+    return typename Block<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
         getValues().template block<BlockRows, BlockCols>(BlockRowId, BlockColId));
   }
 
@@ -36,25 +36,18 @@ class QuantityMatrix {
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-bool operator==(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
-  static_assert(std::is_same<UnitsLhs, UnitsRhs>::value && "Units mismatch.");
-  return lhs.getValues() == rhs.getValues();
-}
-
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-bool operator!=(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
-  return !(lhs == rhs);
-}
-
-template <typename Values, typename Units, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct GetBlock<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type = QuantityMatrix<typename GetBlock<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-                              typename GetBlock<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+struct Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
+  using type = QuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-struct Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
+struct Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
+  using type = QuantityMatrix<typename Difference<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type>;
+};
+
+template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
+struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
+  using type = QuantityMatrix<typename Product<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename Values, typename Units>
@@ -67,14 +60,36 @@ struct Inverse<QuantityMatrix<Values, Units>> {
   using type = QuantityMatrix<typename Inverse<Values>::type, typename Inverse<Units>::type>;
 };
 
+template <typename Values, typename Units, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct Block<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+  using type = QuantityMatrix<typename Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+      typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+};
+
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-auto add(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+auto operator+(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
   return typename Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() + rhs.getValues());
 }
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-auto operator+(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
-  return add(lhs, rhs);
+auto operator-(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+  return typename Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() - rhs.getValues());
+}
+
+template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
+auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+  return typename Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() * rhs.getValues());
+}
+
+template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
+bool operator==(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+  static_assert(std::is_same<UnitsLhs, UnitsRhs>::value && "Units mismatch.");
+  return lhs.getValues() == rhs.getValues();
+}
+
+template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
+bool operator!=(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+  return !(lhs == rhs);
 }
 
 template <typename Values, typename Units>

@@ -16,4 +16,10 @@ struct Sum<Frame<Lhs>, Frame<Rhs>> {
   using type = Frame<Lhs>;
 };
 
+template <typename Lhs, typename Rhs>
+struct Difference<Frame<Lhs>, Frame<Rhs>> {
+  static_assert(std::is_same<Lhs, Rhs>::value, "Frame mismatch.");
+  using type = Frame<Lhs>;
+};
+
 }  // namespace ctm

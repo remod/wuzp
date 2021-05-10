@@ -11,7 +11,7 @@
 namespace ctm {
 
 template <typename Scalar, int Rows, int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct GetBlock<Eigen::Matrix<Scalar, Rows, Cols>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+struct Block<Eigen::Matrix<Scalar, Rows, Cols>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   // Use decltype/declval to allow for lazy evaluation.
   using type =
       decltype(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>().template block<BlockRows, BlockCols>(BlockRowId, BlockColId));
@@ -21,6 +21,18 @@ template <typename Scalar, int Rows, int Cols>
 struct Sum<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::Matrix<Scalar, Rows, Cols>> {
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>() + std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>());
+};
+
+template <typename Scalar, int Rows, int Cols>
+struct Difference<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::Matrix<Scalar, Rows, Cols>> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>() - std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>());
+};
+
+template <typename Scalar, int Rows, int Cols>
+struct Product<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::Matrix<Scalar, Rows, Cols>> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>() * std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>());
 };
 
 template <typename Scalar, int Rows, int Cols>

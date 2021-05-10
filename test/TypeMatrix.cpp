@@ -8,7 +8,7 @@ struct ValueT {};
 namespace ctm {
 
 template <int Value>
-struct GetIdentity<ValueT<Value>> {
+struct Identity<ValueT<Value>> {
   using type = ValueT<1>;
 };
 
@@ -40,9 +40,9 @@ TEST(TypeMatrix, Interface) {  // NOLINT
 }
 
 TEST(TypeMatrix, Identity) {  // NOLINT
-  static_assert(std::is_same<ctm::Identity<1, ValueT<1>>, ctm::TypeMatrix<1, 1, ValueT<1>>>::value);
-  static_assert(std::is_same<ctm::Identity<2, ValueT<-1>>, ctm::TypeMatrix<2, 2, ValueT<1>>>::value);
-  static_assert(std::is_same<ctm::Identity<3, ValueT<35>>, ctm::TypeMatrix<3, 3, ValueT<1>>>::value);
+  static_assert(std::is_same<ctm::TypeMatrixIdentity<1, ValueT<1>>, ctm::TypeMatrix<1, 1, ValueT<1>>>::value);
+  static_assert(std::is_same<ctm::TypeMatrixIdentity<2, ValueT<-1>>, ctm::TypeMatrix<2, 2, ValueT<1>>>::value);
+  static_assert(std::is_same<ctm::TypeMatrixIdentity<3, ValueT<35>>, ctm::TypeMatrix<3, 3, ValueT<1>>>::value);
 }
 
 TEST(TypeMatrix, Block) {  // NOLINT
@@ -51,10 +51,10 @@ TEST(TypeMatrix, Block) {  // NOLINT
   using C = ValueMatrix<1, 1, 4>;
   using D = ValueMatrix<1, 2, 0, 1>;
   using E = ValueMatrix<2, 2, 1, 2, 4, 5>;
-  static_assert(std::is_same<ctm::GetBlock<A, 0, 0, 2, 3>::type, B>::value);
-  static_assert(std::is_same<ctm::GetBlock<A, 1, 1, 1, 1>::type, C>::value);
-  static_assert(std::is_same<ctm::GetBlock<A, 0, 0, 1, 2>::type, D>::value);
-  static_assert(std::is_same<ctm::GetBlock<A, 0, 1, 2, 2>::type, E>::value);
+  static_assert(std::is_same<ctm::Block<A, 0, 0, 2, 3>::type, B>::value);
+  static_assert(std::is_same<ctm::Block<A, 1, 1, 1, 1>::type, C>::value);
+  static_assert(std::is_same<ctm::Block<A, 0, 0, 1, 2>::type, D>::value);
+  static_assert(std::is_same<ctm::Block<A, 0, 1, 2, 2>::type, E>::value);
 }
 
 TEST(TypeMatrix, Sum) {  // NOLINT
