@@ -25,6 +25,55 @@ class FramedQuantityMatrix {
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
+struct Sum<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
+  using type = FramedQuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type,
+                                    typename Sum<FramesLhs, FramesRhs>::type>;
+};
+
+template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
+struct Difference<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
+  using type = FramedQuantityMatrix<typename Difference<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type,
+      typename Difference<FramesLhs, FramesRhs>::type>;
+};
+
+template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
+struct Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
+  static_assert(FakeDependency<Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>>::value, "Framed quantity matrices cannot be multiplied.");
+};
+
+template <typename Values, typename Units, typename Frames>
+struct Transpose<FramedQuantityMatrix<Values, Units, Frames>> {
+  using type = FramedQuantityMatrix<typename Transpose<Values>::type, typename Transpose<Units>::type, typename Transpose<Frames>::type>;
+};
+
+template <typename Values, typename Units, typename Frames>
+struct GetFrame<FramedQuantityMatrix<Values, Units, Frames>> {
+  static_assert(IsHomogeneous<Frames>::value, "Frames are heterogeneous.");
+  using type = std::tuple_element<0, typename Frames::AsTuple>;
+};
+
+template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
+auto operator+(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs,
+               const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& rhs) {
+  return typename Sum<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>::type(
+      lhs.getValues() + rhs.getValues());
+}
+
+template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
+auto operator-(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs,
+               const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& rhs) {
+  return typename Difference<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>::type(
+      lhs.getValues() - rhs.getValues());
+}
+
+template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
+auto operator*(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs,
+               const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& rhs) {
+  return typename Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>::type(
+      lhs.getValues() * rhs.getValues());
+}
+
+template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 bool operator==(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs,
                 const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& rhs) {
   static_assert(std::is_same<FramesLhs, FramesRhs>::value && "Frames mismatch.");
@@ -36,35 +85,6 @@ bool operator!=(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs,
                 const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& rhs) {
   return !(lhs == rhs);
 }
-
-template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
-struct Sum<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
-  using type = FramedQuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type,
-                                    typename Sum<FramesLhs, FramesRhs>::type>;
-};
-
-template <typename Values, typename Units, typename Frames>
-struct Transpose<FramedQuantityMatrix<Values, Units, Frames>> {
-  using type = FramedQuantityMatrix<typename Transpose<Values>::type, typename Transpose<Units>::type, typename Transpose<Frames>::type>;
-};
-
-template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
-auto add(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs, const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& rhs) {
-  return typename Sum<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>::type(
-      lhs.getValues() + rhs.getValues());
-}
-
-template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
-auto operator+(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs,
-               const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& rhs) {
-  return add(lhs, rhs);
-}
-
-template <typename Values, typename Units, typename Frames>
-struct GetFrame<FramedQuantityMatrix<Values, Units, Frames>> {
-  static_assert(IsHomogeneous<Frames>::value, "Frames are heterogeneous.");
-  using type = std::tuple_element<0, typename Frames::AsTuple>;
-};
 
 template <typename Values, typename Units, typename Frames>
 std::ostream& operator<<(std::ostream& stream, const FramedQuantityMatrix<Values, Units, Frames>& framedQuantityMatrix) {

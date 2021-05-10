@@ -4,46 +4,40 @@
 
 namespace ctm {
 
-template <typename TypeOfFamily>
-struct GetIdentity {
-  static_assert(FakeDependency<GetIdentity<TypeOfFamily>>::value, "'GetIdentity' trait not specialized.");
-};
-
-template <typename Object, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct GetBlock {
-  static_assert(FakeDependency<GetBlock<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value, "'GetBlock' trait not specialized.");
-};
-
-template <typename... Ts>
-struct Sum;
-
-template <typename Lhs>
-struct Sum<Lhs> {
-  using type = Lhs;
+template <typename Lhs, typename Rhs>
+struct Sum {
+  static_assert(FakeDependency<Sum<Lhs, Rhs>>::value, "'Sum' trait not specialized for given types.");
 };
 
 template <typename Lhs, typename Rhs>
-struct Sum<Lhs, Rhs> {
-  static_assert(FakeDependency<Sum<Lhs, Rhs>>::value, "'Sum' trait not specialized.");
+struct Difference {
+  static_assert(FakeDependency<Difference<Lhs, Rhs>>::value, "'Difference' trait not specialized for given types.");
 };
 
-template <typename Lhs, typename Rhs, typename... Others>
-struct Sum<Lhs, Rhs, Others...> {
-  using type = typename Sum<typename Sum<Lhs, Rhs>::type, Others...>::type;
-};
-
-// TODO(remod): Extend Product like we did with Sum.
 template <typename Lhs, typename Rhs>
-struct Product;
+struct Product {
+  static_assert(FakeDependency<Difference<Lhs, Rhs>>::value, "'Product' trait not specialized for given types.");
+};
 
 template <typename T>
 struct Transpose {
-  static_assert(FakeDependency<Transpose<T>>::value, "'Transpose' trait not specialized.");
+  static_assert(FakeDependency<Transpose<T>>::value, "'Transpose' trait not specialized for given type.");
 };
 
 template <typename T>
 struct Inverse {
-  static_assert(FakeDependency<Inverse<T>>::value, "'Inverse' trait not specialized.");
+  static_assert(FakeDependency<Inverse<T>>::value, "'Inverse' trait not specialized for given type.");
+};
+
+template <typename TypeOfFamily>
+struct Identity {
+  static_assert(FakeDependency<Identity<TypeOfFamily>>::value, "'Identity' trait not specialized for given type.");
+};
+
+template <typename Object, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct Block {
+  static_assert(FakeDependency<Block<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value,
+                "'Block' trait not specialized for given type.");
 };
 
 }  // namespace ctm
