@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "ctm/eigen.hpp"
+#include "ctm/eigen/eigen.hpp"
 #include "ctm/traits.hpp"
 
 using ctm::Block;

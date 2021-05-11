@@ -7,7 +7,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build:
+  build_and_test:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
@@ -36,7 +36,7 @@ jobs:
       # Note the current convention is to use the -S and -B options here to specify source 
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TEST=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUSE_BOOST=ON -DUSE_EIGEN=ON
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -60,3 +60,79 @@ jobs:
       working-directory: ${{github.workspace}}/build
       shell: bash
       run: make tidy
+
+  build_without_boost:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update Package Index
+        run: sudo apt update
+
+      - name: Install Dependencies
+        run: sudo apt install git cmake libeigen3-dev libgtest-dev
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{github.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUSE_BOOST=OFF -DUSE_EIGEN=ON
+
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE
+
+  build_without_eigen:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update Package Index
+        run: sudo apt update
+
+      - name: Install Dependencies
+        run: sudo apt install git cmake libboost-dev libeigen3-dev libgtest-dev
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{github.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUSE_BOOST=ON -DUSE_EIGEN=OFF
+
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE
+
+
+  build_without_boost_and_eigen:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update Package Index
+        run: sudo apt update
+
+      - name: Install Dependencies
+        run: sudo apt install git cmake libboost-dev libgtest-dev
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{github.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUSE_BOOST=OFF -DUSE_EIGEN=OFF
+
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE

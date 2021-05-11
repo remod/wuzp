@@ -2,8 +2,8 @@
 
 #include "ctm/QuantityMatrix.hpp"
 #include "ctm/TypeMatrix.hpp"
-#include "ctm/boost.hpp"
-#include "ctm/eigen.hpp"
+#include "ctm/boost/boost.hpp"
+#include "ctm/eigen/eigen.hpp"
 #include "ctm/traits.hpp"
 
 using boost::units::si::area;

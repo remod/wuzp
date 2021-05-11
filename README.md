@@ -17,11 +17,11 @@ cmake -DCMAKE_BUILD_TYPE=Debug ..
 make
 ```
 
-## Test
+## Tests
 
 ```
 sudo apt install libgtest-dev
-cmake -DENABLE_TEST=ON ..
+cmake -DENABLE_TESTS=ON ..
 make
 ctest ..
 ```
