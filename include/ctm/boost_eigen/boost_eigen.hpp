@@ -7,8 +7,8 @@
 #include "ctm/Transformation.hpp"
 #include "ctm/Translation.hpp"
 #include "ctm/Vector.hpp"
-#include "ctm/boost.hpp"
-#include "ctm/eigen.hpp"
+#include "ctm/boost/boost.hpp"
+#include "ctm/eigen/eigen.hpp"
 #include "ctm/traits.hpp"
 
 namespace ctm {

@@ -3,9 +3,9 @@
 #include "ctm/Frame.hpp"
 #include "ctm/FramedQuantityMatrix.hpp"
 #include "ctm/TypeMatrix.hpp"
-#include "ctm/boost.hpp"
-#include "ctm/boost_eigen.hpp"
-#include "ctm/eigen.hpp"
+#include "ctm/boost/boost.hpp"
+#include "ctm/boost_eigen/boost_eigen.hpp"
+#include "ctm/eigen/eigen.hpp"
 #include "ctm/traits.hpp"
 
 using boost::units::si::area;

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "ctm/TypeMatrix.hpp"
-#include "ctm/boost.hpp"
+#include "ctm/boost/boost.hpp"
 
 using boost::units::si::area;
 using boost::units::si::dimensionless;
