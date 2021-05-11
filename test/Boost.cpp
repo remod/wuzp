@@ -58,3 +58,7 @@ TEST(BoostUnitMatrix, Difference) {  // NOLINT
 TEST(BoostUnitMatrix, Product) {  // NOLINT
   static_assert(std::is_same<Product<TypeMatrix<2, 2, length>, TypeMatrix<2, 2, length>>::type, TypeMatrix<2, 2, area>>::value);
 }
+
+TEST(BoostUnitMatrix, Inverse) {  // NOLINT
+  static_assert(std::is_same<Inverse<TypeMatrix<2, 2, boost::units::si::time>>::type, TypeMatrix<2, 2, frequency>>::value);
+}

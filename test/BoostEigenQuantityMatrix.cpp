@@ -22,21 +22,40 @@ class BoostEigenQuantityMatrix : public ::testing::Test {
   using MyUnits = TypeMatrix<2, 3, length, area, volume, mass, force, energy>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
 
-  const MyMatrix& getMatrix() const { return matrix_; }
+  const MyValues& getValues1() const { return values1_; }
+  const MyValues& getValues2() const { return values2_; }
+  const MyMatrix& getMatrix1() const { return matrix1_; }
+  const MyMatrix& getMatrix2() const { return matrix2_; }
 
  protected:
   void SetUp() override {
-    values_ << 1, 2, 3, 4, 5, 6;
-    matrix_.setValues(values_);
+    values1_ << 1, 2, 3, 4, 5, 6;
+    matrix1_.setValues(values1_);
+    values2_ << 3, 1, 4, 1, 5, 9;
+    matrix2_.setValues(values2_);
   }
 
  private:
-  MyValues values_;
-  MyMatrix matrix_;
+  MyValues values1_;
+  MyMatrix matrix1_;
+  MyValues values2_;
+  MyMatrix matrix2_;
 };
 
+TEST_F(BoostEigenQuantityMatrix, Addition) {  // NOLINT
+  EXPECT_EQ(getMatrix1() + getMatrix2(), MyMatrix(getValues1() + getValues2()));
+}
+
+TEST_F(BoostEigenQuantityMatrix, Subtraction) {  // NOLINT
+  EXPECT_EQ(getMatrix1() - getMatrix2(), MyMatrix(getValues1() - getValues2()));
+}
+
 TEST_F(BoostEigenQuantityMatrix, EqualityOperator) {  // NOLINT
-  EXPECT_EQ(getMatrix(), getMatrix());
+  EXPECT_EQ(getMatrix1(), getMatrix1());
+}
+
+TEST_F(BoostEigenQuantityMatrix, InEqualityOperator) {  // NOLINT
+  EXPECT_NE(getMatrix1(), getMatrix1() + getMatrix2());
 }
 
 TEST_F(BoostEigenQuantityMatrix, Block) {  // NOLINT
@@ -46,7 +65,7 @@ TEST_F(BoostEigenQuantityMatrix, Block) {  // NOLINT
   MyValuesB valuesB;
   valuesB << 2, 3, 5, 6;
   MyMatrixB matrixB(valuesB);
-  EXPECT_EQ((getMatrix().block<0, 1, 2, 2>()), matrixB);
+  EXPECT_EQ((getMatrix1().block<0, 1, 2, 2>()), matrixB);
 }
 
 TEST_F(BoostEigenQuantityMatrix, Transpose) {  // NOLINT
@@ -56,7 +75,7 @@ TEST_F(BoostEigenQuantityMatrix, Transpose) {  // NOLINT
   MyValuesT valuesT;
   valuesT << 1, 4, 2, 5, 3, 6;
   MyMatrixT matrixT(valuesT);
-  EXPECT_EQ(getMatrix().transpose(), matrixT);
+  EXPECT_EQ(getMatrix1().transpose(), matrixT);
 }
 
 class BoostEigenQuantityMatrix2 : public ::testing::Test {
@@ -65,6 +84,7 @@ class BoostEigenQuantityMatrix2 : public ::testing::Test {
   using MyUnits = TypeMatrix<2, 2, boost::units::si::time>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
 
+  const MyValues& getValues() const { return values_; }
   const MyMatrix& getMatrix() const { return matrix_; }
 
  protected:
@@ -77,6 +97,15 @@ class BoostEigenQuantityMatrix2 : public ::testing::Test {
   MyValues values_;
   MyMatrix matrix_;
 };
+
+TEST_F(BoostEigenQuantityMatrix2, Multiplication) {  // NOLINT
+  EXPECT_EQ(getMatrix() * getMatrix(), MyMatrix(getValues() * getValues()));
+}
+
+TEST_F(BoostEigenQuantityMatrix2, Chain) {  // NOLINT
+                                            // TODO(remod): Support all eigen objects, not just matrices.
+  //  EXPECT_EQ(getMatrix() + getMatrix() * getMatrix(), MyMatrix(getValues() + getValues() * getValues()));
+}
 
 TEST_F(BoostEigenQuantityMatrix2, Inverse) {  // NOLINT
   using MyUnitsInv = TypeMatrix<2, 2, frequency>;
