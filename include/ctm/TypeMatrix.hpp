@@ -165,10 +165,10 @@ using TypeMatrixIdentity = TypeMatrixImpl<Size, Size, HomogeneousTuple<Size * Si
 
 template <int Rows, int Cols, typename... Types>
 struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
-  static_assert(Rows == Cols, "Matrix is rectangular.");
-  // Note: Inverting the types individually gives a candidate for the result of the inversion.
+  static_assert(Rows == Cols, "Matrix is not square.");
+  // Invert the types individually to get a candidate for the result of the inversion.
   using type = TypeMatrixImpl<Rows, Cols, std::tuple<typename Inverse<Types>::type...>>;
-  // Note: Verify the candidate by multiplying it with the original matrix.
+  // Verify the candidate by multiplying it with the original matrix.
   static_assert(std::is_same<typename Product<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, type>::type,
                              TypeMatrixIdentity<Rows, typename std::tuple_element<0, std::tuple<Types...>>::type>>::value,
                 "Matrix is not invertible.");

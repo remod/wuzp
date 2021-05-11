@@ -63,7 +63,7 @@ struct Inverse<QuantityMatrix<Values, Units>> {
 template <typename Values, typename Units, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   using type = QuantityMatrix<typename Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-      typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+                              typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
@@ -73,12 +73,14 @@ auto operator+(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMat
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 auto operator-(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
-  return typename Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() - rhs.getValues());
+  return typename Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() -
+                                                                                                             rhs.getValues());
 }
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
-  return typename Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() * rhs.getValues());
+  return
+      typename Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() * rhs.getValues());
 }
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>

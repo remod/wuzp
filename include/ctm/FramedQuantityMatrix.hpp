@@ -33,12 +33,14 @@ struct Sum<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityM
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 struct Difference<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
   using type = FramedQuantityMatrix<typename Difference<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type,
-      typename Difference<FramesLhs, FramesRhs>::type>;
+                                    typename Difference<FramesLhs, FramesRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 struct Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
-  static_assert(FakeDependency<Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>>::value, "Framed quantity matrices cannot be multiplied.");
+  static_assert(FakeDependency<Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>,
+                                       FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>>::value,
+                "Framed quantity matrices cannot be multiplied.");
 };
 
 template <typename Values, typename Units, typename Frames>
@@ -62,8 +64,9 @@ auto operator+(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs,
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 auto operator-(const FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>& lhs,
                const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& rhs) {
-  return typename Difference<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>::type(
-      lhs.getValues() - rhs.getValues());
+  return
+      typename Difference<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>::type(
+          lhs.getValues() - rhs.getValues());
 }
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
