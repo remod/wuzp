@@ -4,18 +4,18 @@
 #include "ctm/boost.hpp"
 
 using boost::units::si::area;
+using boost::units::si::dimensionless;
 using boost::units::si::energy;
 using boost::units::si::force;
 using boost::units::si::frequency;
 using boost::units::si::length;
 using boost::units::si::mass;
 using boost::units::si::volume;
-using boost::units::si::dimensionless;
 using ctm::Difference;
+using ctm::Identity;
 using ctm::Inverse;
 using ctm::Product;
 using ctm::Sum;
-using ctm::Identity;
 using ctm::TypeMatrix;
 
 TEST(BoostUnit, Sum) {  // NOLINT
