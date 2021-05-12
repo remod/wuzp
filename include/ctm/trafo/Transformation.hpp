@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ctm/Frame.hpp"
+#include "ctm/core/Frame.hpp"
 
 namespace ctm {
 

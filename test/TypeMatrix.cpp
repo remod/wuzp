@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "ctm/TypeMatrix.hpp"
+#include "ctm/core/TypeMatrix.hpp"
 
 template <int>
 struct ValueT {};

@@ -46,16 +46,17 @@ make tidy
 
 Features:
 
-* Rotations
-* Transformations
-* Dynamic matrices
+* Different rotations
+* Non-static transformations
+* Dynamic size matrices
 * Run-time frames
 * Run-time units
-* Unit tests
+* Unit test coverage
+* ROS/ROS2 release
 
-Improvements:
+Features (later):
 
-* Use TypeMatrix with rows or cols == 1 instead of std::tuple.
+* Tensor support
 
 Minor:
 

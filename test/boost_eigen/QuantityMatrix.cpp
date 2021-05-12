@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "ctm/QuantityMatrix.hpp"
-#include "ctm/TypeMatrix.hpp"
 #include "ctm/boost/boost.hpp"
+#include "ctm/core/QuantityMatrix.hpp"
+#include "ctm/core/TypeMatrix.hpp"
+#include "ctm/core/traits.hpp"
 #include "ctm/eigen/eigen.hpp"
-#include "ctm/traits.hpp"
 
 using boost::units::si::area;
 using boost::units::si::energy;

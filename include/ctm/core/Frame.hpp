@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ctm/traits.hpp"
+#include "traits.hpp"
 
 namespace ctm {
 

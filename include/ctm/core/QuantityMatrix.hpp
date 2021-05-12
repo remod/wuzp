@@ -2,8 +2,8 @@
 
 #include <ostream>
 
-#include "ctm/Frame.hpp"
-#include "ctm/TypeMatrix.hpp"
+#include "Frame.hpp"
+#include "TypeMatrix.hpp"
 
 namespace ctm {
 

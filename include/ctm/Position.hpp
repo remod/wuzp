@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ctm/FramedQuantityMatrix.hpp"
-#include "ctm/TypeMatrix.hpp"
+#include "ctm/core/FramedQuantityMatrix.hpp"
+#include "ctm/core/TypeMatrix.hpp"
 
 namespace ctm {
 

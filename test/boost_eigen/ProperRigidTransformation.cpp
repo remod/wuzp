@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "ctm/Frame.hpp"
 #include "ctm/boost_eigen/boost_eigen.hpp"
+#include "ctm/core/Frame.hpp"
+#include "ctm/core/traits.hpp"
 #include "ctm/eigen/eigen.hpp"
-#include "ctm/traits.hpp"
 
 using ctm::Frame;
 using ctm::Position2D;

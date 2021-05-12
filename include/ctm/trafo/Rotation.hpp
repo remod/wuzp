@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ctm/Transformation.hpp"
+#include "Transformation.hpp"
 
 namespace ctm {
 
