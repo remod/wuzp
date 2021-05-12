@@ -3,8 +3,8 @@
 #include <boost/units/absolute.hpp>
 #include <boost/units/systems/si.hpp>
 
-#include "ctm/Translation.hpp"
-#include "ctm/traits.hpp"
+#include "ctm/core/traits.hpp"
+#include "ctm/trafo/Translation.hpp"
 
 namespace ctm {
 

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "ctm/core/traits.hpp"
 #include "ctm/eigen/eigen.hpp"
-#include "ctm/traits.hpp"
 
 using ctm::Block;
 using ctm::Difference;

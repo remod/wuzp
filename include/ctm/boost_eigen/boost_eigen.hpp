@@ -1,15 +1,15 @@
 #pragma once
 
-#include "ctm/FramedQuantityMatrix.hpp"
 #include "ctm/Position.hpp"
-#include "ctm/QuantityMatrix.hpp"
-#include "ctm/Rotation.hpp"
-#include "ctm/Transformation.hpp"
-#include "ctm/Translation.hpp"
 #include "ctm/Vector.hpp"
 #include "ctm/boost/boost.hpp"
+#include "ctm/core/FramedQuantityMatrix.hpp"
+#include "ctm/core/QuantityMatrix.hpp"
+#include "ctm/core/traits.hpp"
 #include "ctm/eigen/eigen.hpp"
-#include "ctm/traits.hpp"
+#include "ctm/trafo/Rotation.hpp"
+#include "ctm/trafo/Transformation.hpp"
+#include "ctm/trafo/Translation.hpp"
 
 namespace ctm {
 

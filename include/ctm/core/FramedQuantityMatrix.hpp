@@ -2,8 +2,8 @@
 
 #include <ostream>
 
-#include "ctm/Frame.hpp"
-#include "ctm/QuantityMatrix.hpp"
+#include "Frame.hpp"
+#include "QuantityMatrix.hpp"
 
 namespace ctm {
 

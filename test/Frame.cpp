@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "ctm/Frame.hpp"
-#include "ctm/TypeMatrix.hpp"
-#include "ctm/traits.hpp"
+#include "ctm/core/Frame.hpp"
+#include "ctm/core/TypeMatrix.hpp"
+#include "ctm/core/traits.hpp"
 
 using ctm::Frame;
 using ctm::Sum;

@@ -3,10 +3,10 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "ctm/QuantityMatrix.hpp"
-#include "ctm/Transformation.hpp"
-#include "ctm/Translation.hpp"
-#include "ctm/traits.hpp"
+#include "ctm/core/QuantityMatrix.hpp"
+#include "ctm/core/traits.hpp"
+#include "ctm/trafo/Transformation.hpp"
+#include "ctm/trafo/Translation.hpp"
 
 namespace ctm {
 
