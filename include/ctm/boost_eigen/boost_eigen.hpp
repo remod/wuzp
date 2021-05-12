@@ -2,6 +2,7 @@
 
 #include "ctm/Position.hpp"
 #include "ctm/Vector.hpp"
+#include "ctm/Velocity.hpp"
 #include "ctm/boost/boost.hpp"
 #include "ctm/core/FramedQuantityMatrix.hpp"
 #include "ctm/core/QuantityMatrix.hpp"
@@ -34,6 +35,15 @@ using Vector2D = Vector<2, Scalar, Frame>;
 
 template <typename Scalar, typename Frame>
 using Vector3D = Vector<3, Scalar, Frame>;
+
+template <int Dimension, typename Scalar, typename Frame>
+using Velocity = VelocityTemplate<Dimension, Eigen::Matrix<Scalar, Dimension, 1>, Frame, boost::units::si::velocity>;
+
+template <typename Scalar, typename Frame>
+using Velocity2D = Velocity<2, Scalar, Frame>;
+
+template <typename Scalar, typename Frame>
+using Velocity3D = Velocity<3, Scalar, Frame>;
 
 template <typename Scalar, typename From, typename To>
 class Quaternion

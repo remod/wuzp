@@ -149,6 +149,15 @@ struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
   using type = TypeMatrixImpl<Cols, Rows, typename ExtractAndApply<Cat, typename ToCols<Cols, Types...>::type>::type>;
 };
 
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
+struct DotProduct<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
+  static_assert(RowsLhs == RowsRhs, "Matrix size mismatch.");
+  static_assert(ColsLhs == 1, "Dot product is only defined for vectors.");
+  static_assert(ColsRhs == 1, "Dot product is only defined for vectors.");
+  using type = typename Product<typename Transpose<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>>::type,
+                                TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>>::type;
+};
+
 // template <int Size, typename ZeroType, typename OneType, typename IndexSequence>
 // struct IdentityImpl;
 //

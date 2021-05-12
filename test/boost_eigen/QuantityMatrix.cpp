@@ -98,8 +98,25 @@ class BoostEigenQuantityMatrix2 : public ::testing::Test {
   MyMatrix matrix_;
 };
 
-TEST_F(BoostEigenQuantityMatrix2, Multiplication) {  // NOLINT
-  EXPECT_EQ(getMatrix() * getMatrix(), MyMatrix(getValues() * getValues()));
+TEST_F(BoostEigenQuantityMatrix2, Product) {  // NOLINT
+  using MyUnitsProduct = TypeMatrix<2, 2, decltype(std::declval<boost::units::si::time>() * std::declval<boost::units::si::time>())>;
+  using MyMatrixProduct = QuantityMatrix<MyValues, MyUnitsProduct>;
+  EXPECT_EQ(getMatrix() * getMatrix(), MyMatrixProduct(getValues() * getValues()));
+}
+
+TEST(BoostEigenQuantityMatrix3, ScalarProduct) {  // NOLINT
+  using MyValues = Eigen::Matrix<int, 4, 1>;
+  using MyUnits = TypeMatrix<4, 1, length>;
+  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
+  using MyValuesResult = int;
+  using MyUnitsResult = TypeMatrix<1, 1, area>;
+  using MyMatrixResult = QuantityMatrix<MyValuesResult, MyUnitsResult>;
+  MyValues values1;
+  values1 << 1, 2, 3, 4;
+  MyValues values2;
+  values2 << 0, 3, -1, 2;
+  EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), MyMatrixResult(11));
+  // TODO(remod): How to treat 1x1 matrices? Equal to scalars?
 }
 
 TEST_F(BoostEigenQuantityMatrix2, Chain) {  // NOLINT
