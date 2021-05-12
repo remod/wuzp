@@ -64,11 +64,25 @@ TEST(TypeMatrix, Sum) {  // NOLINT
   static_assert(std::is_same<ctm::Sum<A, B>::type, C>::value);
 }
 
-TEST(TypeMatrix, Product) {  // NOLINT
+TEST(TypeMatrix, Product1) {  // NOLINT
   using A = ValueMatrix<2, 2, 0, 1, 2, 3>;
   using B = ValueMatrix<2, 2, -1, 3, 4, 2>;
   using C = ValueMatrix<2, 2, 4, 2, 10, 12>;
   static_assert(std::is_same<ctm::Product<A, B>::type, C>::value);
+}
+
+TEST(TypeMatrix, Product2) {  // NOLINT
+  using A = ValueMatrix<1, 4, 0, 1, 2, 3>;
+  using B = ValueMatrix<4, 1, -1, 3, 4, 2>;
+  using C = ValueMatrix<1, 1, 17>;
+  static_assert(std::is_same<ctm::Product<A, B>::type, C>::value);
+}
+
+TEST(TypeMatrix, DotProduct) {  // NOLINT
+  using A = ValueMatrix<4, 1, 0, 1, 2, 3>;
+  using B = ValueMatrix<4, 1, -1, 3, 4, 2>;
+  using C = ValueMatrix<1, 1, 17>;
+  static_assert(std::is_same<ctm::DotProduct<A, B>::type, C>::value);
 }
 
 TEST(TypeMatrix, Transpose) {  // NOLINT

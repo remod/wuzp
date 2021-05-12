@@ -18,9 +18,16 @@ class FramedQuantityMatrix {
   void setValues(const Values& values) { quantityMatrix_.setValues(values); }
   const Values& getValues() const { return quantityMatrix_.getValues(); }
 
-  auto transpose() const { return typename Transpose<FramedQuantityMatrix<Values, Units, Frames>>::type(getValues().transpose()); }
+  auto transpose() const { return typename Transpose<This>::type(getValues().transpose()); }
+
+  template <typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
+  auto dot(const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& other) const {
+    return typename DotProduct<This, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>::type(getValues().dot(other.getValues()));
+  }
 
  private:
+  using This = FramedQuantityMatrix<Values, Units, Frames>;
+
   QuantityMatrix<Values, Units> quantityMatrix_;
 };
 
@@ -46,6 +53,12 @@ struct Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuant
 template <typename Values, typename Units, typename Frames>
 struct Transpose<FramedQuantityMatrix<Values, Units, Frames>> {
   using type = FramedQuantityMatrix<typename Transpose<Values>::type, typename Transpose<Units>::type, typename Transpose<Frames>::type>;
+};
+
+template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
+struct DotProduct<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
+  using type = QuantityMatrix<typename DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
+  using assert_frames_match = typename DotProduct<FramesLhs, FramesRhs>::type;
 };
 
 template <typename Values, typename Units, typename Frames>

@@ -19,19 +19,27 @@ class QuantityMatrix {
   // Note: Allow other value types to support lazy evaluation.
   template <typename ValuesOther>
   bool isApprox(const QuantityMatrix<ValuesOther, Units>& other) const {
-    return getValues().isApprox(other.getValues());
+    return values_.isApprox(other.getValues());
   }
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
-    return typename Block<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
-        getValues().template block<BlockRows, BlockCols>(BlockRowId, BlockColId));
+    return typename Block<This, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
+        values_.template block<BlockRows, BlockCols>(BlockRowId, BlockColId));
   }
 
-  auto transpose() const { return typename Transpose<QuantityMatrix<Values, Units>>::type(getValues().transpose()); }
-  auto inverse() const { return typename Inverse<QuantityMatrix<Values, Units>>::type(getValues().inverse()); }
+  auto transpose() const { return typename Transpose<This>::type(values_.transpose()); }
+
+  template <typename ValuesRhs, typename UnitsRhs>
+  auto dot(const QuantityMatrix<ValuesRhs, UnitsRhs>& other) const {
+    return typename DotProduct<This, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(values_.dot(other.getValues()));
+  }
+
+  auto inverse() const { return typename Inverse<This>::type(values_.inverse()); }
 
  private:
+  using This = QuantityMatrix<Values, Units>;
+
   Values values_;
 };
 
@@ -47,12 +55,17 @@ struct Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs,
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename Product<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type>;
+  using type = QuantityMatrix<typename Product<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename Values, typename Units>
 struct Transpose<QuantityMatrix<Values, Units>> {
   using type = QuantityMatrix<typename Transpose<Values>::type, typename Transpose<Units>::type>;
+};
+
+template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
+struct DotProduct<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
+  using type = QuantityMatrix<typename DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename Values, typename Units>

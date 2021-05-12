@@ -16,6 +16,7 @@ using boost::units::si::mass;
 using boost::units::si::volume;
 using ctm::Frame;
 using ctm::FramedQuantityMatrix;
+using ctm::QuantityMatrix;
 using ctm::Position2D;
 using ctm::Position3D;
 using ctm::Translation2D;
@@ -23,20 +24,21 @@ using ctm::Translation3D;
 using ctm::TypeMatrix;
 using ctm::Vector3D;
 
+struct FrameAName {};
+struct FrameBName {};
+struct FrameCName {};
+struct FrameDName {};
+struct FrameEName {};
+struct FrameFName {};
+using FrameA = Frame<FrameAName>;
+using FrameB = Frame<FrameBName>;
+using FrameC = Frame<FrameCName>;
+using FrameD = Frame<FrameDName>;
+using FrameE = Frame<FrameEName>;
+using FrameF = Frame<FrameFName>;
+
 class BoostEigenFramedQuantityMatrix : public ::testing::Test {
  public:
-  struct FrameAName {};
-  struct FrameBName {};
-  struct FrameCName {};
-  struct FrameDName {};
-  struct FrameEName {};
-  struct FrameFName {};
-  using FrameA = Frame<FrameAName>;
-  using FrameB = Frame<FrameBName>;
-  using FrameC = Frame<FrameCName>;
-  using FrameD = Frame<FrameDName>;
-  using FrameE = Frame<FrameEName>;
-  using FrameF = Frame<FrameFName>;
   using MyValues = Eigen::Matrix<int, 2, 3>;
   using MyUnits = TypeMatrix<2, 3, length, area, volume, mass, force, energy>;
   using MyFrames = TypeMatrix<2, 3, FrameA, FrameB, FrameC, FrameD, FrameE, FrameF>;
@@ -57,6 +59,22 @@ class BoostEigenFramedQuantityMatrix : public ::testing::Test {
 
 TEST_F(BoostEigenFramedQuantityMatrix, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getMatrix(), getMatrix());
+}
+
+TEST(BoostEigenFramedQuantityMatrix2, ScalarProduct) {  // NOLINT
+  using MyValues = Eigen::Matrix<int, 4, 1>;
+  using MyUnits = TypeMatrix<4, 1, length>;
+  using MyFrames = TypeMatrix<4, 1, FrameA, FrameB, FrameC, FrameD>;
+  using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
+  using MyValuesResult = int;
+  using MyUnitsResult = TypeMatrix<1, 1, area>;
+  using MyMatrixResult = QuantityMatrix<MyValuesResult, MyUnitsResult>;
+  MyValues values1;
+  values1 << 1, 2, 3, 4;
+  MyValues values2;
+  values2 << 0, 3, -1, 2;
+  EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), MyMatrixResult(11));
+  // TODO(remod): How to treat 1x1 matrices? Equal to scalars?
 }
 
 TEST_F(BoostEigenFramedQuantityMatrix, Transpose) {  // NOLINT

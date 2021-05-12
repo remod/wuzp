@@ -35,6 +35,13 @@ struct Transpose<Eigen::Matrix<Scalar, Rows, Cols>> {
 };
 
 template <typename Scalar, int Rows, int Cols>
+struct DotProduct<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::Matrix<Scalar, Rows, Cols>> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type =
+      decltype(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>().dot(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>()));
+};
+
+template <typename Scalar, int Rows, int Cols>
 struct Inverse<Eigen::Matrix<Scalar, Rows, Cols>> {
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>().inverse());
