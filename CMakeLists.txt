@@ -27,6 +27,7 @@ if (ENABLE_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
     add_executable(tests
+        test/CompilationError.cpp
         test/TypeMatrix.cpp
         test/Frame.cpp
     )
@@ -69,7 +70,6 @@ if (ENABLE_FORMAT)
         ${PROJECT_SOURCE_DIR}/src/*.[ch]pp
         ${PROJECT_SOURCE_DIR}/test/*.[ch]pp
     )
-    message(${ALL_CXX_SOURCE_FILES})
     add_custom_target(format
         COMMAND clang-format -i -style=file ${ALL_CXX_SOURCE_FILES}
     )
