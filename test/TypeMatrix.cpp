@@ -2,6 +2,8 @@
 
 #include "ctm/core/TypeMatrix.hpp"
 
+#include "test_compilation_error.hpp"
+
 template <int>
 struct ValueT {};
 
@@ -89,4 +91,11 @@ TEST(TypeMatrix, Transpose) {  // NOLINT
   using A = ValueMatrix<2, 3, 0, 1, 2, 3, 4, 5>;
   using B = ValueMatrix<3, 2, 0, 3, 1, 4, 2, 5>;
   static_assert(std::is_same<ctm::Transpose<A>::type, B>::value);
+}
+
+TEST(TypeMatrix, Test) {  // NOLINT
+  ASSERT_STATIC_ASSERTION_FAILURE(R"(
+#include "ctm/core/TypeMatrix.hpp"
+ctm::Sum<ctm::TypeMatrix<1, 1, int>, ctm::TypeMatrix<1, 1, double>>::type;
+)");
 }
