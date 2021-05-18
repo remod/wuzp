@@ -9,23 +9,41 @@
 #include "ctm/trafo/Translation.hpp"
 
 namespace ctm {
+namespace eigen {
 
-template <typename Scalar, int Rows, int Cols>
-struct Sum<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::Matrix<Scalar, Rows, Cols>> {
+template <typename Lhs, typename Rhs>
+struct ValuesSum {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>() + std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>());
+  using type = decltype(std::declval<const Lhs>() + std::declval<const Rhs>());
 };
 
-template <typename Scalar, int Rows, int Cols>
-struct Difference<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::Matrix<Scalar, Rows, Cols>> {
+template <typename Lhs, typename Rhs>
+struct ValuesDifference {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>() - std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>());
+  using type = decltype(std::declval<const Lhs>() - std::declval<const Rhs>());
 };
 
-template <typename Scalar, int Rows, int Cols>
-struct Product<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::Matrix<Scalar, Rows, Cols>> {
+template <typename Lhs, typename Rhs>
+struct ValuesProduct {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>() * std::declval<const Eigen::Matrix<Scalar, Rows, Cols>>());
+  using type = decltype(std::declval<const Lhs>() * std::declval<const Rhs>());
+};
+
+}  // namespace eigen
+
+template <typename Lhs, typename Rhs>
+struct ValuesSum<Lhs, Rhs> {
+  using type = typename eigen::ValuesSum<Lhs, Rhs>::type;
+};
+
+template <typename Lhs, typename Rhs>
+struct ValuesDifference<Lhs, Rhs> {
+  using type = typename eigen::ValuesDifference<Lhs, Rhs>::type;
+};
+
+template <typename Lhs, typename Rhs>
+struct ValuesProduct<Lhs, Rhs> {
+  using type = typename eigen::ValuesProduct<Lhs, Rhs>::type;
 };
 
 template <typename Scalar, int Rows, int Cols>

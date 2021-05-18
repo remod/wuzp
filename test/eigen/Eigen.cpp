@@ -4,10 +4,10 @@
 #include "ctm/eigen/eigen.hpp"
 
 using ctm::Block;
-using ctm::Difference;
-using ctm::Product;
-using ctm::Sum;
 using ctm::Transpose;
+using ctm::ValuesDifference;
+using ctm::ValuesProduct;
+using ctm::ValuesSum;
 
 TEST(EigenMatrix, LazyBlock) {  // NOLINT
   using MyValues = Eigen::Matrix<double, 3, 2>;
@@ -21,15 +21,15 @@ TEST(EigenMatrix, LazyTranspose) {  // NOLINT
 
 TEST(EigenMatrix, LazySum) {  // NOLINT
   using MyValues = Eigen::Matrix<double, 3, 2>;
-  static_assert(!std::is_same<Sum<MyValues, MyValues>::type, MyValues>::value);
+  static_assert(!std::is_same<ValuesSum<MyValues, MyValues>::type, MyValues>::value);
 }
 
 TEST(EigenMatrix, LazyDifference) {  // NOLINT
   using MyValues = Eigen::Matrix<double, 3, 2>;
-  static_assert(!std::is_same<Difference<MyValues, MyValues>::type, MyValues>::value);
+  static_assert(!std::is_same<ValuesDifference<MyValues, MyValues>::type, MyValues>::value);
 }
 
 TEST(EigenMatrix, LazyProduct) {  // NOLINT
   using MyValues = Eigen::Matrix<double, 3, 2>;
-  static_assert(!std::is_same<Product<MyValues, MyValues>::type, MyValues>::value);
+  static_assert(!std::is_same<ValuesProduct<MyValues, MyValues>::type, MyValues>::value);
 }
