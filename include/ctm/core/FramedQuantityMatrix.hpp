@@ -33,13 +33,13 @@ class FramedQuantityMatrix {
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 struct Sum<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
-  using type = FramedQuantityMatrix<typename Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type,
+  using type = FramedQuantityMatrix<typename ValuesSum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type,
                                     typename Sum<FramesLhs, FramesRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 struct Difference<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
-  using type = FramedQuantityMatrix<typename Difference<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type,
+  using type = FramedQuantityMatrix<typename ValuesDifference<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type,
                                     typename Difference<FramesLhs, FramesRhs>::type>;
 };
 

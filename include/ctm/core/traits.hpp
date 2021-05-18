@@ -5,59 +5,28 @@
 namespace ctm {
 
 // Some matrix operations (e.g. multiplication) requires the sum of an arbitrary number of elements to be defined.
-template <typename... Ts>
-struct Sum;
+#define DEFINE_RECURSIVE_TRAIT(Name)                                      \
+  template <typename... Ts>                                               \
+  struct Name;                                                            \
+                                                                          \
+  template <typename T0>                                                  \
+  struct Name<T0> {                                                       \
+    using type = T0;                                                      \
+  };                                                                      \
+                                                                          \
+  template <typename T0, typename T1, typename... Ts>                     \
+  struct Name<T0, T1, Ts...> {                                            \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                      \
+    using type = typename Name<typename Name<T0, T1>::type, Ts...>::type; \
+  };
 
-template <typename T0>
-struct Sum<T0> {
-  using type = T0;
-};
+DEFINE_RECURSIVE_TRAIT(Sum)
+DEFINE_RECURSIVE_TRAIT(Difference)
+DEFINE_RECURSIVE_TRAIT(Product)
 
-template <typename T0, typename T1>
-struct Sum<T0, T1> {
-  static_assert(FakeDependency<Sum<T0, T1>>::value, "'Sum' trait not specialized for given types.");
-};
-
-template <typename T0, typename T1, typename... Ts>
-struct Sum<T0, T1, Ts...> {
-  using type = typename Sum<typename Sum<T0, T1>::type, Ts...>::type;
-};
-
-template <typename... Ts>
-struct Difference;
-
-template <typename T0>
-struct Difference<T0> {
-  using type = T0;
-};
-
-template <typename T0, typename T1>
-struct Difference<T0, T1> {
-  static_assert(FakeDependency<Difference<T0, T1>>::value, "'Difference' trait not specialized for given types.");
-};
-
-template <typename T0, typename T1, typename... Ts>
-struct Difference<T0, T1, Ts...> {
-  using type = typename Difference<typename Difference<T0, T1>::type, Ts...>::type;
-};
-
-template <typename... Ts>
-struct Product;
-
-template <typename T0>
-struct Product<T0> {
-  using type = T0;
-};
-
-template <typename T0, typename T1>
-struct Product<T0, T1> {
-  static_assert(FakeDependency<Product<T0, T1>>::value, "'Product' trait not specialized for given types.");
-};
-
-template <typename T0, typename T1, typename... Ts>
-struct Product<T0, T1, Ts...> {
-  using type = typename Product<typename Product<T0, T1>::type, Ts...>::type;
-};
+DEFINE_RECURSIVE_TRAIT(ValuesSum)
+DEFINE_RECURSIVE_TRAIT(ValuesDifference)
+DEFINE_RECURSIVE_TRAIT(ValuesProduct)
 
 template <typename T>
 struct Transpose {
