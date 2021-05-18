@@ -57,9 +57,19 @@ inline std::pair<bool, std::string> compile(const std::string& code) {
   return {result.first == EXIT_SUCCESS, result.second};
 }
 
-#define ASSERT_NO_COMPILATION_ERROR(code) ASSERT_TRUE(compile(code).first)
-#define ASSERT_COMPILATION_ERROR(code) ASSERT_FALSE(compile(code).first)
-#define ASSERT_STATIC_ASSERTION_FAILURE(code) \
-  const auto result = compile(code);  \
-  ASSERT_FALSE(result.first);         \
-  ASSERT_NE(result.second.find("static assertion failed"), std::string::npos)\
+#define ASSERT_NO_COMPILATION_ERROR(code) \
+  const auto result = compile(code);      \
+  ASSERT_TRUE(result.first) << result.second;
+#define ASSERT_COMPILATION_ERROR(code) \
+  const auto result = compile(code);   \
+  ASSERT_FALSE(result.first) << result.second;
+#define ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, message) \
+  const auto result = compile(code);                                \
+  ASSERT_FALSE(result.first) << result.second;                      \
+  std::string searchString{"error: static assertion failed"};       \
+  const std::string messageString{message};                         \
+  if (!messageString.empty()) {                                     \
+    searchString += ": " + messageString;                           \
+  }                                                                 \
+  ASSERT_NE(result.second.find(searchString), std::string::npos) << result.second;
+#define ASSERT_STATIC_ASSERTION_FAILURE(code) ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, std::string{})
