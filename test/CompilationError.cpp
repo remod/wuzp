@@ -9,3 +9,20 @@ int main() {
 }
 )");
 }
+
+TEST(CompilationError, detectsBadCode) {  // NOLINT
+  ASSERT_COMPILATION_ERROR(R"(
+int main() {
+  return 0
+}
+)");
+}
+
+TEST(CompilationError, detectsStaticAsserts) {  // NOLINT
+  ASSERT_STATIC_ASSERTION_FAILURE(R"(
+int main() {
+  static_assert(false);
+  return 0;
+}
+)");
+}

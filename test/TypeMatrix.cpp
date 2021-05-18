@@ -94,8 +94,9 @@ TEST(TypeMatrix, Transpose) {  // NOLINT
 }
 
 TEST(TypeMatrix, Test) {  // NOLINT
-  ASSERT_STATIC_ASSERTION_FAILURE(R"(
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
 #include "ctm/core/TypeMatrix.hpp"
 ctm::Sum<ctm::TypeMatrix<1, 1, int>, ctm::TypeMatrix<1, 1, double>>::type;
-)");
+)",
+                                               "'Sum' trait not specialized for given types.");
 }
