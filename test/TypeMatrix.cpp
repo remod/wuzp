@@ -7,27 +7,31 @@
 template <int>
 struct ValueT {};
 
-namespace ctm {
+struct ValueTraits {
+  template <typename T>
+  struct Identity;
+  template <int Value>
+  struct Identity<ValueT<Value>> {
+    using type = ValueT<1>;
+  };
 
-template <int Value>
-struct Identity<ValueT<Value>> {
-  using type = ValueT<1>;
+  DEFINE_RECURSIVE_TRAIT(Sum)
+  template <int ValueLhs, int ValueRhs>
+  struct Sum<ValueT<ValueLhs>, ValueT<ValueRhs>> {
+    using type = ValueT<ValueLhs + ValueRhs>;
+  };
+
+  DEFINE_RECURSIVE_TRAIT(Product)
+  template <int ValueLhs, int ValueRhs>
+  struct Product<ValueT<ValueLhs>, ValueT<ValueRhs>> {
+    using type = ValueT<ValueLhs * ValueRhs>;
+  };
 };
-
-template <int ValueLhs, int ValueRhs>
-struct Sum<ValueT<ValueLhs>, ValueT<ValueRhs>> {
-  using type = ValueT<ValueLhs + ValueRhs>;
-};
-
-template <int ValueLhs, int ValueRhs>
-struct Product<ValueT<ValueLhs>, ValueT<ValueRhs>> {
-  using type = ValueT<ValueLhs * ValueRhs>;
-};
-
-}  // namespace ctm
 
 template <int Rows, int Cols, int... Values>
-using ValueMatrix = ctm::TypeMatrix<Rows, Cols, ValueT<Values>...>;
+using ValueMatrix = ctm::TypeMatrix<Rows, Cols, ValueTraits, ValueT<Values>...>;
+template <int Size, int AnyValue>
+using ValueMatrixIdentity = ctm::TypeMatrixIdentity<Size, ValueTraits, ValueT<AnyValue>>;
 
 TEST(TypeMatrix, Conversions) {  // NOLINT
   static_assert(std::is_same<ctm::HomogeneousTuple<3, int>, std::tuple<int, int, int>>::value);
@@ -42,9 +46,9 @@ TEST(TypeMatrix, Interface) {  // NOLINT
 }
 
 TEST(TypeMatrix, Identity) {  // NOLINT
-  static_assert(std::is_same<ctm::TypeMatrixIdentity<1, ValueT<1>>, ctm::TypeMatrix<1, 1, ValueT<1>>>::value);
-  static_assert(std::is_same<ctm::TypeMatrixIdentity<2, ValueT<-1>>, ctm::TypeMatrix<2, 2, ValueT<1>>>::value);
-  static_assert(std::is_same<ctm::TypeMatrixIdentity<3, ValueT<35>>, ctm::TypeMatrix<3, 3, ValueT<1>>>::value);
+  static_assert(std::is_same<ValueMatrixIdentity<1, 1>, ValueMatrix<1, 1, 1>>::value);
+  static_assert(std::is_same<ValueMatrixIdentity<2, -1>, ValueMatrix<2, 2, 1>>::value);
+  static_assert(std::is_same<ValueMatrixIdentity<3, 35>, ValueMatrix<3, 3, 1>>::value);
 }
 
 TEST(TypeMatrix, Block) {  // NOLINT
@@ -96,7 +100,20 @@ TEST(TypeMatrix, Transpose) {  // NOLINT
 TEST(TypeMatrix, Test) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
 #include "ctm/core/TypeMatrix.hpp"
-ctm::Sum<ctm::TypeMatrix<1, 1, int>, ctm::TypeMatrix<1, 1, double>>::type;
+#include "ctm/core/traits.hpp"
+struct Traits {
+  DEFINE_RECURSIVE_TRAIT(Sum)
+  template <typename Lhs, typename Rhs>
+  struct Sum<Lhs, Rhs> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Type mismatch.");
+    using type = Lhs;
+  };
+};
+using type = ctm::Sum<ctm::TypeMatrix<1, 1, Traits, int>, ctm::TypeMatrix<1, 1, Traits, double>>::type;
+int main() {
+  type x;
+  return 0;
+}
 )",
-                                               "'Sum' trait not specialized for given types.");
+                                               "Type mismatch.")
 }
