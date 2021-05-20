@@ -1,6 +1,7 @@
 #pragma once
 
-#include "traits.hpp"
+#include "ctm/core/TypeMatrix.hpp"
+#include "ctm/core/traits.hpp"
 
 namespace ctm {
 
@@ -14,22 +15,30 @@ using NoFrame = Frame<NoFrameName>;
 template <typename Object>
 struct GetFrame;
 
-template <typename Lhs, typename Rhs>
-struct Sum<Frame<Lhs>, Frame<Rhs>> {
-  static_assert(std::is_same<Lhs, Rhs>::value, "Frame mismatch.");
-  using type = Frame<Lhs>;
+struct FrameTraits {
+  DEFINE_RECURSIVE_TRAIT(Sum)
+  template <typename Lhs, typename Rhs>
+  struct Sum<Lhs, Rhs> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Frame mismatch.");
+    using type = Lhs;
+  };
+
+  DEFINE_RECURSIVE_TRAIT(Difference)
+  template <typename Lhs, typename Rhs>
+  struct Difference<Lhs, Rhs> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Frame mismatch.");
+    using type = Lhs;
+  };
+
+  DEFINE_RECURSIVE_TRAIT(Product)
+  template <typename Lhs, typename Rhs>
+  struct Product<Lhs, Rhs> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Frame mismatch.");
+    using type = NoFrame;
+  };
 };
 
-template <typename Lhs, typename Rhs>
-struct Difference<Frame<Lhs>, Frame<Rhs>> {
-  static_assert(std::is_same<Lhs, Rhs>::value, "Frame mismatch.");
-  using type = Frame<Lhs>;
-};
-
-template <typename Lhs, typename Rhs>
-struct Product<Frame<Lhs>, Frame<Rhs>> {
-  static_assert(std::is_same<Lhs, Rhs>::value, "Frame mismatch.");
-  using type = NoFrame;
-};
+template <int Rows, int Cols, typename... Frames>
+using FrameMatrix = TypeMatrix<Rows, Cols, FrameTraits, Frames...>;
 
 }  // namespace ctm

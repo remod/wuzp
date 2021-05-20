@@ -2,9 +2,6 @@
 
 #include <ostream>
 
-#include "Frame.hpp"
-#include "TypeMatrix.hpp"
-
 namespace ctm {
 
 template <typename Values, typename Units>

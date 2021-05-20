@@ -1,8 +1,9 @@
 #pragma once
 
-#include "ctm/Position.hpp"
-#include "ctm/Vector.hpp"
-#include "ctm/Velocity.hpp"
+#include <boost/units/absolute.hpp>
+#include <boost/units/systems/si/length.hpp>
+#include <boost/units/systems/si/velocity.hpp>
+
 #include "ctm/boost/boost.hpp"
 #include "ctm/core/FramedQuantityMatrix.hpp"
 #include "ctm/core/QuantityMatrix.hpp"
@@ -19,7 +20,8 @@ namespace ctm {
 // Cols, Units...>>;
 
 template <int Dimension, typename Scalar, typename Frame>
-using Position = PositionTemplate<Dimension, Eigen::Matrix<Scalar, Dimension, 1>, Frame, boost::units::absolute<boost::units::si::length>>;
+using Position = FramedQuantityMatrix<Eigen::Matrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
+                                      UnitMatrix<Dimension, 1, ::boost::units::absolute<::boost::units::si::length>>>;
 
 template <typename Scalar, typename Frame>
 using Position2D = Position<2, Scalar, Frame>;
@@ -28,7 +30,8 @@ template <typename Scalar, typename Frame>
 using Position3D = Position<3, Scalar, Frame>;
 
 template <int Dimension, typename Scalar, typename Frame>
-using Vector = VectorTemplate<Dimension, Eigen::Matrix<Scalar, Dimension, 1>, Frame, boost::units::si::length>;
+using Vector = FramedQuantityMatrix<Eigen::Matrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
+                                    UnitMatrix<Dimension, 1, ::boost::units::si::length>>;
 
 template <typename Scalar, typename Frame>
 using Vector2D = Vector<2, Scalar, Frame>;
@@ -37,7 +40,8 @@ template <typename Scalar, typename Frame>
 using Vector3D = Vector<3, Scalar, Frame>;
 
 template <int Dimension, typename Scalar, typename Frame>
-using Velocity = VelocityTemplate<Dimension, Eigen::Matrix<Scalar, Dimension, 1>, Frame, boost::units::si::velocity>;
+using Velocity = FramedQuantityMatrix<Eigen::Matrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
+                                      UnitMatrix<Dimension, 1, ::boost::units::si::velocity>>;
 
 template <typename Scalar, typename Frame>
 using Velocity2D = Velocity<2, Scalar, Frame>;
@@ -47,13 +51,13 @@ using Velocity3D = Velocity<3, Scalar, Frame>;
 
 template <typename Scalar, typename From, typename To>
 class Quaternion
-    : public QuaternionBase<Quaternion<Scalar, From, To>, From, To, boost::units::quantity<boost::units::si::dimensionless, Scalar>> {
+    : public QuaternionBase<Quaternion<Scalar, From, To>, From, To, ::boost::units::quantity<::boost::units::si::dimensionless, Scalar>> {
   // TODO(remod): Using friend is non-extendable. Change this.
   friend TransformationTraits<Quaternion<Scalar, From, To>, Vector<3, Scalar, From>>;
   friend TransformationTraits<Quaternion<Scalar, From, To>, Position<3, Scalar, From>>;
 
  public:
-  using DimensionlessQuantity = boost::units::quantity<boost::units::si::dimensionless, Scalar>;
+  using DimensionlessQuantity = ::boost::units::quantity<::boost::units::si::dimensionless, Scalar>;
 
   template <typename... Ts>
   explicit Quaternion(Ts... args) : impl_(args...) {}

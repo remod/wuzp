@@ -28,6 +28,10 @@ DEFINE_RECURSIVE_TRAIT(ValuesSum)
 DEFINE_RECURSIVE_TRAIT(ValuesDifference)
 DEFINE_RECURSIVE_TRAIT(ValuesProduct)
 
+DEFINE_RECURSIVE_TRAIT(UnitSum)
+DEFINE_RECURSIVE_TRAIT(UnitDifference)
+DEFINE_RECURSIVE_TRAIT(UnitProduct)
+
 template <typename T>
 struct Transpose {
   static_assert(FakeDependency<Transpose<T>>::value, "'Transpose' trait not specialized for given type.");
@@ -38,20 +42,19 @@ struct DotProduct {
   static_assert(FakeDependency<DotProduct<Lhs, Rhs>>::value, "'DotProduct' trait not specialized for given type.");
 };
 
-template <typename T>
-struct Inverse {
-  static_assert(FakeDependency<Inverse<T>>::value, "'Inverse' trait not specialized for given type.");
-};
+template <typename Unit>
+struct UnitInverse;
 
-template <typename TypeOfFamily>
-struct Identity {
-  static_assert(FakeDependency<Identity<TypeOfFamily>>::value, "'Identity' trait not specialized for given type.");
-};
+template <typename UnitOfFamily>
+struct UnitIdentity;
 
 template <typename Object, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block {
   static_assert(FakeDependency<Block<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value,
                 "'Block' trait not specialized for given type.");
 };
+
+template <typename T>
+struct Inverse;
 
 }  // namespace ctm

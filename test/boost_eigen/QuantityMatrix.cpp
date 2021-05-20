@@ -15,11 +15,12 @@ using boost::units::si::mass;
 using boost::units::si::volume;
 using ctm::QuantityMatrix;
 using ctm::TypeMatrix;
+using ctm::UnitMatrix;
 
 class BoostEigenQuantityMatrixF : public ::testing::Test {
  public:
   using MyValues = Eigen::Matrix<int, 2, 3>;
-  using MyUnits = TypeMatrix<2, 3, length, area, volume, mass, force, energy>;
+  using MyUnits = UnitMatrix<2, 3, length, area, volume, mass, force, energy>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
 
   const MyValues& getValues1() const { return values1_; }
@@ -60,7 +61,7 @@ TEST_F(BoostEigenQuantityMatrixF, InEqualityOperator) {  // NOLINT
 
 TEST_F(BoostEigenQuantityMatrixF, Block) {  // NOLINT
   using MyValuesB = Eigen::Matrix<int, 2, 2>;
-  using MyUnitsB = TypeMatrix<2, 2, area, volume, force, energy>;
+  using MyUnitsB = UnitMatrix<2, 2, area, volume, force, energy>;
   using MyMatrixB = QuantityMatrix<MyValuesB, MyUnitsB>;
   MyValuesB valuesB;
   valuesB << 2, 3, 5, 6;
@@ -70,7 +71,7 @@ TEST_F(BoostEigenQuantityMatrixF, Block) {  // NOLINT
 
 TEST_F(BoostEigenQuantityMatrixF, Transpose) {  // NOLINT
   using MyValuesT = Eigen::Matrix<int, 3, 2>;
-  using MyUnitsT = TypeMatrix<3, 2, length, mass, area, force, volume, energy>;
+  using MyUnitsT = UnitMatrix<3, 2, length, mass, area, force, volume, energy>;
   using MyMatrixT = QuantityMatrix<MyValuesT, MyUnitsT>;
   MyValuesT valuesT;
   valuesT << 1, 4, 2, 5, 3, 6;
@@ -81,7 +82,7 @@ TEST_F(BoostEigenQuantityMatrixF, Transpose) {  // NOLINT
 class BoostEigenQuantityMatrix2 : public ::testing::Test {
  public:
   using MyValues = Eigen::Matrix<double, 2, 2>;
-  using MyUnits = TypeMatrix<2, 2, boost::units::si::time>;
+  using MyUnits = UnitMatrix<2, 2, boost::units::si::time>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
 
   const MyValues& getValues() const { return values_; }
@@ -100,8 +101,8 @@ class BoostEigenQuantityMatrix2 : public ::testing::Test {
 
 TEST(BoostEigenQuantityMatrix, Product) {  // NOLINT
   using MyValues = Eigen::Matrix<int, 2, 2>;
-  using MyUnits = TypeMatrix<2, 2, length>;
-  using MyUnitsResult = TypeMatrix<2, 2, area>;
+  using MyUnits = UnitMatrix<2, 2, length>;
+  using MyUnitsResult = UnitMatrix<2, 2, area>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
   using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
   MyValues values;
@@ -113,10 +114,10 @@ TEST(BoostEigenQuantityMatrix, Product) {  // NOLINT
 
 TEST(BoostEigenQuantityMatrix, ScalarProduct) {  // NOLINT
   using MyValues = Eigen::Matrix<int, 4, 1>;
-  using MyUnits = TypeMatrix<4, 1, length>;
+  using MyUnits = UnitMatrix<4, 1, length>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
   using MyValuesResult = int;
-  using MyUnitsResult = TypeMatrix<1, 1, area>;
+  using MyUnitsResult = UnitMatrix<1, 1, area>;
   using MyMatrixResult = QuantityMatrix<MyValuesResult, MyUnitsResult>;
   MyValues values1;
   values1 << 1, 2, 3, 4;
@@ -128,9 +129,9 @@ TEST(BoostEigenQuantityMatrix, ScalarProduct) {  // NOLINT
 
 TEST(BoostEigenQuantityMatrix, Chain) {  // NOLINT
   using MyValues = Eigen::Matrix<int, 2, 2>;
-  using MyUnits1 = TypeMatrix<2, 2, length>;
-  using MyUnits2 = TypeMatrix<2, 2, area>;
-  using MyUnitsResult = TypeMatrix<2, 2, area>;
+  using MyUnits1 = UnitMatrix<2, 2, length>;
+  using MyUnits2 = UnitMatrix<2, 2, area>;
+  using MyUnitsResult = UnitMatrix<2, 2, area>;
   using MyMatrix1 = QuantityMatrix<MyValues, MyUnits1>;
   using MyMatrix2 = QuantityMatrix<MyValues, MyUnits2>;
   using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
@@ -142,7 +143,7 @@ TEST(BoostEigenQuantityMatrix, Chain) {  // NOLINT
 }
 
 TEST_F(BoostEigenQuantityMatrix2, Inverse) {  // NOLINT
-  using MyUnitsInv = TypeMatrix<2, 2, frequency>;
+  using MyUnitsInv = UnitMatrix<2, 2, frequency>;
   using MyMatrixInv = QuantityMatrix<MyValues, MyUnitsInv>;
   MyValues valuesInv;
   valuesInv << 0.6, -0.7, -0.2, 0.4;
