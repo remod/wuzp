@@ -8,12 +8,8 @@
 #include "ctm/core/traits.hpp"
 #include "ctm/eigen/eigen.hpp"
 
-using boost::units::si::area;
-using boost::units::si::energy;
-using boost::units::si::force;
-using boost::units::si::length;
-using boost::units::si::mass;
-using boost::units::si::volume;
+namespace units = boost::units::si;
+using boost::units::absolute;
 using ctm::Frame;
 using ctm::FramedQuantityMatrix;
 using ctm::FrameMatrix;
@@ -42,7 +38,7 @@ using FrameF = Frame<FrameFName>;
 class BoostEigenFramedQuantityMatrix : public ::testing::Test {
  public:
   using MyValues = Eigen::Matrix<int, 2, 3>;
-  using MyUnits = UnitMatrix<2, 3, length, area, volume, mass, force, energy>;
+  using MyUnits = UnitMatrix<2, 3, units::length, units::area, units::volume, units::mass, units::force, units::energy>;
   using MyFrames = FrameMatrix<2, 3, FrameA, FrameB, FrameC, FrameD, FrameE, FrameF>;
   using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
 
@@ -65,11 +61,11 @@ TEST_F(BoostEigenFramedQuantityMatrix, EqualityOperator) {  // NOLINT
 
 TEST(BoostEigenFramedQuantityMatrix2, ScalarProduct) {  // NOLINT
   using MyValues = Eigen::Matrix<int, 4, 1>;
-  using MyUnits = UnitMatrix<4, 1, length>;
+  using MyUnits = UnitMatrix<4, 1, units::length>;
   using MyFrames = FrameMatrix<4, 1, FrameA, FrameB, FrameC, FrameD>;
   using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
   using MyValuesResult = int;
-  using MyUnitsResult = UnitMatrix<1, 1, area>;
+  using MyUnitsResult = UnitMatrix<1, 1, units::area>;
   using MyMatrixResult = QuantityMatrix<MyValuesResult, MyUnitsResult>;
   MyValues values1;
   values1 << 1, 2, 3, 4;
@@ -81,7 +77,7 @@ TEST(BoostEigenFramedQuantityMatrix2, ScalarProduct) {  // NOLINT
 
 TEST_F(BoostEigenFramedQuantityMatrix, Transpose) {  // NOLINT
   using MyValuesT = Eigen::Matrix<int, 3, 2>;
-  using MyUnitsT = UnitMatrix<3, 2, length, mass, area, force, volume, energy>;
+  using MyUnitsT = UnitMatrix<3, 2, units::length, units::mass, units::area, units::force, units::volume, units::energy>;
   using MyFramesT = FrameMatrix<3, 2, FrameA, FrameD, FrameB, FrameE, FrameC, FrameF>;
   using MyMatrixT = FramedQuantityMatrix<MyValuesT, MyUnitsT, MyFramesT>;
   MyValuesT valuesT;

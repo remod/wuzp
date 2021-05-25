@@ -30,6 +30,12 @@ struct BoostTraits {
     using type = typename ::boost::units::multiply_typeof_helper<Lhs, Rhs>::type;
   };
 
+  DEFINE_RECURSIVE_TRAIT(Division)
+  template <typename Lhs, typename Rhs>
+  struct Division<Lhs, Rhs> {
+    using type = typename ::boost::units::divide_typeof_helper<Lhs, Rhs>::type;
+  };
+
   template <typename Unit>
   struct Inverse {
     using type = typename ::boost::units::power_typeof_helper<Unit, ::boost::units::static_rational<-1>>::type;
