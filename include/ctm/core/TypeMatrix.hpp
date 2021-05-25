@@ -2,8 +2,8 @@
 
 #include <tuple>
 
-#include "helpers.hpp"
-#include "traits.hpp"
+#include "ctm/core/helpers.hpp"
+#include "ctm/core/traits.hpp"
 
 namespace ctm {
 
