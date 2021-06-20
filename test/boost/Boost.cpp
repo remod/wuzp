@@ -7,41 +7,41 @@
 
 namespace units = boost::units::si;
 using boost::units::absolute;
-using ctm::BoostTraits;
 using ctm::Difference;
 using ctm::Inverse;
 using ctm::Product;
 using ctm::Sum;
 using ctm::UnitMatrix;
+using ctm::UnitTraits;
 
 TEST(BoostUnit, Sum) {  // NOLINT
-  static_assert(std::is_same<BoostTraits::Sum<units::length, units::length>::type, units::length>::value);
-  static_assert(std::is_same<BoostTraits::Sum<absolute<units::length>, units::length>::type, absolute<units::length>>::value);
-  static_assert(std::is_same<BoostTraits::Sum<units::length, absolute<units::length>>::type, absolute<units::length>>::value);
+  static_assert(std::is_same<UnitTraits::Sum<units::length, units::length>::type, units::length>::value);
+  static_assert(std::is_same<UnitTraits::Sum<absolute<units::length>, units::length>::type, absolute<units::length>>::value);
+  static_assert(std::is_same<UnitTraits::Sum<units::length, absolute<units::length>>::type, absolute<units::length>>::value);
 }
 
 TEST(BoostUnit, Difference) {  // NOLINT
-  static_assert(std::is_same<BoostTraits::Difference<units::length, units::length>::type, units::length>::value);
-  static_assert(std::is_same<BoostTraits::Difference<absolute<units::length>, units::length>::type, absolute<units::length>>::value);
+  static_assert(std::is_same<UnitTraits::Difference<units::length, units::length>::type, units::length>::value);
+  static_assert(std::is_same<UnitTraits::Difference<absolute<units::length>, units::length>::type, absolute<units::length>>::value);
 }
 
 TEST(BoostUnit, Product) {  // NOLINT
-  static_assert(std::is_same<BoostTraits::Product<units::length, units::length>::type, units::area>::value);
+  static_assert(std::is_same<UnitTraits::Product<units::length, units::length>::type, units::area>::value);
 }
 
 TEST(BoostUnitMatrix, Division) {  // NOLINT
-  //  static_assert(std::is_same<BoostTraits::Division<units::length, units::time>::type, absolute<units::velocity>>::value);
-  static_assert(std::is_same<BoostTraits::Division<units::length, units::time>::type, units::velocity>::value);
+  //  static_assert(std::is_same<UnitTraits::Division<units::length, units::time>::type, absolute<units::velocity>>::value);
+  static_assert(std::is_same<UnitTraits::Division<units::length, units::time>::type, units::velocity>::value);
 }
 
 TEST(BoostUnit, Inverse) {  // NOLINT
-  static_assert(std::is_same<BoostTraits::Inverse<units::time>::type, units::frequency>::value);
+  static_assert(std::is_same<UnitTraits::Inverse<units::time>::type, units::frequency>::value);
 }
 
 TEST(BoostUnit, Identity) {  // NOLINT
-  static_assert(std::is_same<BoostTraits::Identity<units::length>::type, units::dimensionless>::value);
-  static_assert(std::is_same<BoostTraits::Identity<units::mass>::type, units::dimensionless>::value);
-  static_assert(std::is_same<BoostTraits::Identity<units::dimensionless>::type, units::dimensionless>::value);
+  static_assert(std::is_same<UnitTraits::Identity<units::length>::type, units::dimensionless>::value);
+  static_assert(std::is_same<UnitTraits::Identity<units::mass>::type, units::dimensionless>::value);
+  static_assert(std::is_same<UnitTraits::Identity<units::dimensionless>::type, units::dimensionless>::value);
 }
 
 TEST(BoostUnitMatrix, Sum) {  // NOLINT

@@ -6,7 +6,6 @@
 
 #include "ctm/boost/boost.hpp"
 #include "ctm/core/FramedQuantityMatrix.hpp"
-#include "ctm/core/QuantityMatrix.hpp"
 #include "ctm/core/traits.hpp"
 #include "ctm/eigen/eigen.hpp"
 #include "ctm/trafo/Rotation.hpp"

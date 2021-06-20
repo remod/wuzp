@@ -2,6 +2,22 @@
 
 #include <ostream>
 
+#include "ctm/core/Quantity.hpp"
+
+#ifdef USE_BOOST
+#include "ctm/boost/boost.hpp"
+#endif
+
+#ifdef USE_EIGEN
+#include "ctm/eigen/eigen.hpp"
+#endif
+
+//#ifdef USE_BOOST
+//#ifdef USE_EIGEN
+//#include "ctm/boost_eigen/boost_eigen.hpp"
+//#endif
+//#endif
+
 namespace ctm {
 
 template <typename Values, typename Units>
@@ -13,9 +29,16 @@ class QuantityMatrix {
   void setValues(const Values& values) { values_ = values; }
   const Values& getValues() const { return values_; }
 
+  template <typename TargetValues>
+  QuantityMatrix<TargetValues, Units> cast() const {
+    // TODO(remod): Implement & test.
+    //    return QuantityMatrix<TargetValues, Units>(values_.cast<>);
+  }
+
   // Note: Allow other value types to support lazy evaluation.
   template <typename ValuesOther>
   bool isApprox(const QuantityMatrix<ValuesOther, Units>& other) const {
+    // TODO(remod): Allow all template arguments to print better error msg?
     return values_.isApprox(other.getValues());
   }
 
@@ -27,9 +50,9 @@ class QuantityMatrix {
 
   auto transpose() const { return typename Transpose<This>::type(values_.transpose()); }
 
-  template <typename ValuesRhs, typename UnitsRhs>
-  auto dot(const QuantityMatrix<ValuesRhs, UnitsRhs>& other) const {
-    return typename DotProduct<This, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(values_.dot(other.getValues()));
+  template <typename ValuesOther, typename UnitsOther>
+  auto dot(const QuantityMatrix<ValuesOther, UnitsOther>& other) const {
+    return typename DotProduct<This, QuantityMatrix<ValuesOther, UnitsOther>>::type(values_.dot(other.getValues()));
   }
 
   auto inverse() const { return typename Inverse<This>::type(values_.inverse()); }
@@ -42,37 +65,45 @@ class QuantityMatrix {
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename ValuesSum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
+  using type = QuantityMatrix<typename ValuesTraits::template Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename ValuesDifference<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type>;
+  using type =
+      QuantityMatrix<typename ValuesTraits::template Difference<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename ValuesProduct<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
+  using type =
+      QuantityMatrix<typename ValuesTraits::template Product<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
 };
+
+// template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
+// struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityRhs> {
+//  using type = QuantityMatrix<typename ValuesProduct<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
+//};
 
 template <typename Values, typename Units>
 struct Transpose<QuantityMatrix<Values, Units>> {
-  using type = QuantityMatrix<typename Transpose<Values>::type, typename Transpose<Units>::type>;
+  using type = QuantityMatrix<typename ValuesTraits::template Transpose<Values>::type, typename Transpose<Units>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct DotProduct<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
+  using type =
+      QuantityMatrix<typename ValuesTraits::template DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename Values, typename Units>
 struct Inverse<QuantityMatrix<Values, Units>> {
-  using type = QuantityMatrix<typename Inverse<Values>::type, typename Inverse<Units>::type>;
+  using type = QuantityMatrix<typename ValuesTraits::template Inverse<Values>::type, typename Inverse<Units>::type>;
 };
 
 template <typename Values, typename Units, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type = QuantityMatrix<typename Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+  using type = QuantityMatrix<typename ValuesTraits::template Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
                               typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
 };
 
@@ -95,7 +126,7 @@ auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMat
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 bool operator==(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
-  static_assert(std::is_same<UnitsLhs, UnitsRhs>::value && "Units mismatch.");
+  static_assert(std::is_same<UnitsLhs, UnitsRhs>::value, "Units mismatch.");
   return lhs.getValues() == rhs.getValues();
 }
 
