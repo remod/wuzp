@@ -11,7 +11,7 @@
 
 namespace ctm {
 
-struct BoostTraits {
+struct UnitTraits {
   DEFINE_RECURSIVE_TRAIT(Sum)
   template <typename Lhs, typename Rhs>
   struct Sum<Lhs, Rhs> {
@@ -50,6 +50,6 @@ struct BoostTraits {
 };
 
 template <int Rows, int Cols, typename... Units>
-using UnitMatrix = TypeMatrix<Rows, Cols, BoostTraits, Units...>;
+using UnitMatrix = TypeMatrix<Rows, Cols, UnitTraits, Units...>;
 
 }  // namespace ctm

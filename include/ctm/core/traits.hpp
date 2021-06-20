@@ -23,14 +23,45 @@ namespace ctm {
 DEFINE_RECURSIVE_TRAIT(Sum)
 DEFINE_RECURSIVE_TRAIT(Difference)
 DEFINE_RECURSIVE_TRAIT(Product)
+DEFINE_RECURSIVE_TRAIT(Division)
 
-DEFINE_RECURSIVE_TRAIT(ValuesSum)
-DEFINE_RECURSIVE_TRAIT(ValuesDifference)
-DEFINE_RECURSIVE_TRAIT(ValuesProduct)
+DEFINE_RECURSIVE_TRAIT(ValueSum)
+DEFINE_RECURSIVE_TRAIT(ValueDifference)
+DEFINE_RECURSIVE_TRAIT(ValueProduct)
+DEFINE_RECURSIVE_TRAIT(ValueDivision)
 
-DEFINE_RECURSIVE_TRAIT(UnitSum)
-DEFINE_RECURSIVE_TRAIT(UnitDifference)
-DEFINE_RECURSIVE_TRAIT(UnitProduct)
+template <typename ValueLhs, typename ValueRhs>
+struct ValueSum<ValueLhs, ValueRhs> {
+  // Design decision: Do not allow mixing types, require a manual cast.
+  static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value type mismatch.");
+  using type = ValueLhs;
+};
+
+template <typename ValueLhs, typename ValueRhs>
+struct ValueDifference<ValueLhs, ValueRhs> {
+  // Design decision: Do not allow mixing types, require a manual cast.
+  static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value type mismatch.");
+  using type = ValueLhs;
+};
+
+template <typename ValueLhs, typename ValueRhs>
+struct ValueProduct<ValueLhs, ValueRhs> {
+  // Design decision: Do not allow mixing types, require a manual cast.
+  static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value type mismatch.");
+  using type = ValueLhs;
+};
+
+template <typename ValueLhs, typename ValueRhs>
+struct ValueDivision<ValueLhs, ValueRhs> {
+  // Design decision: Do not allow mixing types, require a manual cast.
+  static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value type mismatch.");
+  using type = ValueLhs;
+};
+
+// DEFINE_RECURSIVE_TRAIT(UnitSum)
+// DEFINE_RECURSIVE_TRAIT(UnitDifference)
+// DEFINE_RECURSIVE_TRAIT(UnitProduct)
+// DEFINE_RECURSIVE_TRAIT(UnitDivision)
 
 template <typename T>
 struct Transpose {

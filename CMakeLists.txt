@@ -12,6 +12,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 
+add_definitions(-DUSE_BOOST=${USE_BOOST})
+add_definitions(-DUSE_EIGEN=${USE_EIGEN})
+
 add_executable(main src/main.cpp)
 if (USE_BOOST)
     find_package(Boost 1.56 REQUIRED)
@@ -37,6 +40,7 @@ if (ENABLE_TESTS)
     if (USE_BOOST)
         add_executable(tests_boost
             test/boost/Boost.cpp
+            test/boost/Quantity.cpp
         )
         target_include_directories(tests_boost PRIVATE include ${Boost_INCLUDE_DIRS} GoogleTest)
         target_link_libraries(tests_boost GTest::GTest GTest::Main)
