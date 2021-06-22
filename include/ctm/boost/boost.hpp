@@ -6,7 +6,6 @@
 #include <boost/units/systems/si.hpp>
 #include <boost/units/unit.hpp>
 
-#include "ctm/core/TypeMatrix.hpp"
 #include "ctm/core/traits.hpp"
 
 namespace ctm {
@@ -48,8 +47,5 @@ struct UnitTraits {
     using type = typename ::boost::units::unit<::boost::units::dimensionless_type, System>;
   };
 };
-
-template <int Rows, int Cols, typename... Units>
-using UnitMatrix = TypeMatrix<Rows, Cols, UnitTraits, Units...>;
 
 }  // namespace ctm

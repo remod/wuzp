@@ -4,11 +4,13 @@
 
 #include "ctm/core/Quantity.hpp"
 
-#ifdef USE_BOOST
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_CTM
+#include "ctm/unit_impl/ctm.hpp"
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "ctm/boost/boost.hpp"
 #endif
 
-#ifdef USE_EIGEN
+#if MATRIX_IMPLEMENTATION
 #include "ctm/eigen/eigen.hpp"
 #endif
 

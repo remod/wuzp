@@ -46,6 +46,8 @@ make tidy
 
 Features:
 
+* Own units implementation
+* Own matrix implementation
 * Different rotations
 * Non-static transformations
 * Dynamic size matrices
