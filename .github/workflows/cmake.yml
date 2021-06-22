@@ -7,7 +7,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build_and_test:
+  build_and_test_ctm:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
@@ -36,7 +36,7 @@ jobs:
       # Note the current convention is to use the -S and -B options here to specify source 
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUSE_BOOST=ON -DUSE_EIGEN=ON
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUNITS_IMPLEMENTATION=0 -DMATRIX_IMPLEMENTATION=0
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -61,7 +61,7 @@ jobs:
       shell: bash
       run: make tidy
 
-  build_without_boost:
+  build_and_test_boost_units_ctm_matrix:
     runs-on: ubuntu-latest
 
     steps:
@@ -79,14 +79,29 @@ jobs:
       - name: Configure CMake
         shell: bash
         working-directory: ${{github.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUSE_BOOST=OFF -DUSE_EIGEN=ON
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUNITS_IMPLEMENTATION=1 -DMATRIX_IMPLEMENTATION=0
 
       - name: Build
         working-directory: ${{github.workspace}}/build
         shell: bash
         run: cmake --build . --config $BUILD_TYPE
 
-  build_without_eigen:
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: ctest -C $BUILD_TYPE
+
+      - name: Format
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: make format && git diff --exit-code ${{github.workspace}}
+
+      - name: Tidy
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: make tidy
+
+  build_and_test_ctm_units_eigen_matrix:
     runs-on: ubuntu-latest
 
     steps:
@@ -104,15 +119,29 @@ jobs:
       - name: Configure CMake
         shell: bash
         working-directory: ${{github.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUSE_BOOST=ON -DUSE_EIGEN=OFF
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUNITS_IMPLEMENTATION=0 -DMATRIX_IMPLEMENTATION=1
 
       - name: Build
         working-directory: ${{github.workspace}}/build
         shell: bash
         run: cmake --build . --config $BUILD_TYPE
 
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: ctest -C $BUILD_TYPE
 
-  build_without_boost_and_eigen:
+      - name: Format
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: make format && git diff --exit-code ${{github.workspace}}
+
+      - name: Tidy
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: make tidy
+
+  build_and_test_boost_units_eigen_matrix:
     runs-on: ubuntu-latest
 
     steps:
@@ -130,9 +159,24 @@ jobs:
       - name: Configure CMake
         shell: bash
         working-directory: ${{github.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUSE_BOOST=OFF -DUSE_EIGEN=OFF
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=ON -DENABLE_FORMAT=ON -DENABLE_TIDY=ON -DUNITS_IMPLEMENTATION=1 -DMATRIX_IMPLEMENTATION=1
 
       - name: Build
         working-directory: ${{github.workspace}}/build
         shell: bash
         run: cmake --build . --config $BUILD_TYPE
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: ctest -C $BUILD_TYPE
+
+      - name: Format
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: make format && git diff --exit-code ${{github.workspace}}
+
+      - name: Tidy
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: make tidy

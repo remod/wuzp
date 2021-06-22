@@ -1,19 +1,33 @@
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.12)
 project(ctm)
 
 option(ENABLE_TESTS "Enables the definition of 'tests', 'tests_boost', 'tests_eigen', and 'tests_boost_eigen' targets to run the unit tests." OFF)
 option(ENABLE_FORMAT "Enables the definition of a 'format' target to format the code." OFF)
 option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clang warnings." OFF)
-option(USE_BOOST "Add support for Boost units." ON)
-option(USE_EIGEN "Add support for Eigen matrices." ON)
+option(UNITS_IMPLEMENTATION "Define what kind of units implementation to use: 0 = CTM, 1 = Boost." 0)
+option(MATRIX_IMPLEMENTATION "Define what kind of matrix implementation to use: 0 = CTM, 1 = Eigen." 0)
+
+message(STATUS "------------------------------------------")
+message(STATUS "Building with the following configuration:")
+message(STATUS "------------------------------------------")
+message(STATUS "ENABLE_TESTS:          ${ENABLE_TESTS}")
+message(STATUS "ENABLE_FORMAT:         ${ENABLE_FORMAT}")
+message(STATUS "ENABLE_TIDY:           ${ENABLE_TIDY}")
+message(STATUS "UNITS_IMPLEMENTATION:  ${UNITS_IMPLEMENTATION}")
+message(STATUS "MATRIX_IMPLEMENTATION: ${MATRIX_IMPLEMENTATION}")
+message(STATUS "------------------------------------------")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 
-add_definitions(-DUSE_BOOST=${USE_BOOST})
-add_definitions(-DUSE_EIGEN=${USE_EIGEN})
+add_compile_definitions(UNITS_IMPLEMENTATION)
+add_compile_definitions(UNITS_IMPLEMENTATION_CTM=0)
+add_compile_definitions(UNITS_IMPLEMENTATION_BOOST=1)
+add_compile_definitions(MATRIX_IMPLEMENTATION)
+add_compile_definitions(MATRIX_IMPLEMENTATION_CTM=0)
+add_compile_definitions(MATRIX_IMPLEMENTATION_EIGEN=1)
 
 add_executable(main src/main.cpp)
 if (USE_BOOST)
@@ -37,14 +51,15 @@ if (ENABLE_TESTS)
     target_include_directories(tests PRIVATE include GoogleTest)
     target_link_libraries(tests GTest::GTest GTest::Main)
 
+    add_executable(tests_boost
+        test/boost/Boost.cpp
+        test/boost/Quantity.cpp
+    )
+    target_include_directories(tests_boost PRIVATE include GoogleTest)
     if (USE_BOOST)
-        add_executable(tests_boost
-            test/boost/Boost.cpp
-            test/boost/Quantity.cpp
-        )
-        target_include_directories(tests_boost PRIVATE include ${Boost_INCLUDE_DIRS} GoogleTest)
-        target_link_libraries(tests_boost GTest::GTest GTest::Main)
+        target_include_directories(tests_boost PRIVATE ${Boost_INCLUDE_DIRS})
     endif()
+    target_link_libraries(tests_boost GTest::GTest GTest::Main)
 
     if (USE_EIGEN)
         add_executable(tests_eigen
