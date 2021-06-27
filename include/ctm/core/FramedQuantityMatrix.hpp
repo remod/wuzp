@@ -4,6 +4,7 @@
 
 #include "ctm/core/Frame.hpp"
 #include "ctm/core/QuantityMatrix.hpp"
+#include "ctm/units/Unit.hpp"
 #include "ctm/units/UnitMatrix.hpp"
 #include "ctm/value_matrix/ValueMatrix.hpp"
 #include "ctm/value_matrix/ValueMatrixTraits.hpp"
@@ -115,7 +116,7 @@ std::ostream& operator<<(std::ostream& stream, const FramedQuantityMatrix<Values
 
 template <int Dimension, typename Scalar, typename Frame>
 using Position = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
-                                      units::UnitMatrix<Dimension, 1, ::boost::units::absolute<::boost::units::si::length>>>;
+                                      units::UnitMatrix<Dimension, 1, units::Absolute<units::Length>>>;
 
 template <typename Scalar, typename Frame>
 using Position2D = Position<2, Scalar, Frame>;
@@ -125,7 +126,7 @@ using Position3D = Position<3, Scalar, Frame>;
 
 template <int Dimension, typename Scalar, typename Frame>
 using Vector = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
-                                    units::UnitMatrix<Dimension, 1, ::boost::units::si::length>>;
+                                    units::UnitMatrix<Dimension, 1, units::Length>>;
 
 template <typename Scalar, typename Frame>
 using Vector2D = Vector<2, Scalar, Frame>;
@@ -135,7 +136,7 @@ using Vector3D = Vector<3, Scalar, Frame>;
 
 template <int Dimension, typename Scalar, typename Frame>
 using Velocity = FramedQuantityMatrix<Eigen::Matrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
-                                      units::UnitMatrix<Dimension, 1, ::boost::units::si::velocity>>;
+                                      units::UnitMatrix<Dimension, 1, units::Velocity>>;
 
 template <typename Scalar, typename Frame>
 using Velocity2D = Velocity<2, Scalar, Frame>;
