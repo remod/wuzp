@@ -1,15 +1,12 @@
 #include <gtest/gtest.h>
 
-#include "ctm/boost/boost.hpp"
-#include "ctm/boost_eigen/boost_eigen.hpp"
 #include "ctm/core/Frame.hpp"
 #include "ctm/core/FramedQuantityMatrix.hpp"
 #include "ctm/core/TypeMatrix.hpp"
 #include "ctm/core/traits.hpp"
-#include "ctm/eigen/eigen.hpp"
+#include "ctm/trafo/Translation.hpp"
+#include "ctm/value_matrix/ValueMatrix.hpp"
 
-namespace units = boost::units::si;
-using boost::units::absolute;
 using ctm::Frame;
 using ctm::FramedQuantityMatrix;
 using ctm::FrameMatrix;
@@ -19,8 +16,9 @@ using ctm::QuantityMatrix;
 using ctm::Translation2D;
 using ctm::Translation3D;
 using ctm::TypeMatrix;
-using ctm::UnitMatrix;
 using ctm::Vector3D;
+using namespace ctm::units; // NOLINT
+using namespace ctm::value_matrix; // NOLINT
 
 struct FrameAName {};
 struct FrameBName {};
@@ -35,10 +33,10 @@ using FrameD = Frame<FrameDName>;
 using FrameE = Frame<FrameEName>;
 using FrameF = Frame<FrameFName>;
 
-class BoostEigenFramedQuantityMatrix : public ::testing::Test {
+class TestFramedQuantityMatrix : public ::testing::Test {
  public:
-  using MyValues = Eigen::Matrix<int, 2, 3>;
-  using MyUnits = UnitMatrix<2, 3, units::length, units::area, units::volume, units::mass, units::force, units::energy>;
+  using MyValues = ValueMatrix<int, 2, 3>;
+  using MyUnits = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyFrames = FrameMatrix<2, 3, FrameA, FrameB, FrameC, FrameD, FrameE, FrameF>;
   using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
 
@@ -55,17 +53,17 @@ class BoostEigenFramedQuantityMatrix : public ::testing::Test {
   MyMatrix matrix_;
 };
 
-TEST_F(BoostEigenFramedQuantityMatrix, EqualityOperator) {  // NOLINT
+TEST_F(TestFramedQuantityMatrix, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getMatrix(), getMatrix());
 }
 
-TEST(BoostEigenFramedQuantityMatrix2, ScalarProduct) {  // NOLINT
-  using MyValues = Eigen::Matrix<int, 4, 1>;
-  using MyUnits = UnitMatrix<4, 1, units::length>;
+TEST(TestFramedQuantityMatrix2, ScalarProduct) {  // NOLINT
+  using MyValues = ValueMatrix<int, 4, 1>;
+  using MyUnits = UnitMatrix<4, 1, Length>;
   using MyFrames = FrameMatrix<4, 1, FrameA, FrameB, FrameC, FrameD>;
   using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
   using MyValuesResult = int;
-  using MyUnitsResult = UnitMatrix<1, 1, units::area>;
+  using MyUnitsResult = UnitMatrix<1, 1, Area>;
   using MyMatrixResult = QuantityMatrix<MyValuesResult, MyUnitsResult>;
   MyValues values1;
   values1 << 1, 2, 3, 4;
@@ -75,9 +73,9 @@ TEST(BoostEigenFramedQuantityMatrix2, ScalarProduct) {  // NOLINT
   // TODO(remod): How to treat 1x1 matrices? Equal to scalars?
 }
 
-TEST_F(BoostEigenFramedQuantityMatrix, Transpose) {  // NOLINT
-  using MyValuesT = Eigen::Matrix<int, 3, 2>;
-  using MyUnitsT = UnitMatrix<3, 2, units::length, units::mass, units::area, units::force, units::volume, units::energy>;
+TEST_F(TestFramedQuantityMatrix, Transpose) {  // NOLINT
+  using MyValuesT = ValueMatrix<int, 3, 2>;
+  using MyUnitsT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyFramesT = FrameMatrix<3, 2, FrameA, FrameD, FrameB, FrameE, FrameC, FrameF>;
   using MyMatrixT = FramedQuantityMatrix<MyValuesT, MyUnitsT, MyFramesT>;
   MyValuesT valuesT;

@@ -33,7 +33,7 @@ using ValueMatrix = ctm::TypeMatrix<Rows, Cols, ValueTraits, ValueT<Values>...>;
 template <int Size, int AnyValue>
 using ValueMatrixIdentity = ctm::TypeMatrixIdentity<Size, ValueTraits, ValueT<AnyValue>>;
 
-TEST(TypeMatrix, Conversions) {  // NOLINT
+TEST(TestTypeMatrix, Conversions) {  // NOLINT
   static_assert(std::is_same<ctm::HomogeneousTuple<3, int>, std::tuple<int, int, int>>::value);
   static_assert(std::is_same<ctm::ToRows<3, int, double, int, float, char, double>::type,
                              std::tuple<std::tuple<int, double, int>, std::tuple<float, char, double>>>::value);
@@ -41,17 +41,17 @@ TEST(TypeMatrix, Conversions) {  // NOLINT
                              std::tuple<std::tuple<int, float>, std::tuple<double, char>, std::tuple<int, double>>>::value);
 }
 
-TEST(TypeMatrix, Interface) {  // NOLINT
+TEST(TestTypeMatrix, Interface) {  // NOLINT
   static_assert(std::is_same<ValueMatrix<3, 2, 4>, ValueMatrix<3, 2, 4, 4, 4, 4, 4, 4>>::value);
 }
 
-TEST(TypeMatrix, Identity) {  // NOLINT
+TEST(TestTypeMatrix, Identity) {  // NOLINT
   static_assert(std::is_same<ValueMatrixIdentity<1, 1>, ValueMatrix<1, 1, 1>>::value);
   static_assert(std::is_same<ValueMatrixIdentity<2, -1>, ValueMatrix<2, 2, 1>>::value);
   static_assert(std::is_same<ValueMatrixIdentity<3, 35>, ValueMatrix<3, 3, 1>>::value);
 }
 
-TEST(TypeMatrix, Block) {  // NOLINT
+TEST(TestTypeMatrix, Block) {  // NOLINT
   using A = ValueMatrix<2, 3, 0, 1, 2, 3, 4, 5>;
   using B = ValueMatrix<2, 3, 0, 1, 2, 3, 4, 5>;
   using C = ValueMatrix<1, 1, 4>;
@@ -63,41 +63,41 @@ TEST(TypeMatrix, Block) {  // NOLINT
   static_assert(std::is_same<ctm::Block<A, 0, 1, 2, 2>::type, E>::value);
 }
 
-TEST(TypeMatrix, Sum) {  // NOLINT
+TEST(TestTypeMatrix, Sum) {  // NOLINT
   using A = ValueMatrix<2, 2, 0, 1, 2, 3>;
   using B = ValueMatrix<2, 2, -1, 3, 4, 2>;
   using C = ValueMatrix<2, 2, -1, 4, 6, 5>;
   static_assert(std::is_same<ctm::Sum<A, B>::type, C>::value);
 }
 
-TEST(TypeMatrix, Product1) {  // NOLINT
+TEST(TestTypeMatrix, Product1) {  // NOLINT
   using A = ValueMatrix<2, 2, 0, 1, 2, 3>;
   using B = ValueMatrix<2, 2, -1, 3, 4, 2>;
   using C = ValueMatrix<2, 2, 4, 2, 10, 12>;
   static_assert(std::is_same<ctm::Product<A, B>::type, C>::value);
 }
 
-TEST(TypeMatrix, Product2) {  // NOLINT
+TEST(TestTypeMatrix, Product2) {  // NOLINT
   using A = ValueMatrix<1, 4, 0, 1, 2, 3>;
   using B = ValueMatrix<4, 1, -1, 3, 4, 2>;
   using C = ValueMatrix<1, 1, 17>;
   static_assert(std::is_same<ctm::Product<A, B>::type, C>::value);
 }
 
-TEST(TypeMatrix, DotProduct) {  // NOLINT
+TEST(TestTypeMatrix, DotProduct) {  // NOLINT
   using A = ValueMatrix<4, 1, 0, 1, 2, 3>;
   using B = ValueMatrix<4, 1, -1, 3, 4, 2>;
   using C = ValueMatrix<1, 1, 17>;
   static_assert(std::is_same<ctm::DotProduct<A, B>::type, C>::value);
 }
 
-TEST(TypeMatrix, Transpose) {  // NOLINT
+TEST(TestTypeMatrix, Transpose) {  // NOLINT
   using A = ValueMatrix<2, 3, 0, 1, 2, 3, 4, 5>;
   using B = ValueMatrix<3, 2, 0, 3, 1, 4, 2, 5>;
   static_assert(std::is_same<ctm::Transpose<A>::type, B>::value);
 }
 
-TEST(TypeMatrix, Test) {  // NOLINT
+TEST(TestTypeMatrix, Test) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
 #include "ctm/core/TypeMatrix.hpp"
 #include "ctm/core/traits.hpp"

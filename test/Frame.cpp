@@ -9,7 +9,7 @@ using ctm::FrameTraits;
 using ctm::Sum;
 using ctm::TypeMatrix;
 
-TEST(FrameMatrix, IsSame) {  // NOLINT
+TEST(TestFrameMatrix, IsSame) {  // NOLINT
   struct FrameAName {};
   using FrameA = Frame<FrameAName>;
   using MyFrames = TypeMatrix<3, 2, FrameTraits, FrameA, FrameA, FrameA, FrameA, FrameA, FrameA>;

@@ -2,23 +2,9 @@
 
 #include <ostream>
 
+#include "ctm/core/traits.hpp"
 #include "ctm/core/Quantity.hpp"
-
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_CTM
-#include "ctm/unit_impl/ctm.hpp"
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "ctm/boost/boost.hpp"
-#endif
-
-#if MATRIX_IMPLEMENTATION
-#include "ctm/eigen/eigen.hpp"
-#endif
-
-//#ifdef USE_BOOST
-//#ifdef USE_EIGEN
-//#include "ctm/boost_eigen/boost_eigen.hpp"
-//#endif
-//#endif
+#include "ctm/value_matrix/ValueMatrixTraits.hpp"
 
 namespace ctm {
 
@@ -67,19 +53,19 @@ class QuantityMatrix {
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename ValuesTraits::template Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
+  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
   using type =
-      QuantityMatrix<typename ValuesTraits::template Difference<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type>;
+      QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Difference<ValuesLhs, ValuesRhs>::type, typename Difference<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
   using type =
-      QuantityMatrix<typename ValuesTraits::template Product<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
+      QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Product<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
 };
 
 // template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
@@ -89,23 +75,23 @@ struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, Un
 
 template <typename Values, typename Units>
 struct Transpose<QuantityMatrix<Values, Units>> {
-  using type = QuantityMatrix<typename ValuesTraits::template Transpose<Values>::type, typename Transpose<Units>::type>;
+  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Transpose<Values>::type, typename Transpose<Units>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct DotProduct<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
   using type =
-      QuantityMatrix<typename ValuesTraits::template DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
+      QuantityMatrix<typename value_matrix::ValueMatrixTraits::template DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename Values, typename Units>
 struct Inverse<QuantityMatrix<Values, Units>> {
-  using type = QuantityMatrix<typename ValuesTraits::template Inverse<Values>::type, typename Inverse<Units>::type>;
+  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Inverse<Values>::type, typename Inverse<Units>::type>;
 };
 
 template <typename Values, typename Units, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type = QuantityMatrix<typename ValuesTraits::template Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
                               typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
 };
 

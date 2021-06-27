@@ -2,7 +2,7 @@
 
 #include "test_compilation_error.hpp"
 
-TEST(CompilationError, compilesGoodCode) {  // NOLINT
+TEST(TestCompilationError, compilesGoodCode) {  // NOLINT
   ASSERT_NO_COMPILATION_ERROR(R"(
 int main() {
   return 0;
@@ -10,7 +10,7 @@ int main() {
 )");
 }
 
-TEST(CompilationError, detectsBadCode) {  // NOLINT
+TEST(TestCompilationError, detectsBadCode) {  // NOLINT
   ASSERT_COMPILATION_ERROR(R"(
 int main() {
   return 0
@@ -18,7 +18,7 @@ int main() {
 )");
 }
 
-TEST(CompilationError, detectsStaticAsserts) {  // NOLINT
+TEST(TestCompilationError, detectsStaticAsserts) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE(R"(
 int main() {
   static_assert(false);

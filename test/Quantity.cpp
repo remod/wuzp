@@ -1,36 +1,33 @@
 //#include <gtest/gtest.h>
 //
-//#include "ctm/boost/boost.hpp"
 //#include "ctm/core/Quantity.hpp"
 //#include "ctm/core/traits.hpp"
 //
-// namespace units = boost::units::si;
-// using boost::units::absolute;
 // using ctm::Quantity;
 // using ctm::TypeMatrix;
 // using ctm::UnitMatrix;
 //
-// using Length = Quantity<double, units::length>;
+// using Length = Quantity<double, Length>;
 //
-// TEST(BoostQuantity, Addition) {  // NOLINT
+// TEST(TestQuantity, Addition) {  // NOLINT
 //  EXPECT_EQ(Length(1.0) + Length(2.0), Length(3.0));
 //}
 //
-// TEST(BoostQuantity, Subtraction) {  // NOLINT
+// TEST(TestQuantity, Subtraction) {  // NOLINT
 //  EXPECT_EQ(getMatrix1() - getMatrix2(), MyMatrix(getValues1() - getValues2()));
 //}
 //
-// TEST(BoostQuantity, EqualityOperator) {  // NOLINT
+// TEST(TestQuantity, EqualityOperator) {  // NOLINT
 //  EXPECT_EQ(getMatrix1(), getMatrix1());
 //}
 //
-// TEST(BoostQuantity, InEqualityOperator) {  // NOLINT
+// TEST(TestQuantity, InEqualityOperator) {  // NOLINT
 //  EXPECT_NE(getMatrix1(), getMatrix1() + getMatrix2());
 //}
 //
-// TEST(BoostQuantity, Block) {  // NOLINT
-//  using MyValuesB = Eigen::Matrix<int, 2, 2>;
-//  using MyUnitsB = UnitMatrix<2, 2, units::area, units::volume, units::force, units::energy>;
+// TEST(TestQuantity, Block) {  // NOLINT
+//  using MyValuesB = ValueMatrix<int, 2, 2>;
+//  using MyUnitsB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
 //  using MyMatrixB = QuantityMatrix<MyValuesB, MyUnitsB>;
 //  MyValuesB valuesB;
 //  valuesB << 2, 3, 5, 6;
@@ -38,9 +35,9 @@
 //  EXPECT_EQ((getMatrix1().block<0, 1, 2, 2>()), matrixB);
 //}
 //
-// TEST(BoostQuantity, Transpose) {  // NOLINT
-//  using MyValuesT = Eigen::Matrix<int, 3, 2>;
-//  using MyUnitsT = UnitMatrix<3, 2, units::length, units::mass, units::area, units::force, units::volume, units::energy>;
+// TEST(TestQuantity, Transpose) {  // NOLINT
+//  using MyValuesT = ValueMatrix<int, 3, 2>;
+//  using MyUnitsT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
 //  using MyMatrixT = QuantityMatrix<MyValuesT, MyUnitsT>;
 //  MyValuesT valuesT;
 //  valuesT << 1, 4, 2, 5, 3, 6;
@@ -48,10 +45,10 @@
 //  EXPECT_EQ(getMatrix1().transpose(), matrixT);
 //}
 //
-// TEST(BoostQuantity, Product) {  // NOLINT
-//  using MyValues = Eigen::Matrix<int, 2, 2>;
-//  using MyUnits = UnitMatrix<2, 2, units::length>;
-//  using MyUnitsResult = UnitMatrix<2, 2, units::area>;
+// TEST(TestQuantity, Product) {  // NOLINT
+//  using MyValues = ValueMatrix<int, 2, 2>;
+//  using MyUnits = UnitMatrix<2, 2, Length>;
+//  using MyUnitsResult = UnitMatrix<2, 2, Area>;
 //  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
 //  using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
 //  MyValues values;
@@ -61,12 +58,12 @@
 //  EXPECT_EQ(matrix * matrix, MyMatrixResult(values * values));
 //}
 //
-// TEST(BoostQuantity, ScalarProduct) {  // NOLINT
-//  using MyValues = Eigen::Matrix<int, 4, 1>;
-//  using MyUnits = UnitMatrix<4, 1, units::length>;
+// TEST(TestQuantity, ScalarProduct) {  // NOLINT
+//  using MyValues = ValueMatrix<int, 4, 1>;
+//  using MyUnits = UnitMatrix<4, 1, Length>;
 //  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
 //  using MyValuesResult = int;
-//  using MyUnitsResult = UnitMatrix<1, 1, units::area>;
+//  using MyUnitsResult = UnitMatrix<1, 1, Area>;
 //  using MyMatrixResult = QuantityMatrix<MyValuesResult, MyUnitsResult>;
 //  MyValues values1;
 //  values1 << 1, 2, 3, 4;
@@ -75,11 +72,11 @@
 //  EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), MyMatrixResult(11));
 //}
 //
-// TEST(BoostQuantity, Chain) {  // NOLINT
-//  using MyValues = Eigen::Matrix<int, 2, 2>;
-//  using MyUnits1 = UnitMatrix<2, 2, units::length>;
-//  using MyUnits2 = UnitMatrix<2, 2, units::area>;
-//  using MyUnitsResult = UnitMatrix<2, 2, units::area>;
+// TEST(TestQuantity, Chain) {  // NOLINT
+//  using MyValues = ValueMatrix<int, 2, 2>;
+//  using MyUnits1 = UnitMatrix<2, 2, Length>;
+//  using MyUnits2 = UnitMatrix<2, 2, Area>;
+//  using MyUnitsResult = UnitMatrix<2, 2, Area>;
 //  using MyMatrix1 = QuantityMatrix<MyValues, MyUnits1>;
 //  using MyMatrix2 = QuantityMatrix<MyValues, MyUnits2>;
 //  using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
@@ -90,7 +87,7 @@
 //  EXPECT_EQ(matrix2 + matrix1 * matrix1, MyMatrixResult(values + values * values));
 //}
 //
-// TEST(BoostQuantity, Inverse) {  // NOLINT
+// TEST(TestQuantity, Inverse) {  // NOLINT
 //  using MyUnitsInv = UnitMatrix<2, 2, units::frequency>;
 //  using MyMatrixInv = QuantityMatrix<MyValues, MyUnitsInv>;
 //  MyValues valuesInv;

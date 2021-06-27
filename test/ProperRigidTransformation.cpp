@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "ctm/boost_eigen/boost_eigen.hpp"
 #include "ctm/core/Frame.hpp"
 #include "ctm/core/traits.hpp"
-#include "ctm/eigen/eigen.hpp"
+#include "ctm/core/FramedQuantityMatrix.hpp"
+#include "ctm/trafo/ProperRigidTransformation.hpp"
 
 using ctm::Frame;
 using ctm::Position2D;
@@ -15,7 +15,7 @@ using ctm::Translation2D;
 using ctm::Translation3D;
 using ctm::Vector3D;
 
-TEST(BoostEigenProperRigidTransformation2D, TransformPosition) {  // NOLINT
+TEST(TestProperRigidTransformation2D, TransformPosition) {  // NOLINT
   //  struct FromFrameName {};
   //  struct ToFrameName {};
   //  using FromFrame = Frame<FromFrameName>;
@@ -27,7 +27,7 @@ TEST(BoostEigenProperRigidTransformation2D, TransformPosition) {  // NOLINT
   //  const auto result = transformation.transform(object);
 }
 
-TEST(BoostEigenProperRigidTransformation3D, TransformVector) {  // NOLINT
+TEST(TestProperRigidTransformation3D, TransformVector) {  // NOLINT
   struct FromFrameName {};
   struct IntermediateFrameName {};
   struct ToFrameName {};
@@ -44,7 +44,7 @@ TEST(BoostEigenProperRigidTransformation3D, TransformVector) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
-TEST(BoostEigenProperRigidTransformation3D, TransformPosition) {  // NOLINT
+TEST(TestProperRigidTransformation3D, TransformPosition) {  // NOLINT
   struct FromFrameName {};
   struct IntermediateFrameName {};
   struct ToFrameName {};
