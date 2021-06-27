@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "ctm/core/Frame.hpp"
-#include "ctm/core/traits.hpp"
 #include "ctm/core/FramedQuantityMatrix.hpp"
+#include "ctm/core/traits.hpp"
 #include "ctm/trafo/ProperRigidTransformation.hpp"
 
 using ctm::Frame;

@@ -54,5 +54,5 @@ struct ValueMatrixTraits {
   };
 };
 
-}
+}  // namespace value_matrix
 }  // namespace ctm

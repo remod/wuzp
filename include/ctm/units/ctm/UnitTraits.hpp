@@ -58,5 +58,5 @@ struct UnitTraits {
   };
 };
 
-}
+}  // namespace units
 }  // namespace ctm

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "ctm/core/Frame.hpp"
-#include "ctm/trafo/Translation.hpp"
 #include "ctm/trafo/Rotation.hpp"
 #include "ctm/trafo/Transformation.hpp"
+#include "ctm/trafo/Translation.hpp"
 
 namespace ctm {
 
@@ -30,7 +30,7 @@ class ProperRigidTransformationTemplate
 
 template <int Dimension, typename From, typename Intermediate, typename To, typename Rotation, typename TranslationScalar>
 using ProperRigidTransformation =
-ProperRigidTransformationTemplate<From, Intermediate, Rotation, Translation<Dimension, TranslationScalar, Intermediate, To>>;
+    ProperRigidTransformationTemplate<From, Intermediate, Rotation, Translation<Dimension, TranslationScalar, Intermediate, To>>;
 
 template <typename From, typename Intermediate, typename To, typename Scalar>
 using ProperRigidTransformation2D = ProperRigidTransformation<2, From, Intermediate, To, Scalar, Scalar>;
@@ -40,9 +40,9 @@ using ProperRigidTransformation3D = ProperRigidTransformation<3, From, Intermedi
 
 template <typename From, typename Intermediate, typename To, typename Scalar, typename Object>
 struct TransformationTraits<ProperRigidTransformation3D<From, Intermediate, To, Scalar>, Object> {
-static auto transform(const ProperRigidTransformation3D<From, Intermediate, To, Scalar>& transformation, const Object& object) {
-  return transformation.getTranslation().transform(transformation.getRotation().transform(object));
-}
+  static auto transform(const ProperRigidTransformation3D<From, Intermediate, To, Scalar>& transformation, const Object& object) {
+    return transformation.getTranslation().transform(transformation.getRotation().transform(object));
+  }
 };
 
 }  // namespace ctm

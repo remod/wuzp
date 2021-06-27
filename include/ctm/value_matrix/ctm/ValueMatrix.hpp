@@ -4,8 +4,8 @@
 
 namespace ctm {
 
-//template <typename Scalar, int Rows, int Cols>
-//class Matrix {
+// template <typename Scalar, int Rows, int Cols>
+// class Matrix {
 // private:
 //  std::array<>;
 //};
