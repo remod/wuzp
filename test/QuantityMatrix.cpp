@@ -1,21 +1,20 @@
 #include <gtest/gtest.h>
 
-#include "ctm/boost/boost.hpp"
 #include "ctm/core/QuantityMatrix.hpp"
 #include "ctm/core/TypeMatrix.hpp"
+#include "ctm/value_matrix/ValueMatrix.hpp"
+#include "ctm/units/UnitMatrix.hpp"
 #include "ctm/core/traits.hpp"
-#include "ctm/eigen/eigen.hpp"
 
-namespace units = boost::units::si;
-using boost::units::absolute;
 using ctm::QuantityMatrix;
 using ctm::TypeMatrix;
-using ctm::UnitMatrix;
+using namespace ctm::units; // NOLINT
+using namespace ctm::value_matrix; // NOLINT
 
-class BoostEigenQuantityMatrixF : public ::testing::Test {
+class TestQuantityMatrix : public ::testing::Test {
  public:
-  using MyValues = Eigen::Matrix<int, 2, 3>;
-  using MyUnits = UnitMatrix<2, 3, units::length, units::area, units::volume, units::mass, units::force, units::energy>;
+  using MyValues = ValueMatrix<int, 2, 3>;
+  using MyUnits = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
 
   const MyValues& getValues1() const { return values1_; }
@@ -38,25 +37,25 @@ class BoostEigenQuantityMatrixF : public ::testing::Test {
   MyMatrix matrix2_;
 };
 
-TEST_F(BoostEigenQuantityMatrixF, Addition) {  // NOLINT
+TEST_F(TestQuantityMatrix, Addition) {  // NOLINT
   EXPECT_EQ(getMatrix1() + getMatrix2(), MyMatrix(getValues1() + getValues2()));
 }
 
-TEST_F(BoostEigenQuantityMatrixF, Subtraction) {  // NOLINT
+TEST_F(TestQuantityMatrix, Subtraction) {  // NOLINT
   EXPECT_EQ(getMatrix1() - getMatrix2(), MyMatrix(getValues1() - getValues2()));
 }
 
-TEST_F(BoostEigenQuantityMatrixF, EqualityOperator) {  // NOLINT
+TEST_F(TestQuantityMatrix, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getMatrix1(), getMatrix1());
 }
 
-TEST_F(BoostEigenQuantityMatrixF, InEqualityOperator) {  // NOLINT
+TEST_F(TestQuantityMatrix, InEqualityOperator) {  // NOLINT
   EXPECT_NE(getMatrix1(), getMatrix1() + getMatrix2());
 }
 
-TEST_F(BoostEigenQuantityMatrixF, Block) {  // NOLINT
-  using MyValuesB = Eigen::Matrix<int, 2, 2>;
-  using MyUnitsB = UnitMatrix<2, 2, units::area, units::volume, units::force, units::energy>;
+TEST_F(TestQuantityMatrix, Block) {  // NOLINT
+  using MyValuesB = ValueMatrix<int, 2, 2>;
+  using MyUnitsB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyMatrixB = QuantityMatrix<MyValuesB, MyUnitsB>;
   MyValuesB valuesB;
   valuesB << 2, 3, 5, 6;
@@ -64,9 +63,9 @@ TEST_F(BoostEigenQuantityMatrixF, Block) {  // NOLINT
   EXPECT_EQ((getMatrix1().block<0, 1, 2, 2>()), matrixB);
 }
 
-TEST_F(BoostEigenQuantityMatrixF, Transpose) {  // NOLINT
-  using MyValuesT = Eigen::Matrix<int, 3, 2>;
-  using MyUnitsT = UnitMatrix<3, 2, units::length, units::mass, units::area, units::force, units::volume, units::energy>;
+TEST_F(TestQuantityMatrix, Transpose) {  // NOLINT
+  using MyValuesT = ValueMatrix<int, 3, 2>;
+  using MyUnitsT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyMatrixT = QuantityMatrix<MyValuesT, MyUnitsT>;
   MyValuesT valuesT;
   valuesT << 1, 4, 2, 5, 3, 6;
@@ -74,10 +73,53 @@ TEST_F(BoostEigenQuantityMatrixF, Transpose) {  // NOLINT
   EXPECT_EQ(getMatrix1().transpose(), matrixT);
 }
 
-class BoostEigenQuantityMatrix2 : public ::testing::Test {
+TEST(TestQuantityMatrix2, Product) {  // NOLINT
+  using MyValues = ValueMatrix<int, 2, 2>;
+  using MyUnits = UnitMatrix<2, 2, Length>;
+  using MyUnitsResult = UnitMatrix<2, 2, Area>;
+  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
+  using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
+  MyValues values;
+  values << 1, 2, 3, 4;
+  MyMatrix matrix;
+  matrix.setValues(values);
+  EXPECT_EQ(matrix * matrix, MyMatrixResult(values * values));
+}
+
+TEST(TestQuantityMatrix2, ScalarProduct) {  // NOLINT
+  using MyValues = ValueMatrix<int, 4, 1>;
+  using MyUnits = UnitMatrix<4, 1, Length>;
+  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
+  using MyValuesResult = int;
+  using MyUnitsResult = UnitMatrix<1, 1, Area>;
+  using MyMatrixResult = QuantityMatrix<MyValuesResult, MyUnitsResult>;
+  MyValues values1;
+  values1 << 1, 2, 3, 4;
+  MyValues values2;
+  values2 << 0, 3, -1, 2;
+  EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), MyMatrixResult(11));
+  // TODO(remod): How to treat 1x1 matrices? Equal to scalars?
+}
+
+TEST(TestQuantityMatrix2, Chain) {  // NOLINT
+  using MyValues = ValueMatrix<int, 2, 2>;
+  using MyUnits1 = UnitMatrix<2, 2, Length>;
+  using MyUnits2 = UnitMatrix<2, 2, Area>;
+  using MyUnitsResult = UnitMatrix<2, 2, Area>;
+  using MyMatrix1 = QuantityMatrix<MyValues, MyUnits1>;
+  using MyMatrix2 = QuantityMatrix<MyValues, MyUnits2>;
+  using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
+  MyValues values;
+  values << 1, 2, 3, 4;
+  MyMatrix1 matrix1(values);
+  MyMatrix2 matrix2(values);
+  EXPECT_EQ(matrix2 + matrix1 * matrix1, MyMatrixResult(values + values * values));
+}
+
+class TestQuantityMatrixInvertible : public ::testing::Test {
  public:
-  using MyValues = Eigen::Matrix<double, 2, 2>;
-  using MyUnits = UnitMatrix<2, 2, boost::units::si::time>;
+  using MyValues = ValueMatrix<double, 2, 2>;
+  using MyUnits = UnitMatrix<2, 2, Time>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
 
   const MyValues& getValues() const { return values_; }
@@ -94,51 +136,8 @@ class BoostEigenQuantityMatrix2 : public ::testing::Test {
   MyMatrix matrix_;
 };
 
-TEST(BoostEigenQuantityMatrix, Product) {  // NOLINT
-  using MyValues = Eigen::Matrix<int, 2, 2>;
-  using MyUnits = UnitMatrix<2, 2, units::length>;
-  using MyUnitsResult = UnitMatrix<2, 2, units::area>;
-  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
-  using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
-  MyValues values;
-  values << 1, 2, 3, 4;
-  MyMatrix matrix;
-  matrix.setValues(values);
-  EXPECT_EQ(matrix * matrix, MyMatrixResult(values * values));
-}
-
-TEST(BoostEigenQuantityMatrix, ScalarProduct) {  // NOLINT
-  using MyValues = Eigen::Matrix<int, 4, 1>;
-  using MyUnits = UnitMatrix<4, 1, units::length>;
-  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
-  using MyValuesResult = int;
-  using MyUnitsResult = UnitMatrix<1, 1, units::area>;
-  using MyMatrixResult = QuantityMatrix<MyValuesResult, MyUnitsResult>;
-  MyValues values1;
-  values1 << 1, 2, 3, 4;
-  MyValues values2;
-  values2 << 0, 3, -1, 2;
-  EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), MyMatrixResult(11));
-  // TODO(remod): How to treat 1x1 matrices? Equal to scalars?
-}
-
-TEST(BoostEigenQuantityMatrix, Chain) {  // NOLINT
-  using MyValues = Eigen::Matrix<int, 2, 2>;
-  using MyUnits1 = UnitMatrix<2, 2, units::length>;
-  using MyUnits2 = UnitMatrix<2, 2, units::area>;
-  using MyUnitsResult = UnitMatrix<2, 2, units::area>;
-  using MyMatrix1 = QuantityMatrix<MyValues, MyUnits1>;
-  using MyMatrix2 = QuantityMatrix<MyValues, MyUnits2>;
-  using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
-  MyValues values;
-  values << 1, 2, 3, 4;
-  MyMatrix1 matrix1(values);
-  MyMatrix2 matrix2(values);
-  EXPECT_EQ(matrix2 + matrix1 * matrix1, MyMatrixResult(values + values * values));
-}
-
-TEST_F(BoostEigenQuantityMatrix2, Inverse) {  // NOLINT
-  using MyUnitsInv = UnitMatrix<2, 2, units::frequency>;
+TEST_F(TestQuantityMatrixInvertible, Inverse) {  // NOLINT
+  using MyUnitsInv = UnitMatrix<2, 2, Frequency>;
   using MyMatrixInv = QuantityMatrix<MyValues, MyUnitsInv>;
   MyValues valuesInv;
   valuesInv << 0.6, -0.7, -0.2, 0.4;

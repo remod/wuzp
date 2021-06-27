@@ -3,12 +3,12 @@
 #include <boost/units/dimensionless_type.hpp>
 #include <boost/units/operators.hpp>
 #include <boost/units/static_rational.hpp>
-#include <boost/units/systems/si.hpp>
-#include <boost/units/unit.hpp>
 
 #include "ctm/core/traits.hpp"
+#include "ctm/units/boost/Unit.hpp"
 
 namespace ctm {
+namespace units {
 
 struct UnitTraits {
   DEFINE_RECURSIVE_TRAIT(Sum)
@@ -48,4 +48,5 @@ struct UnitTraits {
   };
 };
 
+}
 }  // namespace ctm

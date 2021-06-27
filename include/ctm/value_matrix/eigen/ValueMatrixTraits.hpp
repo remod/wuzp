@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Eigen/Core>
-#include <Eigen/Geometry>
+#include <Eigen/LU>
 
 #include "ctm/core/traits.hpp"
 
 namespace ctm {
+namespace value_matrix {
 
-struct ValuesTraits {
+struct ValueMatrixTraits {
   DEFINE_RECURSIVE_TRAIT(Sum)
   template <typename Lhs, typename Rhs>
   struct Sum<Lhs, Rhs> {
@@ -54,4 +54,5 @@ struct ValuesTraits {
   };
 };
 
+}
 }  // namespace ctm

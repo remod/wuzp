@@ -2,9 +2,7 @@
 
 #include <ostream>
 
-#ifdef USE_BOOST
-#include "ctm/boost/boost.hpp"
-#endif
+#include "ctm/units/UnitTraits.hpp"
 
 namespace ctm {
 
@@ -37,23 +35,23 @@ class Quantity {
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 struct Sum<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = Quantity<typename ValueSum<ValueLhs, ValueRhs>::type, typename UnitTraits::template Sum<UnitLhs, UnitRhs>::type>;
+  using type = Quantity<typename ValueSum<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Sum<UnitLhs, UnitRhs>::type>;
 };
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 struct Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
   using type =
-      Quantity<typename ValueDifference<ValueLhs, ValueRhs>::type, typename UnitTraits::template Difference<UnitLhs, UnitRhs>::type>;
+      Quantity<typename ValueDifference<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Difference<UnitLhs, UnitRhs>::type>;
 };
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 struct Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = Quantity<typename ValueProduct<ValueLhs, ValueRhs>::type, typename UnitTraits::template Product<UnitLhs, UnitRhs>::type>;
+  using type = Quantity<typename ValueProduct<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Product<UnitLhs, UnitRhs>::type>;
 };
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 struct Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = Quantity<typename ValueDivision<ValueLhs, ValueRhs>::type, typename UnitTraits::template Division<UnitLhs, UnitRhs>::type>;
+  using type = Quantity<typename ValueDivision<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Division<UnitLhs, UnitRhs>::type>;
 };
 
 template <typename Value, typename Unit>
