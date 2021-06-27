@@ -22,16 +22,16 @@ class Translation : public TranslationBase<Translation<Dimension, Scalar, From, 
 
 template <int Dimension, typename From, typename To, typename Scalar>
 struct TransformationTraits<Translation<Dimension, Scalar, From, To>, Vector<Dimension, Scalar, From>> {
-static auto transform(const Translation<Dimension, Scalar, From, To>& /*transformation*/, const Vector<Dimension, Scalar, From>& object) {
-  return Vector<Dimension, Scalar, To>(object.getValues());
-}
+  static auto transform(const Translation<Dimension, Scalar, From, To>& /*transformation*/, const Vector<Dimension, Scalar, From>& object) {
+    return Vector<Dimension, Scalar, To>(object.getValues());
+  }
 };
 
 template <int Dimension, typename From, typename To, typename Scalar>
 struct TransformationTraits<Translation<Dimension, Scalar, From, To>, Position<Dimension, Scalar, From>> {
-static auto transform(const Translation<Dimension, Scalar, From, To>& transformation, const Position<Dimension, Scalar, From>& object) {
-  return Position<Dimension, Scalar, To>((transformation.impl_ + object).getValues());
-}
+  static auto transform(const Translation<Dimension, Scalar, From, To>& transformation, const Position<Dimension, Scalar, From>& object) {
+    return Position<Dimension, Scalar, To>((transformation.impl_ + object).getValues());
+  }
 };
 
 template <typename Scalar, typename From, typename To>

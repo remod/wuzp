@@ -4,9 +4,9 @@
 
 #include "ctm/core/Frame.hpp"
 #include "ctm/core/QuantityMatrix.hpp"
+#include "ctm/units/UnitMatrix.hpp"
 #include "ctm/value_matrix/ValueMatrix.hpp"
 #include "ctm/value_matrix/ValueMatrixTraits.hpp"
-#include "ctm/units/UnitMatrix.hpp"
 
 namespace ctm {
 
@@ -36,8 +36,8 @@ class FramedQuantityMatrix {
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 struct Sum<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
-  using type = FramedQuantityMatrix<typename value_matrix::ValueMatrixTraits::template Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type,
-                                    typename Sum<FramesLhs, FramesRhs>::type>;
+  using type = FramedQuantityMatrix<typename value_matrix::ValueMatrixTraits::template Sum<ValuesLhs, ValuesRhs>::type,
+                                    typename Sum<UnitsLhs, UnitsRhs>::type, typename Sum<FramesLhs, FramesRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
@@ -55,14 +55,14 @@ struct Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuant
 
 template <typename Values, typename Units, typename Frames>
 struct Transpose<FramedQuantityMatrix<Values, Units, Frames>> {
-  using type = FramedQuantityMatrix<typename value_matrix::ValueMatrixTraits::template Transpose<Values>::type, typename Transpose<Units>::type,
-                                    typename Transpose<Frames>::type>;
+  using type = FramedQuantityMatrix<typename value_matrix::ValueMatrixTraits::template Transpose<Values>::type,
+                                    typename Transpose<Units>::type, typename Transpose<Frames>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 struct DotProduct<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
-  using type =
-      QuantityMatrix<typename value_matrix::ValueMatrixTraits::template DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
+  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template DotProduct<ValuesLhs, ValuesRhs>::type,
+                              typename DotProduct<UnitsLhs, UnitsRhs>::type>;
   using assert_frames_match = typename DotProduct<FramesLhs, FramesRhs>::type;
 };
 
@@ -115,7 +115,7 @@ std::ostream& operator<<(std::ostream& stream, const FramedQuantityMatrix<Values
 
 template <int Dimension, typename Scalar, typename Frame>
 using Position = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
-units::UnitMatrix<Dimension, 1, ::boost::units::absolute<::boost::units::si::length>>>;
+                                      units::UnitMatrix<Dimension, 1, ::boost::units::absolute<::boost::units::si::length>>>;
 
 template <typename Scalar, typename Frame>
 using Position2D = Position<2, Scalar, Frame>;
@@ -125,7 +125,7 @@ using Position3D = Position<3, Scalar, Frame>;
 
 template <int Dimension, typename Scalar, typename Frame>
 using Vector = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
-units::UnitMatrix<Dimension, 1, ::boost::units::si::length>>;
+                                    units::UnitMatrix<Dimension, 1, ::boost::units::si::length>>;
 
 template <typename Scalar, typename Frame>
 using Vector2D = Vector<2, Scalar, Frame>;
@@ -135,7 +135,7 @@ using Vector3D = Vector<3, Scalar, Frame>;
 
 template <int Dimension, typename Scalar, typename Frame>
 using Velocity = FramedQuantityMatrix<Eigen::Matrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
-units::UnitMatrix<Dimension, 1, ::boost::units::si::velocity>>;
+                                      units::UnitMatrix<Dimension, 1, ::boost::units::si::velocity>>;
 
 template <typename Scalar, typename Frame>
 using Velocity2D = Velocity<2, Scalar, Frame>;

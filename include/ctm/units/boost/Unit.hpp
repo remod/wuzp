@@ -1,7 +1,7 @@
 #pragma once
 
-#include <boost/units/systems/si.hpp>
 #include <boost/units/absolute.hpp>
+#include <boost/units/systems/si.hpp>
 #include <boost/units/unit.hpp>
 
 namespace ctm {
@@ -21,5 +21,5 @@ using Frequency = boost::units::si::frequency;
 template <typename Unit>
 using Absolute = boost::units::absolute<Unit>;
 
-}
-}
+}  // namespace units
+}  // namespace ctm

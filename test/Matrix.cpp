@@ -4,7 +4,7 @@
 #include "ctm/value_matrix/ValueMatrix.hpp"
 #include "ctm/value_matrix/ValueMatrixTraits.hpp"
 
-using namespace ctm::value_matrix; // NOLINT
+using namespace ctm::value_matrix;  // NOLINT
 
 TEST(TestValueMatrix, LazyBlock) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;

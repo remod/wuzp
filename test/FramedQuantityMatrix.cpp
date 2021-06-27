@@ -17,8 +17,8 @@ using ctm::Translation2D;
 using ctm::Translation3D;
 using ctm::TypeMatrix;
 using ctm::Vector3D;
-using namespace ctm::units; // NOLINT
-using namespace ctm::value_matrix; // NOLINT
+using namespace ctm::units;         // NOLINT
+using namespace ctm::value_matrix;  // NOLINT
 
 struct FrameAName {};
 struct FrameBName {};

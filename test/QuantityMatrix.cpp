@@ -2,14 +2,14 @@
 
 #include "ctm/core/QuantityMatrix.hpp"
 #include "ctm/core/TypeMatrix.hpp"
-#include "ctm/value_matrix/ValueMatrix.hpp"
-#include "ctm/units/UnitMatrix.hpp"
 #include "ctm/core/traits.hpp"
+#include "ctm/units/UnitMatrix.hpp"
+#include "ctm/value_matrix/ValueMatrix.hpp"
 
 using ctm::QuantityMatrix;
 using ctm::TypeMatrix;
-using namespace ctm::units; // NOLINT
-using namespace ctm::value_matrix; // NOLINT
+using namespace ctm::units;         // NOLINT
+using namespace ctm::value_matrix;  // NOLINT
 
 class TestQuantityMatrix : public ::testing::Test {
  public:

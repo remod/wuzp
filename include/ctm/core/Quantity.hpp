@@ -46,12 +46,14 @@ struct Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 struct Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = Quantity<typename ValueProduct<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Product<UnitLhs, UnitRhs>::type>;
+  using type =
+      Quantity<typename ValueProduct<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Product<UnitLhs, UnitRhs>::type>;
 };
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 struct Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = Quantity<typename ValueDivision<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Division<UnitLhs, UnitRhs>::type>;
+  using type =
+      Quantity<typename ValueDivision<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Division<UnitLhs, UnitRhs>::type>;
 };
 
 template <typename Value, typename Unit>

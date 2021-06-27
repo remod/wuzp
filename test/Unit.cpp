@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "ctm/units/Unit.hpp"
-#include "ctm/units/UnitTraits.hpp"
 #include "ctm/core/TypeMatrix.hpp"
+#include "ctm/units/Unit.hpp"
 #include "ctm/units/UnitMatrix.hpp"
+#include "ctm/units/UnitTraits.hpp"
 
 using ctm::Difference;
 using ctm::Inverse;
