@@ -21,7 +21,7 @@ jobs:
       run: ${{github.workspace}}/scripts/install_dependencies.sh 0 0
 
     - name: Create Build Environment
-      run: ${{github.workspace}}/scripts/create_build_environment.sh ${{github.workspace}}/build $BUILD_TYPE ON ON ON 0 0
+      run: ${{github.workspace}}/scripts/create_build_environment.sh ${{github.workspace}} $BUILD_TYPE ON ON ON 0 0
 
     - name: Build
       working-directory: ${{github.workspace}}/build
