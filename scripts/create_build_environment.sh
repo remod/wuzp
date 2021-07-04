@@ -6,7 +6,7 @@ set -E
 # Check arguments.
 if [ $# != 7 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./create_build_environment.sh PATH BUILD_TYPE ENABLE_TEST ENABLE_FORMAT ENABLE_TIDY UNITS_IMPLEMENTATION MATRIX_IMPLEMENTATION"
+  echo "Usage: ./create_build_environment.sh PROJECT_ROOT_DIR BUILD_TYPE ENABLE_TEST ENABLE_FORMAT ENABLE_TIDY UNITS_IMPLEMENTATION MATRIX_IMPLEMENTATION"
   exit 1
 fi
 
