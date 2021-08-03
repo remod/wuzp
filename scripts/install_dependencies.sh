@@ -16,9 +16,9 @@ echo ${UNITS_IMPLEMENTATION_BOOST}
 export DEBIAN_FRONTEND=noninteractive
 apt update
 apt install -y git cmake build-essential libgtest-dev clang-format clang-tidy
-if [[ "${1}" == "${UNITS_IMPLEMENTATION_BOOST}" ]]; then
+if [[ "${1}" == "1" ]]; then
   apt install -y libboost-dev
 fi
-if [[ "${2}" == "${MATRIX_IMPLEMENTATION_EIGEN}" ]]; then
+if [[ "${2}" == "1" ]]; then
   apt install -y libeigen3-dev
 fi
