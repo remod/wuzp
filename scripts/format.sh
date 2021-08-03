@@ -12,4 +12,4 @@ fi
 
 # Format.
 make -C ${1} format
-exit git -C ${1} diff --exit-code
+git -C ${1} diff --exit-code
