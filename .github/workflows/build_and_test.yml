@@ -20,6 +20,9 @@ jobs:
       matrix:
         UNITS_IMPLEMENTATION: [0, 1]
         MATRIX_IMPLEMENTATION: [0, 1]
+    env:
+      UNITS_IMPLEMENTATION: ${{ matrix.UNITS_IMPLEMENTATION }}
+      MATRIX_IMPLEMENTATION: ${{ matrix.MATRIX_IMPLEMENTATION }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2
