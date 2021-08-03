@@ -11,7 +11,7 @@ if [ $# != 2 ]; then
 fi
 
 # Install dependencies.
-echo "${UNITS_IMPLEMENTATION_BOOST}"
+echo ${UNITS_IMPLEMENTATION}
 echo ${UNITS_IMPLEMENTATION_BOOST}
 export DEBIAN_FRONTEND=noninteractive
 apt update
