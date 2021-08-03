@@ -10,7 +10,7 @@ env:
   MATRIX_IMPLEMENTATION: 0
 
 jobs:
-  build_and_test_ctm_units_ctm_matrix:
+  build_and_test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -23,6 +23,8 @@ jobs:
         node-version: '16'
     - name: Source Environment Constants
       run: source ${WORKSPACE_DIR}/scripts/export_environment_constants.sh
+    - name: Test
+      run: echo ${UNITS_IMPLEMENTATION_BOOST}
     - name: Install Dependencies
       run: sudo ${WORKSPACE_DIR}/scripts/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION}
     - name: Create Build Environment
