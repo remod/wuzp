@@ -13,7 +13,7 @@ fi
 # Install dependencies.
 export DEBIAN_FRONTEND=noninteractive
 apt update
-DEPENDENCIES="git cmake build-essential libgtest-dev clang-format clang-tidy"
+DEPENDENCIES="git build-essential cmake gcc g++ libgtest-dev clang-format clang-tidy"
 if [[ "${1}" == "1" ]]; then
   DEPENDENCIES="${DEPENDENCIES} libboost-dev"
 fi
