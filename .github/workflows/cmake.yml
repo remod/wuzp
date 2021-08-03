@@ -4,7 +4,7 @@ on: [push]
 
 env:
   WORKSPACE_DIR: ${{github.workspace}}
-  BUILD_DIR: ${WORKSPACE_DIR}/build
+  BUILD_DIR: ${{github.workspace}}/build
   BUILD_TYPE: Release
   UNITS_IMPLEMENTATION: 0
   MATRIX_IMPLEMENTATION: 0
