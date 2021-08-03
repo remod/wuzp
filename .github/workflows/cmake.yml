@@ -4,10 +4,14 @@ on: [push]
 
 env:
   WORKSPACE_DIR: ${{github.workspace}}
-  BUILD_DIR: ${{github.workspace}}/build
+  BUILD_DIR: ${{github.workspace}}/build  # Note: Nested environment variables are not supported.
   BUILD_TYPE: Release
   UNITS_IMPLEMENTATION: 0
   MATRIX_IMPLEMENTATION: 0
+  UNITS_IMPLEMENTATION_CTM: 0
+  UNITS_IMPLEMENTATION_BOOST: 1
+  MATRIX_IMPLEMENTATION_CTM: 0
+  MATRIX_IMPLEMENTATION_EIGEN: 1
 
 jobs:
   build_and_test:
@@ -21,8 +25,8 @@ jobs:
     - uses: actions/setup-node@v2
       with:
         node-version: '16'
-    - name: Source Environment Constants
-      run: source ${WORKSPACE_DIR}/scripts/export_environment_constants.sh
+#    - name: Source Environment Constants
+#      run: source ${WORKSPACE_DIR}/scripts/export_environment_constants.sh
     - name: Test
       run: echo ${UNITS_IMPLEMENTATION_BOOST}
     - name: Install Dependencies
