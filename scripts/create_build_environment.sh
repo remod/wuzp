@@ -11,7 +11,5 @@ if [ $# != 8 ]; then
 fi
 
 # Create build environment.
-echo ${1}
-echo ${2}
 cmake -E make_directory ${2}
 cmake -S ${1} -B ${2} -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/gcc -DCMAKE_BUILD_TYPE=${3} -DENABLE_TESTS=${4} -DENABLE_FORMAT=${5} -DENABLE_TIDY=${6} -DUNITS_IMPLEMENTATION=${7} -DMATRIX_IMPLEMENTATION=${8}

@@ -19,7 +19,6 @@ BUILD_TYPE=Release
 UNITS_IMPLEMENTATION=${1}
 MATRIX_IMPLEMENTATION=${2}
 docker run --rm -ti -v ${REPO_DIR}/:${WORKSPACE_DIR}:rw ubuntu_w_deps /bin/bash -c "\
-    source ${WORKSPACE_DIR}/scripts/export_environment_constants.sh && \
     ${WORKSPACE_DIR}/scripts/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} && \
     ${WORKSPACE_DIR}/scripts/create_build_environment.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} && \
     ${WORKSPACE_DIR}/scripts/build.sh ${BUILD_DIR} ${BUILD_TYPE} && \

@@ -1,5 +1,7 @@
 # ctm
 
+[![Build and Test](https://github.com/remod/ctm/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/remod/ctm/actions/workflows/build_and_test.yml)
+
 ## Preparations
 
 ```
