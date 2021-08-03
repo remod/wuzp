@@ -30,7 +30,7 @@ jobs:
     - name: Test
       run: echo ${UNITS_IMPLEMENTATION_BOOST}
     - name: Install Dependencies
-      run: sudo ${WORKSPACE_DIR}/scripts/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION}
+      run: echo ${UNITS_IMPLEMENTATION_BOOST} && sudo ${WORKSPACE_DIR}/scripts/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION}
     - name: Create Build Environment
       run: ${WORKSPACE_DIR}/scripts/create_build_environment.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION}
     - name: Build
