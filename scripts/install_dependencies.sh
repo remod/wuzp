@@ -11,14 +11,13 @@ if [ $# != 2 ]; then
 fi
 
 # Install dependencies.
-echo ${UNITS_IMPLEMENTATION}
-echo ${UNITS_IMPLEMENTATION_BOOST}
 export DEBIAN_FRONTEND=noninteractive
 apt update
-apt install -y git cmake build-essential libgtest-dev clang-format clang-tidy
+DEPENDENCIES="git cmake build-essential libgtest-dev clang-format clang-tidy"
 if [[ "${1}" == "1" ]]; then
-  apt install -y libboost-dev
+  DEPENDENCIES="${DEPENDENCIES} libboost-dev"
 fi
 if [[ "${2}" == "1" ]]; then
-  apt install -y libeigen3-dev
+  DEPENDENCIES="${DEPENDENCIES} libeigen3-dev"
 fi
+apt install -y ${DEPENDENCIES}
