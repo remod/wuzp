@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit immediately if a command fails.
-set -E
+set -e
 
 # Check arguments.
 if [ $# != 2 ]; then
@@ -16,3 +16,5 @@ cd ${1}
 # If some tests fail, rerun them in verbose mode.
 ctest -C ${2} --rerun-failed --output-on-failure
 cd -
+
+exit 0

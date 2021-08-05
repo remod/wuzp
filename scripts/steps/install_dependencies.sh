@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit immediately if a command fails.
-set -E
+set -e
 
 # Check arguments.
 if [ $# != 2 ]; then
@@ -21,3 +21,5 @@ if [[ "${2}" == "1" ]]; then
   DEPENDENCIES="${DEPENDENCIES} libeigen3-dev"
 fi
 apt install -y ${DEPENDENCIES}
+
+exit 0

@@ -1,14 +1,16 @@
 #!/bin/bash
 
 # Exit immediately if a command fails.
-set -E
+set -e
 
 # Check arguments.
-if [ $# != 2 ]; then
+if [ $# != 1 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./build.sh BUILD_DIR BUILD_CONFIG"
+  echo "Usage: ./format.sh BUILD_DIR"
   exit 1
 fi
 
-# Build.
-cmake --build ${1} --config ${2}
+# Tidy.
+make -C ${1} tidy
+
+exit 0
