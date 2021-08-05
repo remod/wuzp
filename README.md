@@ -50,6 +50,7 @@ Features:
 
 * Own units implementation
 * Own matrix implementation
+* Test with different compilers (gcc and g++, clang)
 * Different rotations
 * Non-static transformations
 * Dynamic size matrices
