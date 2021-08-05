@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit immediately if a command fails.
-set -E
+set -e
 
 # Check arguments.
 if [ $# != 8 ]; then
@@ -13,3 +13,5 @@ fi
 # Create build environment.
 cmake -E make_directory ${2}
 cmake -S ${1} -B ${2} -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ -D CMAKE_BUILD_TYPE=${3} -D ENABLE_TESTS=${4} -D ENABLE_FORMAT=${5} -D ENABLE_TIDY=${6} -D UNITS_IMPLEMENTATION=${7} -D MATRIX_IMPLEMENTATION=${8}
+
+exit 0

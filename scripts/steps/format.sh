@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit immediately if a command fails.
-set -E
+set -e
 
 # Check arguments.
 if [ $# != 1 ]; then
@@ -13,3 +13,5 @@ fi
 # Format.
 make -C ${1} format
 git -C ${1} diff --exit-code
+
+exit 0

@@ -1,27 +1,33 @@
 #!/bin/bash
 
+# This script locally runs the same steps as the Github workflow.
+# The only difference is that the script performs an out-of-source build in the mounted /tmp directory.
+
 # Exit immediately if a command fails.
-set -E
+set -e
 
 # Check arguments.
-if [ $# != 2 ]; then
+if [ $# != 0 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./run_workflow.sh UNITS_IMPLEMENTATION MATRIX_IMPLEMENTATION"
+  echo "Usage: ./run_workflow.sh"
   exit 1
 fi
+
+# Find out the location of the repository.
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 REPO_DIR=${SCRIPT_DIR}/..
 
-# Run all steps of the Github workflow.
+# Run all jobs of the Github workflow.
 WORKSPACE_DIR=/root
-BUILD_DIR=${WORKSPACE_DIR}/build
 BUILD_TYPE=Release
-UNITS_IMPLEMENTATION=${1}
-MATRIX_IMPLEMENTATION=${2}
-docker run --rm -ti -v ${REPO_DIR}/:${WORKSPACE_DIR}:rw ubuntu_w_deps /bin/bash -c "\
-    ${WORKSPACE_DIR}/scripts/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} && \
-    ${WORKSPACE_DIR}/scripts/create_build_environment.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} && \
-    ${WORKSPACE_DIR}/scripts/build.sh ${BUILD_DIR} ${BUILD_TYPE} && \
-    ${WORKSPACE_DIR}/scripts/test.sh ${BUILD_DIR} ${BUILD_TYPE} && \
-    ${WORKSPACE_DIR}/scripts/format.sh ${BUILD_DIR} && \
-    ${WORKSPACE_DIR}/scripts/tidy.sh ${BUILD_DIR}"
+for UNITS_IMPLEMENTATION in 0 1; do
+  for MATRIX_IMPLEMENTATION in 1; do
+    # Run job.
+    echo "Building and testing ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} ..."
+    BUILD_DIR=/tmp/build_${UNITS_IMPLEMENTATION}_${MATRIX_IMPLEMENTATION}
+    rm -rf ${BUILD_DIR}
+    mkdir ${BUILD_DIR}
+    docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ubuntu:latest /bin/bash ${WORKSPACE_DIR}/scripts/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION}
+  done
+done
+echo "Success."

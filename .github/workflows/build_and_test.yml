@@ -13,25 +13,23 @@ jobs:
     strategy:
       matrix:
         UNITS_IMPLEMENTATION: [0, 1]
-        MATRIX_IMPLEMENTATION: [0, 1]
+        MATRIX_IMPLEMENTATION: [1]
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2
       with:
         node-version: '16'
-    - name: Test
-      run: echo ${UNITS_IMPLEMENTATION_BOOST}
     - name: Install Dependencies
-      run: echo ${UNITS_IMPLEMENTATION_BOOST} && sudo ${WORKSPACE_DIR}/scripts/install_dependencies.sh ${{ matrix.UNITS_IMPLEMENTATION }} ${{ matrix.MATRIX_IMPLEMENTATION }}
+      run: sudo ${WORKSPACE_DIR}/scripts/steps/install_dependencies.sh ${{ matrix.UNITS_IMPLEMENTATION }} ${{ matrix.MATRIX_IMPLEMENTATION }}
     - name: Create Build Environment
-      run: ${WORKSPACE_DIR}/scripts/create_build_environment.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${BUILD_TYPE} ON ON ON ${{ matrix.UNITS_IMPLEMENTATION }} ${{ matrix.MATRIX_IMPLEMENTATION }}
+      run: ${WORKSPACE_DIR}/scripts/steps/create_build_environment.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${BUILD_TYPE} ON ON ON ${{ matrix.UNITS_IMPLEMENTATION }} ${{ matrix.MATRIX_IMPLEMENTATION }}
     - name: Build
-      run: ${WORKSPACE_DIR}/scripts/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${WORKSPACE_DIR}/scripts/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
-      run: ${WORKSPACE_DIR}/scripts/test.sh ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${WORKSPACE_DIR}/scripts/steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Format
       shell: bash
-      run: ${WORKSPACE_DIR}/scripts/format.sh ${BUILD_DIR}
+      run: ${WORKSPACE_DIR}/scripts/steps/format.sh ${BUILD_DIR}
     - name: Tidy
       shell: bash
-      run: ${WORKSPACE_DIR}/scripts/tidy.sh ${BUILD_DIR}
+      run: ${WORKSPACE_DIR}/scripts/steps/tidy.sh ${BUILD_DIR}
