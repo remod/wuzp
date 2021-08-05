@@ -4,18 +4,31 @@
 #include <iostream>
 #include <string>
 
+// Note: The double expansion is required to turn the value of the compiler definition into a string.
+#define _TO_STRING(ARG) #ARG
+#define TO_STRING(ARG) _TO_STRING(ARG)
+
 inline std::string getCMakeListsContent() {
-  return "cmake_minimum_required(VERSION 3.10.2)\n"
+  return "cmake_minimum_required(VERSION 3.12)\n"
          "project(test_compilation)\n"
          "\n"
          "set(CMAKE_CXX_STANDARD 17)\n"
          "\n"
-         "find_package(Boost 1.56 REQUIRED)\n"
-         "find_package(Eigen3 3.3 REQUIRED NO_MODULE)\n"
+         "add_compile_options(-Wall -Wextra -Wpedantic)\n"
          "\n"
-         "add_executable(test test.cpp)\n"
-         "target_include_directories(test PRIVATE ../../include ${Boost_INCLUDE_DIRS})\n"
-         "target_link_libraries(test Eigen3::Eigen)\n";
+         "add_executable(tests test.cpp)\n"
+         "target_include_directories(tests PRIVATE " TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/include)\n"
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+         "\n"
+         "find_package(Boost 1.56 REQUIRED)\n"
+         "target_include_directories(tests PRIVATE ${Boost_INCLUDE_DIRS})\n"
+#endif
+#if MATRIX_IMPLEMENTATION == MATRIX_IMPLEMENTATION_EIGEN
+         "\n"
+         "find_package(Eigen3 3.3 REQUIRED NO_MODULE)\n"
+         "target_link_libraries(tests Eigen3::Eigen)\n"
+#endif
+      ;
 }
 
 inline void createFile(const std::string& name, const std::string& content) {

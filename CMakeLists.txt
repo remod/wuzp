@@ -9,6 +9,8 @@ set(MATRIX_IMPLEMENTATION_EIGEN 1)
 option(ENABLE_TESTS "Enables the definition of 'tests', 'tests_boost', 'tests_eigen', and 'tests_boost_eigen' targets to run the unit tests." OFF)
 option(ENABLE_FORMAT "Enables the definition of a 'format' target to format the code." OFF)
 option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clang warnings." OFF)
+
+# Use `set` instead of `option` for non-boolean values.
 set(UNITS_IMPLEMENTATION ${UNITS_IMPLEMENTATION_CTM} CACHE STRING "Define what kind of units implementation to use: ${UNITS_IMPLEMENTATION_CTM} = CTM, ${UNITS_IMPLEMENTATION_BOOST} = Boost.")
 set(MATRIX_IMPLEMENTATION ${MATRIX_IMPLEMENTATION_CTM} CACHE STRING "Define what kind of matrix implementation to use: ${MATRIX_IMPLEMENTATION_CTM} = CTM, ${MATRIX_IMPLEMENTATION_EIGEN} = Eigen.")
 
@@ -59,6 +61,8 @@ if (ENABLE_TESTS)
         test/FramedQuantityMatrix.cpp
         test/ProperRigidTransformation.cpp
     )
+    # The source directory is required for the compilation tests.
+    target_compile_definitions(tests PRIVATE CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
     target_include_directories(tests PRIVATE include GoogleTest)
     if (UNITS_IMPLEMENTATION EQUAL UNITS_IMPLEMENTATION_BOOST)
         target_include_directories(tests PRIVATE ${Boost_INCLUDE_DIRS})

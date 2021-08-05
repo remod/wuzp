@@ -101,6 +101,7 @@ TEST(TestTypeMatrix, Test) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
 #include "ctm/core/TypeMatrix.hpp"
 #include "ctm/core/traits.hpp"
+
 struct Traits {
   DEFINE_RECURSIVE_TRAIT(Sum)
   template <typename Lhs, typename Rhs>
@@ -109,7 +110,9 @@ struct Traits {
     using type = Lhs;
   };
 };
+
 using type = ctm::Sum<ctm::TypeMatrix<1, 1, Traits, int>, ctm::TypeMatrix<1, 1, Traits, double>>::type;
+
 int main() {
   type x;
   return 0;
