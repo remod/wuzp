@@ -4,14 +4,14 @@
 set -e
 
 # Check arguments.
-if [ $# != 8 ]; then
+if [ $# != 10 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./create_build_environment.sh SOURCE_DIR BUILD_DIR BUILD_TYPE ENABLE_TEST ENABLE_FORMAT ENABLE_TIDY UNITS_IMPLEMENTATION MATRIX_IMPLEMENTATION"
+  echo "Usage: ./create_build_environment.sh SOURCE_DIR BUILD_DIR C_COMPILER CXX_COMPILER BUILD_TYPE ENABLE_TEST ENABLE_FORMAT ENABLE_TIDY UNITS_IMPLEMENTATION MATRIX_IMPLEMENTATION"
   exit 1
 fi
 
 # Create build environment.
 cmake -E make_directory ${2}
-cmake -S ${1} -B ${2} -D CMAKE_C_COMPILER=cc -D CMAKE_CXX_COMPILER=c++ -D CMAKE_BUILD_TYPE=${3} -D ENABLE_TESTS=${4} -D ENABLE_FORMAT=${5} -D ENABLE_TIDY=${6} -D UNITS_IMPLEMENTATION=${7} -D MATRIX_IMPLEMENTATION=${8}
+cmake -S ${1} -B ${2} -D CMAKE_C_COMPILER=${3} -D CMAKE_CXX_COMPILER=${4} -D CMAKE_BUILD_TYPE=${5} -D ENABLE_TESTS=${6} -D ENABLE_FORMAT=${7} -D ENABLE_TIDY=${8} -D UNITS_IMPLEMENTATION=${9} -D MATRIX_IMPLEMENTATION=${10}
 
 exit 0
