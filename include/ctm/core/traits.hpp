@@ -29,6 +29,8 @@ DEFINE_RECURSIVE_TRAIT(ValueSum)
 DEFINE_RECURSIVE_TRAIT(ValueDifference)
 DEFINE_RECURSIVE_TRAIT(ValueProduct)
 DEFINE_RECURSIVE_TRAIT(ValueDivision)
+template <typename T>
+struct ValueIdentity;
 
 template <typename ValueLhs, typename ValueRhs>
 struct ValueSum<ValueLhs, ValueRhs> {
@@ -56,6 +58,19 @@ struct ValueDivision<ValueLhs, ValueRhs> {
   // Design decision: Do not allow mixing types, require a manual cast.
   static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value type mismatch.");
   using type = ValueLhs;
+};
+
+template <>
+struct ValueIdentity<int> {
+  static constexpr int value_{1};
+};
+template <>
+struct ValueIdentity<float> {
+  static constexpr float value_{1.f};
+};
+template <>
+struct ValueIdentity<double> {
+  static constexpr double value_{1.0};
 };
 
 // DEFINE_RECURSIVE_TRAIT(UnitSum)
