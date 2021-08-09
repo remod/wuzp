@@ -3,7 +3,7 @@ name: Build and Test
 on: [push]
 
 env:
-  WORKSPACE_DIR: ${{github.workspace}}
+  SOURCE_DIR: ${{github.workspace}}
   BUILD_DIR: ${{github.workspace}}/build  # Note: Nested environment variables are not supported.
   BUILD_TYPE: Release
 
@@ -21,16 +21,16 @@ jobs:
       with:
         node-version: '16'
     - name: Install Dependencies
-      run: sudo ${WORKSPACE_DIR}/scripts/steps/install_dependencies.sh ${{ matrix.UNITS_IMPLEMENTATION }} ${{ matrix.MATRIX_IMPLEMENTATION }}
+      run: sudo ${SOURCE_DIR}/scripts/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.MATRIX_IMPLEMENTATION}}
     - name: Create Build Environment
-      run: ${WORKSPACE_DIR}/scripts/steps/create_build_environment.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${{matrix.C_CXX_COMPILER}} ${BUILD_TYPE} ON ON ON ${{ matrix.UNITS_IMPLEMENTATION }} ${{ matrix.MATRIX_IMPLEMENTATION }}
+      run: ${SOURCE_DIR}/scripts/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${{matrix.C_CXX_COMPILER}} ${BUILD_TYPE} ON ON ON ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.MATRIX_IMPLEMENTATION}}
     - name: Build
-      run: ${WORKSPACE_DIR}/scripts/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${SOURCE_DIR}/scripts/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
-      run: ${WORKSPACE_DIR}/scripts/steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${SOURCE_DIR}/scripts/steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Format
       shell: bash
-      run: ${WORKSPACE_DIR}/scripts/steps/format.sh ${BUILD_DIR}
+      run: ${SOURCE_DIR}/scripts/steps/format.sh ${SOURCE_DIR} ${BUILD_DIR}
     - name: Tidy
       shell: bash
-      run: ${WORKSPACE_DIR}/scripts/steps/tidy.sh ${BUILD_DIR}
+      run: ${SOURCE_DIR}/scripts/steps/tidy.sh ${BUILD_DIR}
