@@ -50,13 +50,14 @@ endif()
 if (ENABLE_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
+    # The tests are ordered by complexity, basic tests come first.
     add_executable(tests
         test/CompilationError.cpp
         test/TypeMatrix.cpp
         test/Frame.cpp
         test/Unit.cpp
         test/Quantity.cpp
-        test/Matrix.cpp
+        test/ValueMatrix.cpp
         test/QuantityMatrix.cpp
         test/FramedQuantityMatrix.cpp
         test/ProperRigidTransformation.cpp

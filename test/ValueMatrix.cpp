@@ -26,7 +26,7 @@ TEST(TestValueMatrix, LazyDifference) {  // NOLINT
   static_assert(!std::is_same<ValueMatrixTraits::Difference<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
-TEST(TestMatrix, LazyProduct) {  // NOLINT
+TEST(TestValueMatrix, LazyProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   static_assert(!std::is_same<ValueMatrixTraits::Product<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }

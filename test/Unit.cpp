@@ -13,17 +13,13 @@ using namespace ctm::units;  // NOLINT
 
 TEST(TestUnit, Sum) {  // NOLINT
   static_assert(std::is_same<UnitTraits::Sum<Length, Length>::type, Length>::value);
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST  // TODO(remod): Also support absolute units in CTM
   static_assert(std::is_same<UnitTraits::Sum<Absolute<Length>, Length>::type, Absolute<Length>>::value);
   static_assert(std::is_same<UnitTraits::Sum<Length, Absolute<Length>>::type, Absolute<Length>>::value);
-#endif
 }
 
 TEST(TestUnit, Difference) {  // NOLINT
   static_assert(std::is_same<UnitTraits::Difference<Length, Length>::type, Length>::value);
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST  // TODO(remod): Also support absolute units in CTM
   static_assert(std::is_same<UnitTraits::Difference<Absolute<Length>, Length>::type, Absolute<Length>>::value);
-#endif
 }
 
 TEST(TestUnit, Product) {  // NOLINT
