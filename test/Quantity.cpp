@@ -9,6 +9,13 @@ using Time = Quantity<double, ctm::units::Time>;
 using Frequency = Quantity<double, ctm::units::Frequency>;
 using Dimensionless = Quantity<double, ctm::units::Dimensionless>;
 
+TEST(TestQuantity, ValueAccess) {  // NOLINT
+  Time time(1.0);
+  EXPECT_EQ(time.getValue(), 1.0);
+  time.setValue(2.0);
+  EXPECT_EQ(time.getValue(), 2.0);
+}
+
 TEST(TestQuantity, Addition) {  // NOLINT
   EXPECT_EQ(Time(1.0) + Time(2.0), Time(3.0));
 }
