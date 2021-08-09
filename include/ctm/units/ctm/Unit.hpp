@@ -21,6 +21,7 @@ using Mass = Unit<0, 0, 1, 0, 0, 0, 0>;
 using Force = Unit<-2, 1, 1, 0, 0, 0, 0>;
 using Energy = Unit<-2, 2, 1, 0, 0, 0, 0>;
 
+// TODO(remod): Is a wrapper the right solution?
 template <typename Unit>
 struct Absolute {};
 

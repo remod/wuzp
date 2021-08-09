@@ -12,11 +12,23 @@ struct UnitTraits {
   struct Sum<Lhs, Rhs> {
     using type = Lhs;
   };
+  template <typename Lhs, typename Rhs>
+  struct Sum<Absolute<Lhs>, Rhs> {
+    using type = Absolute<Lhs>;
+  };
+  template <typename Lhs, typename Rhs>
+  struct Sum<Lhs, Absolute<Rhs>> {
+    using type = typename Sum<Absolute<Lhs>, Rhs>::type;
+  };
 
   DEFINE_RECURSIVE_TRAIT(Difference)
   template <typename Lhs, typename Rhs>
   struct Difference<Lhs, Rhs> {
     using type = Lhs;
+  };
+  template <typename Lhs, typename Rhs>
+  struct Difference<Absolute<Lhs>, Rhs> {
+    using type = Absolute<Lhs>;
   };
 
   DEFINE_RECURSIVE_TRAIT(Product)
