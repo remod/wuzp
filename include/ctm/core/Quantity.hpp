@@ -25,7 +25,7 @@ class Quantity {
     return value_.isApprox(other.getValue());
   }
 
-  auto inverse() const { return typename Inverse<This>::type(value_.inverse()); }
+  auto inverse() const { return typename Inverse<This>::type(ValueIdentity<Value>::value_ / value_); }
 
  private:
   using This = Quantity<Value, Unit>;
@@ -58,7 +58,7 @@ struct Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
 
 template <typename Value, typename Unit>
 struct Inverse<Quantity<Value, Unit>> {
-  using type = Quantity<typename Inverse<Value>::type, typename Inverse<Unit>::type>;
+  using type = Quantity<Value, typename units::UnitTraits::template Inverse<Unit>::type>;
 };
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
@@ -74,6 +74,11 @@ auto operator-(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
   return typename Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() * rhs.getValue());
+}
+
+template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
+auto operator/(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() / rhs.getValue());
 }
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>

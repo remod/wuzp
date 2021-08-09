@@ -69,11 +69,6 @@ struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, Un
                               typename Product<UnitsLhs, UnitsRhs>::type>;
 };
 
-// template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-// struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityRhs> {
-//  using type = QuantityMatrix<typename ValuesProduct<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
-//};
-
 template <typename Values, typename Units>
 struct Transpose<QuantityMatrix<Values, Units>> {
   using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Transpose<Values>::type, typename Transpose<Units>::type>;
