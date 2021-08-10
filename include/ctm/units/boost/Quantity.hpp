@@ -5,7 +5,7 @@
 namespace ctm {
 namespace units {
 
-// Note: For this convenience typedef we swap the arguments to be consistent with CTM.
+// This typedef provides the same interface as its ctm pendant. It is used internally.
 template <typename Value, typename Unit>
 using Quantity = boost::units::quantity<Unit, Value>;
 

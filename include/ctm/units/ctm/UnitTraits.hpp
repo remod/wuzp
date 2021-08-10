@@ -56,17 +56,17 @@ struct UnitTraits {
   };
 
   template <typename Unit>
-  struct Inverse;
-  template <int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance, int LuminousIntensity>
-  struct Inverse<Unit<Time, Length, Mass, ElectricCurrent, ThermodynamicTemperature, AmountOfSubstance, LuminousIntensity>> {
-    using type = Unit<-Time, -Length, -Mass, -ElectricCurrent, -ThermodynamicTemperature, -AmountOfSubstance, -LuminousIntensity>;
-  };
-
-  template <typename Unit>
   struct Identity;
   template <int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance, int LuminousIntensity>
   struct Identity<Unit<Time, Length, Mass, ElectricCurrent, ThermodynamicTemperature, AmountOfSubstance, LuminousIntensity>> {
     using type = Unit<0, 0, 0, 0, 0, 0, 0>;
+  };
+
+  template <typename Unit>
+  struct Inverse;
+  template <int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance, int LuminousIntensity>
+  struct Inverse<Unit<Time, Length, Mass, ElectricCurrent, ThermodynamicTemperature, AmountOfSubstance, LuminousIntensity>> {
+    using type = Unit<-Time, -Length, -Mass, -ElectricCurrent, -ThermodynamicTemperature, -AmountOfSubstance, -LuminousIntensity>;
   };
 };
 

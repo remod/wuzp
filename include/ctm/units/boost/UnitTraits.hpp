@@ -36,15 +36,15 @@ struct UnitTraits {
   };
 
   template <typename Unit>
-  struct Inverse {
-    using type = typename boost::units::power_typeof_helper<Unit, boost::units::static_rational<-1>>::type;
-  };
-
-  template <typename Unit>
   struct Identity;
   template <typename Dim, typename System>
   struct Identity<boost::units::unit<Dim, System>> {
     using type = typename boost::units::unit<boost::units::dimensionless_type, System>;
+  };
+
+  template <typename Unit>
+  struct Inverse {
+    using type = typename boost::units::power_typeof_helper<Unit, boost::units::static_rational<-1>>::type;
   };
 };
 

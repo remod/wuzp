@@ -3,6 +3,7 @@
 #include <ostream>
 
 #include "ctm/units/ctm/QuantityTraits.hpp"
+#include "ctm/units/ctm/ValueTraits.hpp"
 
 namespace ctm {
 namespace units {
@@ -26,7 +27,7 @@ class Quantity {
     return value_.isApprox(other.getValue());
   }
 
-  auto inverse() const { return typename QuantityTraits::Inverse<This>::type(ValueIdentity<Value>::value_ / value_); }
+  auto inverse() const { return typename QuantityTraits::Inverse<This>::type(ValueTraits::Identity<Value>::value_ / value_); }
 
  private:
   using This = Quantity<Value, Unit>;
@@ -41,7 +42,8 @@ auto operator+(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, 
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator-(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename QuantityTraits::Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() - rhs.getValue());
+  return
+      typename QuantityTraits::Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() - rhs.getValue());
 }
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
@@ -71,5 +73,5 @@ std::ostream& operator<<(std::ostream& stream, const Quantity<Value, Unit>& quan
   return stream;
 }
 
-}
+}  // namespace units
 }  // namespace ctm
