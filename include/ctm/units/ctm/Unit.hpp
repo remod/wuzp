@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ctm/units/ctm/UnitTraits.hpp"
+
 namespace ctm {
 namespace units {
 

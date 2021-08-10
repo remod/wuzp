@@ -16,6 +16,13 @@ inline std::string getCMakeListsContent() {
          "\n"
          "add_compile_options(-Wall -Wextra -Wpedantic)\n"
          "\n"
+         "add_compile_definitions(UNITS_IMPLEMENTATION=" TO_STRING(UNITS_IMPLEMENTATION) ")\n"
+         "add_compile_definitions(UNITS_IMPLEMENTATION_CTM=" TO_STRING(UNITS_IMPLEMENTATION_CTM) ")\n"
+         "add_compile_definitions(UNITS_IMPLEMENTATION_BOOST=" TO_STRING(UNITS_IMPLEMENTATION_BOOST) ")\n"
+         "add_compile_definitions(MATRIX_IMPLEMENTATION=" TO_STRING(MATRIX_IMPLEMENTATION) ")\n"
+         "add_compile_definitions(MATRIX_IMPLEMENTATION_CTM=" TO_STRING(MATRIX_IMPLEMENTATION_CTM) ")\n"
+         "add_compile_definitions(MATRIX_IMPLEMENTATION_EIGEN=" TO_STRING(MATRIX_IMPLEMENTATION_EIGEN) ")\n"
+         "\n"
          "add_executable(tests test.cpp)\n"
          "target_include_directories(tests PRIVATE " TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/include)\n"
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
