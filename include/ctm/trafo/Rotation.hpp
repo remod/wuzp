@@ -4,6 +4,7 @@
 #include <Eigen/Geometry>
 
 #include "ctm/trafo/Transformation.hpp"
+#include "ctm/units/Quantity.hpp"
 
 namespace ctm {
 

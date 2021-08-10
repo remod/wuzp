@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "ctm/core/traits.hpp"
-#include "ctm/units/Unit.hpp"
 #include "ctm/units/Quantity.hpp"
+#include "ctm/units/Unit.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_CTM
 template <typename Value>
@@ -31,7 +31,7 @@ auto inverse(const ctm::units::Quantity<Value, Unit> quantity) {
 }
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 template <typename Value>
-boost::units::quantity<boost::units::si::dimensionless , Value> createDimensionlessQuantity(const Value value) {
+boost::units::quantity<boost::units::si::dimensionless, Value> createDimensionlessQuantity(const Value value) {
   return value;
 }
 template <typename Value>
@@ -51,7 +51,7 @@ Value getValue(const boost::units::quantity<boost::units::si::time, Value> quant
   return quantity.value();
 }
 template <typename Value>
-boost::units::quantity<boost::units::si::frequency , Value> inverse(const boost::units::quantity<boost::units::si::time, Value> quantity) {
+boost::units::quantity<boost::units::si::frequency, Value> inverse(const boost::units::quantity<boost::units::si::time, Value> quantity) {
   return createDimensionlessQuantity(1.0) / quantity;
 }
 #endif
