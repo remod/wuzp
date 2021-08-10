@@ -18,13 +18,13 @@ class QuaternionBase : public PassiveTransformation<Derived, From, To> {
 };
 
 template <typename Scalar, typename From, typename To>
-class Quaternion : public QuaternionBase<Quaternion<Scalar, From, To>, From, To, Quantity<units::Dimensionless, Scalar>> {
+class Quaternion : public QuaternionBase<Quaternion<Scalar, From, To>, From, To, units::Quantity<units::Dimensionless, Scalar>> {
   // TODO(remod): Using friend is non-extendable. Change this.
   friend TransformationTraits<Quaternion<Scalar, From, To>, Vector<3, Scalar, From>>;
   friend TransformationTraits<Quaternion<Scalar, From, To>, Position<3, Scalar, From>>;
 
  public:
-  using DimensionlessQuantity = Quantity<units::Dimensionless, Scalar>;
+  using DimensionlessQuantity = units::Quantity<units::Dimensionless, Scalar>;
 
   template <typename... Ts>
   explicit Quaternion(Ts... args) : impl_(args...) {}

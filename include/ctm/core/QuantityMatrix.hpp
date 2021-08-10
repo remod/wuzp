@@ -2,8 +2,8 @@
 
 #include <ostream>
 
-#include "ctm/core/Quantity.hpp"
 #include "ctm/core/traits.hpp"
+#include "ctm/units/Quantity.hpp"
 #include "ctm/value_matrix/ValueMatrixTraits.hpp"
 
 namespace ctm {
