@@ -11,6 +11,29 @@ template <typename Value, typename Unit>
 class Quantity;
 
 struct QuantityTraits {
+  // TODO(remod): Could probably be simpler.
+  template <typename Quantity>
+  struct Create;
+  template <typename Value, typename Unit>
+  struct Create<Quantity<Value, Unit>> {
+    static Quantity<Value, Unit> create(const Value value) { return Quantity<Value, Unit>(value); }
+  };
+
+  // TODO(remod): Could probably be simpler.
+  template <typename Quantity>
+  struct GetValue;
+  template <typename Value, typename Unit>
+  struct GetValue<Quantity<Value, Unit>> {
+    static Value get(const Quantity<Value, Unit>& quantity) { return quantity.getValue(); }
+  };
+
+  template <typename Quantity>
+  struct GetUnit;
+  template <typename Value, typename Unit>
+  struct GetUnit<Quantity<Value, Unit>> {
+    using type = Unit;
+  };
+
   DEFINE_RECURSIVE_TRAIT(Sum)
   template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
   struct Sum<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {

@@ -3,8 +3,13 @@
 #include "ctm/core/QuantityMatrix.hpp"
 #include "ctm/core/TypeMatrix.hpp"
 #include "ctm/core/traits.hpp"
+#include "ctm/units/Quantity.hpp"
+#include "ctm/units/Unit.hpp"
 #include "ctm/units/UnitMatrix.hpp"
+#include "ctm/units/UnitTraits.hpp"
 #include "ctm/value_matrix/ValueMatrix.hpp"
+
+#include "test_compilation_error.hpp"
 
 using ctm::QuantityMatrix;
 using ctm::TypeMatrix;
@@ -21,6 +26,7 @@ class TestQuantityMatrix : public ::testing::Test {
   const MyValues& getValues2() const { return values2_; }
   const MyMatrix& getMatrix1() const { return matrix1_; }
   const MyMatrix& getMatrix2() const { return matrix2_; }
+  MyMatrix& getMatrix1() { return matrix1_; }
 
  protected:
   void SetUp() override {
@@ -36,6 +42,54 @@ class TestQuantityMatrix : public ::testing::Test {
   MyValues values2_;
   MyMatrix matrix2_;
 };
+
+TEST_F(TestQuantityMatrix, SetGetValues) {  // NOLINT
+  EXPECT_EQ(getMatrix1().getValues(), getValues1());
+  getMatrix1().setValues(getValues2());
+  EXPECT_EQ(getMatrix1().getValues(), getValues2());
+}
+
+TEST_F(TestQuantityMatrix, SetGetValue) {  // NOLINT
+  EXPECT_EQ((getMatrix1().getValue<0, 0>()), getValues1()(0, 0));
+  const int value{7};
+  getMatrix1().setValue<0, 0>(value);
+  EXPECT_EQ((getMatrix1().getValue<0, 0>()), value);
+}
+
+TEST_F(TestQuantityMatrix, SetGetQuantity) {  // NOLINT
+  using LengthQuantity = Quantity<int, Length>;
+  EXPECT_EQ((getMatrix1().getQuantity<0, 0>()), QuantityTraits::Create<LengthQuantity>::create(getValues1()(0, 0)));
+  const auto quantity = QuantityTraits::Create<LengthQuantity>::create(7);
+  getMatrix1().setQuantity<0, 0>(quantity);
+  EXPECT_EQ((getMatrix1().getQuantity<0, 0>()), quantity);
+}
+
+TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
+                                                   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "ctm/core/QuantityMatrix.hpp"
+#include "ctm/units/Quantity.hpp"
+#include "ctm/units/QuantityTraits.hpp"
+#include "ctm/units/Unit.hpp"
+#include "ctm/units/UnitMatrix.hpp"
+#include "ctm/value_matrix/ValueMatrix.hpp"
+
+using ctm::QuantityMatrix;
+using ctm::units::Quantity;
+using ctm::units::QuantityTraits;
+using ctm::units::UnitMatrix;
+using namespace ctm::units;         // NOLINT
+using namespace ctm::value_matrix;  // NOLINT
+
+int main() {
+  using MyValues = ValueMatrix<int, 2, 3>;
+  using MyUnits = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
+  MyMatrix matrix;
+  matrix.setQuantity<0,0>(QuantityTraits::Create<Quantity<int, Time>>::create(7));
+  return 0;
+}
+  )",
+                                                                                                "Unit type mismatch.")}
 
 TEST_F(TestQuantityMatrix, Addition) {  // NOLINT
   EXPECT_EQ(getMatrix1() + getMatrix2(), MyMatrix(getValues1() + getValues2()));

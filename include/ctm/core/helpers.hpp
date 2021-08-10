@@ -20,7 +20,6 @@ struct Cat {
 
 template <template <typename...> typename X, typename T>
 struct ExtractAndApply;
-
 template <template <typename...> typename X, typename... Ts>
 struct ExtractAndApply<X, std::tuple<Ts...>> {
   using type = typename X<Ts...>::type;
@@ -32,7 +31,6 @@ struct SelectIf {
   template <typename T>
   using type = std::tuple<T>;
 };
-
 template <>
 struct SelectIf<false> {
   template <typename T>
@@ -41,12 +39,10 @@ struct SelectIf<false> {
 
 template <bool UseTypeA, typename TypeA, typename TypeB>
 struct Chose;
-
 template <typename TypeA, typename TypeB>
 struct Chose<true, TypeA, TypeB> {
   using type = TypeA;
 };
-
 template <typename TypeA, typename TypeB>
 struct Chose<false, TypeA, TypeB> {
   using type = TypeB;
@@ -54,7 +50,6 @@ struct Chose<false, TypeA, TypeB> {
 
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>
 struct GetSubsetImpl;
-
 template <int Start, int End, int Increment, typename... Ts, size_t... Is>
 struct GetSubsetImpl<Start, End, Increment, std::tuple<Ts...>, std::index_sequence<Is...>> {
   using type = typename Cat<typename SelectIf<(Is >= Start) && (Is < End) && ((Is - Start) % Increment == 0)>::template type<Ts>...>::type;
@@ -70,7 +65,6 @@ template <typename... Ts>
 struct IsHomogeneous {
   static constexpr bool value = areSame<Ts...>;
 };
-
 template <typename... Ts>
 struct IsHomogeneous<std::tuple<Ts...>> {
   static constexpr bool value = IsHomogeneous<Ts...>::value;

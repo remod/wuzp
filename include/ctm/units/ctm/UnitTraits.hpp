@@ -1,10 +1,14 @@
 #pragma once
 
 #include "ctm/core/traits.hpp"
-#include "ctm/units/ctm/Unit.hpp"
 
 namespace ctm {
 namespace units {
+
+template <int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance, int LuminousIntensity>
+struct Unit;
+template <typename Unit>
+struct Absolute;
 
 struct UnitTraits {
   DEFINE_RECURSIVE_TRAIT(Sum)

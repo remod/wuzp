@@ -4,6 +4,7 @@
 
 #include "ctm/core/traits.hpp"
 #include "ctm/units/Quantity.hpp"
+#include "ctm/units/QuantityTraits.hpp"
 #include "ctm/value_matrix/ValueMatrixTraits.hpp"
 
 namespace ctm {
@@ -16,6 +17,29 @@ class QuantityMatrix {
 
   void setValues(const Values& values) { values_ = values; }
   const Values& getValues() const { return values_; }
+
+  template <int RowId, int ColId, typename Value>
+  void setValue(const Value value) {
+    values_(RowId, ColId) = value;
+  }
+  template <int RowId, int ColId>
+  auto getValue() const {
+    return values_(RowId, ColId);
+  }
+
+  template <int RowId, int ColId, typename Quantity>
+  void setQuantity(const Quantity quantity) {
+    static_assert(std::is_same<typename std::tuple_element<0, typename Units::AsTuple>::type,
+                               typename units::QuantityTraits::GetUnit<Quantity>::type>::value,
+                  "Unit type mismatch.");
+    setValue<RowId, ColId>(units::QuantityTraits::GetValue<Quantity>::get(quantity));
+  }
+  template <int RowId, int ColId>
+  auto getQuantity() {
+    return units::QuantityTraits::
+        Create<units::Quantity<typename Values::Scalar, typename std::tuple_element<0, typename Units::AsTuple>::type>>::create(
+            getValue<RowId, ColId>());
+  }
 
   template <typename TargetValues>
   QuantityMatrix<TargetValues, Units> cast() const {
