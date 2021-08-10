@@ -26,12 +26,6 @@ DEFINE_RECURSIVE_TRAIT(Product)
 DEFINE_RECURSIVE_TRAIT(Division)
 
 DEFINE_RECURSIVE_TRAIT(ValueSum)
-DEFINE_RECURSIVE_TRAIT(ValueDifference)
-DEFINE_RECURSIVE_TRAIT(ValueProduct)
-DEFINE_RECURSIVE_TRAIT(ValueDivision)
-template <typename T>
-struct ValueIdentity;
-
 template <typename ValueLhs, typename ValueRhs>
 struct ValueSum<ValueLhs, ValueRhs> {
   // Design decision: Do not allow mixing types, require a manual cast.
@@ -39,6 +33,7 @@ struct ValueSum<ValueLhs, ValueRhs> {
   using type = ValueLhs;
 };
 
+DEFINE_RECURSIVE_TRAIT(ValueDifference)
 template <typename ValueLhs, typename ValueRhs>
 struct ValueDifference<ValueLhs, ValueRhs> {
   // Design decision: Do not allow mixing types, require a manual cast.
@@ -46,6 +41,7 @@ struct ValueDifference<ValueLhs, ValueRhs> {
   using type = ValueLhs;
 };
 
+DEFINE_RECURSIVE_TRAIT(ValueProduct)
 template <typename ValueLhs, typename ValueRhs>
 struct ValueProduct<ValueLhs, ValueRhs> {
   // Design decision: Do not allow mixing types, require a manual cast.
@@ -53,6 +49,7 @@ struct ValueProduct<ValueLhs, ValueRhs> {
   using type = ValueLhs;
 };
 
+DEFINE_RECURSIVE_TRAIT(ValueDivision)
 template <typename ValueLhs, typename ValueRhs>
 struct ValueDivision<ValueLhs, ValueRhs> {
   // Design decision: Do not allow mixing types, require a manual cast.
@@ -60,6 +57,8 @@ struct ValueDivision<ValueLhs, ValueRhs> {
   using type = ValueLhs;
 };
 
+template <typename T>
+struct ValueIdentity;
 template <>
 struct ValueIdentity<int> {
   static constexpr int value_{1};

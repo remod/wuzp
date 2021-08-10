@@ -2,9 +2,10 @@
 
 #include <ostream>
 
-#include "ctm/units/UnitTraits.hpp"
+#include "ctm/units/ctm/QuantityTraits.hpp"
 
 namespace ctm {
+namespace units {
 
 template <typename Value, typename Unit>
 class Quantity {
@@ -25,7 +26,7 @@ class Quantity {
     return value_.isApprox(other.getValue());
   }
 
-  auto inverse() const { return typename Inverse<This>::type(ValueIdentity<Value>::value_ / value_); }
+  auto inverse() const { return typename QuantityTraits::Inverse<This>::type(ValueIdentity<Value>::value_ / value_); }
 
  private:
   using This = Quantity<Value, Unit>;
@@ -34,51 +35,23 @@ class Quantity {
 };
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-struct Sum<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = Quantity<typename ValueSum<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Sum<UnitLhs, UnitRhs>::type>;
-};
-
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-struct Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type =
-      Quantity<typename ValueDifference<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Difference<UnitLhs, UnitRhs>::type>;
-};
-
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-struct Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type =
-      Quantity<typename ValueProduct<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Product<UnitLhs, UnitRhs>::type>;
-};
-
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-struct Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type =
-      Quantity<typename ValueDivision<ValueLhs, ValueRhs>::type, typename units::UnitTraits::template Division<UnitLhs, UnitRhs>::type>;
-};
-
-template <typename Value, typename Unit>
-struct Inverse<Quantity<Value, Unit>> {
-  using type = Quantity<Value, typename units::UnitTraits::template Inverse<Unit>::type>;
-};
-
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator+(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Sum<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() + rhs.getValue());
+  return typename QuantityTraits::Sum<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() + rhs.getValue());
 }
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator-(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() - rhs.getValue());
+  return typename QuantityTraits::Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() - rhs.getValue());
 }
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() * rhs.getValue());
+  return typename QuantityTraits::Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() * rhs.getValue());
 }
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator/(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() / rhs.getValue());
+  return typename QuantityTraits::Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() / rhs.getValue());
 }
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
@@ -98,4 +71,5 @@ std::ostream& operator<<(std::ostream& stream, const Quantity<Value, Unit>& quan
   return stream;
 }
 
+}
 }  // namespace ctm

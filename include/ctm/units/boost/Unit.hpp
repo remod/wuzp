@@ -7,6 +7,12 @@
 namespace ctm {
 namespace units {
 
+template <typename Dim, typename System, typename Enable>
+using Unit = boost::units::unit<Dim, System, Enable>;
+
+template <typename Unit>
+using Absolute = boost::units::absolute<Unit>;
+
 using Length = boost::units::si::length;
 using Time = boost::units::si::time;
 using Area = boost::units::si::area;
@@ -17,9 +23,6 @@ using Dimensionless = boost::units::si::dimensionless;
 using Velocity = boost::units::si::velocity;
 using Volume = boost::units::si::volume;
 using Frequency = boost::units::si::frequency;
-
-template <typename Unit>
-using Absolute = boost::units::absolute<Unit>;
 
 }  // namespace units
 }  // namespace ctm
