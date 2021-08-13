@@ -9,7 +9,6 @@ namespace ctm {
 
 template <size_t Cols, typename Tuple, typename IndexSequence>
 struct ToRowsImpl;
-
 template <size_t Cols, typename... Ts, size_t... RowIs>
 struct ToRowsImpl<Cols, std::tuple<Ts...>, std::index_sequence<RowIs...>> {
   using type =
@@ -21,7 +20,6 @@ using ToRows = ToRowsImpl<Cols, std::tuple<Ts...>, std::make_index_sequence<size
 
 template <size_t Cols, typename Tuple, typename IndexSequence>
 struct ToColsImpl;
-
 template <size_t Cols, typename... Ts, size_t... ColIs>
 struct ToColsImpl<Cols, std::tuple<Ts...>, std::index_sequence<ColIs...>> {
   using type = typename Cat<typename std::tuple<typename GetSubset<ColIs, sizeof...(Ts), Cols, std::tuple<Ts...>>::type>...>::type;
@@ -32,7 +30,6 @@ using ToCols = ToColsImpl<Cols, std::tuple<Ts...>, std::make_index_sequence<Cols
 
 template <typename Traits, typename Lhs, typename Rhs, typename IndexSequence>
 struct AddTwoTuplesImpl;
-
 template <typename Traits, typename... TsLhs, typename... TsRhs, size_t... Is>
 struct AddTwoTuplesImpl<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::index_sequence<Is...>> {
   using type = std::tuple<typename Traits::template Sum<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type,
@@ -41,7 +38,6 @@ struct AddTwoTuplesImpl<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>, std:
 
 template <typename Traits, typename Lhs, typename Rhs>
 struct AddTwoTuples;
-
 template <typename Traits, typename... TsLhs, typename... TsRhs>
 struct AddTwoTuples<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
   static_assert(sizeof...(TsLhs) == sizeof...(TsRhs), "Tuple size mismatch.");
@@ -51,7 +47,6 @@ struct AddTwoTuples<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
 
 template <typename Traits, typename Lhs, typename Rhs, typename IndexSequence>
 struct SubtractTwoTuplesImpl;
-
 template <typename Traits, typename... TsLhs, typename... TsRhs, size_t... Is>
 struct SubtractTwoTuplesImpl<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::index_sequence<Is...>> {
   using type = std::tuple<typename Traits::template Difference<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type,
@@ -60,7 +55,6 @@ struct SubtractTwoTuplesImpl<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>,
 
 template <typename Traits, typename Lhs, typename Rhs>
 struct SubtractTwoTuples;
-
 template <typename Traits, typename... TsLhs, typename... TsRhs>
 struct SubtractTwoTuples<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
   static_assert(sizeof...(TsLhs) == sizeof...(TsRhs), "Tuple size mismatch.");
@@ -70,7 +64,6 @@ struct SubtractTwoTuples<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
 
 template <typename Traits, typename Lhs, typename Rhs, typename IndexSequence>
 struct MultiplyTwoTuplesImpl;
-
 template <typename Traits, typename... TsLhs, typename... TsRhs, size_t... Is>
 struct MultiplyTwoTuplesImpl<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::index_sequence<Is...>> {
   using type = typename Traits::template Sum<
@@ -80,7 +73,6 @@ struct MultiplyTwoTuplesImpl<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>,
 
 template <typename Traits, typename Lhs, typename Rhs>
 struct MultiplyTwoTuples;
-
 template <typename Traits, typename... TsLhs, typename... TsRhs>
 struct MultiplyTwoTuples<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
   using type =
@@ -89,7 +81,6 @@ struct MultiplyTwoTuples<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
 
 template <typename Traits, typename Lhs, typename Rhs, typename IndexSequence>
 struct MultiplyTuples;
-
 template <typename Traits, typename... TuplesLhs, typename... TuplesRhs, size_t... Is>
 struct MultiplyTuples<Traits, std::tuple<TuplesLhs...>, std::tuple<TuplesRhs...>, std::index_sequence<Is...>> {
   using type = std::tuple<
@@ -99,16 +90,20 @@ struct MultiplyTuples<Traits, std::tuple<TuplesLhs...>, std::tuple<TuplesRhs...>
 
 template <int Rows, int Cols, typename Traits, typename Types>
 struct TypeMatrixImpl;
-
 template <int Rows, int Cols, typename Traits, typename... Types>
 struct TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>> {
   static_assert(sizeof...(Types) == Rows * Cols, "Number of types does not match matrix size.");
-  using AsTuple = std::tuple<Types...>;
+};
+
+template <typename T>
+struct AsTuple;
+template <int Rows, int Cols, typename Traits, typename Types>
+struct AsTuple<TypeMatrixImpl<Rows, Cols, Traits, Types>> {
+  using type = Types;
 };
 
 template <int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols, typename Tuple, typename IndexSequence>
 struct BlockImpl;
-
 template <int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols, typename... Ts, size_t... BlockRowIs>
 struct BlockImpl<Cols, BlockRowId, BlockColId, BlockRows, BlockCols, std::tuple<Ts...>, std::index_sequence<BlockRowIs...>> {
   using type =
@@ -204,18 +199,15 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>> {
 
 template <int Rows, int Cols, typename Traits, typename... Types>
 struct TypeMatrixInterface;
-
 template <int Rows, int Cols, typename Traits>
 struct TypeMatrixInterface<Rows, Cols, Traits> {
   static_assert(FakeDependency<TypeMatrixInterface<Rows, Cols, Traits>>::value, "Empty type matrix is not allowed.");
 };
-
 template <int Rows, int Cols, typename Traits, typename Type0, typename... Types>
 struct TypeMatrixInterface<Rows, Cols, Traits, Type0, Types...> {
   static_assert(sizeof...(Types) + 1 == Rows * Cols, "Number of types does not match matrix size.");
   using type = TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Type0, Types...>>;
 };
-
 template <int Rows, int Cols, typename Traits, typename Type>
 struct TypeMatrixInterface<Rows, Cols, Traits, Type> {
   using type = TypeMatrixImpl<Rows, Cols, Traits, HomogeneousTuple<Rows * Cols, Type>>;

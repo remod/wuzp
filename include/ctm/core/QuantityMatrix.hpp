@@ -2,6 +2,7 @@
 
 #include <ostream>
 
+#include "ctm/core/TypeMatrix.hpp"
 #include "ctm/core/traits.hpp"
 #include "ctm/units/Quantity.hpp"
 #include "ctm/units/QuantityTraits.hpp"
@@ -29,7 +30,7 @@ class QuantityMatrix {
 
   template <int RowId, int ColId, typename Quantity>
   void setQuantity(const Quantity quantity) {
-    static_assert(std::is_same<typename std::tuple_element<0, typename Units::AsTuple>::type,
+    static_assert(std::is_same<typename std::tuple_element<0, typename AsTuple<Units>::type>::type,
                                typename units::QuantityTraits::GetUnit<Quantity>::type>::value,
                   "Unit type mismatch.");
     setValue<RowId, ColId>(units::QuantityTraits::GetValue<Quantity>::get(quantity));
@@ -37,20 +38,14 @@ class QuantityMatrix {
   template <int RowId, int ColId>
   auto getQuantity() {
     return units::QuantityTraits::
-        Create<units::Quantity<typename Values::Scalar, typename std::tuple_element<0, typename Units::AsTuple>::type>>::create(
+        Create<units::Quantity<typename Values::Scalar, typename std::tuple_element<0, typename AsTuple<Units>::type>::type>>::create(
             getValue<RowId, ColId>());
   }
 
-  template <typename TargetValues>
-  QuantityMatrix<TargetValues, Units> cast() const {
-    // TODO(remod): Implement & test.
-    //    return QuantityMatrix<TargetValues, Units>(values_.cast<>);
-  }
-
-  // Note: Allow other value types to support lazy evaluation.
-  template <typename ValuesOther>
-  bool isApprox(const QuantityMatrix<ValuesOther, Units>& other) const {
-    // TODO(remod): Allow all template arguments to print better error msg?
+  template <typename ValuesOther, typename UnitsOther>
+  bool isApprox(const QuantityMatrix<ValuesOther, UnitsOther>& other) const {
+    // Note: Allow other value types to support lazy evaluation.
+    static_assert(std::is_same<Units, UnitsOther>::value, "Units mismatch.");
     return values_.isApprox(other.getValues());
   }
 
