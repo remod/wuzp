@@ -6,13 +6,13 @@ set(UNITS_IMPLEMENTATION_BOOST 1)
 set(MATRIX_IMPLEMENTATION_CTM 0)
 set(MATRIX_IMPLEMENTATION_EIGEN 1)
 
-option(ENABLE_TESTS "Enables the definition of 'tests', 'tests_boost', 'tests_eigen', and 'tests_boost_eigen' targets to run the unit tests." OFF)
+option(ENABLE_TESTS "Enables the definition of a 'tests' target to run the unit tests." OFF)
 option(ENABLE_FORMAT "Enables the definition of a 'format' target to format the code." OFF)
 option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clang warnings." OFF)
 
 # Use `set` instead of `option` for non-boolean values.
 set(UNITS_IMPLEMENTATION ${UNITS_IMPLEMENTATION_CTM} CACHE STRING "Define what kind of units implementation to use: ${UNITS_IMPLEMENTATION_CTM} = CTM, ${UNITS_IMPLEMENTATION_BOOST} = Boost.")
-set(MATRIX_IMPLEMENTATION ${MATRIX_IMPLEMENTATION_CTM} CACHE STRING "Define what kind of matrix implementation to use: ${MATRIX_IMPLEMENTATION_CTM} = CTM, ${MATRIX_IMPLEMENTATION_EIGEN} = Eigen.")
+set(MATRIX_IMPLEMENTATION ${MATRIX_IMPLEMENTATION_EIGEN} CACHE STRING "Define what kind of matrix implementation to use: ${MATRIX_IMPLEMENTATION_CTM} = CTM, ${MATRIX_IMPLEMENTATION_EIGEN} = Eigen.")
 
 message(STATUS "------------------------------------------")
 message(STATUS "Building with the following configuration:")
@@ -83,7 +83,7 @@ if (ENABLE_FORMAT)
         ${PROJECT_SOURCE_DIR}/test/*.[ch]pp
     )
     add_custom_target(format
-        COMMAND clang-format -i -style=file ${ALL_CXX_SOURCE_FILES}
+        COMMAND clang-format -i --verbose -style=file ${ALL_CXX_SOURCE_FILES}
     )
 endif()
 
