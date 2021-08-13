@@ -102,6 +102,13 @@ struct AsTuple<TypeMatrixImpl<Rows, Cols, Traits, Types>> {
   using type = Types;
 };
 
+template <int Rows, int Cols, typename Traits, typename... Types, int ElementRowId, int ElementColId>
+struct Element<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>, ElementRowId, ElementColId> {
+  static_assert(ElementRowId >= 0 && ElementColId >= 0, "Element ids are out of range.");
+  static_assert(ElementRowId < Rows && ElementColId < Cols, "Element ids are out of range.");
+  using type = typename std::tuple_element<ElementRowId * Cols + ElementColId - 1, std::tuple<Types...>>::type;
+};
+
 template <int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols, typename Tuple, typename IndexSequence>
 struct BlockImpl;
 template <int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols, typename... Ts, size_t... BlockRowIs>

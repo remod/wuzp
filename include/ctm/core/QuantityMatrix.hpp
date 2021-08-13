@@ -30,16 +30,14 @@ class QuantityMatrix {
 
   template <int RowId, int ColId, typename Quantity>
   void setQuantity(const Quantity quantity) {
-    static_assert(std::is_same<typename std::tuple_element<0, typename AsTuple<Units>::type>::type,
-                               typename units::QuantityTraits::GetUnit<Quantity>::type>::value,
+    static_assert(std::is_same<typename Element<Units, RowId, ColId>::type, typename units::QuantityTraits::GetUnit<Quantity>::type>::value,
                   "Unit type mismatch.");
     setValue<RowId, ColId>(units::QuantityTraits::GetValue<Quantity>::get(quantity));
   }
   template <int RowId, int ColId>
   auto getQuantity() {
-    return units::QuantityTraits::
-        Create<units::Quantity<typename Values::Scalar, typename std::tuple_element<0, typename AsTuple<Units>::type>::type>>::create(
-            getValue<RowId, ColId>());
+    return units::QuantityTraits::Create<units::Quantity<typename Values::Scalar, typename Element<Units, RowId, ColId>::type>>::create(
+        getValue<RowId, ColId>());
   }
 
   template <typename ValuesOther, typename UnitsOther>

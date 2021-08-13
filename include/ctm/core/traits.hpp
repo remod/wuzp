@@ -34,6 +34,11 @@ struct DotProduct {
   static_assert(FakeDependency<DotProduct<Lhs, Rhs>>::value, "'DotProduct' trait not specialized for given type.");
 };
 
+template <typename Object, int ElementRowId, int ElementColId>
+struct Element {
+  static_assert(FakeDependency<Element<Object, ElementRowId, ElementColId>>::value, "'Element' trait not specialized for given type.");
+};
+
 template <typename Object, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block {
   static_assert(FakeDependency<Block<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value,
