@@ -50,18 +50,18 @@ TEST_F(TestQuantityMatrix, SetGetValues) {  // NOLINT
 }
 
 TEST_F(TestQuantityMatrix, SetGetValue) {  // NOLINT
-  EXPECT_EQ((getMatrix1().getValue<0, 0>()), getValues1()(0, 0));
+  EXPECT_EQ((getMatrix1().getValue<1, 2>()), getValues1()(1, 2));
   const int value{7};
-  getMatrix1().setValue<0, 0>(value);
-  EXPECT_EQ((getMatrix1().getValue<0, 0>()), value);
+  getMatrix1().setValue<1, 2>(value);
+  EXPECT_EQ((getMatrix1().getValue<1, 2>()), value);
 }
 
 TEST_F(TestQuantityMatrix, SetGetQuantity) {  // NOLINT
-  using LengthQuantity = Quantity<int, Length>;
-  EXPECT_EQ((getMatrix1().getQuantity<0, 0>()), QuantityTraits::Create<LengthQuantity>::create(getValues1()(0, 0)));
-  const auto quantity = QuantityTraits::Create<LengthQuantity>::create(7);
-  getMatrix1().setQuantity<0, 0>(quantity);
-  EXPECT_EQ((getMatrix1().getQuantity<0, 0>()), quantity);
+  using ForceQuantity = Quantity<int, Force>;
+  EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), QuantityTraits::Create<ForceQuantity>::create(getValues1()(1, 2)));
+  const auto quantity = QuantityTraits::Create<ForceQuantity>::create(7);
+  getMatrix1().setQuantity<1, 2>(quantity);
+  EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), quantity);
 }
 
 TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
@@ -85,7 +85,7 @@ int main() {
   using MyUnits = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
   MyMatrix matrix;
-  matrix.setQuantity<0,0>(QuantityTraits::Create<Quantity<int, Time>>::create(7));
+  matrix.setQuantity<1, 2>(QuantityTraits::Create<Quantity<int, Time>>::create(7));
   return 0;
 }
   )",

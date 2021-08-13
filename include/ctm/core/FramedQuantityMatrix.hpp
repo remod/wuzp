@@ -120,7 +120,6 @@ using Position = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimensio
 
 template <typename Scalar, typename Frame>
 using Position2D = Position<2, Scalar, Frame>;
-
 template <typename Scalar, typename Frame>
 using Position3D = Position<3, Scalar, Frame>;
 
@@ -130,7 +129,6 @@ using Vector = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimension,
 
 template <typename Scalar, typename Frame>
 using Vector2D = Vector<2, Scalar, Frame>;
-
 template <typename Scalar, typename Frame>
 using Vector3D = Vector<3, Scalar, Frame>;
 
@@ -140,7 +138,6 @@ using Velocity = FramedQuantityMatrix<Eigen::Matrix<Scalar, Dimension, 1>, Frame
 
 template <typename Scalar, typename Frame>
 using Velocity2D = Velocity<2, Scalar, Frame>;
-
 template <typename Scalar, typename Frame>
 using Velocity3D = Velocity<3, Scalar, Frame>;
 
