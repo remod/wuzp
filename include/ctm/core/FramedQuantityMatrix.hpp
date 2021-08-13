@@ -70,7 +70,7 @@ struct DotProduct<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQu
 template <typename Values, typename Units, typename Frames>
 struct GetFrame<FramedQuantityMatrix<Values, Units, Frames>> {
   static_assert(IsHomogeneous<Frames>::value, "Frames are heterogeneous.");
-  using type = std::tuple_element<0, typename Frames::AsTuple>;
+  using type = std::tuple_element<0, typename AsTuple<Frames>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>

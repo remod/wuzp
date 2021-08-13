@@ -11,6 +11,6 @@ if [ $# != 1 ]; then
 fi
 
 # Tidy.
-make -C ${1} tidy
+#make -C ${1} tidy
 
 exit 0
