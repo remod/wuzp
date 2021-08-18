@@ -16,6 +16,9 @@ class FramedQuantityMatrix {
  public:
   FramedQuantityMatrix() = default;
   explicit FramedQuantityMatrix(const Values& values) : quantityMatrix_(values) {}
+  // Allow other value types to support lazy evaluation.
+  template <typename ValuesOther>
+  explicit FramedQuantityMatrix(const QuantityMatrix<ValuesOther, Units>& quantityMatrix) : quantityMatrix_(quantityMatrix) {}
 
   const QuantityMatrix<Values, Units>& getQuantityMatrix() const { return quantityMatrix_; }
 
@@ -47,11 +50,17 @@ struct Difference<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQu
                                     typename Difference<UnitsLhs, UnitsRhs>::type, typename Difference<FramesLhs, FramesRhs>::type>;
 };
 
+// Use case: Scalar product.
 template <typename ValuesLhs, typename UnitsLhs, typename FramesLhs, typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
 struct Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>> {
-  static_assert(FakeDependency<Product<FramedQuantityMatrix<ValuesLhs, UnitsLhs, FramesLhs>,
-                                       FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>>::value,
-                "Framed quantity matrices cannot be multiplied.");
+ public:
+  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Product<ValuesLhs, ValuesRhs>::type,
+                              typename Product<UnitsLhs, UnitsRhs>::type>;
+
+ private:
+  using FrameProduct = typename Product<FramesLhs, FramesRhs>::type;
+  static_assert(IsHomogeneous<FrameProduct>::value && std::is_same<typename Element<FrameProduct, 0, 0>::type, NoFrame>::value,
+                "Frame mismatch.");
 };
 
 template <typename Values, typename Units, typename Frames>
@@ -115,8 +124,8 @@ std::ostream& operator<<(std::ostream& stream, const FramedQuantityMatrix<Values
 }
 
 template <int Dimension, typename Scalar, typename Frame>
-using Position = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
-                                      units::UnitMatrix<Dimension, 1, units::Absolute<units::Length>>>;
+using Position = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>,
+                                      units::UnitMatrix<Dimension, 1, units::Absolute<units::Length>>, FrameMatrix<Dimension, 1, Frame>>;
 
 template <typename Scalar, typename Frame>
 using Position2D = Position<2, Scalar, Frame>;
@@ -124,8 +133,8 @@ template <typename Scalar, typename Frame>
 using Position3D = Position<3, Scalar, Frame>;
 
 template <int Dimension, typename Scalar, typename Frame>
-using Vector = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
-                                    units::UnitMatrix<Dimension, 1, units::Length>>;
+using Vector = FramedQuantityMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>, units::UnitMatrix<Dimension, 1, units::Length>,
+                                    FrameMatrix<Dimension, 1, Frame>>;
 
 template <typename Scalar, typename Frame>
 using Vector2D = Vector<2, Scalar, Frame>;
@@ -133,8 +142,8 @@ template <typename Scalar, typename Frame>
 using Vector3D = Vector<3, Scalar, Frame>;
 
 template <int Dimension, typename Scalar, typename Frame>
-using Velocity = FramedQuantityMatrix<Eigen::Matrix<Scalar, Dimension, 1>, FrameMatrix<Dimension, 1, Frame>,
-                                      units::UnitMatrix<Dimension, 1, units::Velocity>>;
+using Velocity = FramedQuantityMatrix<Eigen::Matrix<Scalar, Dimension, 1>, units::UnitMatrix<Dimension, 1, units::Velocity>,
+                                      FrameMatrix<Dimension, 1, Frame>>;
 
 template <typename Scalar, typename Frame>
 using Velocity2D = Velocity<2, Scalar, Frame>;

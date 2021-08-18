@@ -69,4 +69,6 @@ Minor:
 Documentation:  
 
 * Examples
+* Limitations
+  * In-place operations not supported if they change the type
 * Migration notes from kindr

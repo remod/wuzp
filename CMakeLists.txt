@@ -60,6 +60,7 @@ if (ENABLE_TESTS)
         test/ValueMatrix.cpp
         test/QuantityMatrix.cpp
         test/FramedQuantityMatrix.cpp
+        test/RotationMatrix.cpp
         test/ProperRigidTransformation.cpp
     )
     # The source directory is required for the compilation tests.

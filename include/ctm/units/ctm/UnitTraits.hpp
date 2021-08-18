@@ -14,25 +14,43 @@ struct UnitTraits {
   DEFINE_RECURSIVE_TRAIT(Sum)
   template <typename Lhs, typename Rhs>
   struct Sum<Lhs, Rhs> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
     using type = Lhs;
   };
   template <typename Lhs, typename Rhs>
   struct Sum<Absolute<Lhs>, Rhs> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
     using type = Absolute<Lhs>;
   };
   template <typename Lhs, typename Rhs>
   struct Sum<Lhs, Absolute<Rhs>> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
     using type = typename Sum<Absolute<Lhs>, Rhs>::type;
+  };
+  template <typename Lhs, typename Rhs>
+  struct Sum<Absolute<Lhs>, Absolute<Rhs>> {
+    static_assert(FakeDependency<Sum<Absolute<Lhs>, Absolute<Rhs>>>::value, "Two absolute units cannot be summed.");
   };
 
   DEFINE_RECURSIVE_TRAIT(Difference)
   template <typename Lhs, typename Rhs>
   struct Difference<Lhs, Rhs> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
     using type = Lhs;
   };
   template <typename Lhs, typename Rhs>
   struct Difference<Absolute<Lhs>, Rhs> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
     using type = Absolute<Lhs>;
+  };
+  template <typename Lhs, typename Rhs>
+  struct Difference<Lhs, Absolute<Rhs>> {
+    static_assert(FakeDependency<Difference<Lhs, Absolute<Rhs>>>::value, "An absolute unit cannot be subtracted from a relative unit.");
+  };
+  template <typename Lhs, typename Rhs>
+  struct Difference<Absolute<Lhs>, Absolute<Rhs>> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
+    using type = Lhs;
   };
 
   DEFINE_RECURSIVE_TRAIT(Product)
@@ -46,6 +64,14 @@ struct UnitTraits {
                       ThermodynamicTemperatureLhs + ThermodynamicTemperatureRhs, AmountOfSubstanceLhs + AmountOfSubstanceRhs,
                       LuminousIntensityLhs + LuminousIntensityRhs>;
   };
+  //  template <typename Lhs, typename Rhs>
+  //  struct Product<Absolute<Lhs>, Rhs> {
+  //    using type = Absolute<typename Product<Lhs, Rhs>::type>;
+  //  };
+  //  template <typename Lhs, typename Rhs>
+  //  struct Product<Lhs, Absolute<Rhs>> {
+  //    using type = typename Product<Absolute<Lhs>, Rhs>::type;
+  //  };
 
   DEFINE_RECURSIVE_TRAIT(Division)
   template <int TimeLhs, int LengthLhs, int MassLhs, int ElectricCurrentLhs, int ThermodynamicTemperatureLhs, int AmountOfSubstanceLhs,

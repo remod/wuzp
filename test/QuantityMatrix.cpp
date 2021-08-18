@@ -57,9 +57,9 @@ TEST_F(TestQuantityMatrix, SetGetValue) {  // NOLINT
 }
 
 TEST_F(TestQuantityMatrix, SetGetQuantity) {  // NOLINT
-  using ForceQuantity = Quantity<int, Force>;
-  EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), QuantityTraits::Create<ForceQuantity>::create(getValues1()(1, 2)));
-  const auto quantity = QuantityTraits::Create<ForceQuantity>::create(7);
+  using EnergyQuantity = Quantity<int, Energy>;
+  EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), QuantityTraits::Create<EnergyQuantity>::create(getValues1()(1, 2)));
+  const auto quantity = QuantityTraits::Create<EnergyQuantity>::create(7);
   getMatrix1().setQuantity<1, 2>(quantity);
   EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), quantity);
 }
