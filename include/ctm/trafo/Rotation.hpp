@@ -3,6 +3,7 @@
 // TODO(remod): Create abstraction for quaternion
 #include <Eigen/Geometry>
 
+#include "ctm/core/QuantityMatrix.hpp"
 #include "ctm/trafo/Transformation.hpp"
 #include "ctm/units/Quantity.hpp"
 
@@ -51,6 +52,45 @@ struct TransformationTraits<Quaternion<Scalar, From, To>, Position<3, Scalar, Fr
   }
 };
 
-class Rotation2D {};
+template <typename Scalar, typename From, typename To, int Dimension>
+class RotationMatrix : public PassiveTransformation<RotationMatrix<Scalar, From, To, Dimension>, From, To> {
+  // TODO(remod): Using friend is non-extendable. Change this.
+  friend TransformationTraits<RotationMatrix<Scalar, From, To, Dimension>, Vector<Dimension, Scalar, From>>;
+  friend TransformationTraits<RotationMatrix<Scalar, From, To, Dimension>, Position<Dimension, Scalar, From>>;
+
+ public:
+  using Values = value_matrix::ValueMatrix<Scalar, Dimension, Dimension>;
+  using Units = units::UnitMatrix<Dimension, Dimension, units::Dimensionless>;
+  using Frames = FrameMatrix<Dimension, Dimension, From>;
+  using Impl = FramedQuantityMatrix<Values, Units, Frames>;
+
+  explicit RotationMatrix(Impl impl) : impl_(impl) {}
+
+ private:
+  FramedQuantityMatrix<Values, Units, Frames> impl_;
+};
+
+template <typename Scalar, typename From, typename To>
+using RotationMatrix2D = RotationMatrix<Scalar, From, To, 2>;
+template <typename Scalar, typename From, typename To>
+using RotationMatrix3D = RotationMatrix<Scalar, From, To, 3>;
+
+template <typename Scalar, typename From, typename To, int Dimension>
+struct TransformationTraits<RotationMatrix<Scalar, From, To, Dimension>, Vector<Dimension, Scalar, From>> {
+  static auto transform(const RotationMatrix<Scalar, From, To, Dimension>& transformation, const Vector<Dimension, Scalar, From>& object) {
+    return Vector<Dimension, Scalar, To>(transformation.impl_ * object);
+  }
+};
+
+template <typename Scalar, typename From, typename To, int Dimension>
+struct TransformationTraits<RotationMatrix<Scalar, From, To, Dimension>, Position<Dimension, Scalar, From>> {
+  static auto transform(const RotationMatrix<Scalar, From, To, Dimension>& transformation,
+                        const Position<Dimension, Scalar, From>& object) {
+    // TODO(remod): Avoid subtraction, just cast.
+    // TODO(remod): Avoid constructor, just cast.
+    return Position<Dimension, Scalar, To>(
+        (transformation.impl_ * (object - Position<Dimension, Scalar, From>(Eigen::Matrix<Scalar, Dimension, 1>::Zero()))).getValues());
+  }
+};
 
 }  // namespace ctm

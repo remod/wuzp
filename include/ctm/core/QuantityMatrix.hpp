@@ -14,6 +14,8 @@ template <typename Values, typename Units>
 class QuantityMatrix {
  public:
   QuantityMatrix() = default;
+  template <typename ValuesOther>
+  QuantityMatrix(const QuantityMatrix<ValuesOther, Units>& other) : values_(other.getValues()) {}
   explicit QuantityMatrix(const Values& values) : values_(values) {}
 
   void setValues(const Values& values) { values_ = values; }
