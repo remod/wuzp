@@ -19,6 +19,16 @@ namespace ctm {
     using type = typename Name<typename Name<T0, T1>::type, Ts...>::type; \
   };
 
+template <typename T>
+struct Rows {
+  static_assert(FakeDependency<Rows<T>>::value, "'Rows' trait not specialized for given type.");
+};
+
+template <typename T>
+struct Cols {
+  static_assert(FakeDependency<Cols<T>>::value, "'Cols' trait not specialized for given type.");
+};
+
 DEFINE_RECURSIVE_TRAIT(Sum)
 DEFINE_RECURSIVE_TRAIT(Difference)
 DEFINE_RECURSIVE_TRAIT(Product)

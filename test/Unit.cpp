@@ -26,9 +26,14 @@ TEST(TestUnit, Product) {  // NOLINT
   static_assert(std::is_same<UnitTraits::Product<Length, Length>::type, Area>::value);
 }
 
-TEST(TestUnitMatrix, Division) {  // NOLINT
+TEST(TestUnit, Division) {  // NOLINT
+  // TODO(remod): Absolute or relative?
   //  static_assert(std::is_same<UnitTraits::Division<Length, Time>::type, Absolute<units::velocity>>::value);
   static_assert(std::is_same<UnitTraits::Division<Length, Time>::type, Velocity>::value);
+}
+
+TEST(TestUnit, Power) {  // NOLINT
+  static_assert(std::is_same<UnitTraits::Power<Length, 3>::type, Volume>::value);
 }
 
 TEST(TestUnit, Inverse) {  // NOLINT

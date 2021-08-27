@@ -3,10 +3,9 @@
 #include "ctm/core/QuantityMatrix.hpp"
 #include "ctm/core/TypeMatrix.hpp"
 #include "ctm/core/traits.hpp"
-#include "ctm/units/Quantity.hpp"
+#include "ctm/units/QuantityTraits.hpp"
 #include "ctm/units/Unit.hpp"
 #include "ctm/units/UnitMatrix.hpp"
-#include "ctm/units/UnitTraits.hpp"
 #include "ctm/value_matrix/ValueMatrix.hpp"
 
 #include "test_compilation_error.hpp"
@@ -103,7 +102,7 @@ TEST_F(TestQuantityMatrix, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getMatrix1(), getMatrix1());
 }
 
-TEST_F(TestQuantityMatrix, InEqualityOperator) {  // NOLINT
+TEST_F(TestQuantityMatrix, InequalityOperator) {  // NOLINT
   EXPECT_NE(getMatrix1(), getMatrix1() + getMatrix2());
 }
 
@@ -127,7 +126,7 @@ TEST_F(TestQuantityMatrix, Transpose) {  // NOLINT
   EXPECT_EQ(getMatrix1().transpose(), matrixT);
 }
 
-TEST(TestQuantityMatrix2, Product) {  // NOLINT
+TEST(TestQuantityMatrix2, ProductQuantityMatrix) {  // NOLINT
   using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnits = UnitMatrix<2, 2, Length>;
   using MyUnitsResult = UnitMatrix<2, 2, Area>;
@@ -140,19 +139,51 @@ TEST(TestQuantityMatrix2, Product) {  // NOLINT
   EXPECT_EQ(matrix * matrix, MyMatrixResult(values * values));
 }
 
+TEST(TestQuantityMatrix2, ProductQuantity) {  // NOLINT
+  using MyValues = ValueMatrix<int, 2, 2>;
+  using MyUnits = UnitMatrix<2, 2, Length>;
+  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
+  using MyValue = int;
+  using MyQuantity = Quantity<MyValue, Length>;
+  using MyUnitsResult = UnitMatrix<2, 2, Area>;
+  using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
+  const MyValue value{2};
+  const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
+  MyValues values;
+  values << 1, 2, 3, 4;
+  MyMatrix matrix;
+  matrix.setValues(values);
+  EXPECT_EQ(matrix * quantity, MyMatrixResult(values * value));
+  EXPECT_EQ(quantity * matrix, MyMatrixResult(values * value));
+}
+
+TEST(TestQuantityMatrix2, DivisionQuantity) {  // NOLINT
+  using MyValues = ValueMatrix<int, 2, 2>;
+  using MyUnits = UnitMatrix<2, 2, Length>;
+  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
+  using MyValue = int;
+  using MyQuantity = Quantity<MyValue, Length>;
+  using MyUnitsResult = UnitMatrix<2, 2, Dimensionless>;
+  using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
+  const MyValue value{2};
+  const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
+  MyValues values;
+  values << 1, 2, 3, 4;
+  MyMatrix matrix;
+  matrix.setValues(values);
+  EXPECT_EQ(matrix / quantity, MyMatrixResult(values / value));
+}
+
 TEST(TestQuantityMatrix2, ScalarProduct) {  // NOLINT
   using MyValues = ValueMatrix<int, 4, 1>;
   using MyUnits = UnitMatrix<4, 1, Length>;
   using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
-  using MyValuesResult = int;
-  using MyUnitsResult = UnitMatrix<1, 1, Area>;
-  using MyMatrixResult = QuantityMatrix<MyValuesResult, MyUnitsResult>;
+  using MyMatrixResult = Quantity<int, Area>;
   MyValues values1;
   values1 << 1, 2, 3, 4;
   MyValues values2;
   values2 << 0, 3, -1, 2;
-  EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), MyMatrixResult(11));
-  // TODO(remod): How to treat 1x1 matrices? Equal to scalars?
+  EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), QuantityTraits::Create<MyMatrixResult>::create(11));
 }
 
 TEST(TestQuantityMatrix2, Chain) {  // NOLINT

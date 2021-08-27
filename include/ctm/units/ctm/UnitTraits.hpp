@@ -64,14 +64,6 @@ struct UnitTraits {
                       ThermodynamicTemperatureLhs + ThermodynamicTemperatureRhs, AmountOfSubstanceLhs + AmountOfSubstanceRhs,
                       LuminousIntensityLhs + LuminousIntensityRhs>;
   };
-  //  template <typename Lhs, typename Rhs>
-  //  struct Product<Absolute<Lhs>, Rhs> {
-  //    using type = Absolute<typename Product<Lhs, Rhs>::type>;
-  //  };
-  //  template <typename Lhs, typename Rhs>
-  //  struct Product<Lhs, Absolute<Rhs>> {
-  //    using type = typename Product<Absolute<Lhs>, Rhs>::type;
-  //  };
 
   DEFINE_RECURSIVE_TRAIT(Division)
   template <int TimeLhs, int LengthLhs, int MassLhs, int ElectricCurrentLhs, int ThermodynamicTemperatureLhs, int AmountOfSubstanceLhs,
@@ -83,6 +75,15 @@ struct UnitTraits {
     using type = Unit<TimeLhs - TimeRhs, LengthLhs - LengthRhs, MassLhs - MassRhs, ElectricCurrentLhs - ElectricCurrentRhs,
                       ThermodynamicTemperatureLhs - ThermodynamicTemperatureRhs, AmountOfSubstanceLhs - AmountOfSubstanceRhs,
                       LuminousIntensityLhs - LuminousIntensityRhs>;
+  };
+
+  template <typename Unit, int Exponent>
+  struct Power;
+  template <int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance, int LuminousIntensity,
+            int Exponent>
+  struct Power<Unit<Time, Length, Mass, ElectricCurrent, ThermodynamicTemperature, AmountOfSubstance, LuminousIntensity>, Exponent> {
+    using type = Unit<Exponent * Time, Exponent * Length, Exponent * Mass, Exponent * ElectricCurrent, Exponent * ThermodynamicTemperature,
+                      Exponent * AmountOfSubstance, Exponent * LuminousIntensity>;
   };
 
   template <typename Unit>

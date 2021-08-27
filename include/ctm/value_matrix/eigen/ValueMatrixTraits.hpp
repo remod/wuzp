@@ -8,6 +8,16 @@ namespace ctm {
 namespace value_matrix {
 
 struct ValueMatrixTraits {
+  template <typename T>
+  struct Rows {
+    static constexpr int value = T::RowsAtCompileTime;
+  };
+
+  template <typename T>
+  struct Cols {
+    static constexpr int value = T::ColsAtCompileTime;
+  };
+
   DEFINE_RECURSIVE_TRAIT(Sum)
   template <typename Lhs, typename Rhs>
   struct Sum<Lhs, Rhs> {
@@ -27,6 +37,13 @@ struct ValueMatrixTraits {
   struct Product<Lhs, Rhs> {
     // Use decltype/declval to allow for lazy evaluation.
     using type = decltype(std::declval<const Lhs>() * std::declval<const Rhs>());
+  };
+
+  DEFINE_RECURSIVE_TRAIT(Division)
+  template <typename Lhs, typename Rhs>
+  struct Division<Lhs, Rhs> {
+    // Use decltype/declval to allow for lazy evaluation.
+    using type = decltype(std::declval<const Lhs>() / std::declval<const Rhs>());
   };
 
   template <typename T>

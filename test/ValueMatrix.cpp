@@ -6,6 +6,14 @@
 
 using namespace ctm::value_matrix;  // NOLINT
 
+TEST(TestValueMatrix, Rows) {  // NOLINT
+  static_assert(ValueMatrixTraits::Rows<ValueMatrix<double, 3, 2>>::value == 3);
+}
+
+TEST(TestValueMatrix, Cols) {  // NOLINT
+  static_assert(ValueMatrixTraits::Cols<ValueMatrix<double, 3, 2>>::value == 2);
+}
+
 TEST(TestValueMatrix, LazyBlock) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   static_assert(!std::is_same<ValueMatrixTraits::Block<MyValueMatrix, 0, 0, 1, 1>::type, MyValueMatrix>::value);

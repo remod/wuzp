@@ -53,6 +53,7 @@ if (ENABLE_TESTS)
     # The tests are ordered by complexity, basic tests come first.
     add_executable(tests
         test/CompilationError.cpp
+        test/helpers.cpp
         test/TypeMatrix.cpp
         test/Frame.cpp
         test/Unit.cpp
