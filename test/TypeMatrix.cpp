@@ -45,6 +45,14 @@ TEST(TestTypeMatrix, Interface) {  // NOLINT
   static_assert(std::is_same<ValueMatrix<3, 2, 4>, ValueMatrix<3, 2, 4, 4, 4, 4, 4, 4>>::value);
 }
 
+TEST(TestTypeMatrix, Rows) {  // NOLINT
+  static_assert(ctm::Rows<ValueMatrix<3, 2, 4>>::value == 3);
+}
+
+TEST(TestTypeMatrix, Cols) {  // NOLINT
+  static_assert(ctm::Cols<ValueMatrix<3, 2, 4>>::value == 2);
+}
+
 TEST(TestTypeMatrix, Identity) {  // NOLINT
   static_assert(std::is_same<ValueMatrixIdentity<1, 1>, ValueMatrix<1, 1, 1>>::value);
   static_assert(std::is_same<ValueMatrixIdentity<2, -1>, ValueMatrix<2, 2, 1>>::value);
@@ -84,10 +92,24 @@ TEST(TestTypeMatrix, Product2) {  // NOLINT
   static_assert(std::is_same<ctm::Product<A, B>::type, C>::value);
 }
 
+TEST(TestTypeMatrix, Product3) {  // NOLINT
+  using A = ValueMatrix<1, 4, 0, 1, 2, 3>;
+  using B = ValueT<3>;
+  using C = ValueMatrix<1, 4, 0, 3, 6, 9>;
+  static_assert(std::is_same<ctm::Product<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, Product4) {  // NOLINT
+  using A = ValueT<3>;
+  using B = ValueMatrix<1, 4, 0, 1, 2, 3>;
+  using C = ValueMatrix<1, 4, 0, 3, 6, 9>;
+  static_assert(std::is_same<ctm::Product<A, B>::type, C>::value);
+}
+
 TEST(TestTypeMatrix, DotProduct) {  // NOLINT
   using A = ValueMatrix<4, 1, 0, 1, 2, 3>;
   using B = ValueMatrix<4, 1, -1, 3, 4, 2>;
-  using C = ValueMatrix<1, 1, 17>;
+  using C = ValueT<17>;
   static_assert(std::is_same<ctm::DotProduct<A, B>::type, C>::value);
 }
 

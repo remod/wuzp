@@ -2,7 +2,10 @@
 
 #include "ctm/core/traits.hpp"
 #include "ctm/units/Quantity.hpp"
+#include "ctm/units/QuantityTraits.hpp"
 #include "ctm/units/Unit.hpp"
+
+using namespace ctm::units;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_CTM
 template <typename Value>
@@ -40,7 +43,7 @@ boost::units::quantity<boost::units::si::time, Value> createTimeQuantity(const V
 }
 template <typename Value>
 boost::units::quantity<boost::units::si::frequency, Value> createFrequencyQuantity(const Value value) {
-  return value * boost::units::si::hertz;
+  return value * boost::units::si::frequency{};
 }
 template <typename Value>
 void setValue(boost::units::quantity<boost::units::si::time, Value>& quantity, const Value value) {
@@ -89,4 +92,17 @@ TEST(TestQuantity, Chain) {  // NOLINT
 
 TEST(TestQuantity, Inverse) {  // NOLINT
   EXPECT_EQ(inverse(createTimeQuantity(2.0)), createFrequencyQuantity(0.5));
+}
+
+TEST(TestQuantity, ImplicitConversion) {  // NOLINT
+  const auto radius = QuantityTraits::Create<Quantity<double, Length>>::create(2.0);
+  const auto angle = QuantityTraits::Create<Quantity<double, Angle>>::create(3.0);
+  [[maybe_unused]] const Quantity<double, Length> arcLength =
+      angle *
+      radius
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+      // With boost, angles are not dimensionless. We need to "normalize" the result.
+      / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
+#endif
+      ;
 }

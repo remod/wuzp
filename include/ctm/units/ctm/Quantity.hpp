@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cmath>
 #include <ostream>
 
 #include "ctm/units/ctm/QuantityTraits.hpp"
+#include "ctm/units/ctm/Unit.hpp"
 #include "ctm/units/ctm/ValueTraits.hpp"
 
 namespace ctm {
@@ -12,9 +14,18 @@ template <typename Value, typename Unit>
 class Quantity {
  public:
   Quantity() = default;
-  explicit Quantity(Value value) : value_(value) {}
+  template <typename ValueOther>
+  explicit Quantity(const ValueOther value) : value_(value) {
+    // Design decision: Do not allow mixing types, require a manual cast.
+    static_assert(std::is_same<Value, ValueOther>::value, "Value mismatch.");
+  }
 
-  void setValue(Value value) { value_ = value; }
+  template <typename ValueOther>
+  void setValue(const ValueOther value) {
+    // Design decision: Do not allow mixing types, require a manual cast.
+    static_assert(std::is_same<Value, ValueOther>::value, "Value mismatch.");
+    value_ = value;
+  }
   Value getValue() const { return value_; }
 
   template <typename TargetValue>
@@ -24,6 +35,8 @@ class Quantity {
 
   template <typename ValueOther, typename UnitOther>
   bool isApprox(const Quantity<ValueOther, UnitOther>& other) const {
+    // Note: Allow other value types to support lazy evaluation.
+    static_assert(std::is_same<Unit, UnitOther>::value, "Units mismatch.");
     return value_.isApprox(other.getValue());
   }
 
@@ -35,17 +48,33 @@ class Quantity {
   Value value_;
 };
 
+template <typename Value, typename Unit>
+auto operator+(const Quantity<Value, Unit>& quantity) {
+  return quantity;
+}
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator+(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
   return typename QuantityTraits::Sum<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() + rhs.getValue());
 }
 
+template <typename Value, typename Unit>
+auto operator-(const Quantity<Value, Unit>& quantity) {
+  return Quantity<Value, Unit>(-quantity.getValue());
+}
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator-(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
   return
       typename QuantityTraits::Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() - rhs.getValue());
 }
 
+template <typename ValueLhs, typename ValueRhs, typename UnitRhs>
+auto operator*(const ValueLhs lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return Quantity<ValueLhs, Dimensionless>(lhs) * rhs;
+}
+template <typename ValueLhs, typename UnitLhs, typename ValueRhs>
+auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const ValueRhs rhs) {
+  return rhs * lhs;
+}
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
   return typename QuantityTraits::Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() * rhs.getValue());

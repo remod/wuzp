@@ -3,6 +3,7 @@
 #include <boost/units/dimensionless_type.hpp>
 #include <boost/units/operators.hpp>
 #include <boost/units/static_rational.hpp>
+#include <boost/units/unit.hpp>
 
 #include "ctm/core/traits.hpp"
 #include "ctm/units/boost/Unit.hpp"
@@ -35,11 +36,20 @@ struct UnitTraits {
     using type = typename boost::units::divide_typeof_helper<Lhs, Rhs>::type;
   };
 
+  template <typename Unit, int Exponent>
+  struct Power {
+    using type = typename boost::units::power_typeof_helper<Unit, boost::units::static_rational<Exponent>>::type;
+  };
+
   template <typename Unit>
   struct Identity;
   template <typename Dim, typename System>
   struct Identity<boost::units::unit<Dim, System>> {
-    using type = typename boost::units::unit<boost::units::dimensionless_type, System>;
+    using type = boost::units::unit<boost::units::dimensionless_type, System>;
+  };
+  template <typename Dim, typename System>
+  struct Identity<boost::units::absolute<boost::units::unit<Dim, System>>> {
+    using type = boost::units::absolute<boost::units::unit<boost::units::dimensionless_type, System>>;
   };
 
   template <typename Unit>

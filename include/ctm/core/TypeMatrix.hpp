@@ -95,6 +95,22 @@ struct TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>> {
   static_assert(sizeof...(Types) == Rows * Cols, "Number of types does not match matrix size.");
 };
 
+template <int Rows, int Cols, typename Traits, typename... Types>
+struct CreateTypeMatrix;
+template <int Rows, int Cols, typename Traits>
+struct CreateTypeMatrix<Rows, Cols, Traits> {
+  static_assert(FakeDependency<CreateTypeMatrix<Rows, Cols, Traits>>::value, "Empty type matrix is not allowed.");
+};
+template <int Rows, int Cols, typename Traits, typename Type0, typename... Types>
+struct CreateTypeMatrix<Rows, Cols, Traits, Type0, Types...> {
+  static_assert(sizeof...(Types) + 1 == Rows * Cols, "Number of types does not match matrix size.");
+  using type = TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Type0, Types...>>;
+};
+template <int Rows, int Cols, typename Traits, typename Type>
+struct CreateTypeMatrix<Rows, Cols, Traits, Type> {
+  using type = TypeMatrixImpl<Rows, Cols, Traits, HomogeneousTuple<Rows * Cols, Type>>;
+};
+
 template <typename T>
 struct AsTuple;
 template <int Rows, int Cols, typename Traits, typename Types>
@@ -102,10 +118,20 @@ struct AsTuple<TypeMatrixImpl<Rows, Cols, Traits, Types>> {
   using type = Types;
 };
 
+template <int _Rows, int _Cols, typename Traits, typename Types>
+struct Rows<TypeMatrixImpl<_Rows, _Cols, Traits, Types>> {
+  static constexpr int value = _Rows;
+};
+
+template <int _Rows, int _Cols, typename Traits, typename Types>
+struct Cols<TypeMatrixImpl<_Rows, _Cols, Traits, Types>> {
+  static constexpr int value = _Cols;
+};
+
 template <int Rows, int Cols, typename Traits, typename... Types, int ElementRowId, int ElementColId>
 struct Element<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>, ElementRowId, ElementColId> {
   static_assert(ElementRowId >= 0 && ElementRowId < Rows, "Element row id is out of range.");
-  static_assert(ElementColId >= 0 && ElementColId < Cols, "Element col id is out of range.");
+  static_assert(ElementColId >= 0 && ElementColId < Cols, "Element columns id is out of range.");
   using type = typename std::tuple_element<ElementRowId * Cols + ElementColId, std::tuple<Types...>>::type;
 };
 
@@ -149,6 +175,16 @@ struct Difference<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLh
                               typename SubtractTwoTuples<TraitsLhs, std::tuple<TypesLhs...>, std::tuple<TypesRhs...>>::type>;
 };
 
+// So far, we do not require the RHS traits.
+template <int RowsLhs, int ColsLhs, typename TraitsLhs, typename... TypesLhs, typename TypeRhs>
+struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>, TypeRhs> {
+  using type = TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<typename TraitsLhs::template Product<TypesLhs, TypeRhs>::type...>>;
+};
+// So far, we do not require the LHS traits.
+template <typename TypeLhs, int RowsRhs, int ColsRhs, typename TraitsRhs, typename... TypesRhs>
+struct Product<TypeLhs, TypeMatrixImpl<RowsRhs, ColsRhs, TraitsRhs, std::tuple<TypesRhs...>>> {
+  using type = typename Product<TypeMatrixImpl<RowsRhs, ColsRhs, TraitsRhs, std::tuple<TypesRhs...>>, TypeLhs>::type;
+};
 template <int RowsLhs, int ColsLhs, typename TraitsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename TraitsRhs,
           typename... TypesRhs>
 struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>,
@@ -159,6 +195,12 @@ struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs..
       RowsLhs, ColsRhs, TraitsLhs,
       typename MultiplyTuples<TraitsLhs, typename ToRows<ColsLhs, TypesLhs...>::type, typename ToCols<ColsRhs, TypesRhs...>::type,
                               std::make_index_sequence<RowsLhs * ColsRhs>>::type>;
+};
+
+// So far, we do not require the RHS traits.
+template <int RowsLhs, int ColsLhs, typename TraitsLhs, typename... TypesLhs, typename TypeRhs>
+struct Division<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>, TypeRhs> {
+  using type = TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<typename TraitsLhs::template Division<TypesLhs, TypeRhs>::type...>>;
 };
 
 template <int Rows, int Cols, typename Traits, typename... Types>
@@ -174,8 +216,10 @@ struct DotProduct<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLh
   static_assert(ColsLhs == 1, "Dot product is only defined for vectors.");
   static_assert(ColsRhs == 1, "Dot product is only defined for vectors.");
   static_assert(std::is_same<TraitsLhs, TraitsRhs>::value, "Traits mismatch.");
-  using type = typename Product<typename Transpose<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>>::type,
-                                TypeMatrixImpl<RowsRhs, ColsRhs, TraitsRhs, std::tuple<TypesRhs...>>>::type;
+  using type =
+      typename Element<typename Product<typename Transpose<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>>::type,
+                                        TypeMatrixImpl<RowsRhs, ColsRhs, TraitsRhs, std::tuple<TypesRhs...>>>::type,
+                       0, 0>::type;
 };
 
 // template <int Size, typename ZeroType, typename OneType, typename IndexSequence>
@@ -205,22 +249,6 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>> {
 };
 
 template <int Rows, int Cols, typename Traits, typename... Types>
-struct TypeMatrixInterface;
-template <int Rows, int Cols, typename Traits>
-struct TypeMatrixInterface<Rows, Cols, Traits> {
-  static_assert(FakeDependency<TypeMatrixInterface<Rows, Cols, Traits>>::value, "Empty type matrix is not allowed.");
-};
-template <int Rows, int Cols, typename Traits, typename Type0, typename... Types>
-struct TypeMatrixInterface<Rows, Cols, Traits, Type0, Types...> {
-  static_assert(sizeof...(Types) + 1 == Rows * Cols, "Number of types does not match matrix size.");
-  using type = TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Type0, Types...>>;
-};
-template <int Rows, int Cols, typename Traits, typename Type>
-struct TypeMatrixInterface<Rows, Cols, Traits, Type> {
-  using type = TypeMatrixImpl<Rows, Cols, Traits, HomogeneousTuple<Rows * Cols, Type>>;
-};
-
-template <int Rows, int Cols, typename Traits, typename... Types>
-using TypeMatrix = typename TypeMatrixInterface<Rows, Cols, Traits, Types...>::type;
+using TypeMatrix = typename CreateTypeMatrix<Rows, Cols, Traits, Types...>::type;
 
 }  // namespace ctm
