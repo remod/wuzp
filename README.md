@@ -48,13 +48,13 @@ make tidy
 
 Features:
 
-* Own units implementation
 * Own matrix implementation
 * Different rotations
 * Non-static transformations
 * Dynamic size matrices
 * Run-time frames
 * Run-time units
+* Support nholthaus/units
 * Unit test coverage
 * ROS/ROS2 release
 

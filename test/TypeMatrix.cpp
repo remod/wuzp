@@ -26,6 +26,13 @@ struct ValueTraits {
   struct Product<ValueT<ValueLhs>, ValueT<ValueRhs>> {
     using type = ValueT<ValueLhs * ValueRhs>;
   };
+
+  //  template <typename T>
+  //  struct Inverse;
+  //  template <int Value>
+  //  struct Inverse<ValueT<Value>> {
+  //    using type = ValueT<1 / Value>;
+  //  };
 };
 
 template <int Rows, int Cols, int... Values>
@@ -78,6 +85,29 @@ TEST(TestTypeMatrix, Sum) {  // NOLINT
   static_assert(std::is_same<ctm::Sum<A, B>::type, C>::value);
 }
 
+TEST(TestTypeMatrix, SumInvalidTypes){// NOLINT
+                                      ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "ctm/core/TypeMatrix.hpp"
+#include "ctm/core/traits.hpp"
+
+struct Traits {
+  DEFINE_RECURSIVE_TRAIT(Sum)
+  template <typename Lhs, typename Rhs>
+  struct Sum<Lhs, Rhs> {
+    static_assert(std::is_same<Lhs, Rhs>::value, "Type mismatch.");
+    using type = Lhs;
+  };
+};
+
+using type = ctm::Sum<ctm::TypeMatrix<1, 1, Traits, int>, ctm::TypeMatrix<1, 1, Traits, double>>::type;
+
+int main() {
+  type x;
+  return 0;
+}
+)",
+                                                                                   "Type mismatch.")}
+
 TEST(TestTypeMatrix, Product1) {  // NOLINT
   using A = ValueMatrix<2, 2, 0, 1, 2, 3>;
   using B = ValueMatrix<2, 2, -1, 3, 4, 2>;
@@ -119,26 +149,8 @@ TEST(TestTypeMatrix, Transpose) {  // NOLINT
   static_assert(std::is_same<ctm::Transpose<A>::type, B>::value);
 }
 
-TEST(TestTypeMatrix, Test) {  // NOLINT
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "ctm/core/TypeMatrix.hpp"
-#include "ctm/core/traits.hpp"
-
-struct Traits {
-  DEFINE_RECURSIVE_TRAIT(Sum)
-  template <typename Lhs, typename Rhs>
-  struct Sum<Lhs, Rhs> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Type mismatch.");
-    using type = Lhs;
-  };
-};
-
-using type = ctm::Sum<ctm::TypeMatrix<1, 1, Traits, int>, ctm::TypeMatrix<1, 1, Traits, double>>::type;
-
-int main() {
-  type x;
-  return 0;
-}
-)",
-                                               "Type mismatch.")
-}
+// TEST(TestTypeMatrix, Inverse) {  // NOLINT
+//  using A = ValueMatrix<2, 2, 0, 1, 2, 3>;
+//  using B = ValueMatrix<2, 2, -1, 3, 4, 2>;
+//  static_assert(std::is_same<ctm::Inverse<A>::type, B>::value);
+//}

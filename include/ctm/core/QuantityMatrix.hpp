@@ -11,6 +11,17 @@
 
 namespace ctm {
 
+// template <int ContravariantIndices, int CovariantIndices>
+// class Tensor;
+//
+// using Scalar = Tensor<0, 0>;
+// using EuclideanVector = Tensor<1, 0>;       // R * v
+// using LinearTransformation = Tensor<1, 1>;  // R^-1 * A * R
+// using RotationMatrix = Tensor<1, 1>;        // R^-1 * A * R
+// using InertiaTensor = Tensor<0, 2>;         // R^T * A * R
+
+// Orthogonal matrix: R^-1 == R^T
+
 template <typename Values, typename Units>
 class QuantityMatrix {
  public:
