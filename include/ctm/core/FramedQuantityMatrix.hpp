@@ -53,7 +53,6 @@ class FramedQuantityMatrix {
 
   template <typename ValuesRhs, typename UnitsRhs, typename FramesRhs>
   auto dot(const FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>& other) const {
-    // As boost does not support Quantity::Quantity(value), we need to call our helper create function here.
     return units::QuantityTraits::Create<typename DotProduct<This, FramedQuantityMatrix<ValuesRhs, UnitsRhs, FramesRhs>>::type>::create(
         getValues().dot(other.getValues()));
   }

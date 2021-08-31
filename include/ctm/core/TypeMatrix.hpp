@@ -240,12 +240,32 @@ using TypeMatrixIdentity =
 template <int Rows, int Cols, typename Traits, typename... Types>
 struct Inverse<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>> {
   static_assert(Rows == Cols, "Matrix is not square.");
-  // Invert the types individually to get a candidate for the result of the inversion.
-  using type = TypeMatrixImpl<Rows, Cols, Traits, std::tuple<typename Traits::template Inverse<Types>::type...>>;
-  // Verify the candidate by multiplying it with the original matrix.
-  static_assert(std::is_same<typename Product<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>, type>::type,
-                             TypeMatrixIdentity<Rows, Traits, typename std::tuple_element<0, std::tuple<Types...>>::type>>::value,
-                "Matrix is not invertible.");
+  // Invert the types individually and transpose to get a candidate for the result of the inversion.
+  using type = typename Transpose<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<typename Traits::template Inverse<Types>::type...>>>::type;
+
+ private:
+  // Verify the candidate: If the candidate multiplied by itself is idempotent (A^2 == A), it is valid.
+  using Identity = typename Product<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>, type>::type;
+  static_assert(std::is_same<typename Product<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
+
+  /* Proof:
+     Unit analysis of a linear transformation (q = M * p).
+     a   a/x a/y a/z   x
+     b = b/x b/y b/z * y
+     c   c/x c/y c/z   z
+
+     Unit analysis of the inverted linear transformation (p = M^-1 * p).
+     One can see that the units are inverted and then transformed.
+     x   x/a x/b x/c   a
+     y = y/a y/b y/c * b
+     z   z/a z/b z/c   c
+
+     Unit analysis of the product M * M^1.
+     One can see that the product is idempotent.
+     1    a/b  a/c
+     b/a  1    b/c
+     c/a  c/b  1
+  */
 };
 
 template <int Rows, int Cols, typename Traits, typename... Types>
