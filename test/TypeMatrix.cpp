@@ -3,10 +3,13 @@
 #include "ctm/core/Integer.hpp"
 #include "ctm/core/Rational.hpp"
 #include "ctm/core/TypeMatrix.hpp"
+#include "ctm/units/Unit.hpp"
+#include "ctm/units/UnitMatrix.hpp"
 
 #include "test_compilation_error.hpp"
 
-using namespace ctm;  // NOLINT
+using namespace ctm;         // NOLINT
+using namespace ctm::units;  // NOLINT
 
 template <int Rows, int Cols, typename... Rationals>
 using ValueMatrix = TypeMatrix<Rows, Cols, RationalTraits, Rationals...>;
@@ -121,4 +124,17 @@ TEST(TestTypeMatrix, Transpose) {  // NOLINT
   using A = ValueMatrix<2, 3, Integer<0>, Integer<1>, Integer<2>, Integer<3>, Integer<4>, Integer<5>>;
   using B = ValueMatrix<3, 2, Integer<0>, Integer<3>, Integer<1>, Integer<4>, Integer<2>, Integer<5>>;
   static_assert(std::is_same<Transpose<A>::type, B>::value);
+}
+
+TEST(TestTypeMatrix, Inverse) {  // NOLINT
+  // The inverse is only implemented for unit matrices, not for rational/integer numbers.
+  using MassLength = UnitTraits::Product<Mass, Length>::type;
+  using MassLength2 = UnitTraits::Product<MassLength, Length>::type;
+  using MassMatrixUnits = UnitMatrix<3, 3, Mass, Mass, MassLength, Mass, Mass, MassLength, MassLength, MassLength, MassLength2>;
+  using MassInverse = UnitTraits::Inverse<Mass>::type;
+  using MassLengthInverse = UnitTraits::Inverse<MassLength>::type;
+  using MassLength2Inverse = UnitTraits::Inverse<MassLength2>::type;
+  using MassMatrixUnitsInverse = UnitMatrix<3, 3, MassInverse, MassInverse, MassLengthInverse, MassInverse, MassInverse, MassLengthInverse,
+                                            MassLengthInverse, MassLengthInverse, MassLength2Inverse>;
+  static_assert(std::is_same<Inverse<MassMatrixUnits>::type, MassMatrixUnitsInverse>::value);
 }
