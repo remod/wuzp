@@ -25,8 +25,8 @@ namespace wuzp {
 template <typename Values, typename Units>
 class QuantityMatrix {
  public:
-  static_assert(value_matrix::ValueMatrixTraits::Rows<Values>::value == Rows<Units>::value, "Number of rows do not match.");
-  static_assert(value_matrix::ValueMatrixTraits::Cols<Values>::value == Cols<Units>::value, "Number of columns do not match.");
+  static_assert(ValueMatrixTraits::Rows<Values>::value == Rows<Units>::value, "Number of rows do not match.");
+  static_assert(ValueMatrixTraits::Cols<Values>::value == Cols<Units>::value, "Number of columns do not match.");
 
   QuantityMatrix() = default;
   template <typename ValuesOther>
@@ -47,13 +47,13 @@ class QuantityMatrix {
 
   template <int RowId, int ColId, typename Quantity>
   void setQuantity(const Quantity quantity) {
-    static_assert(std::is_same<typename Element<Units, RowId, ColId>::type, typename units::QuantityTraits::GetUnit<Quantity>::type>::value,
+    static_assert(std::is_same<typename Element<Units, RowId, ColId>::type, typename QuantityTraits::GetUnit<Quantity>::type>::value,
                   "Unit type mismatch.");
-    setValue<RowId, ColId>(units::QuantityTraits::GetValue<Quantity>::get(quantity));
+    setValue<RowId, ColId>(QuantityTraits::GetValue<Quantity>::get(quantity));
   }
   template <int RowId, int ColId>
   auto getQuantity() const {
-    return units::QuantityTraits::Create<units::Quantity<typename Values::Scalar, typename Element<Units, RowId, ColId>::type>>::create(
+    return QuantityTraits::Create<Quantity<typename Values::Scalar, typename Element<Units, RowId, ColId>::type>>::create(
         getValue<RowId, ColId>());
   }
 
@@ -75,7 +75,7 @@ class QuantityMatrix {
   template <typename ValuesOther, typename UnitsOther>
   auto dot(const QuantityMatrix<ValuesOther, UnitsOther>& other) const {
     // As boost does not support Quantity::Quantity(value), we need to call our helper create function here.
-    return units::QuantityTraits::Create<typename DotProduct<This, QuantityMatrix<ValuesOther, UnitsOther>>::type>::create(
+    return QuantityTraits::Create<typename DotProduct<This, QuantityMatrix<ValuesOther, UnitsOther>>::type>::create(
         values_.dot(other.getValues()));
   }
 
@@ -89,58 +89,56 @@ class QuantityMatrix {
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Sum<ValuesLhs, ValuesRhs>::type,
-                              typename Sum<UnitsLhs, UnitsRhs>::type>;
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Difference<ValuesLhs, ValuesRhs>::type,
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Difference<ValuesLhs, ValuesRhs>::type,
                               typename Difference<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, units::Quantity<ValueRhs, UnitRhs>> {
-  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Product<ValuesLhs, ValueRhs>::type,
-                              typename Product<UnitsLhs, UnitRhs>::type>;
+struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, Quantity<ValueRhs, UnitRhs>> {
+  using type =
+      QuantityMatrix<typename ValueMatrixTraits::template Product<ValuesLhs, ValueRhs>::type, typename Product<UnitsLhs, UnitRhs>::type>;
 };
 template <typename ValueLhs, typename UnitLhs, typename ValuesRhs, typename UnitsRhs>
-struct Product<units::Quantity<ValueLhs, UnitLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = typename Product<QuantityMatrix<ValuesRhs, UnitsRhs>, units::Quantity<ValueLhs, UnitLhs>>::type;
+struct Product<Quantity<ValueLhs, UnitLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
+  using type = typename Product<QuantityMatrix<ValuesRhs, UnitsRhs>, Quantity<ValueLhs, UnitLhs>>::type;
 };
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Product<ValuesLhs, ValuesRhs>::type,
-                              typename Product<UnitsLhs, UnitsRhs>::type>;
+  using type =
+      QuantityMatrix<typename ValueMatrixTraits::template Product<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-struct Division<QuantityMatrix<ValuesLhs, UnitsLhs>, units::Quantity<ValueRhs, UnitRhs>> {
-  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Division<ValuesLhs, ValueRhs>::type,
-                              typename Division<UnitsLhs, UnitRhs>::type>;
+struct Division<QuantityMatrix<ValuesLhs, UnitsLhs>, Quantity<ValueRhs, UnitRhs>> {
+  using type =
+      QuantityMatrix<typename ValueMatrixTraits::template Division<ValuesLhs, ValueRhs>::type, typename Division<UnitsLhs, UnitRhs>::type>;
 };
 
 template <typename Values, typename Units>
 struct Transpose<QuantityMatrix<Values, Units>> {
-  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Transpose<Values>::type, typename Transpose<Units>::type>;
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Transpose<Values>::type, typename Transpose<Units>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
 struct DotProduct<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = units::Quantity<typename value_matrix::ValueMatrixTraits::template DotProduct<ValuesLhs, ValuesRhs>::type,
-                               typename DotProduct<UnitsLhs, UnitsRhs>::type>;
+  using type =
+      Quantity<typename ValueMatrixTraits::template DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
 };
 
 template <typename Values, typename Units>
 struct Inverse<QuantityMatrix<Values, Units>> {
-  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Inverse<Values>::type, typename Inverse<Units>::type>;
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Inverse<Values>::type, typename Inverse<Units>::type>;
 };
 
 template <typename Values, typename Units, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type =
-      QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-                     typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+                              typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
 };
 
 template <typename Values, typename Units>
@@ -164,19 +162,19 @@ auto operator-(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMat
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs>
 auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const ValueRhs rhs) {
-  return lhs * units::Quantity<ValueRhs, units::Dimensionless>(rhs);
+  return lhs * Quantity<ValueRhs, Dimensionless>(rhs);
 }
 template <typename ValueLhs, typename ValuesRhs, typename UnitsRhs>
 auto operator*(const ValueLhs lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
   return rhs * lhs;
 }
 template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const units::Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Product<QuantityMatrix<ValuesLhs, UnitsLhs>, units::Quantity<ValueRhs, UnitRhs>>::type(
-      lhs.getValues() * units::QuantityTraits::GetValue<units::Quantity<ValueRhs, UnitRhs>>::get(rhs));
+auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Product<QuantityMatrix<ValuesLhs, UnitsLhs>, Quantity<ValueRhs, UnitRhs>>::type(
+      lhs.getValues() * QuantityTraits::GetValue<Quantity<ValueRhs, UnitRhs>>::get(rhs));
 }
 template <typename ValueLhs, typename UnitLhs, typename ValuesRhs, typename UnitsRhs>
-auto operator*(const units::Quantity<ValueLhs, UnitLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
   return rhs * lhs;
 }
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
@@ -187,12 +185,12 @@ auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMat
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs>
 auto operator/(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const ValueRhs rhs) {
-  return lhs / units::Quantity<ValueRhs, units::Dimensionless>(rhs);
+  return lhs / Quantity<ValueRhs, Dimensionless>(rhs);
 }
 template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-auto operator/(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const units::Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Division<QuantityMatrix<ValuesLhs, UnitsLhs>, units::Quantity<ValueRhs, UnitRhs>>::type(
-      lhs.getValues() / units::QuantityTraits::GetValue<units::Quantity<ValueRhs, UnitRhs>>::get(rhs));
+auto operator/(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Division<QuantityMatrix<ValuesLhs, UnitsLhs>, Quantity<ValueRhs, UnitRhs>>::type(
+      lhs.getValues() / QuantityTraits::GetValue<Quantity<ValueRhs, UnitRhs>>::get(rhs));
 }
 
 template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>

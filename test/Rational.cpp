@@ -10,8 +10,11 @@ TEST(TestRational, Infinity){// NOLINT
                              ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(
                                  R"(
 #include "wuzp/core/Rational.hpp"
+
+using namespace wuzp;
+
 int main() {
-  using type = wuzp::Rational<3, 0>;
+  using type = Rational<3, 0>;
   return 0;
 }
 )",
@@ -64,8 +67,11 @@ TEST(TestRational, MinusInfinity){// NOLINT
                                   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(
                                       R"(
 #include "wuzp/core/Rational.hpp"
+
+using namespace wuzp;
+
 int main() {
-  using type = wuzp::Rational<3, -0>;
+  using type = Rational<3, -0>;
   return 0;
 }
 )",

@@ -12,21 +12,21 @@ namespace wuzp {
 
 // Exponent first, as value and unit can be derived automatically.
 template <int Exponent, typename Value, typename Unit>
-auto pow(const units::Quantity<Value, Unit>& quantity) {
-  return units::QuantityTraits::Create<units::Quantity<Value, typename units::UnitTraits::Power<Unit, Exponent>::type>>::create(
-      std::pow(units::QuantityTraits::GetValue<units::Quantity<Value, Unit>>::get(quantity), Exponent));
+auto pow(const Quantity<Value, Unit>& quantity) {
+  return QuantityTraits::Create<Quantity<Value, typename UnitTraits::Power<Unit, Exponent>::type>>::create(
+      std::pow(QuantityTraits::GetValue<Quantity<Value, Unit>>::get(quantity), Exponent));
 }
 
 template <typename Value>
-auto sin(const units::Quantity<Value, units::Angle>& angle) {
-  return units::QuantityTraits::Create<units::Quantity<Value, units::Dimensionless>>::create(
-      std::sin(units::QuantityTraits::GetValue<units::Quantity<Value, units::Angle>>::get(angle)));
+auto sin(const Quantity<Value, Angle>& angle) {
+  return QuantityTraits::Create<Quantity<Value, Dimensionless>>::create(
+      std::sin(QuantityTraits::GetValue<Quantity<Value, Angle>>::get(angle)));
 }
 
 template <typename Value>
-auto cos(const units::Quantity<Value, units::Angle>& angle) {
-  return units::QuantityTraits::Create<units::Quantity<Value, units::Dimensionless>>::create(
-      std::cos(units::QuantityTraits::GetValue<units::Quantity<Value, units::Angle>>::get(angle)));
+auto cos(const Quantity<Value, Angle>& angle) {
+  return QuantityTraits::Create<Quantity<Value, Dimensionless>>::create(
+      std::cos(QuantityTraits::GetValue<Quantity<Value, Angle>>::get(angle)));
 }
 
 // TODO(remod): add more math functions.

@@ -4,7 +4,7 @@
 #include "wuzp/value_matrix/ValueMatrix.hpp"
 #include "wuzp/value_matrix/ValueMatrixTraits.hpp"
 
-using namespace wuzp::value_matrix;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 TEST(TestValueMatrix, Rows) {  // NOLINT
   static_assert(ValueMatrixTraits::Rows<ValueMatrix<double, 3, 2>>::value == 3);

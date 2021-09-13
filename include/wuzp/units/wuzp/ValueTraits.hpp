@@ -3,7 +3,6 @@
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
-namespace units {
 
 /**
  * Traits for operations with values.
@@ -59,5 +58,4 @@ struct ValueTraits::Identity<double> {
   static constexpr double value_{1.0};
 };
 
-}  // namespace units
 }  // namespace wuzp

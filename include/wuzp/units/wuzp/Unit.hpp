@@ -3,7 +3,6 @@
 #include "wuzp/units/wuzp/UnitTraits.hpp"
 
 namespace wuzp {
-namespace units {
 
 template <int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance, int LuminousIntensity>
 struct Unit {};
@@ -27,5 +26,4 @@ using Mass = Unit<0, 0, 1, 0, 0, 0, 0>;
 using Force = Unit<-2, 1, 1, 0, 0, 0, 0>;
 using Energy = Unit<-2, 2, 1, 0, 0, 0, 0>;
 
-}  // namespace units
 }  // namespace wuzp

@@ -4,23 +4,19 @@
 #include "wuzp/units/UnitTraits.hpp"
 
 namespace wuzp {
-namespace units {
 
 template <int Rows, int Cols, typename... Units>
 using UnitMatrix = TypeMatrix<Rows, Cols, UnitTraits, Units...>;
 
-}
-
 template <int Rows, int Cols, typename... Types>
-struct Inverse<TypeMatrixImpl<Rows, Cols, units::UnitTraits, std::tuple<Types...>>> {
+struct Inverse<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Types...>>> {
   static_assert(Rows == Cols, "Matrix is not square.");
   // Invert the types individually and transpose to get a candidate for the result of the inversion.
-  using type = typename Transpose<
-      TypeMatrixImpl<Rows, Cols, units::UnitTraits, std::tuple<typename units::UnitTraits::Inverse<Types>::type...>>>::type;
+  using type = typename Transpose<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<typename UnitTraits::Inverse<Types>::type...>>>::type;
 
  private:
   // Verify the candidate: If the candidate multiplied by itself is idempotent (A^2 == A), it is valid.
-  using Identity = typename Product<TypeMatrixImpl<Rows, Cols, units::UnitTraits, std::tuple<Types...>>, type>::type;
+  using Identity = typename Product<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Types...>>, type>::type;
   static_assert(std::is_same<typename Product<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
 
   /* Proof:

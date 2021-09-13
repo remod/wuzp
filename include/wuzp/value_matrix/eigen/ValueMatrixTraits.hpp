@@ -5,7 +5,6 @@
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
-namespace value_matrix {
 
 struct ValueMatrixTraits {
   template <typename T>
@@ -71,5 +70,4 @@ struct ValueMatrixTraits {
   };
 };
 
-}  // namespace value_matrix
 }  // namespace wuzp

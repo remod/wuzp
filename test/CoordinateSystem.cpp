@@ -4,10 +4,7 @@
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/traits.hpp"
 
-using wuzp::CoordinateSystem;
-using wuzp::CoordinateSystemTraits;
-using wuzp::Sum;
-using wuzp::TypeMatrix;
+using namespace wuzp;  // NOLINT
 
 TEST(TestCoordinateSystemMatrix, IsSame) {  // NOLINT
   struct CoordinateSystemAName {};
