@@ -57,12 +57,12 @@ if (ENABLE_TESTS)
         test/Rational.cpp
         test/Integer.cpp
         test/TypeMatrix.cpp
-        test/Frame.cpp
+        test/CoordinateSystem.cpp
         test/Unit.cpp
         test/Quantity.cpp
         test/ValueMatrix.cpp
         test/QuantityMatrix.cpp
-        test/FramedQuantityMatrix.cpp
+        test/CoordinateMatrix.cpp
         test/RotationMatrix.cpp
         test/ProperRigidTransformation.cpp
     )

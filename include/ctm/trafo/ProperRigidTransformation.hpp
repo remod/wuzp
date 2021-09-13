@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ctm/core/Frame.hpp"
+#include "ctm/core/CoordinateSystem.hpp"
 #include "ctm/trafo/Rotation.hpp"
 #include "ctm/trafo/Transformation.hpp"
 #include "ctm/trafo/Translation.hpp"

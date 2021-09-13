@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/Frame.hpp"
-#include "ctm/core/FramedQuantityMatrix.hpp"
+#include "ctm/core/CoordinateMatrix.hpp"
+#include "ctm/core/CoordinateSystem.hpp"
 #include "ctm/core/TypeMatrix.hpp"
 #include "ctm/core/traits.hpp"
 #include "ctm/trafo/Translation.hpp"
 #include "ctm/units/QuantityTraits.hpp"
 #include "ctm/value_matrix/ValueMatrix.hpp"
 
-using ctm::Frame;
-using ctm::FramedQuantityMatrix;
-using ctm::FrameMatrix;
+using ctm::CoordinateMatrix;
+using ctm::CoordinateSystem;
+using ctm::CoordinateSystemMatrix;
 using ctm::Position2D;
 using ctm::Position3D;
 using ctm::QuantityMatrix;
@@ -21,25 +21,26 @@ using ctm::Vector3D;
 using namespace ctm::units;         // NOLINT
 using namespace ctm::value_matrix;  // NOLINT
 
-struct FrameAName {};
-struct FrameBName {};
-struct FrameCName {};
-struct FrameDName {};
-struct FrameEName {};
-struct FrameFName {};
-using FrameA = Frame<FrameAName>;
-using FrameB = Frame<FrameBName>;
-using FrameC = Frame<FrameCName>;
-using FrameD = Frame<FrameDName>;
-using FrameE = Frame<FrameEName>;
-using FrameF = Frame<FrameFName>;
+struct CoordinateSystemAName {};
+struct CoordinateSystemBName {};
+struct CoordinateSystemCName {};
+struct CoordinateSystemDName {};
+struct CoordinateSystemEName {};
+struct CoordinateSystemFName {};
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
+using CoordinateSystemE = CoordinateSystem<CoordinateSystemEName>;
+using CoordinateSystemF = CoordinateSystem<CoordinateSystemFName>;
 
-class TestFramedQuantityMatrix : public ::testing::Test {
+class TestCoordinateMatrix : public ::testing::Test {
  public:
   using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnits = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
-  using MyFrames = FrameMatrix<2, 3, FrameA, FrameB, FrameC, FrameD, FrameE, FrameF>;
-  using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
+  using MyCoordinateSystems = CoordinateSystemMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
+                                                     CoordinateSystemE, CoordinateSystemF>;
+  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
 
   const MyMatrix& getMatrix() const { return matrix_; }
 
@@ -54,38 +55,39 @@ class TestFramedQuantityMatrix : public ::testing::Test {
   MyMatrix matrix_;
 };
 
-TEST_F(TestFramedQuantityMatrix, EqualityOperator) {  // NOLINT
+TEST_F(TestCoordinateMatrix, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getMatrix(), getMatrix());
 }
 
-TEST_F(TestFramedQuantityMatrix, Block) {  // NOLINT
+TEST_F(TestCoordinateMatrix, Block) {  // NOLINT
   using MyValuesB = ValueMatrix<int, 2, 2>;
   using MyUnitsB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
-  using MyFramesB = FrameMatrix<2, 2, FrameB, FrameC, FrameE, FrameF>;
-  using MyMatrixB = FramedQuantityMatrix<MyValuesB, MyUnitsB, MyFramesB>;
+  using MyCoordinateSystemsB = CoordinateSystemMatrix<2, 2, CoordinateSystemB, CoordinateSystemC, CoordinateSystemE, CoordinateSystemF>;
+  using MyMatrixB = CoordinateMatrix<MyValuesB, MyUnitsB, MyCoordinateSystemsB>;
   MyValuesB valuesB;
   valuesB << 2, 3, 5, 6;
   MyMatrixB matrixB(valuesB);
   EXPECT_EQ((getMatrix().block<0, 1, 2, 2>()), matrixB);
 }
 
-TEST_F(TestFramedQuantityMatrix, Transpose) {  // NOLINT
+TEST_F(TestCoordinateMatrix, Transpose) {  // NOLINT
   using MyValuesT = ValueMatrix<int, 3, 2>;
   using MyUnitsT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
-  using MyFramesT = FrameMatrix<3, 2, FrameA, FrameD, FrameB, FrameE, FrameC, FrameF>;
-  using MyMatrixT = FramedQuantityMatrix<MyValuesT, MyUnitsT, MyFramesT>;
+  using MyCoordinateSystemsT = CoordinateSystemMatrix<3, 2, CoordinateSystemA, CoordinateSystemD, CoordinateSystemB, CoordinateSystemE,
+                                                      CoordinateSystemC, CoordinateSystemF>;
+  using MyMatrixT = CoordinateMatrix<MyValuesT, MyUnitsT, MyCoordinateSystemsT>;
   MyValuesT valuesT;
   valuesT << 1, 4, 2, 5, 3, 6;
   MyMatrixT matrixT(valuesT);
   EXPECT_EQ(getMatrix().transpose(), matrixT);
 }
 
-TEST(TestFramedQuantityMatrix2, ProductQuantityMatrix) {  // NOLINT
+TEST(TestCoordinateMatrix2, ProductQuantityMatrix) {  // NOLINT
   using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnits = UnitMatrix<2, 2, Length>;
-  using MyFrames = FrameMatrix<2, 2, FrameA>;
+  using MyCoordinateSystems = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
   using MyUnitsResult = UnitMatrix<2, 2, Area>;
-  using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
+  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
   using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
   MyValues values;
   values << 1, 2, 3, 4;
@@ -94,15 +96,15 @@ TEST(TestFramedQuantityMatrix2, ProductQuantityMatrix) {  // NOLINT
   EXPECT_EQ(matrix * matrix, MyMatrixResult(values * values));
 }
 
-TEST(TestFramedQuantityMatrix2, ProductQuantity) {  // NOLINT
+TEST(TestCoordinateMatrix2, ProductQuantity) {  // NOLINT
   using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnits = UnitMatrix<2, 2, Length>;
-  using MyFrames = FrameMatrix<2, 2, FrameA>;
-  using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
+  using MyCoordinateSystems = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
+  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
   using MyUnitsResult = UnitMatrix<2, 2, Area>;
-  using MyMatrixResult = FramedQuantityMatrix<MyValues, MyUnitsResult, MyFrames>;
+  using MyMatrixResult = CoordinateMatrix<MyValues, MyUnitsResult, MyCoordinateSystems>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
   MyValues values;
@@ -113,15 +115,15 @@ TEST(TestFramedQuantityMatrix2, ProductQuantity) {  // NOLINT
   EXPECT_EQ(quantity * matrix, MyMatrixResult(values * value));
 }
 
-TEST(TestFramedQuantityMatrix2, DivisionQuantity) {  // NOLINT
+TEST(TestCoordinateMatrix2, DivisionQuantity) {  // NOLINT
   using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnits = UnitMatrix<2, 2, Length>;
-  using MyFrames = FrameMatrix<2, 2, FrameA>;
-  using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
+  using MyCoordinateSystems = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
+  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
   using MyUnitsResult = UnitMatrix<2, 2, Dimensionless>;
-  using MyMatrixResult = FramedQuantityMatrix<MyValues, MyUnitsResult, MyFrames>;
+  using MyMatrixResult = CoordinateMatrix<MyValues, MyUnitsResult, MyCoordinateSystems>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
   MyValues values;
@@ -131,11 +133,11 @@ TEST(TestFramedQuantityMatrix2, DivisionQuantity) {  // NOLINT
   EXPECT_EQ(matrix / quantity, MyMatrixResult(values / value));
 }
 
-TEST(TestFramedQuantityMatrix2, ScalarProduct) {  // NOLINT
+TEST(TestCoordinateMatrix2, ScalarProduct) {  // NOLINT
   using MyValues = ValueMatrix<int, 4, 1>;
   using MyUnits = UnitMatrix<4, 1, Length>;
-  using MyFrames = FrameMatrix<4, 1, FrameA, FrameB, FrameC, FrameD>;
-  using MyMatrix = FramedQuantityMatrix<MyValues, MyUnits, MyFrames>;
+  using MyCoordinateSystems = CoordinateSystemMatrix<4, 1, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD>;
+  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
   using MyMatrixResult = Quantity<int, Area>;
   MyValues values1;
   values1 << 1, 2, 3, 4;
@@ -144,26 +146,28 @@ TEST(TestFramedQuantityMatrix2, ScalarProduct) {  // NOLINT
   EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), QuantityTraits::Create<MyMatrixResult>::create(11));
 }
 
-TEST(TestFramedQuantityMatrix2, RotatingDumbbell) {  // NOLINT
+TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   // From https://en.wikipedia.org/wiki/Mass_matrix#Rotating_dumbbell
-  struct FrameName;
-  using Frame = Frame<FrameName>;
+  struct CartesianCoordinateSystemName {};
+  using CartesianCoordinateSystem = CoordinateSystem<CartesianCoordinateSystemName>;
 
   using MinimalCoordinatesValues = ctm::value_matrix::ValueMatrix<double, 3, 1>;
   using MinimalCoordinatesUnits = ctm::units::UnitMatrix<3, 1, Absolute<Length>, Absolute<Length>, Angle>;
   using MinimalCoordinatesDtUnits = ctm::units::UnitMatrix<3, 1, Velocity, Velocity, AngularVelocity>;
-  using MinimalCoordinatesFrames = ctm::FrameMatrix<3, 1, Frame, Frame, ctm::NoFrame>;
-  using MinimalCoordinates = ctm::FramedQuantityMatrix<MinimalCoordinatesValues, MinimalCoordinatesUnits, MinimalCoordinatesFrames>;
-  using MinimalCoordinatesDt = ctm::FramedQuantityMatrix<MinimalCoordinatesValues, MinimalCoordinatesDtUnits, MinimalCoordinatesFrames>;
+  using MinimalCoordinatesCoordinateSystems =
+      ctm::CoordinateSystemMatrix<3, 1, CartesianCoordinateSystem, CartesianCoordinateSystem, ctm::NoCoordinateSystem>;
+  using MinimalCoordinates = ctm::CoordinateMatrix<MinimalCoordinatesValues, MinimalCoordinatesUnits, MinimalCoordinatesCoordinateSystems>;
+  using MinimalCoordinatesDt =
+      ctm::CoordinateMatrix<MinimalCoordinatesValues, MinimalCoordinatesDtUnits, MinimalCoordinatesCoordinateSystems>;
 
   using PointValues = ctm::value_matrix::ValueMatrix<double, 2, 1>;
   using PointUnits = ctm::units::UnitMatrix<2, 1, Absolute<Length>>;
   using DirectionUnits = ctm::units::UnitMatrix<2, 1, Dimensionless>;
   using VelocityUnits = ctm::units::UnitMatrix<2, 1, Velocity>;
-  using PointFrames = ctm::FrameMatrix<2, 1, Frame>;
-  using Point = ctm::FramedQuantityMatrix<PointValues, PointUnits, PointFrames>;
-  using Direction = ctm::FramedQuantityMatrix<PointValues, DirectionUnits, PointFrames>;
-  using Velocity_ = ctm::FramedQuantityMatrix<PointValues, VelocityUnits, PointFrames>;
+  using PointCoordinateSystems = ctm::CoordinateSystemMatrix<2, 1, CartesianCoordinateSystem>;
+  using Point = ctm::CoordinateMatrix<PointValues, PointUnits, PointCoordinateSystems>;
+  using Direction = ctm::CoordinateMatrix<PointValues, DirectionUnits, PointCoordinateSystems>;
+  using Velocity_ = ctm::CoordinateMatrix<PointValues, VelocityUnits, PointCoordinateSystems>;
 
   using Radius = Quantity<double, Length>;
   using Mass_ = Quantity<double, Mass>;
@@ -181,7 +185,7 @@ TEST(TestFramedQuantityMatrix2, RotatingDumbbell) {  // NOLINT
   const Mass_ mass1 = QuantityTraits::Create<Mass_>::create(1.0);
   const Mass_ mass2 = QuantityTraits::Create<Mass_>::create(1.0);
 
-  // TODO(remod): Introduce FramedQuantityMatrix::getQuantity()?
+  // TODO(remod): Introduce CoordinateMatrix::getQuantity()?
   // TODO(remod): Avoid Eigen::Matrix() and getValue() calls.
   const auto positionVector =
       radius * Direction(Eigen::Matrix<double, 2, 1>(QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ctm/core/Frame.hpp"
+#include "ctm/core/CoordinateSystem.hpp"
 
 namespace ctm {
 
@@ -22,7 +22,7 @@ class PassiveTransformation : public Transformation {
 
   template <typename Object>
   auto transform(const Object& object) const {
-    static_assert(!std::is_same<typename GetFrame<Object>::type, From>::value, "Frame mismatch.");
+    static_assert(!std::is_same<typename GetCoordinateSystem<Object>::type, From>::value, "Coordinate system mismatch.");
     return TransformationTraits<Derived, Object>::transform(derived(), object);
   }
 
