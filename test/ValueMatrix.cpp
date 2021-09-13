@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/traits.hpp"
-#include "ctm/value_matrix/ValueMatrix.hpp"
-#include "ctm/value_matrix/ValueMatrixTraits.hpp"
+#include "wuzp/core/traits.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrixTraits.hpp"
 
-using namespace ctm::value_matrix;  // NOLINT
+using namespace wuzp::value_matrix;  // NOLINT
 
 TEST(TestValueMatrix, Rows) {  // NOLINT
   static_assert(ValueMatrixTraits::Rows<ValueMatrix<double, 3, 2>>::value == 3);

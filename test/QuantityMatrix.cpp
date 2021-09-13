@@ -1,19 +1,19 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/QuantityMatrix.hpp"
-#include "ctm/core/TypeMatrix.hpp"
-#include "ctm/core/traits.hpp"
-#include "ctm/units/QuantityTraits.hpp"
-#include "ctm/units/Unit.hpp"
-#include "ctm/units/UnitMatrix.hpp"
-#include "ctm/value_matrix/ValueMatrix.hpp"
+#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/traits.hpp"
+#include "wuzp/units/QuantityTraits.hpp"
+#include "wuzp/units/Unit.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 #include "test_compilation_error.hpp"
 
-using ctm::QuantityMatrix;
-using ctm::TypeMatrix;
-using namespace ctm::units;         // NOLINT
-using namespace ctm::value_matrix;  // NOLINT
+using wuzp::QuantityMatrix;
+using wuzp::TypeMatrix;
+using namespace wuzp::units;         // NOLINT
+using namespace wuzp::value_matrix;  // NOLINT
 
 class TestQuantityMatrix : public ::testing::Test {
  public:
@@ -65,19 +65,19 @@ TEST_F(TestQuantityMatrix, SetGetQuantity) {  // NOLINT
 
 TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
                                                    ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "ctm/core/QuantityMatrix.hpp"
-#include "ctm/units/Quantity.hpp"
-#include "ctm/units/QuantityTraits.hpp"
-#include "ctm/units/Unit.hpp"
-#include "ctm/units/UnitMatrix.hpp"
-#include "ctm/value_matrix/ValueMatrix.hpp"
+#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/units/Quantity.hpp"
+#include "wuzp/units/QuantityTraits.hpp"
+#include "wuzp/units/Unit.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
 
-using ctm::QuantityMatrix;
-using ctm::units::Quantity;
-using ctm::units::QuantityTraits;
-using ctm::units::UnitMatrix;
-using namespace ctm::units;         // NOLINT
-using namespace ctm::value_matrix;  // NOLINT
+using wuzp::QuantityMatrix;
+using wuzp::units::Quantity;
+using wuzp::units::QuantityTraits;
+using wuzp::units::UnitMatrix;
+using namespace wuzp::units;         // NOLINT
+using namespace wuzp::value_matrix;  // NOLINT
 
 int main() {
   using MyValues = ValueMatrix<int, 2, 3>;

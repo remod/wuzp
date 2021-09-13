@@ -1,17 +1,17 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/Rational.hpp"
+#include "wuzp/core/Rational.hpp"
 
 #include "test_compilation_error.hpp"
 
-using namespace ctm;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 TEST(TestRational, Infinity){// NOLINT
                              ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(
                                  R"(
-#include "ctm/core/Rational.hpp"
+#include "wuzp/core/Rational.hpp"
 int main() {
-  using type = ctm::Rational<3, 0>;
+  using type = wuzp::Rational<3, 0>;
   return 0;
 }
 )",
@@ -63,9 +63,9 @@ TEST(TestRational, MinusInfinityToMinusOne) {  // NOLINT
 TEST(TestRational, MinusInfinity){// NOLINT
                                   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(
                                       R"(
-#include "ctm/core/Rational.hpp"
+#include "wuzp/core/Rational.hpp"
 int main() {
-  using type = ctm::Rational<3, -0>;
+  using type = wuzp::Rational<3, -0>;
   return 0;
 }
 )",

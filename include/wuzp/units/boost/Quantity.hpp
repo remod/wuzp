@@ -1,0 +1,13 @@
+#pragma once
+
+#include <boost/units/quantity.hpp>
+
+namespace wuzp {
+namespace units {
+
+// This typedef provides the same interface as its wuzp pendant. It is used internally.
+template <typename Value, typename Unit>
+using Quantity = boost::units::quantity<Unit, Value>;
+
+}  // namespace units
+}  // namespace wuzp

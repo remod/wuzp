@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/CoordinateSystem.hpp"
-#include "ctm/core/TypeMatrix.hpp"
-#include "ctm/core/traits.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/traits.hpp"
 
-using ctm::CoordinateSystem;
-using ctm::CoordinateSystemTraits;
-using ctm::Sum;
-using ctm::TypeMatrix;
+using wuzp::CoordinateSystem;
+using wuzp::CoordinateSystemTraits;
+using wuzp::Sum;
+using wuzp::TypeMatrix;
 
 TEST(TestCoordinateSystemMatrix, IsSame) {  // NOLINT
   struct CoordinateSystemAName {};

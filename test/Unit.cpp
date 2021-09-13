@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/TypeMatrix.hpp"
-#include "ctm/units/Unit.hpp"
-#include "ctm/units/UnitMatrix.hpp"
-#include "ctm/units/UnitTraits.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/units/Unit.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/units/UnitTraits.hpp"
 
-using ctm::Difference;
-using ctm::Inverse;
-using ctm::Product;
-using ctm::Sum;
-using namespace ctm::units;  // NOLINT
+using wuzp::Difference;
+using wuzp::Inverse;
+using wuzp::Product;
+using wuzp::Sum;
+using namespace wuzp::units;  // NOLINT
 
 TEST(TestUnit, Sum) {  // NOLINT
   static_assert(std::is_same<UnitTraits::Sum<Length, Length>::type, Length>::value);
