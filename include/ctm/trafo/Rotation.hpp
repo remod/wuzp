@@ -61,13 +61,13 @@ class RotationMatrix : public PassiveTransformation<RotationMatrix<Scalar, From,
  public:
   using Values = value_matrix::ValueMatrix<Scalar, Dimension, Dimension>;
   using Units = units::UnitMatrix<Dimension, Dimension, units::Dimensionless>;
-  using Frames = FrameMatrix<Dimension, Dimension, From>;
-  using Impl = FramedQuantityMatrix<Values, Units, Frames>;
+  using CoordinateSystems = CoordinateSystemMatrix<Dimension, Dimension, From>;
+  using Impl = CoordinateMatrix<Values, Units, CoordinateSystems>;
 
   explicit RotationMatrix(Impl impl) : impl_(impl) {}
 
  private:
-  FramedQuantityMatrix<Values, Units, Frames> impl_;
+  CoordinateMatrix<Values, Units, CoordinateSystems> impl_;
 };
 
 template <typename Scalar, typename From, typename To>
