@@ -4,11 +4,7 @@
 #include "wuzp/units/Unit.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
 
-using wuzp::Difference;
-using wuzp::Inverse;
-using wuzp::Product;
-using wuzp::Sum;
-using namespace wuzp::units;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 TEST(TestUnitMatrix, Sum) {  // NOLINT
   static_assert(std::is_same<Sum<UnitMatrix<2, 2, Length>, UnitMatrix<2, 2, Length>>::type, UnitMatrix<2, 2, Length>>::value);

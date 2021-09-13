@@ -10,10 +10,7 @@
 
 #include "test_compilation_error.hpp"
 
-using wuzp::QuantityMatrix;
-using wuzp::TypeMatrix;
-using namespace wuzp::units;         // NOLINT
-using namespace wuzp::value_matrix;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 class TestQuantityMatrix : public ::testing::Test {
  public:
@@ -72,12 +69,7 @@ TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
 #include "wuzp/units/UnitMatrix.hpp"
 #include "wuzp/value_matrix/ValueMatrix.hpp"
 
-using wuzp::QuantityMatrix;
-using wuzp::units::Quantity;
-using wuzp::units::QuantityTraits;
-using wuzp::units::UnitMatrix;
-using namespace wuzp::units;         // NOLINT
-using namespace wuzp::value_matrix;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 int main() {
   using MyValues = ValueMatrix<int, 2, 3>;

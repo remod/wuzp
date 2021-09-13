@@ -3,7 +3,7 @@
 #include "wuzp/units/Unit.hpp"
 #include "wuzp/units/UnitTraits.hpp"
 
-using namespace wuzp::units;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 TEST(TestUnit, Sum) {  // NOLINT
   static_assert(std::is_same<UnitTraits::Sum<Length, Length>::type, Length>::value);
@@ -22,7 +22,7 @@ TEST(TestUnit, Product) {  // NOLINT
 
 TEST(TestUnit, Division) {  // NOLINT
   // TODO(remod): Absolute or relative?
-  //  static_assert(std::is_same<UnitTraits::Division<Length, Time>::type, Absolute<units::velocity>>::value);
+  //  static_assert(std::is_same<UnitTraits::Division<Length, Time>::type, Absolute<velocity>>::value);
   static_assert(std::is_same<UnitTraits::Division<Length, Time>::type, Velocity>::value);
 }
 

@@ -15,11 +15,11 @@ namespace wuzp {
 template <typename Values, typename Units, typename CoordinateSystems>
 class CoordinateMatrix {
  public:
-  static_assert(value_matrix::ValueMatrixTraits::Rows<Values>::value == Rows<Units>::value &&
-                    value_matrix::ValueMatrixTraits::Rows<Values>::value == Rows<CoordinateSystems>::value,
+  static_assert(ValueMatrixTraits::Rows<Values>::value == Rows<Units>::value &&
+                    ValueMatrixTraits::Rows<Values>::value == Rows<CoordinateSystems>::value,
                 "Number of rows do not match.");
-  static_assert(value_matrix::ValueMatrixTraits::Cols<Values>::value == Cols<Units>::value &&
-                    value_matrix::ValueMatrixTraits::Cols<Values>::value == Cols<CoordinateSystems>::value,
+  static_assert(ValueMatrixTraits::Cols<Values>::value == Cols<Units>::value &&
+                    ValueMatrixTraits::Cols<Values>::value == Cols<CoordinateSystems>::value,
                 "Number of columns do not match.");
 
   CoordinateMatrix() = default;
@@ -53,8 +53,8 @@ class CoordinateMatrix {
 
   template <typename ValuesRhs, typename UnitsRhs, typename CoordinateSystemsRhs>
   auto dot(const CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>& other) const {
-    return units::QuantityTraits::Create<typename DotProduct<This, CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>>::type>::
-        create(getValues().dot(other.getValues()));
+    return QuantityTraits::Create<typename DotProduct<This, CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>>::type>::create(
+        getValues().dot(other.getValues()));
   }
 
  private:
@@ -66,7 +66,7 @@ class CoordinateMatrix {
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValuesRhs, typename UnitsRhs,
           typename CoordinateSystemsRhs>
 struct Sum<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>> {
-  using type = CoordinateMatrix<typename value_matrix::ValueMatrixTraits::template Sum<ValuesLhs, ValuesRhs>::type,
+  using type = CoordinateMatrix<typename ValueMatrixTraits::template Sum<ValuesLhs, ValuesRhs>::type,
                                 typename Sum<UnitsLhs, UnitsRhs>::type, typename Sum<CoordinateSystemsLhs, CoordinateSystemsRhs>::type>;
 };
 
@@ -74,27 +74,27 @@ template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, 
           typename CoordinateSystemsRhs>
 struct Difference<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>,
                   CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>> {
-  using type = CoordinateMatrix<typename value_matrix::ValueMatrixTraits::template Difference<ValuesLhs, ValuesRhs>::type,
+  using type = CoordinateMatrix<typename ValueMatrixTraits::template Difference<ValuesLhs, ValuesRhs>::type,
                                 typename Difference<UnitsLhs, UnitsRhs>::type,
                                 typename Difference<CoordinateSystemsLhs, CoordinateSystemsRhs>::type>;
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValueRhs, typename UnitRhs>
-struct Product<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, units::Quantity<ValueRhs, UnitRhs>> {
-  using type = CoordinateMatrix<typename value_matrix::ValueMatrixTraits::template Product<ValuesLhs, ValueRhs>::type,
+struct Product<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, Quantity<ValueRhs, UnitRhs>> {
+  using type = CoordinateMatrix<typename ValueMatrixTraits::template Product<ValuesLhs, ValueRhs>::type,
                                 typename Product<UnitsLhs, UnitRhs>::type, CoordinateSystemsLhs>;
 };
 template <typename ValueLhs, typename UnitLhs, typename ValuesRhs, typename UnitsRhs, typename CoordinateSystemsRhs>
-struct Product<units::Quantity<ValueLhs, UnitLhs>, CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>> {
-  using type = typename Product<CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>, units::Quantity<ValueLhs, UnitLhs>>::type;
+struct Product<Quantity<ValueLhs, UnitLhs>, CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>> {
+  using type = typename Product<CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>, Quantity<ValueLhs, UnitLhs>>::type;
 };
 // Use case: Rotate a vector.
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValuesRhs, typename UnitsRhs,
           typename CoordinateSystemsRhs>
 struct Product<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>> {
  public:
-  using type = QuantityMatrix<typename value_matrix::ValueMatrixTraits::template Product<ValuesLhs, ValuesRhs>::type,
-                              typename Product<UnitsLhs, UnitsRhs>::type>;
+  using type =
+      QuantityMatrix<typename ValueMatrixTraits::template Product<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
 
  private:
   using CoordinateSystemProduct = typename Product<CoordinateSystemsLhs, CoordinateSystemsRhs>::type;
@@ -104,14 +104,14 @@ struct Product<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, Coor
 };
 
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValueRhs, typename UnitRhs>
-struct Division<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, units::Quantity<ValueRhs, UnitRhs>> {
-  using type = CoordinateMatrix<typename value_matrix::ValueMatrixTraits::template Division<ValuesLhs, ValueRhs>::type,
+struct Division<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, Quantity<ValueRhs, UnitRhs>> {
+  using type = CoordinateMatrix<typename ValueMatrixTraits::template Division<ValuesLhs, ValueRhs>::type,
                                 typename Division<UnitsLhs, UnitRhs>::type, CoordinateSystemsLhs>;
 };
 
 template <typename Values, typename Units, typename CoordinateSystems>
 struct Transpose<CoordinateMatrix<Values, Units, CoordinateSystems>> {
-  using type = CoordinateMatrix<typename value_matrix::ValueMatrixTraits::template Transpose<Values>::type, typename Transpose<Units>::type,
+  using type = CoordinateMatrix<typename ValueMatrixTraits::template Transpose<Values>::type, typename Transpose<Units>::type,
                                 typename Transpose<CoordinateSystems>::type>;
 };
 
@@ -119,17 +119,16 @@ template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, 
           typename CoordinateSystemsRhs>
 struct DotProduct<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>,
                   CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>> {
-  using type = units::Quantity<typename value_matrix::ValueMatrixTraits::template DotProduct<ValuesLhs, ValuesRhs>::type,
-                               typename DotProduct<UnitsLhs, UnitsRhs>::type>;
+  using type =
+      Quantity<typename ValueMatrixTraits::template DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
   using assert_frames_match = typename DotProduct<CoordinateSystemsLhs, CoordinateSystemsRhs>::type;
 };
 
 template <typename Values, typename Units, typename CoordinateSystems, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<CoordinateMatrix<Values, Units, CoordinateSystems>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type =
-      CoordinateMatrix<typename value_matrix::ValueMatrixTraits::template Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-                       typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-                       typename Block<CoordinateSystems, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+  using type = CoordinateMatrix<typename ValueMatrixTraits::template Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+                                typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+                                typename Block<CoordinateSystems, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
 };
 
 template <typename Values, typename Units, typename CoordinateSystems>
@@ -164,19 +163,19 @@ auto operator-(const CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>
 
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValueRhs>
 auto operator*(const CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>& lhs, const ValueRhs rhs) {
-  return lhs * units::Quantity<ValueRhs, units::Dimensionless>(rhs);
+  return lhs * Quantity<ValueRhs, Dimensionless>(rhs);
 }
 template <typename ValueLhs, typename ValuesRhs, typename UnitsRhs, typename CoordinateSystemsRhs>
 auto operator*(const ValueLhs lhs, const CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>& rhs) {
   return rhs * lhs;
 }
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValueRhs, typename UnitRhs>
-auto operator*(const CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>& lhs, const units::Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Product<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, units::Quantity<ValueRhs, UnitRhs>>::type(
-      lhs.getValues() * units::QuantityTraits::GetValue<units::Quantity<ValueRhs, UnitRhs>>::get(rhs));
+auto operator*(const CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Product<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, Quantity<ValueRhs, UnitRhs>>::type(
+      lhs.getValues() * QuantityTraits::GetValue<Quantity<ValueRhs, UnitRhs>>::get(rhs));
 }
 template <typename ValueLhs, typename UnitLhs, typename ValuesRhs, typename UnitsRhs, typename CoordinateSystemsRhs>
-auto operator*(const units::Quantity<ValueLhs, UnitLhs>& lhs, const CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>& rhs) {
+auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const CoordinateMatrix<ValuesRhs, UnitsRhs, CoordinateSystemsRhs>& rhs) {
   return rhs * lhs;
 }
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValuesRhs, typename UnitsRhs,
@@ -189,12 +188,12 @@ auto operator*(const CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>
 
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValueRhs>
 auto operator/(const CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>& lhs, const ValueRhs rhs) {
-  return lhs / units::Quantity<ValueRhs, units::Dimensionless>(rhs);
+  return lhs / Quantity<ValueRhs, Dimensionless>(rhs);
 }
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValueRhs, typename UnitRhs>
-auto operator/(const CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>& lhs, const units::Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Division<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, units::Quantity<ValueRhs, UnitRhs>>::type(
-      lhs.getValues() / units::QuantityTraits::GetValue<units::Quantity<ValueRhs, UnitRhs>>::get(rhs));
+auto operator/(const CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Division<CoordinateMatrix<ValuesLhs, UnitsLhs, CoordinateSystemsLhs>, Quantity<ValueRhs, UnitRhs>>::type(
+      lhs.getValues() / QuantityTraits::GetValue<Quantity<ValueRhs, UnitRhs>>::get(rhs));
 }
 
 template <typename ValuesLhs, typename UnitsLhs, typename CoordinateSystemsLhs, typename ValuesRhs, typename UnitsRhs,
@@ -219,31 +218,27 @@ std::ostream& operator<<(std::ostream& stream, const CoordinateMatrix<Values, Un
 }
 
 template <int Dimension, typename Scalar, typename CoordinateSystem>
-using Position =
-    CoordinateMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>, units::UnitMatrix<Dimension, 1, units::Absolute<units::Length>>,
-                     CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
-
+using PositionPoint = CoordinateMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Absolute<Length>>,
+                                       CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
 template <typename Scalar, typename CoordinateSystem>
-using Position2D = Position<2, Scalar, CoordinateSystem>;
+using PositionPoint2D = PositionPoint<2, Scalar, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>
-using Position3D = Position<3, Scalar, CoordinateSystem>;
+using PositionPoint3D = PositionPoint<3, Scalar, CoordinateSystem>;
 
 template <int Dimension, typename Scalar, typename CoordinateSystem>
-using Vector = CoordinateMatrix<value_matrix::ValueMatrix<Scalar, Dimension, 1>, units::UnitMatrix<Dimension, 1, units::Length>,
-                                CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
-
+using PositionVector = CoordinateMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Length>,
+                                        CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
 template <typename Scalar, typename CoordinateSystem>
-using Vector2D = Vector<2, Scalar, CoordinateSystem>;
+using PositionVector2D = PositionVector<2, Scalar, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>
-using Vector3D = Vector<3, Scalar, CoordinateSystem>;
+using PositionVector3D = PositionVector<3, Scalar, CoordinateSystem>;
 
 template <int Dimension, typename Scalar, typename CoordinateSystem>
-using Velocity = CoordinateMatrix<Eigen::Matrix<Scalar, Dimension, 1>, units::UnitMatrix<Dimension, 1, units::Velocity>,
-                                  CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
-
+using VelocityVector = CoordinateMatrix<Eigen::Matrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Velocity>,
+                                        CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
 template <typename Scalar, typename CoordinateSystem>
-using Velocity2D = Velocity<2, Scalar, CoordinateSystem>;
+using Velocity2D = VelocityVector<2, Scalar, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>
-using Velocity3D = Velocity<3, Scalar, CoordinateSystem>;
+using Velocity3D = VelocityVector<3, Scalar, CoordinateSystem>;
 
 }  // namespace wuzp

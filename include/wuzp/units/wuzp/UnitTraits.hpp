@@ -4,7 +4,6 @@
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
-namespace units {
 
 template <int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance, int LuminousIntensity>
 struct Unit;
@@ -102,5 +101,4 @@ struct UnitTraits {
   };
 };
 
-}  // namespace units
 }  // namespace wuzp

@@ -3,7 +3,6 @@
 #include "wuzp/units/boost/Quantity.hpp"
 
 namespace wuzp {
-namespace units {
 
 struct QuantityTraits {
   // TODO(remod): Could probably be simpler.
@@ -30,5 +29,4 @@ struct QuantityTraits {
   };
 };
 
-}  // namespace units
 }  // namespace wuzp

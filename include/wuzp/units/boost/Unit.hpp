@@ -5,7 +5,6 @@
 #include <boost/units/unit.hpp>
 
 namespace wuzp {
-namespace units {
 
 template <typename Dim, typename System, typename Enable>
 using Unit = boost::units::unit<Dim, System, Enable>;
@@ -28,5 +27,4 @@ using Acceleration = boost::units::si::acceleration;
 using Volume = boost::units::si::volume;
 using Frequency = boost::units::si::frequency;
 
-}  // namespace units
 }  // namespace wuzp

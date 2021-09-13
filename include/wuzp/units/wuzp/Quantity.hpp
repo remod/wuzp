@@ -8,7 +8,6 @@
 #include "wuzp/units/wuzp/ValueTraits.hpp"
 
 namespace wuzp {
-namespace units {
 
 template <typename Value, typename Unit>
 class Quantity {
@@ -102,5 +101,4 @@ std::ostream& operator<<(std::ostream& stream, const Quantity<Value, Unit>& quan
   return stream;
 }
 
-}  // namespace units
 }  // namespace wuzp

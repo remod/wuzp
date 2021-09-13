@@ -9,7 +9,6 @@
 #include "wuzp/units/boost/Unit.hpp"
 
 namespace wuzp {
-namespace units {
 
 struct UnitTraits {
   DEFINE_RECURSIVE_TRAIT(Sum)
@@ -58,5 +57,4 @@ struct UnitTraits {
   };
 };
 
-}  // namespace units
 }  // namespace wuzp

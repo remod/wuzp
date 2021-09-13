@@ -8,8 +8,7 @@
 
 #include "test_compilation_error.hpp"
 
-using namespace wuzp;         // NOLINT
-using namespace wuzp::units;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 template <int Rows, int Cols, typename... Rationals>
 using ValueMatrix = TypeMatrix<Rows, Cols, RationalTraits, Rationals...>;
@@ -69,6 +68,8 @@ TEST(TestTypeMatrix, SumInvalidTypes){// NOLINT
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/traits.hpp"
 
+using namespace wuzp;
+
 struct Traits {
   DEFINE_RECURSIVE_TRAIT(Sum)
   template <typename Lhs, typename Rhs>
@@ -79,7 +80,7 @@ struct Traits {
 };
 
 int main() {
-  using type = wuzp::Sum<wuzp::TypeMatrix<1, 1, Traits, int>, wuzp::TypeMatrix<1, 1, Traits, double>>::type;
+  using type = Sum<TypeMatrix<1, 1, Traits, int>, TypeMatrix<1, 1, Traits, double>>::type;
   return 0;
 }
 )",

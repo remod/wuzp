@@ -5,31 +5,31 @@
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
 
-using namespace wuzp::units;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 template <typename Value>
 auto createDimensionlessQuantity(const Value value) {
-  return wuzp::units::Quantity<Value, wuzp::units::Dimensionless>(value);
+  return Quantity<Value, Dimensionless>(value);
 }
 template <typename Value>
 auto createTimeQuantity(const Value value) {
-  return wuzp::units::Quantity<Value, wuzp::units::Time>(value);
+  return Quantity<Value, Time>(value);
 }
 template <typename Value>
 auto createFrequencyQuantity(const Value value) {
-  return wuzp::units::Quantity<Value, wuzp::units::Frequency>(value);
+  return Quantity<Value, Frequency>(value);
 }
 template <typename Value, typename Unit>
-void setValue(wuzp::units::Quantity<Value, Unit>& quantity, const Value value) {
+void setValue(Quantity<Value, Unit>& quantity, const Value value) {
   quantity.setValue(value);
 }
 template <typename Value, typename Unit>
-Value getValue(const wuzp::units::Quantity<Value, Unit> quantity) {
+Value getValue(const Quantity<Value, Unit> quantity) {
   return quantity.getValue();
 }
 template <typename Value, typename Unit>
-auto inverse(const wuzp::units::Quantity<Value, Unit> quantity) {
+auto inverse(const Quantity<Value, Unit> quantity) {
   return quantity.inverse();
 }
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
