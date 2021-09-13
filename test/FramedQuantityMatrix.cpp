@@ -237,7 +237,6 @@ TEST(TestFramedQuantityMatrix2, RotatingDumbbell) {  // NOLINT
   massMatrix.setQuantity<2, 0>(massMatrix02);
   massMatrix.setQuantity<2, 1>(massMatrix12);
   massMatrix.setQuantity<2, 2>(massMatrix22);
-  //  massMatrix.inverse();
 
   //  const Energy_ energy2 = 0.5 * minimalCoordinatesDt.transpose() * massMatrix * minimalCoordinatesDt;
 
