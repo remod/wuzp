@@ -54,7 +54,8 @@ if (ENABLE_TESTS)
     add_executable(tests
         test/CompilationError.cpp
         test/helpers.cpp
-        test/Fraction.cpp
+        test/Rational.cpp
+        test/Integer.cpp
         test/TypeMatrix.cpp
         test/Frame.cpp
         test/Unit.cpp
