@@ -59,6 +59,7 @@ if (ENABLE_TESTS)
         test/TypeMatrix.cpp
         test/CoordinateSystem.cpp
         test/Unit.cpp
+        test/UnitMatrix.cpp
         test/Quantity.cpp
         test/ValueMatrix.cpp
         test/QuantityMatrix.cpp
