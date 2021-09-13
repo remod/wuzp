@@ -1,19 +1,19 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/CoordinateMatrix.hpp"
-#include "ctm/core/CoordinateSystem.hpp"
-#include "ctm/core/traits.hpp"
-#include "ctm/trafo/ProperRigidTransformation.hpp"
+#include "wuzp/core/CoordinateMatrix.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/traits.hpp"
+#include "wuzp/trafo/ProperRigidTransformation.hpp"
 
-using ctm::CoordinateSystem;
-using ctm::Position2D;
-using ctm::Position3D;
-using ctm::ProperRigidTransformation2D;
-using ctm::ProperRigidTransformation3D;
-using ctm::Quaternion;
-using ctm::Translation2D;
-using ctm::Translation3D;
-using ctm::Vector3D;
+using wuzp::CoordinateSystem;
+using wuzp::Position2D;
+using wuzp::Position3D;
+using wuzp::ProperRigidTransformation2D;
+using wuzp::ProperRigidTransformation3D;
+using wuzp::Quaternion;
+using wuzp::Translation2D;
+using wuzp::Translation3D;
+using wuzp::Vector3D;
 
 TEST(TestProperRigidTransformation2D, TransformPosition) {  // NOLINT
   //  struct FromCoordinateSystemName {};

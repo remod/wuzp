@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/helpers.hpp"
+#include "wuzp/core/helpers.hpp"
 
-using ctm::areSame;
+using wuzp::areSame;
 
 TEST(TestHelpers, AreSame) {  // NOLINT
-  EXPECT_TRUE((ctm::areSame<double>));
-  EXPECT_TRUE((ctm::areSame<double, double>));
-  EXPECT_TRUE((ctm::areSame<double, double, double>));
-  EXPECT_FALSE((ctm::areSame<double, double, int>));
+  EXPECT_TRUE((wuzp::areSame<double>));
+  EXPECT_TRUE((wuzp::areSame<double, double>));
+  EXPECT_TRUE((wuzp::areSame<double, double, double>));
+  EXPECT_FALSE((wuzp::areSame<double, double, int>));
 }

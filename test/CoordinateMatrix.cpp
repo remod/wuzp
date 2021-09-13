@@ -1,25 +1,25 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/CoordinateMatrix.hpp"
-#include "ctm/core/CoordinateSystem.hpp"
-#include "ctm/core/TypeMatrix.hpp"
-#include "ctm/core/traits.hpp"
-#include "ctm/trafo/Translation.hpp"
-#include "ctm/units/QuantityTraits.hpp"
-#include "ctm/value_matrix/ValueMatrix.hpp"
+#include "wuzp/core/CoordinateMatrix.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/traits.hpp"
+#include "wuzp/trafo/Translation.hpp"
+#include "wuzp/units/QuantityTraits.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
 
-using ctm::CoordinateMatrix;
-using ctm::CoordinateSystem;
-using ctm::CoordinateSystemMatrix;
-using ctm::Position2D;
-using ctm::Position3D;
-using ctm::QuantityMatrix;
-using ctm::Translation2D;
-using ctm::Translation3D;
-using ctm::TypeMatrix;
-using ctm::Vector3D;
-using namespace ctm::units;         // NOLINT
-using namespace ctm::value_matrix;  // NOLINT
+using wuzp::CoordinateMatrix;
+using wuzp::CoordinateSystem;
+using wuzp::CoordinateSystemMatrix;
+using wuzp::Position2D;
+using wuzp::Position3D;
+using wuzp::QuantityMatrix;
+using wuzp::Translation2D;
+using wuzp::Translation3D;
+using wuzp::TypeMatrix;
+using wuzp::Vector3D;
+using namespace wuzp::units;         // NOLINT
+using namespace wuzp::value_matrix;  // NOLINT
 
 struct CoordinateSystemAName {};
 struct CoordinateSystemBName {};
@@ -151,31 +151,31 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   struct CartesianCoordinateSystemName {};
   using CartesianCoordinateSystem = CoordinateSystem<CartesianCoordinateSystemName>;
 
-  using MinimalCoordinatesValues = ctm::value_matrix::ValueMatrix<double, 3, 1>;
-  using MinimalCoordinatesUnits = ctm::units::UnitMatrix<3, 1, Absolute<Length>, Absolute<Length>, Angle>;
-  using MinimalCoordinatesDtUnits = ctm::units::UnitMatrix<3, 1, Velocity, Velocity, AngularVelocity>;
+  using MinimalCoordinatesValues = wuzp::value_matrix::ValueMatrix<double, 3, 1>;
+  using MinimalCoordinatesUnits = wuzp::units::UnitMatrix<3, 1, Absolute<Length>, Absolute<Length>, Angle>;
+  using MinimalCoordinatesDtUnits = wuzp::units::UnitMatrix<3, 1, Velocity, Velocity, AngularVelocity>;
   using MinimalCoordinatesCoordinateSystems =
-      ctm::CoordinateSystemMatrix<3, 1, CartesianCoordinateSystem, CartesianCoordinateSystem, ctm::NoCoordinateSystem>;
-  using MinimalCoordinates = ctm::CoordinateMatrix<MinimalCoordinatesValues, MinimalCoordinatesUnits, MinimalCoordinatesCoordinateSystems>;
+      wuzp::CoordinateSystemMatrix<3, 1, CartesianCoordinateSystem, CartesianCoordinateSystem, wuzp::NoCoordinateSystem>;
+  using MinimalCoordinates = wuzp::CoordinateMatrix<MinimalCoordinatesValues, MinimalCoordinatesUnits, MinimalCoordinatesCoordinateSystems>;
   using MinimalCoordinatesDt =
-      ctm::CoordinateMatrix<MinimalCoordinatesValues, MinimalCoordinatesDtUnits, MinimalCoordinatesCoordinateSystems>;
+      wuzp::CoordinateMatrix<MinimalCoordinatesValues, MinimalCoordinatesDtUnits, MinimalCoordinatesCoordinateSystems>;
 
-  using PointValues = ctm::value_matrix::ValueMatrix<double, 2, 1>;
-  using PointUnits = ctm::units::UnitMatrix<2, 1, Absolute<Length>>;
-  using DirectionUnits = ctm::units::UnitMatrix<2, 1, Dimensionless>;
-  using VelocityUnits = ctm::units::UnitMatrix<2, 1, Velocity>;
-  using PointCoordinateSystems = ctm::CoordinateSystemMatrix<2, 1, CartesianCoordinateSystem>;
-  using Point = ctm::CoordinateMatrix<PointValues, PointUnits, PointCoordinateSystems>;
-  using Direction = ctm::CoordinateMatrix<PointValues, DirectionUnits, PointCoordinateSystems>;
-  using Velocity_ = ctm::CoordinateMatrix<PointValues, VelocityUnits, PointCoordinateSystems>;
+  using PointValues = wuzp::value_matrix::ValueMatrix<double, 2, 1>;
+  using PointUnits = wuzp::units::UnitMatrix<2, 1, Absolute<Length>>;
+  using DirectionUnits = wuzp::units::UnitMatrix<2, 1, Dimensionless>;
+  using VelocityUnits = wuzp::units::UnitMatrix<2, 1, Velocity>;
+  using PointCoordinateSystems = wuzp::CoordinateSystemMatrix<2, 1, CartesianCoordinateSystem>;
+  using Point = wuzp::CoordinateMatrix<PointValues, PointUnits, PointCoordinateSystems>;
+  using Direction = wuzp::CoordinateMatrix<PointValues, DirectionUnits, PointCoordinateSystems>;
+  using Velocity_ = wuzp::CoordinateMatrix<PointValues, VelocityUnits, PointCoordinateSystems>;
 
   using Radius = Quantity<double, Length>;
   using Mass_ = Quantity<double, Mass>;
   using Energy_ = Quantity<double, Energy>;
 
   using MassMatrixValues = ValueMatrix<double, 3, 3>;
-  using MassLength = ctm::units::UnitTraits::Product<Mass, Length>::type;
-  using MassLength2 = ctm::units::UnitTraits::Product<MassLength, Length>::type;
+  using MassLength = wuzp::units::UnitTraits::Product<Mass, Length>::type;
+  using MassLength2 = wuzp::units::UnitTraits::Product<MassLength, Length>::type;
   using MassMatrixUnits = UnitMatrix<3, 3, Mass, Mass, MassLength, Mass, Mass, MassLength, MassLength, MassLength, MassLength2>;
   using MassMatrix = QuantityMatrix<MassMatrixValues, MassMatrixUnits>;
 
@@ -189,17 +189,17 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   // TODO(remod): Avoid Eigen::Matrix() and getValue() calls.
   const auto positionVector =
       radius * Direction(Eigen::Matrix<double, 2, 1>(QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(
-                                                         ctm::cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())),
+                                                         wuzp::cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())),
                                                      QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(
-                                                         ctm::sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()))));
+                                                         wuzp::sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()))));
   const Point position1 = minimalCoordinates.block<0, 0, 2, 1>() + positionVector;
   const Point position2 = minimalCoordinates.block<0, 0, 2, 1>() - positionVector;
   const auto velocityVector =
       radius * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>() *
       Direction(Eigen::Matrix<double, 2, 1>(QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(
-                                                -ctm::sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())),
+                                                -wuzp::sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())),
                                             QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(
-                                                ctm::cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()))))
+                                                wuzp::cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()))))
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
       / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
 #endif
@@ -209,28 +209,28 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
 
   const Mass_ mass = mass1 + mass2;
   const Mass_ massDelta = mass1 - mass2;
-  const Energy_ energy1 = 0.5 * (mass * (ctm::pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()) +
-                                         ctm::pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>()) +
-                                         ctm::pow<2>(radius) * ctm::pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
+  const Energy_ energy1 = 0.5 * (mass * (wuzp::pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()) +
+                                         wuzp::pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>()) +
+                                         wuzp::pow<2>(radius) * wuzp::pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                                                                           / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
+                                                                             / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
 #endif
-                                                                               )) +
+                                                                                 )) +
                                  2.0 * radius * massDelta * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
                                      / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
 #endif
-                                     * (ctm::cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()) *
+                                     * (wuzp::cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()) *
                                             minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>() -
-                                        ctm::sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()) *
+                                        wuzp::sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()) *
                                             minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()));
 
   // TODO(remod): Can numbers be implicitly converted to dimensionless quantities?
   const auto massMatrix00 = mass;
   const auto massMatrix01 = QuantityTraits::Create<Mass_>::create(0.0);
-  const auto massMatrix02 = -radius * massDelta * ctm::sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
-  const auto massMatrix12 = radius * massDelta * ctm::cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
-  const auto massMatrix22 = ctm::pow<2>(radius) * mass;
+  const auto massMatrix02 = -radius * massDelta * wuzp::sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
+  const auto massMatrix12 = radius * massDelta * wuzp::cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
+  const auto massMatrix22 = wuzp::pow<2>(radius) * mass;
   MassMatrix massMatrix;
   massMatrix.setQuantity<0, 0>(massMatrix00);
   massMatrix.setQuantity<0, 1>(massMatrix01);

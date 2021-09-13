@@ -1,13 +1,13 @@
-# ctm
+# Wrong Unit? Zero Points!
 
-[![Build and Test](https://github.com/remod/ctm/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/remod/ctm/actions/workflows/build_and_test.yml)
+[![Build and Test](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml)
 
 ## Preparations
 
 ```
 sudo apt install git cmake libboost-dev libeigen3-dev
-git clone https://github.com/remod/ctm.git
-cd ctm
+git clone https://github.com/remod/wuzp.git
+cd wuzp
 mkdir build
 cd build
 ```

@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/Integer.hpp"
-#include "ctm/core/Rational.hpp"
-#include "ctm/core/TypeMatrix.hpp"
-#include "ctm/units/Unit.hpp"
-#include "ctm/units/UnitMatrix.hpp"
+#include "wuzp/core/Integer.hpp"
+#include "wuzp/core/Rational.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/units/Unit.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
 
 #include "test_compilation_error.hpp"
 
-using namespace ctm;         // NOLINT
-using namespace ctm::units;  // NOLINT
+using namespace wuzp;         // NOLINT
+using namespace wuzp::units;  // NOLINT
 
 template <int Rows, int Cols, typename... Rationals>
 using ValueMatrix = TypeMatrix<Rows, Cols, RationalTraits, Rationals...>;
@@ -66,8 +66,8 @@ TEST(TestTypeMatrix, Sum) {  // NOLINT
 
 TEST(TestTypeMatrix, SumInvalidTypes){// NOLINT
                                       ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "ctm/core/TypeMatrix.hpp"
-#include "ctm/core/traits.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/traits.hpp"
 
 struct Traits {
   DEFINE_RECURSIVE_TRAIT(Sum)
@@ -79,7 +79,7 @@ struct Traits {
 };
 
 int main() {
-  using type = ctm::Sum<ctm::TypeMatrix<1, 1, Traits, int>, ctm::TypeMatrix<1, 1, Traits, double>>::type;
+  using type = wuzp::Sum<wuzp::TypeMatrix<1, 1, Traits, int>, wuzp::TypeMatrix<1, 1, Traits, double>>::type;
   return 0;
 }
 )",

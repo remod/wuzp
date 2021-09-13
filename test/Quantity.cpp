@@ -1,35 +1,35 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/traits.hpp"
-#include "ctm/units/Quantity.hpp"
-#include "ctm/units/QuantityTraits.hpp"
-#include "ctm/units/Unit.hpp"
+#include "wuzp/core/traits.hpp"
+#include "wuzp/units/Quantity.hpp"
+#include "wuzp/units/QuantityTraits.hpp"
+#include "wuzp/units/Unit.hpp"
 
-using namespace ctm::units;  // NOLINT
+using namespace wuzp::units;  // NOLINT
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_CTM
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 template <typename Value>
 auto createDimensionlessQuantity(const Value value) {
-  return ctm::units::Quantity<Value, ctm::units::Dimensionless>(value);
+  return wuzp::units::Quantity<Value, wuzp::units::Dimensionless>(value);
 }
 template <typename Value>
 auto createTimeQuantity(const Value value) {
-  return ctm::units::Quantity<Value, ctm::units::Time>(value);
+  return wuzp::units::Quantity<Value, wuzp::units::Time>(value);
 }
 template <typename Value>
 auto createFrequencyQuantity(const Value value) {
-  return ctm::units::Quantity<Value, ctm::units::Frequency>(value);
+  return wuzp::units::Quantity<Value, wuzp::units::Frequency>(value);
 }
 template <typename Value, typename Unit>
-void setValue(ctm::units::Quantity<Value, Unit>& quantity, const Value value) {
+void setValue(wuzp::units::Quantity<Value, Unit>& quantity, const Value value) {
   quantity.setValue(value);
 }
 template <typename Value, typename Unit>
-Value getValue(const ctm::units::Quantity<Value, Unit> quantity) {
+Value getValue(const wuzp::units::Quantity<Value, Unit> quantity) {
   return quantity.getValue();
 }
 template <typename Value, typename Unit>
-auto inverse(const ctm::units::Quantity<Value, Unit> quantity) {
+auto inverse(const wuzp::units::Quantity<Value, Unit> quantity) {
   return quantity.inverse();
 }
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST

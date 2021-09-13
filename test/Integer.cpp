@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/Integer.hpp"
+#include "wuzp/core/Integer.hpp"
 
-using namespace ctm;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 TEST(TestInteger, CompareToRational) {  // NOLINT
   static_assert(std::is_same<Integer<3>, Rational<3, 1>>::value);

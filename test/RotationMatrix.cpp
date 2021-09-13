@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 
-#include "ctm/core/CoordinateMatrix.hpp"
-#include "ctm/core/CoordinateSystem.hpp"
-#include "ctm/core/traits.hpp"
-#include "ctm/trafo/Rotation.hpp"
+#include "wuzp/core/CoordinateMatrix.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/traits.hpp"
+#include "wuzp/trafo/Rotation.hpp"
 
-using ctm::CoordinateSystem;
-using ctm::Position2D;
-using ctm::Position3D;
-using ctm::RotationMatrix2D;
-using ctm::RotationMatrix3D;
-using ctm::Vector3D;
+using wuzp::CoordinateSystem;
+using wuzp::Position2D;
+using wuzp::Position3D;
+using wuzp::RotationMatrix2D;
+using wuzp::RotationMatrix3D;
+using wuzp::Vector3D;
 
 TEST(TestRotationMatrix, TransformVector) {  // NOLINT
   struct FromCoordinateSystemName {};
