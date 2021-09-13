@@ -222,51 +222,29 @@ struct DotProduct<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLh
                        0, 0>::type;
 };
 
-// template <int Size, typename ZeroType, typename OneType, typename IndexSequence>
-// struct IdentityImpl;
+template <int Size, typename Traits, typename ZeroType, typename OneType, typename IndexSequence>
+struct DiagonalTypeMatrixImpl;
+template <int Size, typename Traits, typename ZeroType, typename OneType, size_t... Is>
+struct DiagonalTypeMatrixImpl<Size, Traits, ZeroType, OneType, std::index_sequence<Is...>> {
+  using type = TypeMatrixImpl<Size, Size, Traits, std::tuple<typename Chose<Is % (Size + 1) != 0, ZeroType, OneType>::type...>>;
+};
+
+template <int Size, typename Traits, typename ZeroType, typename OneType>
+using DiagonalTypeMatrix = typename DiagonalTypeMatrixImpl<Size, Traits, ZeroType, OneType, std::make_index_sequence<Size * Size>>::type;
+
+// template <typename Matrix, typename Result, int Row, int Col>
+// struct GaussianElimination;
+// template <int Rows, int Cols, typename Traits, typename... Types, typename Result, int Row, int Col>
+// struct GaussianElimination<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>, Result, Row, Col> {
 //
-// template <int Size, typename ZeroType, typename OneType, size_t... Is>
-// struct IdentityImpl<Size, ZeroType, OneType, std::index_sequence<Is...>> {
-//  using type = TypeMatrixImpl<Size, Size, std::tuple<typename Chose<Is % (Size + 1) != 0, ZeroType, OneType>::type...>>;
 //};
 //
-// template <int Size, typename ZeroType, typename OneType>
-// using Identity = typename IdentityImpl<Size, ZeroType, OneType, std::make_index_sequence<Size * Size>>::type;
-
-template <int Size, typename Traits, typename TypeOfFamily>
-using TypeMatrixIdentity =
-    TypeMatrixImpl<Size, Size, Traits, HomogeneousTuple<Size * Size, typename Traits::template Identity<TypeOfFamily>::type>>;
-
-template <int Rows, int Cols, typename Traits, typename... Types>
-struct Inverse<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>> {
-  static_assert(Rows == Cols, "Matrix is not square.");
-  // Invert the types individually and transpose to get a candidate for the result of the inversion.
-  using type = typename Transpose<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<typename Traits::template Inverse<Types>::type...>>>::type;
-
- private:
-  // Verify the candidate: If the candidate multiplied by itself is idempotent (A^2 == A), it is valid.
-  using Identity = typename Product<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>, type>::type;
-  static_assert(std::is_same<typename Product<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
-
-  /* Proof:
-     Unit analysis of a linear transformation (q = M * p).
-     a   a/x a/y a/z   x
-     b = b/x b/y b/z * y
-     c   c/x c/y c/z   z
-
-     Unit analysis of the inverted linear transformation (p = M^-1 * p).
-     One can see that the units are inverted and then transformed.
-     x   x/a x/b x/c   a
-     y = y/a y/b y/c * b
-     z   z/a z/b z/c   c
-
-     Unit analysis of the product M * M^1.
-     One can see that the product is idempotent.
-     1    a/b  a/c
-     b/a  1    b/c
-     c/a  c/b  1
-  */
-};
+// template <int Rows, int Cols, typename Traits, typename... Types>
+// struct Inverse<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>> {
+//  static_assert(Rows == Cols, "Matrix is not square.");
+//  using type = typename GaussianElimination<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>, typename Traits::template
+//  Identity<TypeMatrixImpl<Rows, Cols, Traits, std::tuple<Types...>>>::type, Rows - 1, 0>::type;
+//};
 
 template <int Rows, int Cols, typename Traits, typename... Types>
 using TypeMatrix = typename CreateTypeMatrix<Rows, Cols, Traits, Types...>::type;

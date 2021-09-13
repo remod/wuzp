@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ctm/core/TypeMatrix.hpp"
 #include "ctm/core/traits.hpp"
 
 namespace ctm {
