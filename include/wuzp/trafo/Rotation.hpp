@@ -91,7 +91,7 @@ struct TransformationTraits<RotationMatrix<Scalar, From, To, Dimension>, Positio
     // TODO(remod): Avoid constructor, just cast.
     return PositionPoint<Dimension, Scalar, To>(
         (transformation.impl_ * (object - PositionPoint<Dimension, Scalar, From>(Eigen::Matrix<Scalar, Dimension, 1>::Zero())))
-            .getValues());
+            .getValueMatrix());
   }
 };
 

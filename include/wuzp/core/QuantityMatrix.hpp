@@ -22,196 +22,214 @@ namespace wuzp {
 
 // Orthogonal matrix: R^-1 == R^T
 
-template <typename Values, typename Units>
+template <typename ValueMatrix, typename UnitMatrixTypeMatrix>
 class QuantityMatrix {
  public:
-  static_assert(ValueMatrixTraits::Rows<Values>::value == Rows<Units>::value, "Number of rows do not match.");
-  static_assert(ValueMatrixTraits::Cols<Values>::value == Cols<Units>::value, "Number of columns do not match.");
+  static_assert(ValueMatrixTraits::Rows<ValueMatrix>::value == Rows<UnitMatrixTypeMatrix>::value, "Number of rows do not match.");
+  static_assert(ValueMatrixTraits::Cols<ValueMatrix>::value == Cols<UnitMatrixTypeMatrix>::value, "Number of columns do not match.");
 
   QuantityMatrix() = default;
-  template <typename ValuesOther>
-  QuantityMatrix(const QuantityMatrix<ValuesOther, Units>& other) : values_(other.getValues()) {}
-  template <typename... Ts>
-  explicit QuantityMatrix(Quantity<typename ValueMatrixTraits::Scalar<Values>::type, Ts>... quantities)
-      : values_(QuantityTraits::GetValue<Quantity<typename ValueMatrixTraits::Scalar<Values>::type, Ts>>::get(quantities)...) {
-    static_assert(std::is_same<std::tuple<Ts...>, typename AsTuple<Units>::type>::value, "Unit type mismatch.");
-  }
-  explicit QuantityMatrix(const Values& values) : values_(values) {}
 
-  void setValues(const Values& values) { values_ = values; }
-  const Values& getValues() const { return values_; }
-
-  template <int RowId, int ColId, typename Value>
-  void setValue(const Value value) {
-    values_(RowId, ColId) = value;
+  template <typename ValueMatrixOther, typename UnitMatrixTypeMatrixOther>
+  QuantityMatrix(const QuantityMatrix<ValueMatrixOther, UnitMatrixTypeMatrixOther>& other) : valueMatrix_(other.getValueMatrix()) {
+    static_assert(std::is_same<UnitMatrixTypeMatrix, UnitMatrixTypeMatrixOther>::value, "UnitMatrix mismatch.");
   }
-  template <int RowId, int ColId>
-  auto getValue() const {
-    return values_(RowId, ColId);
+
+  /**
+   * Construct a quantity matrix from quantities.
+   * @tparam Units Units of the quantities, order and types must correspond to the units of the quantity matrix.
+   * @param quantities Quantities.
+   */
+  template <typename... Units>
+  explicit QuantityMatrix(Quantity<typename ValueMatrixTraits::Scalar<ValueMatrix>::type, Units>... quantities)
+      : valueMatrix_(QuantityTraits::GetValue<Quantity<typename ValueMatrixTraits::Scalar<ValueMatrix>::type, Units>>::get(quantities)...) {
+    static_assert(std::is_same<std::tuple<Units...>, typename AsTuple<UnitMatrixTypeMatrix>::type>::value, "Unit type mismatch.");
   }
 
   template <int RowId, int ColId, typename Quantity>
   void setQuantity(const Quantity quantity) {
-    static_assert(std::is_same<typename Element<Units, RowId, ColId>::type, typename QuantityTraits::GetUnit<Quantity>::type>::value,
-                  "Unit type mismatch.");
-    setValue<RowId, ColId>(QuantityTraits::GetValue<Quantity>::get(quantity));
+    static_assert(
+        std::is_same<typename Element<UnitMatrixTypeMatrix, RowId, ColId>::type, typename QuantityTraits::GetUnit<Quantity>::type>::value,
+        "Unit type mismatch.");
+    valueMatrix_(RowId, ColId) = QuantityTraits::GetValue<Quantity>::get(quantity);
   }
   template <int RowId, int ColId>
   auto getQuantity() const {
-    return QuantityTraits::Create<Quantity<typename Values::Scalar, typename Element<Units, RowId, ColId>::type>>::create(
-        getValue<RowId, ColId>());
+    return QuantityTraits::Create<Quantity<typename ValueMatrix::Scalar, typename Element<UnitMatrixTypeMatrix, RowId, ColId>::type>>::create(
+        valueMatrix_(RowId, ColId));
   }
 
-  template <typename ValuesOther, typename UnitsOther>
-  bool isApprox(const QuantityMatrix<ValuesOther, UnitsOther>& other) const {
+  /**
+   * Construct a quantity matrix from a value matrix.
+   * WARNING: This method circumvents quantity type safety.
+   * @param valueMatrix Value matrix.
+   */
+  explicit QuantityMatrix(const ValueMatrix& valueMatrix) : valueMatrix_(valueMatrix) {}
+
+  /**
+   * Set the values of the quantity matrix.
+   * WARNING: This method circumvents quantity type safety.
+   * @param valueMatrix Value matrix.
+   */
+  void setValueMatrix(const ValueMatrix& valueMatrix) { valueMatrix_ = valueMatrix; }
+
+  /**
+   * Get the values of the quantity matrix.
+   * WARNING: This method circumvents quantity type safety.
+   * @return ValueMatrix of the quantity matrix.
+   */
+  const ValueMatrix& getValueMatrix() const { return valueMatrix_; }
+
+  template <typename ValueMatrixOther, typename UnitMatrixTypeMatrixOther>
+  bool isApprox(const QuantityMatrix<ValueMatrixOther, UnitMatrixTypeMatrixOther>& other) const {
     // Note: Allow other value types to support lazy evaluation.
-    static_assert(std::is_same<Units, UnitsOther>::value, "Units mismatch.");
-    return values_.isApprox(other.getValues());
+    static_assert(std::is_same<UnitMatrixTypeMatrix, UnitMatrixTypeMatrixOther>::value, "UnitMatrix mismatch.");
+    return valueMatrix_.isApprox(other.getValueMatrix());
   }
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
     return typename Block<This, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
-        values_.template block<BlockRows, BlockCols>(BlockRowId, BlockColId));
+        valueMatrix_.template block<BlockRows, BlockCols>(BlockRowId, BlockColId));
   }
 
-  auto transpose() const { return typename Transpose<This>::type(values_.transpose()); }
+  auto transpose() const { return typename Transpose<This>::type(valueMatrix_.transpose()); }
 
-  template <typename ValuesOther, typename UnitsOther>
-  auto dot(const QuantityMatrix<ValuesOther, UnitsOther>& other) const {
+  template <typename ValueMatrixOther, typename UnitMatrixTypeMatrixOther>
+  auto dot(const QuantityMatrix<ValueMatrixOther, UnitMatrixTypeMatrixOther>& other) const {
     // As boost does not support Quantity::Quantity(value), we need to call our helper create function here.
-    return QuantityTraits::Create<typename DotProduct<This, QuantityMatrix<ValuesOther, UnitsOther>>::type>::create(
-        values_.dot(other.getValues()));
+    return QuantityTraits::Create<typename DotProduct<This, QuantityMatrix<ValueMatrixOther, UnitMatrixTypeMatrixOther>>::type>::create(
+        valueMatrix_.dot(other.getValueMatrix()));
   }
 
-  auto inverse() const { return typename Inverse<This>::type(values_.inverse()); }
+  auto inverse() const { return typename Inverse<This>::type(valueMatrix_.inverse()); }
 
  private:
-  using This = QuantityMatrix<Values, Units>;
+  using This = QuantityMatrix<ValueMatrix, UnitMatrixTypeMatrix>;
 
-  Values values_;
+  ValueMatrix valueMatrix_;
 };
 
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-struct Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename ValueMatrixTraits::template Sum<ValuesLhs, ValuesRhs>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+struct Sum<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Sum<ValueMatrixLhs, ValueMatrixRhs>::type, typename Sum<UnitMatrixLhs, UnitMatrixRhs>::type>;
 };
 
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-struct Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = QuantityMatrix<typename ValueMatrixTraits::template Difference<ValuesLhs, ValuesRhs>::type,
-                              typename Difference<UnitsLhs, UnitsRhs>::type>;
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+struct Difference<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Difference<ValueMatrixLhs, ValueMatrixRhs>::type,
+                              typename Difference<UnitMatrixLhs, UnitMatrixRhs>::type>;
 };
 
-template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, Quantity<ValueRhs, UnitRhs>> {
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueRhs, typename UnitRhs>
+struct Product<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, Quantity<ValueRhs, UnitRhs>> {
   using type =
-      QuantityMatrix<typename ValueMatrixTraits::template Product<ValuesLhs, ValueRhs>::type, typename Product<UnitsLhs, UnitRhs>::type>;
+      QuantityMatrix<typename ValueMatrixTraits::template Product<ValueMatrixLhs, ValueRhs>::type, typename Product<UnitMatrixLhs, UnitRhs>::type>;
 };
-template <typename ValueLhs, typename UnitLhs, typename ValuesRhs, typename UnitsRhs>
-struct Product<Quantity<ValueLhs, UnitLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
-  using type = typename Product<QuantityMatrix<ValuesRhs, UnitsRhs>, Quantity<ValueLhs, UnitLhs>>::type;
+template <typename ValueLhs, typename UnitLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+struct Product<Quantity<ValueLhs, UnitLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
+  using type = typename Product<QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>, Quantity<ValueLhs, UnitLhs>>::type;
 };
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-struct Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+struct Product<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
   using type =
-      QuantityMatrix<typename ValueMatrixTraits::template Product<ValuesLhs, ValuesRhs>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
+      QuantityMatrix<typename ValueMatrixTraits::template Product<ValueMatrixLhs, ValueMatrixRhs>::type, typename Product<UnitMatrixLhs, UnitMatrixRhs>::type>;
 };
 
-template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-struct Division<QuantityMatrix<ValuesLhs, UnitsLhs>, Quantity<ValueRhs, UnitRhs>> {
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueRhs, typename UnitRhs>
+struct Division<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, Quantity<ValueRhs, UnitRhs>> {
   using type =
-      QuantityMatrix<typename ValueMatrixTraits::template Division<ValuesLhs, ValueRhs>::type, typename Division<UnitsLhs, UnitRhs>::type>;
+      QuantityMatrix<typename ValueMatrixTraits::template Division<ValueMatrixLhs, ValueRhs>::type, typename Division<UnitMatrixLhs, UnitRhs>::type>;
 };
 
-template <typename Values, typename Units>
-struct Transpose<QuantityMatrix<Values, Units>> {
-  using type = QuantityMatrix<typename ValueMatrixTraits::template Transpose<Values>::type, typename Transpose<Units>::type>;
+template <typename ValueMatrix, typename UnitMatrix>
+struct Transpose<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Transpose<ValueMatrix>::type, typename Transpose<UnitMatrix>::type>;
 };
 
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-struct DotProduct<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>> {
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+struct DotProduct<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
   using type =
-      Quantity<typename ValueMatrixTraits::template DotProduct<ValuesLhs, ValuesRhs>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
+      Quantity<typename ValueMatrixTraits::template DotProduct<ValueMatrixLhs, ValueMatrixRhs>::type, typename DotProduct<UnitMatrixLhs, UnitMatrixRhs>::type>;
 };
 
-template <typename Values, typename Units>
-struct Inverse<QuantityMatrix<Values, Units>> {
-  using type = QuantityMatrix<typename ValueMatrixTraits::template Inverse<Values>::type, typename Inverse<Units>::type>;
+template <typename ValueMatrix, typename UnitMatrix>
+struct Inverse<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Inverse<ValueMatrix>::type, typename Inverse<UnitMatrix>::type>;
 };
 
-template <typename Values, typename Units, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct Block<QuantityMatrix<Values, Units>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type = QuantityMatrix<typename ValueMatrixTraits::template Block<Values, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-                              typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+template <typename ValueMatrix, typename UnitMatrix, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct Block<QuantityMatrix<ValueMatrix, UnitMatrix>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+  using type = QuantityMatrix<typename ValueMatrixTraits::template Block<ValueMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+                              typename Block<UnitMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
 };
 
-template <typename Values, typename Units>
-auto operator+(const QuantityMatrix<Values, Units>& quantityMatrix) {
+template <typename ValueMatrix, typename UnitMatrix>
+auto operator+(const QuantityMatrix<ValueMatrix, UnitMatrix>& quantityMatrix) {
   return quantityMatrix;
 }
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-auto operator+(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
-  return typename Sum<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() + rhs.getValues());
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+auto operator+(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>& rhs) {
+  return typename Sum<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>>::type(lhs.getValueMatrix() + rhs.getValueMatrix());
 }
 
-template <typename Values, typename Units>
-auto operator-(const QuantityMatrix<Values, Units>& quantityMatrix) {
-  return QuantityMatrix<Values, Units>(-quantityMatrix.getValues());
+template <typename ValueMatrix, typename UnitMatrix>
+auto operator-(const QuantityMatrix<ValueMatrix, UnitMatrix>& quantityMatrix) {
+  return QuantityMatrix<ValueMatrix, UnitMatrix>(-quantityMatrix.getValueMatrix());
 }
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-auto operator-(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
-  return typename Difference<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() -
-                                                                                                             rhs.getValues());
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+auto operator-(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>& rhs) {
+  return typename Difference<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>>::type(lhs.getValueMatrix() -
+                                                                                                             rhs.getValueMatrix());
 }
 
-template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs>
-auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const ValueRhs rhs) {
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueRhs>
+auto operator*(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const ValueRhs rhs) {
   return lhs * Quantity<ValueRhs, Dimensionless>(rhs);
 }
-template <typename ValueLhs, typename ValuesRhs, typename UnitsRhs>
-auto operator*(const ValueLhs lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+template <typename ValueLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+auto operator*(const ValueLhs lhs, const QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>& rhs) {
   return rhs * lhs;
 }
-template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Product<QuantityMatrix<ValuesLhs, UnitsLhs>, Quantity<ValueRhs, UnitRhs>>::type(
-      lhs.getValues() * QuantityTraits::GetValue<Quantity<ValueRhs, UnitRhs>>::get(rhs));
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueRhs, typename UnitRhs>
+auto operator*(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Product<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, Quantity<ValueRhs, UnitRhs>>::type(
+      lhs.getValueMatrix() * QuantityTraits::GetValue<Quantity<ValueRhs, UnitRhs>>::get(rhs));
 }
-template <typename ValueLhs, typename UnitLhs, typename ValuesRhs, typename UnitsRhs>
-auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+template <typename ValueLhs, typename UnitLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>& rhs) {
   return rhs * lhs;
 }
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-auto operator*(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+auto operator*(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>& rhs) {
   return
-      typename Product<QuantityMatrix<ValuesLhs, UnitsLhs>, QuantityMatrix<ValuesRhs, UnitsRhs>>::type(lhs.getValues() * rhs.getValues());
+      typename Product<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>>::type(lhs.getValueMatrix() * rhs.getValueMatrix());
 }
 
-template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs>
-auto operator/(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const ValueRhs rhs) {
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueRhs>
+auto operator/(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const ValueRhs rhs) {
   return lhs / Quantity<ValueRhs, Dimensionless>(rhs);
 }
-template <typename ValuesLhs, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-auto operator/(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Division<QuantityMatrix<ValuesLhs, UnitsLhs>, Quantity<ValueRhs, UnitRhs>>::type(
-      lhs.getValues() / QuantityTraits::GetValue<Quantity<ValueRhs, UnitRhs>>::get(rhs));
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueRhs, typename UnitRhs>
+auto operator/(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Division<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, Quantity<ValueRhs, UnitRhs>>::type(
+      lhs.getValueMatrix() / QuantityTraits::GetValue<Quantity<ValueRhs, UnitRhs>>::get(rhs));
 }
 
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-bool operator==(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
-  static_assert(std::is_same<UnitsLhs, UnitsRhs>::value, "Units mismatch.");
-  return lhs.getValues() == rhs.getValues();
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+bool operator==(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>& rhs) {
+  static_assert(std::is_same<UnitMatrixLhs, UnitMatrixRhs>::value, "UnitMatrix mismatch.");
+  return lhs.getValueMatrix() == rhs.getValueMatrix();
 }
 
-template <typename ValuesLhs, typename UnitsLhs, typename ValuesRhs, typename UnitsRhs>
-bool operator!=(const QuantityMatrix<ValuesLhs, UnitsLhs>& lhs, const QuantityMatrix<ValuesRhs, UnitsRhs>& rhs) {
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+bool operator!=(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>& rhs) {
   return !(lhs == rhs);
 }
 
-template <typename Values, typename Units>
-std::ostream& operator<<(std::ostream& stream, const QuantityMatrix<Values, Units>& quantityMatrix) {
-  stream << quantityMatrix.getValues();
+template <typename ValueMatrix, typename UnitMatrix>
+std::ostream& operator<<(std::ostream& stream, const QuantityMatrix<ValueMatrix, UnitMatrix>& quantityMatrix) {
+  stream << quantityMatrix.getValueMatrix();
   return stream;
 }
 
