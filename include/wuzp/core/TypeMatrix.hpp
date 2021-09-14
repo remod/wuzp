@@ -40,7 +40,7 @@ template <typename Traits, typename Lhs, typename Rhs>
 struct AddTwoTuples;
 template <typename Traits, typename... TsLhs, typename... TsRhs>
 struct AddTwoTuples<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
-  static_assert(sizeof...(TsLhs) == sizeof...(TsRhs), "Tuple size mismatch.");
+  static_assert(sizeof...(TsLhs) == sizeof...(TsRhs), "Tuple sizes do not match.");
   using type =
       typename AddTwoTuplesImpl<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::make_index_sequence<sizeof...(TsLhs)>>::type;
 };
@@ -57,7 +57,7 @@ template <typename Traits, typename Lhs, typename Rhs>
 struct SubtractTwoTuples;
 template <typename Traits, typename... TsLhs, typename... TsRhs>
 struct SubtractTwoTuples<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
-  static_assert(sizeof...(TsLhs) == sizeof...(TsRhs), "Tuple size mismatch.");
+  static_assert(sizeof...(TsLhs) == sizeof...(TsRhs), "Tuple sizes do not match.");
   using type =
       typename SubtractTwoTuplesImpl<Traits, std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::make_index_sequence<sizeof...(TsLhs)>>::type;
 };
@@ -157,9 +157,9 @@ template <int RowsLhs, int ColsLhs, typename TraitsLhs, typename... TypesLhs, in
           typename... TypesRhs>
 struct Sum<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>,
            TypeMatrixImpl<RowsRhs, ColsRhs, TraitsRhs, std::tuple<TypesRhs...>>> {
-  static_assert(RowsLhs == RowsRhs, "Matrix size mismatch.");
-  static_assert(ColsLhs == ColsRhs, "Matrix size mismatch.");
-  static_assert(std::is_same<TraitsLhs, TraitsRhs>::value, "Traits mismatch.");
+  static_assert(RowsLhs == RowsRhs, "Matrix sizes do not match.");
+  static_assert(ColsLhs == ColsRhs, "Matrix sizes do not match.");
+  static_assert(std::is_same<TraitsLhs, TraitsRhs>::value, "Traits do not match.");
   using type =
       TypeMatrixImpl<RowsLhs, ColsRhs, TraitsLhs, typename AddTwoTuples<TraitsLhs, std::tuple<TypesLhs...>, std::tuple<TypesRhs...>>::type>;
 };
@@ -168,9 +168,9 @@ template <int RowsLhs, int ColsLhs, typename TraitsLhs, typename... TypesLhs, in
           typename... TypesRhs>
 struct Difference<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>,
                   TypeMatrixImpl<RowsRhs, ColsRhs, TraitsRhs, std::tuple<TypesRhs...>>> {
-  static_assert(RowsLhs == RowsRhs, "Matrix size mismatch.");
-  static_assert(ColsLhs == ColsRhs, "Matrix size mismatch.");
-  static_assert(std::is_same<TraitsLhs, TraitsRhs>::value, "Traits mismatch.");
+  static_assert(RowsLhs == RowsRhs, "Matrix sizes do not match.");
+  static_assert(ColsLhs == ColsRhs, "Matrix sizes do not match.");
+  static_assert(std::is_same<TraitsLhs, TraitsRhs>::value, "Traits do not match.");
   using type = TypeMatrixImpl<RowsLhs, ColsRhs, TraitsLhs,
                               typename SubtractTwoTuples<TraitsLhs, std::tuple<TypesLhs...>, std::tuple<TypesRhs...>>::type>;
 };
@@ -189,8 +189,8 @@ template <int RowsLhs, int ColsLhs, typename TraitsLhs, typename... TypesLhs, in
           typename... TypesRhs>
 struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>,
                TypeMatrixImpl<RowsRhs, ColsRhs, TraitsRhs, std::tuple<TypesRhs...>>> {
-  static_assert(ColsLhs == RowsRhs, "Matrix size mismatch.");
-  static_assert(std::is_same<TraitsLhs, TraitsRhs>::value, "Traits mismatch.");
+  static_assert(ColsLhs == RowsRhs, "Matrix sizes do not match.");
+  static_assert(std::is_same<TraitsLhs, TraitsRhs>::value, "Traits do not match.");
   using type = TypeMatrixImpl<
       RowsLhs, ColsRhs, TraitsLhs,
       typename MultiplyTuples<TraitsLhs, typename ToRows<ColsLhs, TypesLhs...>::type, typename ToCols<ColsRhs, TypesRhs...>::type,
@@ -212,10 +212,10 @@ template <int RowsLhs, int ColsLhs, typename TraitsLhs, typename... TypesLhs, in
           typename... TypesRhs>
 struct DotProduct<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>,
                   TypeMatrixImpl<RowsRhs, ColsRhs, TraitsRhs, std::tuple<TypesRhs...>>> {
-  static_assert(RowsLhs == RowsRhs, "Matrix size mismatch.");
+  static_assert(RowsLhs == RowsRhs, "Matrix sizes do not match.");
   static_assert(ColsLhs == 1, "Dot product is only defined for vectors.");
   static_assert(ColsRhs == 1, "Dot product is only defined for vectors.");
-  static_assert(std::is_same<TraitsLhs, TraitsRhs>::value, "Traits mismatch.");
+  static_assert(std::is_same<TraitsLhs, TraitsRhs>::value, "Traits do not match.");
   using type =
       typename Element<typename Product<typename Transpose<TypeMatrixImpl<RowsLhs, ColsLhs, TraitsLhs, std::tuple<TypesLhs...>>>::type,
                                         TypeMatrixImpl<RowsRhs, ColsRhs, TraitsRhs, std::tuple<TypesRhs...>>>::type,

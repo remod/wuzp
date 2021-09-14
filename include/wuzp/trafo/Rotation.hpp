@@ -41,14 +41,14 @@ class Quaternion : public QuaternionBase<Quaternion<Scalar, From, To>, From, To,
 template <typename From, typename To, typename Scalar>
 struct TransformationTraits<Quaternion<Scalar, From, To>, PositionVector<3, Scalar, From>> {
   static auto transform(const Quaternion<Scalar, From, To>& transformation, const PositionVector<3, Scalar, From>& object) {
-    return PositionVector<3, Scalar, To>(transformation.impl_ * object.getValues());
+    return PositionVector<3, Scalar, To>(transformation.impl_ * object.getValueMatrix());
   }
 };
 
 template <typename From, typename To, typename Scalar>
 struct TransformationTraits<Quaternion<Scalar, From, To>, PositionPoint<3, Scalar, From>> {
   static auto transform(const Quaternion<Scalar, From, To>& transformation, const PositionPoint<3, Scalar, From>& object) {
-    return PositionPoint<3, Scalar, To>(transformation.impl_ * object.getValues());
+    return PositionPoint<3, Scalar, To>(transformation.impl_ * object.getValueMatrix());
   }
 };
 

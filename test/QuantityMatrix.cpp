@@ -12,10 +12,11 @@ using namespace wuzp;  // NOLINT
 
 TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
-  using MyUnits = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
-  using MyMatrix = QuantityMatrix<MyValueMatrix, MyUnits>;
-  MyMatrix myMatrix(QuantityTraits::Create<Quantity<int, Length>>::create(1), QuantityTraits::Create<Quantity<int, Area>>::create(2),
-                    QuantityTraits::Create<Quantity<int, Volume>>::create(3), QuantityTraits::Create<Quantity<int, Mass>>::create(4));
+  using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  MyQuantityMatrix myMatrix(
+      QuantityTraits::Create<Quantity<int, Length>>::create(1), QuantityTraits::Create<Quantity<int, Area>>::create(2),
+      QuantityTraits::Create<Quantity<int, Volume>>::create(3), QuantityTraits::Create<Quantity<int, Mass>>::create(4));
 }
 
 TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
@@ -31,43 +32,43 @@ using namespace wuzp;  // NOLINT
 
 int main() {
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
-  using MyUnits = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
-  using MyMatrix = QuantityMatrix<MyValueMatrix, MyUnits>;
-  MyMatrix myMatrix(QuantityTraits::Create<Quantity<int, Length>>::create(1),
+  using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  MyQuantityMatrix myMatrix(QuantityTraits::Create<Quantity<int, Length>>::create(1),
                     QuantityTraits::Create<Quantity<int, Area>>::create(2),
                     QuantityTraits::Create<Quantity<int, Volume>>::create(3),
                     QuantityTraits::Create<Quantity<int, Length>>::create(4));
   return 0;
 }
   )",
-                                               "Unit type mismatch.")
+                                               "Units do not match.")
 }
 
 class TestQuantityMatrix : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
-  using MyUnits = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
-  using MyMatrix = QuantityMatrix<MyValueMatrix, MyUnits>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
 
-  const MyValueMatrix& getValues1() const { return values1_; }
-  const MyValueMatrix& getValues2() const { return values2_; }
-  const MyMatrix& getMatrix1() const { return matrix1_; }
-  const MyMatrix& getMatrix2() const { return matrix2_; }
-  MyMatrix& getMatrix1() { return matrix1_; }
+  const MyValueMatrix& getValues1() const { return valueMatrix1_; }
+  const MyValueMatrix& getValues2() const { return valueMatrix2_; }
+  const MyQuantityMatrix& getMatrix1() const { return quantityMatrix1_; }
+  const MyQuantityMatrix& getMatrix2() const { return quantityMatrix2_; }
+  MyQuantityMatrix& getMatrix1() { return quantityMatrix1_; }
 
  protected:
   void SetUp() override {
-    values1_ << 1, 2, 3, 4, 5, 6;
-    matrix1_.setValueMatrix(values1_);
-    values2_ << 3, 1, 4, 1, 5, 9;
-    matrix2_.setValueMatrix(values2_);
+    valueMatrix1_ << 1, 2, 3, 4, 5, 6;
+    quantityMatrix1_.setValueMatrix(valueMatrix1_);
+    valueMatrix2_ << 3, 1, 4, 1, 5, 9;
+    quantityMatrix2_.setValueMatrix(valueMatrix2_);
   }
 
  private:
-  MyValueMatrix values1_;
-  MyMatrix matrix1_;
-  MyValueMatrix values2_;
-  MyMatrix matrix2_;
+  MyValueMatrix valueMatrix1_;
+  MyQuantityMatrix quantityMatrix1_;
+  MyValueMatrix valueMatrix2_;
+  MyQuantityMatrix quantityMatrix2_;
 };
 
 TEST_F(TestQuantityMatrix, SetGetValueMatrix) {  // NOLINT
@@ -97,21 +98,21 @@ using namespace wuzp;  // NOLINT
 
 int main() {
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
-  using MyUnits = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
-  using MyMatrix = QuantityMatrix<MyValueMatrix, MyUnits>;
-  MyMatrix matrix;
-  matrix.setQuantity<1, 2>(QuantityTraits::Create<Quantity<int, Time>>::create(7));
+  using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  MyQuantityMatrix quantityMatrix;
+  quantityMatrix.setQuantity<1, 2>(QuantityTraits::Create<Quantity<int, Time>>::create(7));
   return 0;
 }
   )",
-                                                                                                "Unit type mismatch.")}
+                                                                                                "Units do not match.")}
 
 TEST_F(TestQuantityMatrix, Addition) {  // NOLINT
-  EXPECT_EQ(getMatrix1() + getMatrix2(), MyMatrix(getValues1() + getValues2()));
+  EXPECT_EQ(getMatrix1() + getMatrix2(), MyQuantityMatrix(getValues1() + getValues2()));
 }
 
 TEST_F(TestQuantityMatrix, Subtraction) {  // NOLINT
-  EXPECT_EQ(getMatrix1() - getMatrix2(), MyMatrix(getValues1() - getValues2()));
+  EXPECT_EQ(getMatrix1() - getMatrix2(), MyQuantityMatrix(getValues1() - getValues2()));
 }
 
 TEST_F(TestQuantityMatrix, EqualityOperator) {  // NOLINT
@@ -124,124 +125,124 @@ TEST_F(TestQuantityMatrix, InequalityOperator) {  // NOLINT
 
 TEST_F(TestQuantityMatrix, Block) {  // NOLINT
   using MyValueMatrixB = ValueMatrix<int, 2, 2>;
-  using MyUnitsB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
-  using MyMatrixB = QuantityMatrix<MyValueMatrixB, MyUnitsB>;
-  MyValueMatrixB valuesB;
-  valuesB << 2, 3, 5, 6;
-  MyMatrixB matrixB(valuesB);
-  EXPECT_EQ((getMatrix1().block<0, 1, 2, 2>()), matrixB);
+  using MyUnitMatrixB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
+  using MyQuantityMatrixB = QuantityMatrix<MyValueMatrixB, MyUnitMatrixB>;
+  MyValueMatrixB valueMatrixB;
+  valueMatrixB << 2, 3, 5, 6;
+  MyQuantityMatrixB quantityMatrixB(valueMatrixB);
+  EXPECT_EQ((getMatrix1().block<0, 1, 2, 2>()), quantityMatrixB);
 }
 
 TEST_F(TestQuantityMatrix, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
-  using MyUnitsT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
-  using MyMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitsT>;
-  MyValueMatrixT valuesT;
-  valuesT << 1, 4, 2, 5, 3, 6;
-  MyMatrixT matrixT(valuesT);
-  EXPECT_EQ(getMatrix1().transpose(), matrixT);
+  using MyUnitMatrixT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
+  using MyQuantityMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitMatrixT>;
+  MyValueMatrixT valueMatrixT;
+  valueMatrixT << 1, 4, 2, 5, 3, 6;
+  MyQuantityMatrixT quantityMatrixT(valueMatrixT);
+  EXPECT_EQ(getMatrix1().transpose(), quantityMatrixT);
 }
 
 TEST(TestQuantityMatrix2, ProductQuantityMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
-  using MyUnits = UnitMatrix<2, 2, Length>;
-  using MyUnitsResult = UnitMatrix<2, 2, Area>;
-  using MyMatrix = QuantityMatrix<MyValueMatrix, MyUnits>;
-  using MyMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitsResult>;
+  using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   MyValueMatrix valueMatrix;
   valueMatrix << 1, 2, 3, 4;
-  MyMatrix matrix;
-  matrix.setValueMatrix(valueMatrix);
-  EXPECT_EQ(matrix * matrix, MyMatrixResult(valueMatrix * valueMatrix));
+  MyQuantityMatrix quantityMatrix;
+  quantityMatrix.setValueMatrix(valueMatrix);
+  EXPECT_EQ(quantityMatrix * quantityMatrix, MyQuantityMatrixResult(valueMatrix * valueMatrix));
 }
 
 TEST(TestQuantityMatrix2, ProductQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
-  using MyUnits = UnitMatrix<2, 2, Length>;
-  using MyMatrix = QuantityMatrix<MyValueMatrix, MyUnits>;
+  using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
-  using MyUnitsResult = UnitMatrix<2, 2, Area>;
-  using MyMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitsResult>;
+  using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
+  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
   MyValueMatrix valueMatrix;
   valueMatrix << 1, 2, 3, 4;
-  MyMatrix matrix;
-  matrix.setValueMatrix(valueMatrix);
-  EXPECT_EQ(matrix * quantity, MyMatrixResult(valueMatrix * value));
-  EXPECT_EQ(quantity * matrix, MyMatrixResult(valueMatrix * value));
+  MyQuantityMatrix quantityMatrix;
+  quantityMatrix.setValueMatrix(valueMatrix);
+  EXPECT_EQ(quantityMatrix * quantity, MyQuantityMatrixResult(valueMatrix * value));
+  EXPECT_EQ(quantity * quantityMatrix, MyQuantityMatrixResult(valueMatrix * value));
 }
 
 TEST(TestQuantityMatrix2, DivisionQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
-  using MyUnits = UnitMatrix<2, 2, Length>;
-  using MyMatrix = QuantityMatrix<MyValueMatrix, MyUnits>;
+  using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
-  using MyUnitsResult = UnitMatrix<2, 2, Dimensionless>;
-  using MyMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitsResult>;
+  using MyUnitMatrixResult = UnitMatrix<2, 2, Dimensionless>;
+  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
   MyValueMatrix valueMatrix;
   valueMatrix << 1, 2, 3, 4;
-  MyMatrix matrix;
-  matrix.setValueMatrix(valueMatrix);
-  EXPECT_EQ(matrix / quantity, MyMatrixResult(valueMatrix / value));
+  MyQuantityMatrix quantityMatrix;
+  quantityMatrix.setValueMatrix(valueMatrix);
+  EXPECT_EQ(quantityMatrix / quantity, MyQuantityMatrixResult(valueMatrix / value));
 }
 
 TEST(TestQuantityMatrix2, ScalarProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
-  using MyUnits = UnitMatrix<4, 1, Length>;
-  using MyMatrix = QuantityMatrix<MyValueMatrix, MyUnits>;
-  using MyMatrixResult = Quantity<int, Area>;
-  MyValueMatrix values1;
-  values1 << 1, 2, 3, 4;
-  MyValueMatrix values2;
-  values2 << 0, 3, -1, 2;
-  EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), QuantityTraits::Create<MyMatrixResult>::create(11));
+  using MyUnitMatrix = UnitMatrix<4, 1, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityResult = Quantity<int, Area>;
+  MyValueMatrix valueMatrix1;
+  valueMatrix1 << 1, 2, 3, 4;
+  MyValueMatrix valueMatrix2;
+  valueMatrix2 << 0, 3, -1, 2;
+  EXPECT_EQ(MyQuantityMatrix(valueMatrix1).dot(MyQuantityMatrix(valueMatrix2)), QuantityTraits::Create<MyQuantityResult>::create(11));
 }
 
 TEST(TestQuantityMatrix2, Chain) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
-  using MyUnits1 = UnitMatrix<2, 2, Length>;
-  using MyUnits2 = UnitMatrix<2, 2, Area>;
-  using MyUnitsResult = UnitMatrix<2, 2, Area>;
-  using MyMatrix1 = QuantityMatrix<MyValueMatrix, MyUnits1>;
-  using MyMatrix2 = QuantityMatrix<MyValueMatrix, MyUnits2>;
-  using MyMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitsResult>;
+  using MyUnitMatrix1 = UnitMatrix<2, 2, Length>;
+  using MyUnitMatrix2 = UnitMatrix<2, 2, Area>;
+  using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
+  using MyQuantityMatrix1 = QuantityMatrix<MyValueMatrix, MyUnitMatrix1>;
+  using MyQuantityMatrix2 = QuantityMatrix<MyValueMatrix, MyUnitMatrix2>;
+  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   MyValueMatrix valueMatrix;
   valueMatrix << 1, 2, 3, 4;
-  MyMatrix1 matrix1(valueMatrix);
-  MyMatrix2 matrix2(valueMatrix);
-  EXPECT_EQ(matrix2 + matrix1 * matrix1, MyMatrixResult(valueMatrix + valueMatrix * valueMatrix));
+  MyQuantityMatrix1 quantityMatrix1(valueMatrix);
+  MyQuantityMatrix2 quantityMatrix2(valueMatrix);
+  EXPECT_EQ(quantityMatrix2 + quantityMatrix1 * quantityMatrix1, MyQuantityMatrixResult(valueMatrix + valueMatrix * valueMatrix));
 }
 
 class TestQuantityMatrixInvertible : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrix<double, 2, 2>;
-  using MyUnits = UnitMatrix<2, 2, Time>;
-  using MyMatrix = QuantityMatrix<MyValueMatrix, MyUnits>;
+  using MyUnitMatrix = UnitMatrix<2, 2, Time>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
 
-  const MyValueMatrix& getValues() const { return values_; }
-  const MyMatrix& getMatrix() const { return matrix_; }
+  const MyValueMatrix& getValues() const { return valueMatrix_; }
+  const MyQuantityMatrix& getMatrix() const { return quantityMatrix_; }
 
  protected:
   void SetUp() override {
-    values_ << 4.0, 7.0, 2.0, 6.0;
-    matrix_.setValueMatrix(values_);
+    valueMatrix_ << 4.0, 7.0, 2.0, 6.0;
+    quantityMatrix_.setValueMatrix(valueMatrix_);
   }
 
  private:
-  MyValueMatrix values_;
-  MyMatrix matrix_;
+  MyValueMatrix valueMatrix_;
+  MyQuantityMatrix quantityMatrix_;
 };
 
 TEST_F(TestQuantityMatrixInvertible, Inverse) {  // NOLINT
-  using MyUnitsInv = UnitMatrix<2, 2, Frequency>;
-  using MyMatrixInv = QuantityMatrix<MyValueMatrix, MyUnitsInv>;
-  MyValueMatrix valuesInv;
-  valuesInv << 0.6, -0.7, -0.2, 0.4;
-  MyMatrixInv matrixInv(valuesInv);
-  EXPECT_TRUE(getMatrix().inverse().isApprox(matrixInv));
+  using MyUnitMatrixInv = UnitMatrix<2, 2, Frequency>;
+  using MyQuantityMatrixInv = QuantityMatrix<MyValueMatrix, MyUnitMatrixInv>;
+  MyValueMatrix valueMatrixInv;
+  valueMatrixInv << 0.6, -0.7, -0.2, 0.4;
+  MyQuantityMatrixInv quantityMatrixInv(valueMatrixInv);
+  EXPECT_TRUE(getMatrix().inverse().isApprox(quantityMatrixInv));
 }

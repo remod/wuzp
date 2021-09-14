@@ -14,17 +14,17 @@ struct UnitTraits {
   DEFINE_RECURSIVE_TRAIT(Sum)
   template <typename Lhs, typename Rhs>
   struct Sum<Lhs, Rhs> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
+    static_assert(std::is_same<Lhs, Rhs>::value, "Units do not match");
     using type = Lhs;
   };
   template <typename Lhs, typename Rhs>
   struct Sum<Absolute<Lhs>, Rhs> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
+    static_assert(std::is_same<Lhs, Rhs>::value, "Units do not match");
     using type = Absolute<Lhs>;
   };
   template <typename Lhs, typename Rhs>
   struct Sum<Lhs, Absolute<Rhs>> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
+    static_assert(std::is_same<Lhs, Rhs>::value, "Units do not match");
     using type = typename Sum<Absolute<Lhs>, Rhs>::type;
   };
   template <typename Lhs, typename Rhs>
@@ -35,12 +35,12 @@ struct UnitTraits {
   DEFINE_RECURSIVE_TRAIT(Difference)
   template <typename Lhs, typename Rhs>
   struct Difference<Lhs, Rhs> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
+    static_assert(std::is_same<Lhs, Rhs>::value, "Units do not match");
     using type = Lhs;
   };
   template <typename Lhs, typename Rhs>
   struct Difference<Absolute<Lhs>, Rhs> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
+    static_assert(std::is_same<Lhs, Rhs>::value, "Units do not match");
     using type = Absolute<Lhs>;
   };
   template <typename Lhs, typename Rhs>
@@ -49,7 +49,7 @@ struct UnitTraits {
   };
   template <typename Lhs, typename Rhs>
   struct Difference<Absolute<Lhs>, Absolute<Rhs>> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Unit mismatch");
+    static_assert(std::is_same<Lhs, Rhs>::value, "Units do not match");
     using type = Lhs;
   };
 

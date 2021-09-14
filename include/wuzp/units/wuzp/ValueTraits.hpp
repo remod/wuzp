@@ -12,7 +12,7 @@ struct ValueTraits {
   template <typename ValueLhs, typename ValueRhs>
   struct Sum<ValueLhs, ValueRhs> {
     // Design decision: Do not allow mixing types, require a manual cast.
-    static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value type mismatch.");
+    static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value types do not match.");
     using type = ValueLhs;
   };
 
@@ -20,7 +20,7 @@ struct ValueTraits {
   template <typename ValueLhs, typename ValueRhs>
   struct Difference<ValueLhs, ValueRhs> {
     // Design decision: Do not allow mixing types, require a manual cast.
-    static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value type mismatch.");
+    static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value types do not match.");
     using type = ValueLhs;
   };
 
@@ -28,7 +28,7 @@ struct ValueTraits {
   template <typename ValueLhs, typename ValueRhs>
   struct Product<ValueLhs, ValueRhs> {
     // Design decision: Do not allow mixing types, require a manual cast.
-    static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value type mismatch.");
+    static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value types do not match.");
     using type = ValueLhs;
   };
 
@@ -36,7 +36,7 @@ struct ValueTraits {
   template <typename ValueLhs, typename ValueRhs>
   struct Division<ValueLhs, ValueRhs> {
     // Design decision: Do not allow mixing types, require a manual cast.
-    static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value type mismatch.");
+    static_assert(std::is_same<ValueLhs, ValueRhs>::value, "Value types do not match.");
     using type = ValueLhs;
   };
 

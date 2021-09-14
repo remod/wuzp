@@ -24,7 +24,7 @@ template <int Dimension, typename From, typename To, typename Scalar>
 struct TransformationTraits<Translation<Dimension, Scalar, From, To>, PositionVector<Dimension, Scalar, From>> {
   static auto transform(const Translation<Dimension, Scalar, From, To>& /*transformation*/,
                         const PositionVector<Dimension, Scalar, From>& object) {
-    return PositionVector<Dimension, Scalar, To>(object.getValues());
+    return PositionVector<Dimension, Scalar, To>(object.getValueMatrix());
   }
 };
 
@@ -32,7 +32,7 @@ template <int Dimension, typename From, typename To, typename Scalar>
 struct TransformationTraits<Translation<Dimension, Scalar, From, To>, PositionPoint<Dimension, Scalar, From>> {
   static auto transform(const Translation<Dimension, Scalar, From, To>& transformation,
                         const PositionPoint<Dimension, Scalar, From>& object) {
-    return PositionPoint<Dimension, Scalar, To>((transformation.impl_ + object).getValues());
+    return PositionPoint<Dimension, Scalar, To>((transformation.impl_ + object).getValueMatrix());
   }
 };
 

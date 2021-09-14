@@ -16,13 +16,13 @@ class Quantity {
   template <typename ValueOther>
   explicit Quantity(const ValueOther value) : value_(value) {
     // Design decision: Do not allow mixing types, require a manual cast.
-    static_assert(std::is_same<Value, ValueOther>::value, "Value mismatch.");
+    static_assert(std::is_same<Value, ValueOther>::value, "Values do not match.");
   }
 
   template <typename ValueOther>
   void setValue(const ValueOther value) {
     // Design decision: Do not allow mixing types, require a manual cast.
-    static_assert(std::is_same<Value, ValueOther>::value, "Value mismatch.");
+    static_assert(std::is_same<Value, ValueOther>::value, "Values do not match.");
     value_ = value;
   }
   Value getValue() const { return value_; }
@@ -35,7 +35,7 @@ class Quantity {
   template <typename ValueOther, typename UnitOther>
   bool isApprox(const Quantity<ValueOther, UnitOther>& other) const {
     // Note: Allow other value types to support lazy evaluation.
-    static_assert(std::is_same<Unit, UnitOther>::value, "Units mismatch.");
+    static_assert(std::is_same<Unit, UnitOther>::value, "Units do not match.");
     return value_.isApprox(other.getValue());
   }
 
@@ -86,7 +86,7 @@ auto operator/(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, 
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 bool operator==(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  static_assert(std::is_same<UnitLhs, UnitRhs>::value, "Unit mismatch.");
+  static_assert(std::is_same<UnitLhs, UnitRhs>::value, "Units do not match.");
   return lhs.getValue() == rhs.getValue();
 }
 
