@@ -11,7 +11,7 @@
 using namespace wuzp;  // NOLINT
 
 template <int Rows, int Cols, typename... Rationals>
-using ValueMatrix = TypeMatrix<Rows, Cols, RationalTraits, Rationals...>;
+using RationalMatrix = TypeMatrix<Rows, Cols, RationalTraits, Rationals...>;
 
 template <int Size>
 using ValueMatrixIdentity = DiagonalTypeMatrix<Size, RationalTraits, Integer<0>, Integer<1>>;
@@ -25,31 +25,31 @@ TEST(TestTypeMatrix, Conversions) {  // NOLINT
 }
 
 TEST(TestTypeMatrix, Interface) {  // NOLINT
-  static_assert(std::is_same<ValueMatrix<3, 2, Integer<4>>,
-                             ValueMatrix<3, 2, Integer<4>, Integer<4>, Integer<4>, Integer<4>, Integer<4>, Integer<4>>>::value);
+  static_assert(std::is_same<RationalMatrix<3, 2, Integer<4>>,
+                             RationalMatrix<3, 2, Integer<4>, Integer<4>, Integer<4>, Integer<4>, Integer<4>, Integer<4>>>::value);
 }
 
 TEST(TestTypeMatrix, Rows) {  // NOLINT
-  static_assert(Rows<ValueMatrix<3, 2, Integer<4>>>::value == 3);
+  static_assert(Rows<RationalMatrix<3, 2, Integer<4>>>::value == 3);
 }
 
 TEST(TestTypeMatrix, Cols) {  // NOLINT
-  static_assert(Cols<ValueMatrix<3, 2, Integer<4>>>::value == 2);
+  static_assert(Cols<RationalMatrix<3, 2, Integer<4>>>::value == 2);
 }
 
 TEST(TestTypeMatrix, DiagonalTypeMatrix) {  // NOLINT
-  static_assert(std::is_same<ValueMatrixIdentity<1>, ValueMatrix<1, 1, Integer<1>>>::value);
-  static_assert(std::is_same<ValueMatrixIdentity<2>, ValueMatrix<2, 2, Integer<1>, Integer<0>, Integer<0>, Integer<1>>>::value);
-  static_assert(std::is_same<ValueMatrixIdentity<3>, ValueMatrix<3, 3, Integer<1>, Integer<0>, Integer<0>, Integer<0>, Integer<1>,
-                                                                 Integer<0>, Integer<0>, Integer<0>, Integer<1>>>::value);
+  static_assert(std::is_same<ValueMatrixIdentity<1>, RationalMatrix<1, 1, Integer<1>>>::value);
+  static_assert(std::is_same<ValueMatrixIdentity<2>, RationalMatrix<2, 2, Integer<1>, Integer<0>, Integer<0>, Integer<1>>>::value);
+  static_assert(std::is_same<ValueMatrixIdentity<3>, RationalMatrix<3, 3, Integer<1>, Integer<0>, Integer<0>, Integer<0>, Integer<1>,
+                                                                    Integer<0>, Integer<0>, Integer<0>, Integer<1>>>::value);
 }
 
 TEST(TestTypeMatrix, Block) {  // NOLINT
-  using A = ValueMatrix<2, 3, Integer<0>, Integer<1>, Integer<2>, Integer<3>, Integer<4>, Integer<5>>;
-  using B = ValueMatrix<2, 3, Integer<0>, Integer<1>, Integer<2>, Integer<3>, Integer<4>, Integer<5>>;
-  using C = ValueMatrix<1, 1, Integer<4>>;
-  using D = ValueMatrix<1, 2, Integer<0>, Integer<1>>;
-  using E = ValueMatrix<2, 2, Integer<1>, Integer<2>, Integer<4>, Integer<5>>;
+  using A = RationalMatrix<2, 3, Integer<0>, Integer<1>, Integer<2>, Integer<3>, Integer<4>, Integer<5>>;
+  using B = RationalMatrix<2, 3, Integer<0>, Integer<1>, Integer<2>, Integer<3>, Integer<4>, Integer<5>>;
+  using C = RationalMatrix<1, 1, Integer<4>>;
+  using D = RationalMatrix<1, 2, Integer<0>, Integer<1>>;
+  using E = RationalMatrix<2, 2, Integer<1>, Integer<2>, Integer<4>, Integer<5>>;
   static_assert(std::is_same<Block<A, 0, 0, 2, 3>::type, B>::value);
   static_assert(std::is_same<Block<A, 1, 1, 1, 1>::type, C>::value);
   static_assert(std::is_same<Block<A, 0, 0, 1, 2>::type, D>::value);
@@ -57,9 +57,9 @@ TEST(TestTypeMatrix, Block) {  // NOLINT
 }
 
 TEST(TestTypeMatrix, Sum) {  // NOLINT
-  using A = ValueMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
-  using B = ValueMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
-  using C = ValueMatrix<2, 2, Integer<-1>, Integer<4>, Integer<6>, Integer<5>>;
+  using A = RationalMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = RationalMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
+  using C = RationalMatrix<2, 2, Integer<-1>, Integer<4>, Integer<6>, Integer<5>>;
   static_assert(std::is_same<Sum<A, B>::type, C>::value);
 }
 
@@ -87,43 +87,43 @@ int main() {
                                                                                    "Type mismatch.")}
 
 TEST(TestTypeMatrix, Product1) {  // NOLINT
-  using A = ValueMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
-  using B = ValueMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
-  using C = ValueMatrix<2, 2, Integer<4>, Integer<2>, Integer<10>, Integer<12>>;
+  using A = RationalMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = RationalMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
+  using C = RationalMatrix<2, 2, Integer<4>, Integer<2>, Integer<10>, Integer<12>>;
   static_assert(std::is_same<Product<A, B>::type, C>::value);
 }
 
 TEST(TestTypeMatrix, Product2) {  // NOLINT
-  using A = ValueMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
-  using B = ValueMatrix<4, 1, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
-  using C = ValueMatrix<1, 1, Integer<17>>;
+  using A = RationalMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = RationalMatrix<4, 1, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
+  using C = RationalMatrix<1, 1, Integer<17>>;
   static_assert(std::is_same<Product<A, B>::type, C>::value);
 }
 
 TEST(TestTypeMatrix, Product3) {  // NOLINT
-  using A = ValueMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using A = RationalMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using B = Integer<3>;
-  using C = ValueMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
+  using C = RationalMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
   static_assert(std::is_same<Product<A, B>::type, C>::value);
 }
 
 TEST(TestTypeMatrix, Product4) {  // NOLINT
   using A = Integer<3>;
-  using B = ValueMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
-  using C = ValueMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
+  using B = RationalMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using C = RationalMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
   static_assert(std::is_same<Product<A, B>::type, C>::value);
 }
 
 TEST(TestTypeMatrix, DotProduct) {  // NOLINT
-  using A = ValueMatrix<4, 1, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
-  using B = ValueMatrix<4, 1, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
+  using A = RationalMatrix<4, 1, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = RationalMatrix<4, 1, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
   using C = Integer<17>;
   static_assert(std::is_same<DotProduct<A, B>::type, C>::value);
 }
 
 TEST(TestTypeMatrix, Transpose) {  // NOLINT
-  using A = ValueMatrix<2, 3, Integer<0>, Integer<1>, Integer<2>, Integer<3>, Integer<4>, Integer<5>>;
-  using B = ValueMatrix<3, 2, Integer<0>, Integer<3>, Integer<1>, Integer<4>, Integer<2>, Integer<5>>;
+  using A = RationalMatrix<2, 3, Integer<0>, Integer<1>, Integer<2>, Integer<3>, Integer<4>, Integer<5>>;
+  using B = RationalMatrix<3, 2, Integer<0>, Integer<3>, Integer<1>, Integer<4>, Integer<2>, Integer<5>>;
   static_assert(std::is_same<Transpose<A>::type, B>::value);
 }
 

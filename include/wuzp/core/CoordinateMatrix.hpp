@@ -23,6 +23,8 @@ class CoordinateMatrix {
                 "Number of columns do not match.");
 
   CoordinateMatrix() = default;
+  template <typename... Ts>
+  explicit CoordinateMatrix(Ts... ts) : quantityMatrix_(ts...) {}
   explicit CoordinateMatrix(const Values& values) : quantityMatrix_(values) {}
   // Allow other value types to support lazy evaluation.
   template <typename ValuesOther>
