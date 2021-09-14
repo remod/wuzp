@@ -35,8 +35,8 @@ class CoordinateMatrix {
 
   const QuantityMatrix<Values, Units>& getQuantityMatrix() const { return quantityMatrix_; }
 
-  void setValues(const Values& values) { quantityMatrix_.setValues(values); }
-  const Values& getValues() const { return quantityMatrix_.getValues(); }
+  void setValues(const Values& values) { quantityMatrix_.setValueMatrix(values); }
+  const Values& getValues() const { return quantityMatrix_.getValueMatrix(); }
 
   template <typename ValuesOther, typename UnitsOther, typename CoordinateSystemsOther>
   bool isApprox(const CoordinateMatrix<ValuesOther, UnitsOther, CoordinateSystemsOther>& other) const {
