@@ -23,114 +23,115 @@ using CoordinateSystemF = CoordinateSystem<CoordinateSystemFName>;
 
 class TestCoordinateMatrix : public ::testing::Test {
  public:
-  using MyValues = ValueMatrix<int, 2, 3>;
-  using MyUnits = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
-  using MyCoordinateSystems = CoordinateSystemMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
-                                                     CoordinateSystemE, CoordinateSystemF>;
-  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
+                                                          CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
 
-  const MyMatrix& getMatrix() const { return matrix_; }
+  const MyCoordinateMatrix& getCoordinateMatrix() const { return coordinateMatrix_; }
 
  protected:
   void SetUp() override {
-    values_ << 1, 2, 3, 4, 5, 6;
-    matrix_.setValues(values_);
+    valueMatrix_ << 1, 2, 3, 4, 5, 6;
+    coordinateMatrix_.setValueMatrix(valueMatrix_);
   }
 
  private:
-  MyValues values_;
-  MyMatrix matrix_;
+  MyValueMatrix valueMatrix_;
+  MyCoordinateMatrix coordinateMatrix_;
 };
 
 TEST_F(TestCoordinateMatrix, EqualityOperator) {  // NOLINT
-  EXPECT_EQ(getMatrix(), getMatrix());
+  EXPECT_EQ(getCoordinateMatrix(), getCoordinateMatrix());
 }
 
 TEST_F(TestCoordinateMatrix, Block) {  // NOLINT
-  using MyValuesB = ValueMatrix<int, 2, 2>;
-  using MyUnitsB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
-  using MyCoordinateSystemsB = CoordinateSystemMatrix<2, 2, CoordinateSystemB, CoordinateSystemC, CoordinateSystemE, CoordinateSystemF>;
-  using MyMatrixB = CoordinateMatrix<MyValuesB, MyUnitsB, MyCoordinateSystemsB>;
-  MyValuesB valuesB;
-  valuesB << 2, 3, 5, 6;
-  MyMatrixB matrixB(valuesB);
-  EXPECT_EQ((getMatrix().block<0, 1, 2, 2>()), matrixB);
+  using MyValueMatrixB = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrixB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
+  using MyCoordinateSystemMatrixB =
+      CoordinateSystemMatrix<2, 2, CoordinateSystemB, CoordinateSystemC, CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateMatrixB = CoordinateMatrix<MyValueMatrixB, MyUnitMatrixB, MyCoordinateSystemMatrixB>;
+  MyValueMatrixB valueMatrixB;
+  valueMatrixB << 2, 3, 5, 6;
+  MyCoordinateMatrixB coordinateMatrixB(valueMatrixB);
+  EXPECT_EQ((getCoordinateMatrix().block<0, 1, 2, 2>()), coordinateMatrixB);
 }
 
 TEST_F(TestCoordinateMatrix, Transpose) {  // NOLINT
-  using MyValuesT = ValueMatrix<int, 3, 2>;
-  using MyUnitsT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
-  using MyCoordinateSystemsT = CoordinateSystemMatrix<3, 2, CoordinateSystemA, CoordinateSystemD, CoordinateSystemB, CoordinateSystemE,
-                                                      CoordinateSystemC, CoordinateSystemF>;
-  using MyMatrixT = CoordinateMatrix<MyValuesT, MyUnitsT, MyCoordinateSystemsT>;
-  MyValuesT valuesT;
-  valuesT << 1, 4, 2, 5, 3, 6;
-  MyMatrixT matrixT(valuesT);
-  EXPECT_EQ(getMatrix().transpose(), matrixT);
+  using MyValueMatrixT = ValueMatrix<int, 3, 2>;
+  using MyUnitMatrixT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
+  using MyCoordinateSystemMatrixT = CoordinateSystemMatrix<3, 2, CoordinateSystemA, CoordinateSystemD, CoordinateSystemB, CoordinateSystemE,
+                                                           CoordinateSystemC, CoordinateSystemF>;
+  using MyCoordinateMatrixT = CoordinateMatrix<MyValueMatrixT, MyUnitMatrixT, MyCoordinateSystemMatrixT>;
+  MyValueMatrixT valueMatrixT;
+  valueMatrixT << 1, 4, 2, 5, 3, 6;
+  MyCoordinateMatrixT coordinateMatrixT(valueMatrixT);
+  EXPECT_EQ(getCoordinateMatrix().transpose(), coordinateMatrixT);
 }
 
 TEST(TestCoordinateMatrix2, ProductQuantityMatrix) {  // NOLINT
-  using MyValues = ValueMatrix<int, 2, 2>;
-  using MyUnits = UnitMatrix<2, 2, Length>;
-  using MyCoordinateSystems = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
-  using MyUnitsResult = UnitMatrix<2, 2, Area>;
-  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
-  using MyMatrixResult = QuantityMatrix<MyValues, MyUnitsResult>;
-  MyValues values;
-  values << 1, 2, 3, 4;
-  MyMatrix matrix;
-  matrix.setValues(values);
-  EXPECT_EQ(matrix * matrix, MyMatrixResult(values * values));
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
+  using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
+  MyValueMatrix valueMatrix;
+  valueMatrix << 1, 2, 3, 4;
+  MyCoordinateMatrix coordinateMatrix;
+  coordinateMatrix.setValueMatrix(valueMatrix);
+  EXPECT_EQ(coordinateMatrix * coordinateMatrix, MyQuantityMatrixResult(valueMatrix * valueMatrix));
 }
 
 TEST(TestCoordinateMatrix2, ProductQuantity) {  // NOLINT
-  using MyValues = ValueMatrix<int, 2, 2>;
-  using MyUnits = UnitMatrix<2, 2, Length>;
-  using MyCoordinateSystems = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
-  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
-  using MyUnitsResult = UnitMatrix<2, 2, Area>;
-  using MyMatrixResult = CoordinateMatrix<MyValues, MyUnitsResult, MyCoordinateSystems>;
+  using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
+  using MyCoordinateMatrixResult = CoordinateMatrix<MyValueMatrix, MyUnitMatrixResult, MyCoordinateSystemMatrix>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
-  MyValues values;
-  values << 1, 2, 3, 4;
-  MyMatrix matrix;
-  matrix.setValues(values);
-  EXPECT_EQ(matrix * quantity, MyMatrixResult(values * value));
-  EXPECT_EQ(quantity * matrix, MyMatrixResult(values * value));
+  MyValueMatrix valueMatrix;
+  valueMatrix << 1, 2, 3, 4;
+  MyCoordinateMatrix coordinateMatrix;
+  coordinateMatrix.setValueMatrix(valueMatrix);
+  EXPECT_EQ(coordinateMatrix * quantity, MyCoordinateMatrixResult(valueMatrix * value));
+  EXPECT_EQ(quantity * coordinateMatrix, MyCoordinateMatrixResult(valueMatrix * value));
 }
 
 TEST(TestCoordinateMatrix2, DivisionQuantity) {  // NOLINT
-  using MyValues = ValueMatrix<int, 2, 2>;
-  using MyUnits = UnitMatrix<2, 2, Length>;
-  using MyCoordinateSystems = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
-  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
-  using MyUnitsResult = UnitMatrix<2, 2, Dimensionless>;
-  using MyMatrixResult = CoordinateMatrix<MyValues, MyUnitsResult, MyCoordinateSystems>;
+  using MyUnitMatrixResult = UnitMatrix<2, 2, Dimensionless>;
+  using MyCoordinateMatrixResult = CoordinateMatrix<MyValueMatrix, MyUnitMatrixResult, MyCoordinateSystemMatrix>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
-  MyValues values;
-  values << 1, 2, 3, 4;
-  MyMatrix matrix;
-  matrix.setValues(values);
-  EXPECT_EQ(matrix / quantity, MyMatrixResult(values / value));
+  MyValueMatrix valueMatrix;
+  valueMatrix << 1, 2, 3, 4;
+  MyCoordinateMatrix coordinateMatrix;
+  coordinateMatrix.setValueMatrix(valueMatrix);
+  EXPECT_EQ(coordinateMatrix / quantity, MyCoordinateMatrixResult(valueMatrix / value));
 }
 
 TEST(TestCoordinateMatrix2, ScalarProduct) {  // NOLINT
-  using MyValues = ValueMatrix<int, 4, 1>;
-  using MyUnits = UnitMatrix<4, 1, Length>;
-  using MyCoordinateSystems = CoordinateSystemMatrix<4, 1, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD>;
-  using MyMatrix = CoordinateMatrix<MyValues, MyUnits, MyCoordinateSystems>;
-  using MyMatrixResult = Quantity<int, Area>;
-  MyValues values1;
-  values1 << 1, 2, 3, 4;
-  MyValues values2;
-  values2 << 0, 3, -1, 2;
-  EXPECT_EQ(MyMatrix(values1).dot(MyMatrix(values2)), QuantityTraits::Create<MyMatrixResult>::create(11));
+  using MyValueMatrix = ValueMatrix<int, 4, 1>;
+  using MyUnitMatrix = UnitMatrix<4, 1, Length>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<4, 1, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyQuantityResult = Quantity<int, Area>;
+  MyValueMatrix valueMatrix1;
+  valueMatrix1 << 1, 2, 3, 4;
+  MyValueMatrix valueMatrix2;
+  valueMatrix2 << 0, 3, -1, 2;
+  EXPECT_EQ(MyCoordinateMatrix(valueMatrix1).dot(MyCoordinateMatrix(valueMatrix2)), QuantityTraits::Create<MyQuantityResult>::create(11));
 }
 
 TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
