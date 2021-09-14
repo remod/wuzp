@@ -172,21 +172,15 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const Mass_ mass2 = QuantityTraits::Create<Mass_>::create(1.0);
 
   // TODO(remod): Introduce CoordinateMatrix::getQuantity()?
-  // TODO(remod): Avoid ValueMatrix() and getValue() calls.
-  const auto positionVector =
-      radius *
-      Direction(
-          QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())),
-          QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())));
+  const auto positionVector = radius * Direction(cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()),
+                                                 sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()));
   const Point position1 = minimalCoordinates.block<0, 0, 2, 1>() + positionVector;
   const Point position2 = minimalCoordinates.block<0, 0, 2, 1>() - positionVector;
-  const auto velocityVector =
-      radius * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>() *
-      Direction(
-          QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(-sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())),
-          QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())))
+  const auto velocityVector = radius * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>() *
+                              Direction(-sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()),
+                                        cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()))
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-      / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
+                              / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
 #endif
       ;
   const Velocity_ velocity1 = minimalCoordinatesDt.block<0, 0, 2, 1>() + velocityVector;

@@ -8,6 +8,11 @@ namespace wuzp {
 
 struct ValueMatrixTraits {
   template <typename T>
+  struct Scalar {
+    using type = typename T::Scalar;
+  };
+
+  template <typename T>
   struct Rows {
     static constexpr int value = T::RowsAtCompileTime;
   };
