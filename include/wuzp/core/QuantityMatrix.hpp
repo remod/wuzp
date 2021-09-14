@@ -32,7 +32,10 @@ class QuantityMatrix {
   template <typename ValuesOther>
   QuantityMatrix(const QuantityMatrix<ValuesOther, Units>& other) : values_(other.getValues()) {}
   template <typename... Ts>
-  explicit QuantityMatrix(Ts... ts) : values_(ts...) {}
+  explicit QuantityMatrix(Quantity<typename ValueMatrixTraits::Scalar<Values>::type, Ts>... quantities)
+      : values_(QuantityTraits::GetValue<Quantity<typename ValueMatrixTraits::Scalar<Values>::type, Ts>>::get(quantities)...) {
+    static_assert(std::is_same<std::tuple<Ts...>, typename AsTuple<Units>::type>::value, "Unit type mismatch.");
+  }
   explicit QuantityMatrix(const Values& values) : values_(values) {}
 
   void setValues(const Values& values) { values_ = values; }

@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/QuantityMatrix.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/core/traits.hpp"
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
@@ -11,6 +9,39 @@
 #include "test_compilation_error.hpp"
 
 using namespace wuzp;  // NOLINT
+
+TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
+  using MyValues = ValueMatrix<int, 4, 1>;
+  using MyUnits = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
+  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
+  MyMatrix myMatrix(QuantityTraits::Create<Quantity<int, Length>>::create(1), QuantityTraits::Create<Quantity<int, Area>>::create(2),
+                    QuantityTraits::Create<Quantity<int, Volume>>::create(3), QuantityTraits::Create<Quantity<int, Mass>>::create(4));
+}
+
+TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/units/Quantity.hpp"
+#include "wuzp/units/QuantityTraits.hpp"
+#include "wuzp/units/Unit.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
+
+using namespace wuzp;  // NOLINT
+
+int main() {
+  using MyValues = ValueMatrix<int, 4, 1>;
+  using MyUnits = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
+  using MyMatrix = QuantityMatrix<MyValues, MyUnits>;
+  MyMatrix myMatrix(QuantityTraits::Create<Quantity<int, Length>>::create(1),
+                    QuantityTraits::Create<Quantity<int, Area>>::create(2),
+                    QuantityTraits::Create<Quantity<int, Volume>>::create(3),
+                    QuantityTraits::Create<Quantity<int, Length>>::create(4));
+  return 0;
+}
+  )",
+                                               "Unit type mismatch.")
+}
 
 class TestQuantityMatrix : public ::testing::Test {
  public:
