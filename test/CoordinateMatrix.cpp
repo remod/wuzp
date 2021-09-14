@@ -2,9 +2,7 @@
 
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/trafo/Translation.hpp"
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/value_matrix/ValueMatrix.hpp"
 
@@ -167,26 +165,26 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   using MassMatrixUnits = UnitMatrix<3, 3, Mass, Mass, MassLength, Mass, Mass, MassLength, MassLength, MassLength, MassLength2>;
   using MassMatrix = QuantityMatrix<MassMatrixValues, MassMatrixUnits>;
 
-  const MinimalCoordinates minimalCoordinates(Eigen::Matrix<double, 3, 1>::Random());
-  const MinimalCoordinatesDt minimalCoordinatesDt(Eigen::Matrix<double, 3, 1>::Random());
+  const MinimalCoordinates minimalCoordinates(MinimalCoordinatesValues::Random());
+  const MinimalCoordinatesDt minimalCoordinatesDt(MinimalCoordinatesValues::Random());
   const Radius radius = QuantityTraits::Create<Radius>::create(2.0);
   const Mass_ mass1 = QuantityTraits::Create<Mass_>::create(1.0);
   const Mass_ mass2 = QuantityTraits::Create<Mass_>::create(1.0);
 
   // TODO(remod): Introduce CoordinateMatrix::getQuantity()?
-  // TODO(remod): Avoid Eigen::Matrix() and getValue() calls.
+  // TODO(remod): Avoid ValueMatrix() and getValue() calls.
   const auto positionVector =
       radius *
-      Direction(Eigen::Matrix<double, 2, 1>(
+      Direction(
           QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())),
-          QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()))));
+          QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())));
   const Point position1 = minimalCoordinates.block<0, 0, 2, 1>() + positionVector;
   const Point position2 = minimalCoordinates.block<0, 0, 2, 1>() - positionVector;
   const auto velocityVector =
       radius * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>() *
-      Direction(Eigen::Matrix<double, 2, 1>(
+      Direction(
           QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(-sin(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())),
-          QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>()))))
+          QuantityTraits::GetValue<Quantity<double, Dimensionless>>::get(cos(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>())))
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
       / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
 #endif
