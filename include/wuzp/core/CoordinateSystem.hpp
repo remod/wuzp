@@ -38,7 +38,4 @@ struct CoordinateSystemTraits {
   };
 };
 
-template <int Rows, int Cols, typename... CoordinateSystems>
-using CoordinateSystemMatrix = TypeMatrix<Rows, Cols, CoordinateSystemTraits, CoordinateSystems...>;
-
 }  // namespace wuzp

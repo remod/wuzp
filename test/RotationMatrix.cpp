@@ -7,7 +7,7 @@
 
 using namespace wuzp;  // NOLINT
 
-TEST(TestRotationMatrix, TransformVector) {  // NOLINT
+TEST(TestRotationMatrix, TransformPositionVector) {  // NOLINT
   struct FromCoordinateSystemName {};
   struct ToCoordinateSystemName {};
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
@@ -21,7 +21,7 @@ TEST(TestRotationMatrix, TransformVector) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
-TEST(TestRotationMatrix, TransformPosition) {  // NOLINT
+TEST(TestRotationMatrix, TransformPositionPoint) {  // NOLINT
   struct FromCoordinateSystemName {};
   struct ToCoordinateSystemName {};
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
