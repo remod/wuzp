@@ -3,6 +3,7 @@
 #include <ostream>
 
 #include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/CoordinateSystemMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
@@ -253,8 +254,8 @@ template <int Dimension, typename Scalar, typename CoordinateSystem>
 using VelocityVector = CoordinateMatrix<Eigen::Matrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Velocity>,
                                         CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
 template <typename Scalar, typename CoordinateSystem>
-using Velocity2D = VelocityVector<2, Scalar, CoordinateSystem>;
+using VelocityVector2D = VelocityVector<2, Scalar, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>
-using Velocity3D = VelocityVector<3, Scalar, CoordinateSystem>;
+using VelocityVector3D = VelocityVector<3, Scalar, CoordinateSystem>;
 
 }  // namespace wuzp

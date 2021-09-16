@@ -65,6 +65,7 @@ if (ENABLE_TESTS)
         test/QuantityMatrix.cpp
         test/CoordinateMatrix.cpp
         test/RotationMatrix.cpp
+        test/JacobianMatrix.cpp
         test/ProperRigidTransformation.cpp
     )
     # The source directory is required for the compilation tests.
