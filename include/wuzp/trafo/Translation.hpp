@@ -34,10 +34,17 @@ template <int Dimension, typename Scalar, typename CoordinateSystem, typename Fr
 struct TransformationTraits<Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>, Tensor<1, 0, CoordinateMatrix>> {
   static auto transform(const Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>& transformation,
                         const Tensor<1, 0, CoordinateMatrix>& object) {
-    const auto fromResult = transformation.getTensor() + object;
-    const auto toResult =
-        typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(fromResult.getCoordinateMatrix().getQuantityMatrix());
-    return toResult;
+    if constexpr (IsAbsolute<Tensor<1, 0, CoordinateMatrix>>::value) {
+      const auto fromResult = transformation.getTensor() + object;
+      const auto toResult =
+          typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(fromResult.getCoordinateMatrix().getQuantityMatrix());
+      return evaluate(toResult);
+    } else {
+      const auto fromResult = object;
+      const auto toResult =
+          typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(fromResult.getCoordinateMatrix().getQuantityMatrix());
+      return evaluate(toResult);
+    }
   }
 };
 

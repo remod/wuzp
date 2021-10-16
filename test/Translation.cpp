@@ -17,7 +17,7 @@ TEST(TestTranslation, TransformPositionVector) {  // NOLINT
   using Transformation = SpatialTranslation3D<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
   using TransformedObject = PositionVector3D<double, ToCoordinateSystem>;
   const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
-  const TransformedObject transformedObject(Eigen::Vector3d(5.0, 4.0, 4.0));
+  const TransformedObject transformedObject(Eigen::Vector3d(1.0, 2.0, 3.0));
   const Transformation transformation(Eigen::Vector3d(4.0, 2.0, 1.0));
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
