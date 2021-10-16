@@ -126,6 +126,7 @@ struct Product<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemM
                                 typename Product<UnitMatrixLhs, UnitMatrixRhs>::type,
                                 typename Product<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type>;
 
+  // TODO(remod): Remove if unused.
   // OLD: The outcome is a quantity matrix (scalar product).
   // public:
   //  using type = QuantityMatrix<typename ValueMatrixTraits::template Product<ValueMatrixLhs, ValueMatrixRhs>::type,
@@ -287,30 +288,5 @@ std::ostream& operator<<(std::ostream& stream, const CoordinateMatrix<ValueMatri
   stream << coordinateMatrix.getQuantityMatrix();
   return stream;
 }
-
-// TODO(remod): delete
-// template <int Dimension, typename Scalar, typename CoordinateSystem>
-// using PositionPoint = CoordinateMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Absolute<Length>>,
-//                                       CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
-// template <typename Scalar, typename CoordinateSystem>
-// using PositionPoint2D = PositionPoint<2, Scalar, CoordinateSystem>;
-// template <typename Scalar, typename CoordinateSystem>
-// using PositionPoint3D = PositionPoint<3, Scalar, CoordinateSystem>;
-//
-// template <int Dimension, typename Scalar, typename CoordinateSystem>
-// using PositionVector = CoordinateMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Length>,
-//                                        CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
-// template <typename Scalar, typename CoordinateSystem>
-// using PositionVector2D = PositionVector<2, Scalar, CoordinateSystem>;
-// template <typename Scalar, typename CoordinateSystem>
-// using PositionVector3D = PositionVector<3, Scalar, CoordinateSystem>;
-//
-// template <int Dimension, typename Scalar, typename CoordinateSystem>
-// using VelocityVector = CoordinateMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Velocity>,
-//                                        CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>;
-// template <typename Scalar, typename CoordinateSystem>
-// using VelocityVector2D = VelocityVector<2, Scalar, CoordinateSystem>;
-// template <typename Scalar, typename CoordinateSystem>
-// using VelocityVector3D = VelocityVector<3, Scalar, CoordinateSystem>;
 
 }  // namespace wuzp

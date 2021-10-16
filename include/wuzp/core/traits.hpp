@@ -86,4 +86,23 @@ struct CastCoordinateSystem;
 template <typename T>
 struct Evaluate;
 
+// TODO(remod): Cleanup - remove traits and only use these methods?
+
+template <typename T>
+auto makeRelative(T t) {
+  return MakeRelative<T>::make(t);
+}
+template <bool Enable, typename T>
+auto makeAbsolute(T t) {
+  return MakeAbsolute<T, Enable>::make(t);
+}
+template <typename To, typename T>
+auto castCoordinateSystem(T t) {
+  return typename CastCoordinateSystem<T, To>::type(t.getCoordinateMatrix().getQuantityMatrix());
+}
+template <typename T>
+auto evaluate(T t) {
+  return typename Evaluate<T>::type(t);
+}
+
 }  // namespace wuzp

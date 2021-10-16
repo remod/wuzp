@@ -48,22 +48,6 @@ struct TransformationTraits<LinearTransformation<Scalar, CoordinateSystem, From,
         fromResult.getTensor().getCoordinateMatrix().getQuantityMatrix());
   }
 };
-template <typename T>
-auto makeRelative(T t) {
-  return MakeRelative<T>::make(t);
-}
-template <bool Enable, typename T>
-auto makeAbsolute(T t) {
-  return MakeAbsolute<T, Enable>::make(t);
-}
-template <typename To, typename T>
-auto castCoordinateSystem(T t) {
-  return typename CastCoordinateSystem<T, To>::type(t.getCoordinateMatrix().getQuantityMatrix());
-}
-template <typename T>
-auto evaluate(T t) {
-  return typename Evaluate<T>::type(t);
-}
 template <typename Scalar, typename CoordinateSystem, typename From, typename To, int DimensionFrom, int DimensionTo, typename... Units,
           typename CoordinateMatrix>
 struct TransformationTraits<LinearTransformation<Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>,

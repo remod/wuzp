@@ -77,10 +77,10 @@ if (ENABLE_TESTS)
         test/QuantityMatrix.cpp
         test/CoordinateMatrix.cpp
 #        test/Tensor.cpp
-        #        test/Translation.cpp
+        test/Translation.cpp
         test/Rotation.cpp
         test/Jacobian.cpp
-#        test/ProperRigidTransformation.cpp
+        test/ProperRigidTransformation.cpp
     )
     # The source directory is required for the compilation tests.
     target_compile_definitions(tests PRIVATE CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
