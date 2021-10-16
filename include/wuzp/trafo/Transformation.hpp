@@ -22,7 +22,7 @@ class PassiveTransformation : public Transformation {
 
   template <typename Object>
   auto transform(const Object& object) const {
-    static_assert(!std::is_same<typename GetCoordinateSystem<Object>::type, From>::value, "Coordinate systems do not match.");
+    static_assert(std::is_same<typename GetCoordinateSystem<Object>::type, From>::value, "Coordinate systems do not match.");
     return TransformationTraits<Derived, Object>::transform(derived(), object);
   }
 

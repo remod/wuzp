@@ -26,6 +26,7 @@ message(STATUS "------------------------------------------")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(EIGEN_INITIALIZE_MATRICES_BY_ZERO ON)
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 
@@ -47,6 +48,17 @@ if (MATRIX_IMPLEMENTATION EQUAL MATRIX_IMPLEMENTATION_EIGEN)
     target_link_libraries(main Eigen3::Eigen)
 endif()
 
+add_executable(experimental src/experimental.cpp)
+target_include_directories(experimental PRIVATE include)
+if (UNITS_IMPLEMENTATION EQUAL UNITS_IMPLEMENTATION_BOOST)
+    find_package(Boost 1.56 REQUIRED)
+    target_include_directories(experimental PRIVATE ${Boost_INCLUDE_DIRS})
+endif()
+if (MATRIX_IMPLEMENTATION EQUAL MATRIX_IMPLEMENTATION_EIGEN)
+    find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+    target_link_libraries(experimental Eigen3::Eigen)
+endif()
+
 if (ENABLE_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
@@ -64,9 +76,11 @@ if (ENABLE_TESTS)
         test/ValueMatrix.cpp
         test/QuantityMatrix.cpp
         test/CoordinateMatrix.cpp
-        test/RotationMatrix.cpp
-        test/JacobianMatrix.cpp
-        test/ProperRigidTransformation.cpp
+#        test/Tensor.cpp
+        #        test/Translation.cpp
+        test/Rotation.cpp
+        test/Jacobian.cpp
+#        test/ProperRigidTransformation.cpp
     )
     # The source directory is required for the compilation tests.
     target_compile_definitions(tests PRIVATE CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})

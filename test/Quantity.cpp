@@ -59,6 +59,14 @@ boost::units::quantity<boost::units::si::frequency, Value> inverse(const boost::
 }
 #endif
 
+TEST(TestQuantity, CopyConstructor) {  // NOLINT
+  const auto time = createTimeQuantity(1.0);
+  EXPECT_EQ(getValue(time), 1.0);
+  const auto time2(time);
+  EXPECT_EQ(getValue(time2), 1.0);
+  EXPECT_EQ(time2, time);
+}
+
 TEST(TestQuantity, ValueAccess) {  // NOLINT
   auto time = createTimeQuantity(1.0);
   EXPECT_EQ(getValue(time), 1.0);

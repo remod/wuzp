@@ -8,15 +8,15 @@ namespace wuzp {
 template <int Rows, int Cols, typename... Units>
 using UnitMatrix = TypeMatrix<Rows, Cols, UnitTraits, Units...>;
 
-template <int Rows, int Cols, typename... Types>
-struct Inverse<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Types...>>> {
+template <int Rows, int Cols, typename... Units>
+struct Inverse<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
   static_assert(Rows == Cols, "Matrix is not square.");
   // Invert the types individually and transpose to get a candidate for the result of the inversion.
-  using type = typename Transpose<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<typename UnitTraits::Inverse<Types>::type...>>>::type;
+  using type = typename Transpose<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<typename UnitTraits::Inverse<Units>::type...>>>::type;
 
  private:
   // Verify the candidate: If the candidate multiplied by itself is idempotent (A^2 == A), it is valid.
-  using Identity = typename Product<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Types...>>, type>::type;
+  using Identity = typename Product<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>, type>::type;
   static_assert(std::is_same<typename Product<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
 
   /* Proof:
@@ -48,6 +48,19 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Types...>>> {
      1/m  1/ml  * m  ml  = 1   l
      1/ml 1/mll * ml mll = 1/l 1
   */
+};
+
+template <int Rows, int Cols, typename... Units>
+struct IsAbsolute<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
+  static constexpr bool value = std::conjunction_v<typename UnitTraits::IsAbsolute<Units>::type...>;
+};
+template <int Rows, int Cols, typename... Units>
+struct MakeRelative<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
+  using type = UnitMatrix<Rows, Cols, typename UnitTraits::MakeRelative<Units>::type...>;
+};
+template <int Rows, int Cols, typename... Units, bool Enable>
+struct MakeAbsolute<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>, Enable> {
+  using type = UnitMatrix<Rows, Cols, typename UnitTraits::MakeAbsolute<Units, Enable>::type...>;
 };
 
 }  // namespace wuzp

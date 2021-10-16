@@ -64,6 +64,14 @@ struct UnitTraits {
                       ThermodynamicTemperatureLhs + ThermodynamicTemperatureRhs, AmountOfSubstanceLhs + AmountOfSubstanceRhs,
                       LuminousIntensityLhs + LuminousIntensityRhs>;
   };
+  //  template <typename Lhs, typename Rhs>
+  //  struct Product<Absolute<Lhs>, Rhs> {
+  //    using type = Absolute<typename Product<Lhs, Rhs>::type>;
+  //  };
+  //  template <typename Lhs, typename Rhs>
+  //  struct Product<Lhs, Absolute<Rhs>> {
+  //    using type = typename Product<Absolute<Rhs>, Lhs>::type;
+  //  };
 
   DEFINE_RECURSIVE_TRAIT(Division)
   template <int TimeLhs, int LengthLhs, int MassLhs, int ElectricCurrentLhs, int ThermodynamicTemperatureLhs, int AmountOfSubstanceLhs,
@@ -98,6 +106,34 @@ struct UnitTraits {
   template <int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance, int LuminousIntensity>
   struct Inverse<Unit<Time, Length, Mass, ElectricCurrent, ThermodynamicTemperature, AmountOfSubstance, LuminousIntensity>> {
     using type = Unit<-Time, -Length, -Mass, -ElectricCurrent, -ThermodynamicTemperature, -AmountOfSubstance, -LuminousIntensity>;
+  };
+
+  template <typename Unit>
+  struct IsAbsolute : public std::false_type {};
+  template <typename Unit>
+  struct IsAbsolute<Absolute<Unit>> : public std::true_type {};
+
+  template <typename Unit>
+  struct MakeRelative {
+    using type = Unit;
+  };
+  template <typename Unit>
+  struct MakeRelative<Absolute<Unit>> {
+    using type = Unit;
+  };
+  template <typename Unit, bool Enable>
+  struct MakeAbsolute;
+  template <typename Unit>
+  struct MakeAbsolute<Unit, true> {
+    using type = Absolute<Unit>;
+  };
+  template <typename Unit>
+  struct MakeAbsolute<Unit, false> {
+    using type = Unit;
+  };
+  template <typename Unit, bool Enable>
+  struct MakeAbsolute<Absolute<Unit>, Enable> {
+    // TODO(remod): Forbid this.
   };
 };
 

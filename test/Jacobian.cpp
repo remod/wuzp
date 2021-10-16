@@ -1,0 +1,69 @@
+#include <gtest/gtest.h>
+
+#include "wuzp/core/CoordinateMatrix.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/Tensor.hpp"
+#include "wuzp/core/traits.hpp"
+#include "wuzp/trafo/Jacobian.hpp"
+#include "wuzp/trafo/LinearTransformation.hpp"
+
+using namespace wuzp;  // NOLINT
+
+// TODO(remod): This only works with WUZP units atm, as in boost angle != dimensionless.
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
+  struct FromCoordinateSystemName {};
+  struct ToCoordinateSystemName {};
+  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
+  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
+  constexpr int FromDimension = 3;
+  constexpr int ToDimension = 2;
+  using Object =
+      Vector<CoordinateMatrix<ValueMatrix<double, FromDimension, 1>, UnitMatrix<FromDimension, 1, Velocity, Velocity, AngularVelocity>,
+                              CoordinateSystemMatrix<FromDimension, 1, FromCoordinateSystem>>>;
+  using LengthInv = UnitTraits::Inverse<Length>::type;
+  using Transformation = Jacobian<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
+                                  LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
+  using TransformedObject =
+      Tensor<1, 0,
+             CoordinateMatrix<ValueMatrix<double, ToDimension, 1>, UnitMatrix<ToDimension, 1, AngularVelocity, Velocity>,
+                              CoordinateSystemMatrix<ToDimension, 1, ToCoordinateSystem>>>;
+  const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
+  const TransformedObject transformedObject(Eigen::Vector2d(14.0, 32.0));
+  Transformation::ValueMatrixT valueMatrix;
+  valueMatrix << 1.0, 2.0, 3.0, 4.0, 5.0, 6.0;
+  const Transformation transformation((Transformation::TensorT(valueMatrix)));
+  EXPECT_EQ(transformation.transform(object), transformedObject);
+}
+
+TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
+  struct FromCoordinateSystemName {};
+  struct ToCoordinateSystemName {};
+  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
+  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
+  constexpr int FromDimension = 3;
+  constexpr int ToDimension = 2;
+  using Object = Tensor<0, 2,
+                        CoordinateMatrix<ValueMatrix<double, FromDimension, FromDimension>, UnitMatrix<FromDimension, FromDimension, Mass>,
+                                         CoordinateSystemMatrix<FromDimension, FromDimension, FromCoordinateSystem>>>;
+  using LengthInv = UnitTraits::Inverse<Length>::type;
+  using Transformation = Jacobian<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
+                                  LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
+  using MassLength = UnitTraits::Product<Mass, Length>::type;
+  using MassLength2 = UnitTraits::Product<MassLength, Length>::type;
+  using TransformedObject = CoordinateMatrix<ValueMatrix<double, ToDimension, ToDimension>,
+                                             UnitMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>,
+                                             CoordinateSystemMatrix<ToDimension, ToDimension, ToCoordinateSystem>>;
+  Eigen::Matrix3d valueMatrixObject;
+  valueMatrixObject << 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0;
+  const Object object(valueMatrixObject);
+  Eigen::Matrix2d valueMatrixObjectTransformed;
+  valueMatrixObjectTransformed << 1.0, 2.0, 3.0, 4.0;
+  const TransformedObject transformedObject(valueMatrixObjectTransformed);
+  Transformation::ValueMatrixT valueMatrix;
+  valueMatrix << 1.0, 2.0, 3.0, 4.0, 5.0, 6.0;
+  const Transformation transformation((Transformation::TensorT(valueMatrix)));
+  // TODO(remod): Jacobian::inverse() does not exist yet.
+  //  EXPECT_EQ(transformation.transform(object), transformedObject);
+}
+#endif

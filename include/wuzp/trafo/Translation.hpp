@@ -4,42 +4,48 @@
 
 namespace wuzp {
 
-template <typename Derived, typename From, typename To>
-class TranslationBase : public PassiveTransformation<Derived, From, To> {};
-
-template <int Dimension, typename Scalar, typename From, typename To>
-class Translation : public TranslationBase<Translation<Dimension, Scalar, From, To>, From, To> {
-  friend TransformationTraits<Translation<Dimension, Scalar, From, To>, PositionPoint<Dimension, Scalar, From>>;
-
+template <int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units>
+class Translation : public PassiveTransformation<Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>, From, To> {
  public:
-  using Impl = PositionVector<Dimension, Scalar, From>;  // TODO(remod): Use eigen directly? Interface should be consistent with Quaternion
+  using ValueMatrixT = ValueMatrix<Scalar, Dimension, 1>;
+  using UnitMatrixT = UnitMatrix<Dimension, 1, Units...>;
+  using CoordinateSystemMatrixT = CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>;
+  using CoordinateMatrixT = CoordinateMatrix<ValueMatrixT, UnitMatrixT, CoordinateSystemMatrixT>;
+  using TensorT = Tensor<1, 0, CoordinateMatrixT>;
+  static_assert(!IsAbsolute<UnitMatrixT>::value, "Units are not relative.");
 
-  explicit Translation(Impl impl) : impl_(impl) {}
+  template <typename... Args>
+  explicit Translation(Args... args) : tensor_(args...) {}
+
+  const TensorT& getTensor() const { return tensor_; }
 
  private:
-  Impl impl_;
+  TensorT tensor_;
 };
 
-template <int Dimension, typename From, typename To, typename Scalar>
-struct TransformationTraits<Translation<Dimension, Scalar, From, To>, PositionVector<Dimension, Scalar, From>> {
-  static auto transform(const Translation<Dimension, Scalar, From, To>& /*transformation*/,
-                        const PositionVector<Dimension, Scalar, From>& object) {
-    return PositionVector<Dimension, Scalar, To>(object.getValueMatrix());
+template <int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units,
+          typename NewCoordinateSystem>
+struct CastCoordinateSystem<Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>, NewCoordinateSystem> {
+  using type = Translation<Dimension, Scalar, NewCoordinateSystem, From, To, Units...>;
+};
+
+template <int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units,
+          typename CoordinateMatrix>
+struct TransformationTraits<Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>, Tensor<1, 0, CoordinateMatrix>> {
+  static auto transform(const Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>& transformation,
+                        const Tensor<1, 0, CoordinateMatrix>& object) {
+    const auto fromResult = transformation.getTensor() + object;
+    const auto toResult =
+        typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(fromResult.getCoordinateMatrix().getQuantityMatrix());
+    return toResult;
   }
 };
 
-template <int Dimension, typename From, typename To, typename Scalar>
-struct TransformationTraits<Translation<Dimension, Scalar, From, To>, PositionPoint<Dimension, Scalar, From>> {
-  static auto transform(const Translation<Dimension, Scalar, From, To>& transformation,
-                        const PositionPoint<Dimension, Scalar, From>& object) {
-    return PositionPoint<Dimension, Scalar, To>((transformation.impl_ + object).getValueMatrix());
-  }
-};
-
-template <typename Scalar, typename From, typename To>
-using Translation2D = Translation<2, Scalar, From, To>;
-
-template <typename Scalar, typename From, typename To>
-using Translation3D = Translation<3, Scalar, From, To>;
+template <int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To>
+using SpatialTranslation = Translation<Dimension, Scalar, CoordinateSystem, From, To, Length>;
+template <typename Scalar, typename CoordinateSystem, typename From, typename To>
+using SpatialTranslation2D = SpatialTranslation<2, Scalar, CoordinateSystem, From, To>;
+template <typename Scalar, typename CoordinateSystem, typename From, typename To>
+using SpatialTranslation3D = SpatialTranslation<3, Scalar, CoordinateSystem, From, To>;
 
 }  // namespace wuzp
