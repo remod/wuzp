@@ -49,7 +49,7 @@ make tidy
 Features:
 
 * Own matrix implementation
-* Different rotations
+* Different rotations (quaternions, angle axis, etc.)
 * Non-static transformations
 * Dynamic size matrices
 * Run-time frames
@@ -57,10 +57,6 @@ Features:
 * Support nholthaus/units
 * Unit test coverage
 * ROS/ROS2 release
-
-Features (later):
-
-* Tensor support
 
 Minor:
 

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <Eigen/Geometry>
+
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/traits.hpp"
@@ -21,38 +23,32 @@ TEST(TestProperRigidTransformation2D, TransformPosition) {  // NOLINT
 
 TEST(TestProperRigidTransformation3D, TransformVector) {  // NOLINT
   struct FromCoordinateSystemName {};
-  struct IntermediateCoordinateSystemName {};
   struct ToCoordinateSystemName {};
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
-  using IntermediateCoordinateSystem = CoordinateSystem<IntermediateCoordinateSystemName>;
   using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
   using Object = PositionVector3D<double, FromCoordinateSystem>;
+  using Transformation = ProperRigidTransformation3D<FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, double>;
   using TransformedObject = PositionVector3D<double, ToCoordinateSystem>;
   const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
   const TransformedObject transformedObject(Eigen::Vector3d(1.0, -2.0, -3.0));
-  const Quaternion<double, FromCoordinateSystem, IntermediateCoordinateSystem> rotation{0.0, 1.0, 0.0, 0.0};
-  const Translation3D<double, IntermediateCoordinateSystem, ToCoordinateSystem> translation(
-      PositionVector3D<double, IntermediateCoordinateSystem>(Eigen::Vector3d(4.0, 2.0, 1.0)));
-  const ProperRigidTransformation3D<FromCoordinateSystem, IntermediateCoordinateSystem, ToCoordinateSystem, double> transformation(
-      rotation, translation);
+  const Transformation::Rotation rotation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
+  const Transformation::Translation translation(Eigen::Vector3d(4.0, 2.0, 1.0));
+  const Transformation transformation(rotation, translation);
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
 TEST(TestProperRigidTransformation3D, TransformPosition) {  // NOLINT
   struct FromCoordinateSystemName {};
-  struct IntermediateCoordinateSystemName {};
   struct ToCoordinateSystemName {};
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
-  using IntermediateCoordinateSystem = CoordinateSystem<IntermediateCoordinateSystemName>;
   using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
   using Object = PositionPoint3D<double, FromCoordinateSystem>;
+  using Transformation = ProperRigidTransformation3D<FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, double>;
   using TransformedObject = PositionPoint3D<double, ToCoordinateSystem>;
   const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
   const TransformedObject transformedObject(Eigen::Vector3d(5.0, 0.0, -2.0));
-  const Quaternion<double, FromCoordinateSystem, IntermediateCoordinateSystem> rotation{0.0, 1.0, 0.0, 0.0};
-  const Translation3D<double, IntermediateCoordinateSystem, ToCoordinateSystem> translation(
-      PositionVector3D<double, IntermediateCoordinateSystem>(Eigen::Vector3d(4.0, 2.0, 1.0)));
-  const ProperRigidTransformation3D<FromCoordinateSystem, IntermediateCoordinateSystem, ToCoordinateSystem, double> transformation(
-      rotation, translation);
+  const Transformation::Rotation rotation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
+  const Transformation::Translation translation(Eigen::Vector3d(4.0, 2.0, 1.0));
+  const Transformation transformation(rotation, translation);
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }

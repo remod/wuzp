@@ -112,10 +112,27 @@ struct CreateTypeMatrix<Rows, Cols, Traits, Type> {
 };
 
 template <typename T>
-struct AsTuple;
+struct GetTypes;
 template <int Rows, int Cols, typename Traits, typename Types>
-struct AsTuple<TypeMatrixImpl<Rows, Cols, Traits, Types>> {
+struct GetTypes<TypeMatrixImpl<Rows, Cols, Traits, Types>> {
   using type = Types;
+};
+
+template <typename Traits, typename Types>
+struct Dimension<TypeMatrixImpl<1, 1, Traits, Types>> {
+  static constexpr int value = 0;
+};
+template <int _Rows, typename Traits, typename Types>
+struct Dimension<TypeMatrixImpl<_Rows, 1, Traits, Types>> {
+  static constexpr int value = 1;
+};
+template <int _Cols, typename Traits, typename Types>
+struct Dimension<TypeMatrixImpl<1, _Cols, Traits, Types>> {
+  static constexpr int value = 1;
+};
+template <int _Rows, int _Cols, typename Traits, typename Types>
+struct Dimension<TypeMatrixImpl<_Rows, _Cols, Traits, Types>> {
+  static constexpr int value = 2;
 };
 
 template <int _Rows, int _Cols, typename Traits, typename Types>
@@ -248,5 +265,8 @@ using DiagonalTypeMatrix = typename DiagonalTypeMatrixImpl<Size, Traits, ZeroTyp
 
 template <int Rows, int Cols, typename Traits, typename... Types>
 using TypeMatrix = typename CreateTypeMatrix<Rows, Cols, Traits, Types...>::type;
+
+template <int Rows, typename Traits, typename... Types>
+using TypeVector = typename CreateTypeMatrix<Rows, 1, Traits, Types...>::type;
 
 }  // namespace wuzp

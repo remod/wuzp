@@ -70,18 +70,30 @@ TEST_F(TestCoordinateMatrix, Transpose) {  // NOLINT
   EXPECT_EQ(getCoordinateMatrix().transpose(), coordinateMatrixT);
 }
 
-TEST(TestCoordinateMatrix2, ProductQuantityMatrix) {  // NOLINT
+TEST(TestCoordinateMatrix2, ProductCoordinateMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = UnitMatrix<2, 2, Length>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
   using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
   using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
-  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
+  using MyCoordinateMatrixResult = CoordinateMatrix<MyValueMatrix, MyUnitMatrixResult, MyCoordinateSystemMatrix>;
   MyValueMatrix valueMatrix;
   valueMatrix << 1, 2, 3, 4;
   MyCoordinateMatrix coordinateMatrix;
   coordinateMatrix.setValueMatrix(valueMatrix);
-  EXPECT_EQ(coordinateMatrix * coordinateMatrix, MyQuantityMatrixResult(valueMatrix * valueMatrix));
+  EXPECT_EQ(coordinateMatrix * coordinateMatrix, MyCoordinateMatrixResult(valueMatrix * valueMatrix));
+  // OLD:
+  //  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  //  using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  //  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
+  //  using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
+  //  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  //  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
+  //  MyValueMatrix valueMatrix;
+  //  valueMatrix << 1, 2, 3, 4;
+  //  MyCoordinateMatrix coordinateMatrix;
+  //  coordinateMatrix.setValueMatrix(valueMatrix);
+  //  EXPECT_EQ(coordinateMatrix * coordinateMatrix, MyQuantityMatrixResult(valueMatrix * valueMatrix));
 }
 
 TEST(TestCoordinateMatrix2, ProductQuantity) {  // NOLINT

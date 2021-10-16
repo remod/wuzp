@@ -11,17 +11,6 @@
 
 namespace wuzp {
 
-// template <int ContravariantIndices, int CovariantIndices>
-// class Tensor;
-//
-// using Scalar = Tensor<0, 0>;
-// using EuclideanVector = Tensor<1, 0>;       // R * v
-// using LinearTransformation = Tensor<1, 1>;  // R^-1 * A * R
-// using RotationMatrix = Tensor<1, 1>;        // R^-1 * A * R
-// using InertiaTensor = Tensor<0, 2>;         // R^T * A * R
-
-// Orthogonal matrix: R^-1 == R^T
-
 template <typename ValueMatrix, typename UnitMatrix>
 class QuantityMatrix {
  public:
@@ -35,6 +24,8 @@ class QuantityMatrix {
     static_assert(std::is_same<UnitMatrix, UnitMatrixOther>::value, "Units do not match.");
   }
 
+  static QuantityMatrix zero() { return QuantityMatrix(ValueMatrixTraits::Zero<ValueMatrix>::value()); }
+
   /**
    * Construct a quantity matrix from quantities.
    * @tparam Units Units of the quantities, order and types must correspond to the units of the quantity matrix.
@@ -43,7 +34,7 @@ class QuantityMatrix {
   template <typename... Units>
   explicit QuantityMatrix(Quantity<typename ValueMatrixTraits::Scalar<ValueMatrix>::type, Units>... quantities)
       : valueMatrix_(QuantityTraits::GetValue<Quantity<typename ValueMatrixTraits::Scalar<ValueMatrix>::type, Units>>::get(quantities)...) {
-    static_assert(std::is_same<std::tuple<Units...>, typename AsTuple<UnitMatrix>::type>::value, "Units do not match.");
+    static_assert(std::is_same<std::tuple<Units...>, typename GetTypes<UnitMatrix>::type>::value, "Units do not match.");
   }
 
   template <int RowId, int ColId, typename Quantity>
@@ -109,6 +100,11 @@ class QuantityMatrix {
   ValueMatrix valueMatrix_;
 };
 
+template <typename ValueMatrix, typename UnitMatrix>
+struct Dimension<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  static constexpr int value = ValueMatrixTraits::Dimension<ValueMatrix>::value;
+};
+
 template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
 struct Sum<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
   using type = QuantityMatrix<typename ValueMatrixTraits::template Sum<ValueMatrixLhs, ValueMatrixRhs>::type,
@@ -162,6 +158,26 @@ template <typename ValueMatrix, typename UnitMatrix, int BlockRowId, int BlockCo
 struct Block<QuantityMatrix<ValueMatrix, UnitMatrix>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   using type = QuantityMatrix<typename ValueMatrixTraits::template Block<ValueMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
                               typename Block<UnitMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+};
+
+template <typename ValueMatrix, typename UnitMatrix>
+struct IsAbsolute<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  static constexpr bool value = IsAbsolute<UnitMatrix>::value;
+};
+template <typename ValueMatrix, typename UnitMatrix>
+struct MakeRelative<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  using type = QuantityMatrix<ValueMatrix, typename MakeRelative<UnitMatrix>::type>;
+  static auto make(const QuantityMatrix<ValueMatrix, UnitMatrix>& object) { return type(object.getValueMatrix()); }
+};
+template <typename ValueMatrix, typename UnitMatrix, bool Enable>
+struct MakeAbsolute<QuantityMatrix<ValueMatrix, UnitMatrix>, Enable> {
+  using type = QuantityMatrix<ValueMatrix, typename MakeAbsolute<UnitMatrix, Enable>::type>;
+  static auto make(const QuantityMatrix<ValueMatrix, UnitMatrix>& object) { return type(object.getValueMatrix()); }
+};
+
+template <typename ValueMatrix, typename UnitMatrix>
+struct Evaluate<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  using type = QuantityMatrix<typename ValueMatrixTraits::Evaluate<ValueMatrix>::type, UnitMatrix>;
 };
 
 template <typename ValueMatrix, typename UnitMatrix>

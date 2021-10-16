@@ -20,6 +20,11 @@ namespace wuzp {
   };
 
 template <typename T>
+struct Dimension {
+  static_assert(FakeDependency<Dimension<T>>::value, "'Dimension' trait not specialized for given type.");
+};
+
+template <typename T>
 struct Rows {
   static_assert(FakeDependency<Rows<T>>::value, "'Rows' trait not specialized for given type.");
 };
@@ -56,6 +61,29 @@ struct Block {
 };
 
 template <typename T>
-struct Inverse;
+struct Inverse {
+  static_assert(FakeDependency<Inverse<T>>::value, "'Inverse' trait not specialized for given type.");
+};
+
+template <typename T>
+struct IsAbsolute {
+  static_assert(FakeDependency<IsAbsolute<T>>::value, "'IsAbsolute' trait not specialized for given type.");
+};
+template <typename T>
+struct MakeRelative {
+  static_assert(FakeDependency<MakeRelative<T>>::value, "'MakeRelative' trait not specialized for given type.");
+};
+// TODO(remod): Make this more generic: Create a helper which takes two types (T and MakeAbsolute<T>::type) and a boolean to determine which
+// one to typedef.
+template <typename T, bool Enable>
+struct MakeAbsolute {
+  static_assert(FakeDependency<MakeAbsolute<T, Enable>>::value, "'MakeAbsolute' trait not specialized for given type.");
+};
+
+template <typename T, typename NewCoordinateSystem>
+struct CastCoordinateSystem;
+
+template <typename T>
+struct Evaluate;
 
 }  // namespace wuzp

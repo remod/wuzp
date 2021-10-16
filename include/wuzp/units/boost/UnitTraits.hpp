@@ -55,6 +55,34 @@ struct UnitTraits {
   struct Inverse {
     using type = typename boost::units::power_typeof_helper<Unit, boost::units::static_rational<-1>>::type;
   };
+
+  template <typename Unit>
+  struct IsAbsolute : public std::false_type {};
+  template <typename Unit>
+  struct IsAbsolute<Absolute<Unit>> : public std::true_type {};
+
+  template <typename Unit>
+  struct MakeRelative {
+    using type = Unit;
+  };
+  template <typename Unit>
+  struct MakeRelative<Absolute<Unit>> {
+    using type = Unit;
+  };
+  template <typename Unit, bool Enable>
+  struct MakeAbsolute;
+  template <typename Unit>
+  struct MakeAbsolute<Unit, true> {
+    using type = Absolute<Unit>;
+  };
+  template <typename Unit>
+  struct MakeAbsolute<Unit, false> {
+    using type = Unit;
+  };
+  template <typename Unit, bool Enable>
+  struct MakeAbsolute<Absolute<Unit>, Enable> {
+    // TODO(remod): Forbid this.
+  };
 };
 
 }  // namespace wuzp
