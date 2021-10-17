@@ -16,6 +16,7 @@ cd ${2}
 # If some tests fail, rerun them in verbose mode.
 ctest -C ${3} --rerun-failed --output-on-failure
 # Generate HTML and XML reports.
+mkdir code_coverage
 gcovr -r ${1} --html-details -o code_coverage/index.html
 gcovr -r ${1} --xml-pretty -o code_coverage/output.xml
 cd -
