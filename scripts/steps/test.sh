@@ -17,8 +17,8 @@ cd ${2}
 ctest -C ${3} --rerun-failed --output-on-failure
 # Generate HTML and XML reports.
 mkdir code_coverage
-gcovr -r ${1} --html-details -o code_coverage/index.html
-gcovr -r ${1} --xml-pretty -o code_coverage/output.xml
+gcovr --root ${1} --exclude ${1}/test --html-details -o code_coverage/index.html
+gcovr --root ${1} --exclude ${1}/test --xml-pretty -o code_coverage/output.xml
 cd -
 
 exit 0
