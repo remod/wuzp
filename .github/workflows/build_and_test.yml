@@ -34,6 +34,9 @@ jobs:
     - name: Tidy
       shell: bash
       run: ${SOURCE_DIR}/scripts/steps/tidy.sh ${BUILD_DIR}
+    - name: LS
+      shell: bash
+      run: ls ${BUILD_DIR}/code_coverage
     - uses: codecov/codecov-action@v2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
