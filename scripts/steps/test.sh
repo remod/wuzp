@@ -6,15 +6,18 @@ set -e
 # Check arguments.
 if [ $# != 2 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./build.sh TEST_DIR BUILD_CONFIG"
+  echo "Usage: ./build.sh SOURCE_DIR BUILD_DIR BUILD_CONFIG"
   exit 1
 fi
 
 # Test.
 # Unfortunately ctest < 3.20 does not support specifying the test directory, so we cd there.
-cd ${1}
+cd ${2}
 # If some tests fail, rerun them in verbose mode.
-ctest -C ${2} --rerun-failed --output-on-failure
+ctest -C ${3} --rerun-failed --output-on-failure
+# Generate HTML and XML reports.
+gcovr -r ${1} --html-details -o code_coverage/index.html
+gcovr -r ${1} --xml-pretty -o code_coverage/output.xml
 cd -
 
 exit 0

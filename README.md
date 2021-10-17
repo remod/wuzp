@@ -46,21 +46,32 @@ make tidy
 
 ## Roadmap
 
-Features:
+**Features**
+
+Value matrix:
 
 * Own matrix implementation
-* Different rotations (quaternions, angle axis, etc.)
-* Non-static transformations
-* Dynamic size matrices
-* Run-time frames
+* Dynamic sized matrices
+
+Units:
+
 * Run-time units
 * Support nholthaus/units
+
+Rotations:
+
+* Different rotations (quaternions, angle axis, etc.)
+
+Transformations:
+
+* Run-time frames
+
+Pipeline & packaging:
+
+* Migrate from macros to different submodules
 * Unit test coverage
 * ROS/ROS2 release
-
-Minor:
-
-* Downgrade C++ and CMake version as much as possible.
+* Downgrade C++ and CMake version as much as possible
 
 Documentation:  
 
