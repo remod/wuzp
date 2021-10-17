@@ -41,3 +41,10 @@ jobs:
 #        directory: ${BUILD_DIR}/code_coverage
         files: ${BUILD_DIR}/code_coverage/output.xml
         verbose: true
+    - name: Upload Code Coverage 2
+      shell: bash
+      run: |
+        sudo apt install curl
+        curl -Os https://uploader.codecov.io/latest/linux/codecov
+        chmod +x codecov
+        ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${BUILD_DIR}/code_coverage/output.xml
