@@ -2,6 +2,8 @@
 
 [![Build and Test](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml)
 
+[![Code Coverage](https://codecov.io/gh/remod/wuzp/branch/master/graph/badge.svg?token=FVPNHZKXVX)](https://codecov.io/gh/remod/wuzp)
+
 ## Preparations
 
 ```
