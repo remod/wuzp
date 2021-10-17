@@ -40,5 +40,6 @@ jobs:
     - uses: codecov/codecov-action@v2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        directory: ${BUILD_DIR}/code_coverage
+#        directory: ${BUILD_DIR}/code_coverage
+        files: ${BUILD_DIR}/code_coverage/output.xml
         verbose: true
