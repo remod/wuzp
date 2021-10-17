@@ -10,7 +10,7 @@ if [ $# != 1 ]; then
   exit 1
 fi
 
-# Tidy.
+# Tidy. TODO(remod): Re-enable.
 #make -C ${1} tidy
 
 exit 0

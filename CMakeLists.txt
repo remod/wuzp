@@ -92,6 +92,8 @@ if (ENABLE_TESTS)
     if (MATRIX_IMPLEMENTATION EQUAL MATRIX_IMPLEMENTATION_EIGEN)
         target_link_libraries(tests Eigen3::Eigen)
     endif()
+    add_compile_options("--coverage")
+    target_link_libraries(tests gcov)
     gtest_discover_tests(tests)
 endif()
 

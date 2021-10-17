@@ -19,30 +19,30 @@ TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
       QuantityTraits::Create<Quantity<int, Volume>>::create(3), QuantityTraits::Create<Quantity<int, Mass>>::create(4));
 }
 
-TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/QuantityMatrix.hpp"
-#include "wuzp/units/Quantity.hpp"
-#include "wuzp/units/QuantityTraits.hpp"
-#include "wuzp/units/Unit.hpp"
-#include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
-
-using namespace wuzp;  // NOLINT
-
-int main() {
-  using MyValueMatrix = ValueMatrix<int, 4, 1>;
-  using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix myMatrix(QuantityTraits::Create<Quantity<int, Length>>::create(1),
-                    QuantityTraits::Create<Quantity<int, Area>>::create(2),
-                    QuantityTraits::Create<Quantity<int, Volume>>::create(3),
-                    QuantityTraits::Create<Quantity<int, Length>>::create(4));
-  return 0;
-}
-  )",
-                                               "Units do not match.")
-}
+//TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
+//  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+//#include "wuzp/core/QuantityMatrix.hpp"
+//#include "wuzp/units/Quantity.hpp"
+//#include "wuzp/units/QuantityTraits.hpp"
+//#include "wuzp/units/Unit.hpp"
+//#include "wuzp/units/UnitMatrix.hpp"
+//#include "wuzp/value_matrix/ValueMatrix.hpp"
+//
+//using namespace wuzp;  // NOLINT
+//
+//int main() {
+//  using MyValueMatrix = ValueMatrix<int, 4, 1>;
+//  using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
+//  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+//  MyQuantityMatrix myMatrix(QuantityTraits::Create<Quantity<int, Length>>::create(1),
+//                    QuantityTraits::Create<Quantity<int, Area>>::create(2),
+//                    QuantityTraits::Create<Quantity<int, Volume>>::create(3),
+//                    QuantityTraits::Create<Quantity<int, Length>>::create(4));
+//  return 0;
+//}
+//  )",
+//                                               "Units do not match.")
+//}
 
 class TestQuantityMatrix : public ::testing::Test {
  public:
@@ -85,27 +85,27 @@ TEST_F(TestQuantityMatrix, SetGetQuantity) {  // NOLINT
   EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), quantity);
 }
 
-TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
-                                                   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/QuantityMatrix.hpp"
-#include "wuzp/units/Quantity.hpp"
-#include "wuzp/units/QuantityTraits.hpp"
-#include "wuzp/units/Unit.hpp"
-#include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
-
-using namespace wuzp;  // NOLINT
-
-int main() {
-  using MyValueMatrix = ValueMatrix<int, 2, 3>;
-  using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix quantityMatrix;
-  quantityMatrix.setQuantity<1, 2>(QuantityTraits::Create<Quantity<int, Time>>::create(7));
-  return 0;
-}
-  )",
-                                                                                                "Units do not match.")}
+//TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
+//                                                   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+//#include "wuzp/core/QuantityMatrix.hpp"
+//#include "wuzp/units/Quantity.hpp"
+//#include "wuzp/units/QuantityTraits.hpp"
+//#include "wuzp/units/Unit.hpp"
+//#include "wuzp/units/UnitMatrix.hpp"
+//#include "wuzp/value_matrix/ValueMatrix.hpp"
+//
+//using namespace wuzp;  // NOLINT
+//
+//int main() {
+//  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+//  using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+//  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+//  MyQuantityMatrix quantityMatrix;
+//  quantityMatrix.setQuantity<1, 2>(QuantityTraits::Create<Quantity<int, Time>>::create(7));
+//  return 0;
+//}
+//  )",
+//                                                                                                "Units do not match.")}
 
 TEST_F(TestQuantityMatrix, Addition) {  // NOLINT
   EXPECT_EQ(getMatrix1() + getMatrix2(), MyQuantityMatrix(getValues1() + getValues2()));

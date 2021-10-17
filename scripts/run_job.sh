@@ -19,7 +19,7 @@ MATRIX_IMPLEMENTATION=${7}
 ${SOURCE_DIR}/scripts/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} &&
 ${SOURCE_DIR}/scripts/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${C_COMPILER} ${CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} &&
 ${SOURCE_DIR}/scripts/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&
-${SOURCE_DIR}/scripts/steps/test.sh ${BUILD_DIR} ${BUILD_TYPE} &&
+${SOURCE_DIR}/scripts/steps/test.sh ${SOURCE_DIR} ${BUILD_DIR} ${BUILD_TYPE} &&
 ${SOURCE_DIR}/scripts/steps/format.sh ${SOURCE_DIR} ${BUILD_DIR} &&
 ${SOURCE_DIR}/scripts/steps/tidy.sh ${BUILD_DIR}
 RETURN_CODE=$?
