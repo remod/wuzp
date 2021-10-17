@@ -17,9 +17,6 @@ jobs:
         MATRIX_IMPLEMENTATION: [1]
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: '16'
     - name: Install Dependencies
       run: sudo ${SOURCE_DIR}/scripts/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.MATRIX_IMPLEMENTATION}}
     - name: Create Build Environment
@@ -37,7 +34,8 @@ jobs:
     - name: LS
       shell: bash
       run: ls ${BUILD_DIR}/code_coverage
-    - uses: codecov/codecov-action@v2
+    - name: Upload Code Coverage
+      uses: codecov/codecov-action@v2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
 #        directory: ${BUILD_DIR}/code_coverage
