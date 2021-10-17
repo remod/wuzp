@@ -18,11 +18,11 @@ int main() {
 )");
 }
 
-// TEST(TestCompilationError, detectsStaticAsserts) {  // NOLINT
-//  ASSERT_STATIC_ASSERTION_FAILURE(R"(
-// int main() {
-//  static_assert(false);
-//  return 0;
-//}
-//)");
-//}
+TEST(TestCompilationError, detectsStaticAsserts) {  // NOLINT
+  ASSERT_STATIC_ASSERTION_FAILURE(R"(
+ int main() {
+  static_assert(false);
+  return 0;
+}
+)");
+}
