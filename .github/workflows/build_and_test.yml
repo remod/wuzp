@@ -37,4 +37,5 @@ jobs:
     - uses: codecov/codecov-action@v2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
+        directory: ${BUILD_DIR}/code_coverage
         verbose: true
