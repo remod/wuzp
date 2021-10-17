@@ -2,13 +2,13 @@
 
 #include "test_compilation_error.hpp"
 
-// TEST(TestCompilationError, compilesGoodCode) {  // NOLINT
-//  ASSERT_NO_COMPILATION_ERROR(R"(
-// int main() {
-//  return 0;
-//}
-//)");
-//}
+TEST(TestCompilationError, compilesGoodCode) {  // NOLINT
+  ASSERT_NO_COMPILATION_ERROR(R"(
+ int main() {
+  return 0;
+}
+)");
+}
 
 TEST(TestCompilationError, detectsBadCode) {  // NOLINT
   ASSERT_COMPILATION_ERROR(R"(
