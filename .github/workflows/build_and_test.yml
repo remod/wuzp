@@ -31,7 +31,7 @@ jobs:
     - name: Build
       run: ${SOURCE_DIR}/scripts/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
-      run: ${SOURCE_DIR}/scripts/steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${SOURCE_DIR}/scripts/steps/test.sh ${SOURCE_DIR} ${BUILD_DIR} ${BUILD_TYPE}
     - name: Format
       shell: bash
       run: ${SOURCE_DIR}/scripts/steps/format.sh ${SOURCE_DIR} ${BUILD_DIR}
