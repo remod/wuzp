@@ -20,10 +20,6 @@ jobs:
     - uses: actions/setup-node@v2
       with:
         node-version: '16'
-    - uses: codecov/codecov-action@v2
-      with:
-        token: ${{secrets.CODECOV_TOKEN}}
-        verbose: true
     - name: Install Dependencies
       run: sudo ${SOURCE_DIR}/scripts/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.MATRIX_IMPLEMENTATION}}
     - name: Create Build Environment
@@ -38,3 +34,7 @@ jobs:
     - name: Tidy
       shell: bash
       run: ${SOURCE_DIR}/scripts/steps/tidy.sh ${BUILD_DIR}
+    - uses: codecov/codecov-action@v2
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
+        verbose: true
