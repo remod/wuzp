@@ -22,8 +22,6 @@ TEST(TestRotation, TransformPositionVector) {  // NOLINT
   const Transformation transformation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
   auto result = TransformedObject::zero();
   result = transformation.transform(object);
-  std::cerr << result << std::endl;
-  std::cerr << result << std::endl;
   EXPECT_EQ(result, transformedObject);
 }
 
