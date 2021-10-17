@@ -19,7 +19,7 @@ REPO_DIR=${SCRIPT_DIR}/..
 
 # Run all jobs of the Github workflow.
 WORKSPACE_DIR=/root
-BUILD_TYPE=Release
+BUILD_TYPE=Debug
 for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
     for MATRIX_IMPLEMENTATION in 1; do
