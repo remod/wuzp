@@ -6,14 +6,14 @@
 
 using namespace wuzp;  // NOLINT
 
-//TEST(TestRational, Infinity){// NOLINT
+// TEST(TestRational, Infinity){// NOLINT
 //                             ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(
 //                                 R"(
 //#include "wuzp/core/Rational.hpp"
 //
-//using namespace wuzp;
+// using namespace wuzp;
 //
-//int main() {
+// int main() {
 //  using type = Rational<3, 0>;
 //  return 0;
 //}
@@ -63,14 +63,14 @@ TEST(TestRational, MinusInfinityToMinusOne) {  // NOLINT
   static_assert(std::is_same<Rational<-9, 6>, Rational<-3, 2>>::value);
 }
 
-//TEST(TestRational, MinusInfinity){// NOLINT
+// TEST(TestRational, MinusInfinity){// NOLINT
 //                                  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(
 //                                      R"(
 //#include "wuzp/core/Rational.hpp"
 //
-//using namespace wuzp;
+// using namespace wuzp;
 //
-//int main() {
+// int main() {
 //  using type = Rational<3, -0>;
 //  return 0;
 //}

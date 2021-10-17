@@ -19,7 +19,7 @@ TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
       QuantityTraits::Create<Quantity<int, Volume>>::create(3), QuantityTraits::Create<Quantity<int, Mass>>::create(4));
 }
 
-//TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
+// TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
 //  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
 //#include "wuzp/core/QuantityMatrix.hpp"
 //#include "wuzp/units/Quantity.hpp"
@@ -28,9 +28,9 @@ TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
 //#include "wuzp/units/UnitMatrix.hpp"
 //#include "wuzp/value_matrix/ValueMatrix.hpp"
 //
-//using namespace wuzp;  // NOLINT
+// using namespace wuzp;  // NOLINT
 //
-//int main() {
+// int main() {
 //  using MyValueMatrix = ValueMatrix<int, 4, 1>;
 //  using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
 //  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
@@ -85,7 +85,7 @@ TEST_F(TestQuantityMatrix, SetGetQuantity) {  // NOLINT
   EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), quantity);
 }
 
-//TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
+// TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
 //                                                   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
 //#include "wuzp/core/QuantityMatrix.hpp"
 //#include "wuzp/units/Quantity.hpp"
@@ -94,9 +94,9 @@ TEST_F(TestQuantityMatrix, SetGetQuantity) {  // NOLINT
 //#include "wuzp/units/UnitMatrix.hpp"
 //#include "wuzp/value_matrix/ValueMatrix.hpp"
 //
-//using namespace wuzp;  // NOLINT
+// using namespace wuzp;  // NOLINT
 //
-//int main() {
+// int main() {
 //  using MyValueMatrix = ValueMatrix<int, 2, 3>;
 //  using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
 //  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;

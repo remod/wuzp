@@ -2,9 +2,9 @@
 
 #include "test_compilation_error.hpp"
 
-//TEST(TestCompilationError, compilesGoodCode) {  // NOLINT
+// TEST(TestCompilationError, compilesGoodCode) {  // NOLINT
 //  ASSERT_NO_COMPILATION_ERROR(R"(
-//int main() {
+// int main() {
 //  return 0;
 //}
 //)");
@@ -18,9 +18,9 @@ int main() {
 )");
 }
 
-//TEST(TestCompilationError, detectsStaticAsserts) {  // NOLINT
+// TEST(TestCompilationError, detectsStaticAsserts) {  // NOLINT
 //  ASSERT_STATIC_ASSERTION_FAILURE(R"(
-//int main() {
+// int main() {
 //  static_assert(false);
 //  return 0;
 //}

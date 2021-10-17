@@ -63,14 +63,14 @@ TEST(TestTypeMatrix, Sum) {  // NOLINT
   static_assert(std::is_same<Sum<A, B>::type, C>::value);
 }
 
-//TEST(TestTypeMatrix, SumInvalidTypes){// NOLINT
+// TEST(TestTypeMatrix, SumInvalidTypes){// NOLINT
 //                                      ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
 //#include "wuzp/core/TypeMatrix.hpp"
 //#include "wuzp/core/traits.hpp"
 //
-//using namespace wuzp;
+// using namespace wuzp;
 //
-//struct Traits {
+// struct Traits {
 //  DEFINE_RECURSIVE_TRAIT(Sum)
 //  template <typename Lhs, typename Rhs>
 //  struct Sum<Lhs, Rhs> {
@@ -79,7 +79,7 @@ TEST(TestTypeMatrix, Sum) {  // NOLINT
 //  };
 //};
 //
-//int main() {
+// int main() {
 //  using type = Sum<TypeMatrix<1, 1, Traits, int>, TypeMatrix<1, 1, Traits, double>>::type;
 //  return 0;
 //}
