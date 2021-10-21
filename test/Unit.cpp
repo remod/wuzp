@@ -39,3 +39,13 @@ TEST(TestUnit, Identity) {  // NOLINT
   static_assert(std::is_same<UnitTraits::Identity<Mass>::type, Dimensionless>::value);
   static_assert(std::is_same<UnitTraits::Identity<Dimensionless>::type, Dimensionless>::value);
 }
+
+TEST(TestUnit, AreAnglesDimensionless) {  // NOLINT
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+  static_assert(std::is_same<Angle, Dimensionless>::value);
+  static_assert(std::is_same<UnitTraits::Product<Angle, Length>::type, Length>::value);
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+  static_assert(!std::is_same<Angle, Dimensionless>::value);
+  static_assert(!std::is_same<UnitTraits::Product<Angle, Length>::type, Length>::value);
+#endif
+}

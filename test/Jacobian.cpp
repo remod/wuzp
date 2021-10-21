@@ -9,8 +9,6 @@
 
 using namespace wuzp;  // NOLINT
 
-// TODO(remod): This only works with WUZP units atm, as in boost angle != dimensionless.
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   struct FromCoordinateSystemName {};
   struct ToCoordinateSystemName {};
@@ -21,9 +19,11 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   using Object =
       Vector<CoordinateMatrix<ValueMatrix<double, FromDimension, 1>, UnitMatrix<FromDimension, 1, Velocity, Velocity, AngularVelocity>,
                               CoordinateSystemMatrix<FromDimension, 1, FromCoordinateSystem>>>;
-  using LengthInv = UnitTraits::Inverse<Length>::type;
+  // Note: With wuzp units angles are dimensionless, but with boost units not.
+  using AngleOverLength = UnitTraits::Division<Angle, Length>::type;
+  using LengthOverAngle = UnitTraits::Inverse<AngleOverLength>::type;
   using Transformation = Jacobian<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
-                                  LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
+                                  AngleOverLength, AngleOverLength, Dimensionless, Dimensionless, Dimensionless, LengthOverAngle>;
   using TransformedObject =
       Tensor<1, 0,
              CoordinateMatrix<ValueMatrix<double, ToDimension, 1>, UnitMatrix<ToDimension, 1, AngularVelocity, Velocity>,
@@ -66,4 +66,3 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   // TODO(remod): Jacobian::inverse() does not exist yet.
   //  EXPECT_EQ(transformation.transform(object), transformedObject);
 }
-#endif
