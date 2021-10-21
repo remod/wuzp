@@ -92,7 +92,8 @@ namespace wuzp {
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
 class Tensor {
  public:
-  static_assert(ContravariantIndices + CovariantIndices == Dimension<CoordinateMatrix>::value, "Dimension does not match.");
+  // TODO(remod): This is disabled to support batch processing of vectors, e.g. for point clouds. Remove it at one point.
+  //  static_assert(ContravariantIndices + CovariantIndices == Dimension<CoordinateMatrix>::value, "Dimension does not match.");
 
   Tensor() = default;
   template <typename CoordinateMatrixOther>
