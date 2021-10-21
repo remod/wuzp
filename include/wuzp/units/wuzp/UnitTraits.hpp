@@ -121,19 +121,13 @@ struct UnitTraits {
   struct MakeRelative<Absolute<Unit>> {
     using type = Unit;
   };
-  template <typename Unit, bool Enable>
-  struct MakeAbsolute;
   template <typename Unit>
-  struct MakeAbsolute<Unit, true> {
+  struct MakeAbsolute {
     using type = Absolute<Unit>;
   };
   template <typename Unit>
-  struct MakeAbsolute<Unit, false> {
-    using type = Unit;
-  };
-  template <typename Unit, bool Enable>
-  struct MakeAbsolute<Absolute<Unit>, Enable> {
-    // TODO(remod): Forbid this.
+  struct MakeAbsolute<Absolute<Unit>> {
+    static_assert(FakeDependency<MakeAbsolute<Absolute<Unit>>>::value, "Unit is already absolute.");
   };
 };
 

@@ -169,9 +169,9 @@ struct MakeRelative<QuantityMatrix<ValueMatrix, UnitMatrix>> {
   using type = QuantityMatrix<ValueMatrix, typename MakeRelative<UnitMatrix>::type>;
   static auto make(const QuantityMatrix<ValueMatrix, UnitMatrix>& object) { return type(object.getValueMatrix()); }
 };
-template <typename ValueMatrix, typename UnitMatrix, bool Enable>
-struct MakeAbsolute<QuantityMatrix<ValueMatrix, UnitMatrix>, Enable> {
-  using type = QuantityMatrix<ValueMatrix, typename MakeAbsolute<UnitMatrix, Enable>::type>;
+template <typename ValueMatrix, typename UnitMatrix>
+struct MakeAbsolute<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  using type = QuantityMatrix<ValueMatrix, typename MakeAbsolute<UnitMatrix>::type>;
   static auto make(const QuantityMatrix<ValueMatrix, UnitMatrix>& object) { return type(object.getValueMatrix()); }
 };
 

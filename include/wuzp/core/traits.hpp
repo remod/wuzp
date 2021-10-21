@@ -73,11 +73,9 @@ template <typename T>
 struct MakeRelative {
   static_assert(FakeDependency<MakeRelative<T>>::value, "'MakeRelative' trait not specialized for given type.");
 };
-// TODO(remod): Make this more generic: Create a helper which takes two types (T and MakeAbsolute<T>::type) and a boolean to determine which
-// one to typedef.
-template <typename T, bool Enable>
+template <typename T>
 struct MakeAbsolute {
-  static_assert(FakeDependency<MakeAbsolute<T, Enable>>::value, "'MakeAbsolute' trait not specialized for given type.");
+  static_assert(FakeDependency<MakeAbsolute<T>>::value, "'MakeAbsolute' trait not specialized for given type.");
 };
 
 template <typename T, typename NewCoordinateSystem>
@@ -92,9 +90,9 @@ template <typename T>
 auto makeRelative(T t) {
   return MakeRelative<T>::make(t);
 }
-template <bool Enable, typename T>
+template <typename T>
 auto makeAbsolute(T t) {
-  return MakeAbsolute<T, Enable>::make(t);
+  return MakeAbsolute<T>::make(t);
 }
 template <typename To, typename T>
 auto castCoordinateSystem(T t) {

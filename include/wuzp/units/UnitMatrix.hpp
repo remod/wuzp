@@ -58,9 +58,9 @@ template <int Rows, int Cols, typename... Units>
 struct MakeRelative<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
   using type = UnitMatrix<Rows, Cols, typename UnitTraits::MakeRelative<Units>::type...>;
 };
-template <int Rows, int Cols, typename... Units, bool Enable>
-struct MakeAbsolute<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>, Enable> {
-  using type = UnitMatrix<Rows, Cols, typename UnitTraits::MakeAbsolute<Units, Enable>::type...>;
+template <int Rows, int Cols, typename... Units>
+struct MakeAbsolute<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
+  using type = UnitMatrix<Rows, Cols, typename UnitTraits::MakeAbsolute<Units>::type...>;
 };
 
 }  // namespace wuzp

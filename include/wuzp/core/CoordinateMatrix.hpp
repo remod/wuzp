@@ -185,9 +185,9 @@ struct MakeRelative<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMa
     return type(object.getValueMatrix());
   }
 };
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix, bool Enable>
-struct MakeAbsolute<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>, Enable> {
-  using type = CoordinateMatrix<ValueMatrix, typename MakeAbsolute<UnitMatrix, Enable>::type, CoordinateSystemMatrix>;
+template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
+struct MakeAbsolute<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>> {
+  using type = CoordinateMatrix<ValueMatrix, typename MakeAbsolute<UnitMatrix>::type, CoordinateSystemMatrix>;
   static type make(const CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>& object) {
     return type(object.getValueMatrix());
   }

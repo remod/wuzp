@@ -56,8 +56,11 @@ struct TransformationTraits<LinearTransformation<Scalar, CoordinateSystem, From,
       const LinearTransformation<Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<1, 0, CoordinateMatrix>& object) {
     // If the object is absolute (point), make it relative (vector), transform it, and make it absolute again.
-    return evaluate(castCoordinateSystem<To>(
-        makeAbsolute<IsAbsolute<Tensor<1, 0, CoordinateMatrix>>::value>(transformation.getTensor() * makeRelative(object))));
+    if constexpr (IsAbsolute<Tensor<1, 0, CoordinateMatrix>>::value) {
+      return evaluate(castCoordinateSystem<To>(makeAbsolute(transformation.getTensor() * makeRelative(object))));
+    } else {
+      return evaluate(castCoordinateSystem<To>(transformation.getTensor() * object));
+    }
   }
 };
 template <typename Scalar, typename CoordinateSystem, typename From, typename To, int DimensionFrom, int DimensionTo, typename... Units,

@@ -194,11 +194,11 @@ struct MakeRelative<Tensor<ContravariantIndices, CovariantIndices, CoordinateMat
     return type(MakeRelative<CoordinateMatrix>::make(object.getCoordinateMatrix()));
   }
 };
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix, bool Enable>
-struct MakeAbsolute<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>, Enable> {
-  using type = Tensor<ContravariantIndices, CovariantIndices, typename MakeAbsolute<CoordinateMatrix, Enable>::type>;
+template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
+struct MakeAbsolute<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
+  using type = Tensor<ContravariantIndices, CovariantIndices, typename MakeAbsolute<CoordinateMatrix>::type>;
   static type make(const Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>& object) {
-    return type(MakeAbsolute<CoordinateMatrix, Enable>::make(object.getCoordinateMatrix()));
+    return type(MakeAbsolute<CoordinateMatrix>::make(object.getCoordinateMatrix()));
   }
 };
 
