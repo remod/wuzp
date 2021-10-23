@@ -11,20 +11,28 @@
 
 namespace wuzp {
 
-template <typename ValueMatrix, typename UnitMatrix>
+template <typename ValueMatrix_, typename UnitMatrix_>
 class QuantityMatrix {
  public:
-  static_assert(ValueMatrixTraits::Rows<ValueMatrix>::value == Rows<UnitMatrix>::value, "Number of rows do not match.");
-  static_assert(ValueMatrixTraits::Cols<ValueMatrix>::value == Cols<UnitMatrix>::value, "Number of columns do not match.");
+  using ValueMatrixT = ValueMatrix_;
+  using UnitMatrixT = UnitMatrix_;
+  using This = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
+
+  static_assert(ValueMatrixTraits::Rows<ValueMatrixT>::value == Rows<UnitMatrixT>::value, "Number of rows do not match.");
+  static_assert(ValueMatrixTraits::Cols<ValueMatrixT>::value == Cols<UnitMatrixT>::value, "Number of columns do not match.");
 
   QuantityMatrix() = default;
 
   template <typename ValueMatrixOther, typename UnitMatrixOther>
+  // Allow other value matrix types to support lazy evaluation. NOLINTNEXTLINE(google-explicit-constructor)
   QuantityMatrix(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& other) : valueMatrix_(other.getValueMatrix()) {
-    static_assert(std::is_same<UnitMatrix, UnitMatrixOther>::value, "Units do not match.");
+    static_assert(std::is_same<UnitMatrixT, UnitMatrixOther>::value, "Units do not match.");
   }
-
-  static QuantityMatrix zero() { return QuantityMatrix(ValueMatrixTraits::Zero<ValueMatrix>::value()); }
+  template <typename ValueMatrixOther, typename UnitMatrixOther>
+  // Allow other value matrix types to support lazy evaluation. NOLINTNEXTLINE(google-explicit-constructor)
+  QuantityMatrix(QuantityMatrix<ValueMatrixOther, UnitMatrixOther>&& other) : valueMatrix_(std::move(other.getValueMatrix())) {
+    static_assert(std::is_same<UnitMatrixT, UnitMatrixOther>::value, "Units do not match.");
+  }
 
   /**
    * Construct a quantity matrix from quantities.
@@ -32,21 +40,10 @@ class QuantityMatrix {
    * @param quantities Quantities.
    */
   template <typename... Units>
-  explicit QuantityMatrix(Quantity<typename ValueMatrixTraits::Scalar<ValueMatrix>::type, Units>... quantities)
-      : valueMatrix_(QuantityTraits::GetValue<Quantity<typename ValueMatrixTraits::Scalar<ValueMatrix>::type, Units>>::get(quantities)...) {
-    static_assert(std::is_same<std::tuple<Units...>, typename GetTypes<UnitMatrix>::type>::value, "Units do not match.");
-  }
-
-  template <int RowId, int ColId, typename Quantity>
-  void setQuantity(const Quantity quantity) {
-    static_assert(std::is_same<typename Element<UnitMatrix, RowId, ColId>::type, typename QuantityTraits::GetUnit<Quantity>::type>::value,
-                  "Units do not match.");
-    valueMatrix_(RowId, ColId) = QuantityTraits::GetValue<Quantity>::get(quantity);
-  }
-  template <int RowId, int ColId>
-  auto getQuantity() const {
-    return QuantityTraits::Create<Quantity<typename ValueMatrix::Scalar, typename Element<UnitMatrix, RowId, ColId>::type>>::create(
-        valueMatrix_(RowId, ColId));
+  explicit QuantityMatrix(Quantity<typename ValueMatrixTraits::Scalar<ValueMatrixT>::type, Units>... quantities)
+      : valueMatrix_(
+            QuantityTraits::GetValue<Quantity<typename ValueMatrixTraits::Scalar<ValueMatrixT>::type, Units>>::get(quantities)...) {
+    static_assert(std::is_same<std::tuple<Units...>, typename GetTypes<UnitMatrixT>::type>::value, "Units do not match.");
   }
 
   /**
@@ -54,26 +51,51 @@ class QuantityMatrix {
    * WARNING: This method circumvents quantity type safety.
    * @param valueMatrix Value matrix.
    */
-  explicit QuantityMatrix(const ValueMatrix& valueMatrix) : valueMatrix_(valueMatrix) {}
+  template <typename ValueMatrixOther>
+  explicit QuantityMatrix(const ValueMatrixOther& valueMatrix) : valueMatrix_(valueMatrix) {}
+  // TODO(remod): Enable general move constructors.
+  //  template <typename ValueMatrixOther>
+  //  explicit QuantityMatrix(ValueMatrixOther&& valueMatrix) : valueMatrix_(std::forward<ValueMatrixOther>(valueMatrix)) {}
+
+  template <typename... Ts>
+  explicit QuantityMatrix(Ts... ts) : valueMatrix_(ValueMatrixTraits::Construct<ValueMatrixT, Ts...>::value(ts...)) {}
+  //  template <typename... Ts>
+  //  QuantityMatrix(Ts&&... ts) : valueMatrix_(ValueMatrixTraits::Construct<ValueMatrix, Ts...>::value(std::forward<Ts>(ts)...)) {}
+
+  ~QuantityMatrix() = default;
+
+  static This zero() { return This(ValueMatrixTraits::Zero<ValueMatrixT>::value()); }
+
+  template <int RowId, int ColId, typename Quantity>
+  void setQuantity(const Quantity quantity) {
+    static_assert(std::is_same<typename Element<UnitMatrixT, RowId, ColId>::type, typename QuantityTraits::GetUnit<Quantity>::type>::value,
+                  "Units do not match.");
+    valueMatrix_(RowId, ColId) = QuantityTraits::GetValue<Quantity>::get(quantity);
+  }
+  template <int RowId, int ColId>
+  auto getQuantity() const {
+    return QuantityTraits::Create<Quantity<typename ValueMatrixT::Scalar, typename Element<UnitMatrixT, RowId, ColId>::type>>::create(
+        valueMatrix_(RowId, ColId));
+  }
 
   /**
    * Set the values of the quantity matrix.
    * WARNING: This method circumvents quantity type safety.
    * @param valueMatrix Value matrix.
    */
-  void setValueMatrix(const ValueMatrix& valueMatrix) { valueMatrix_ = valueMatrix; }
+  void setValueMatrix(const ValueMatrixT& valueMatrix) { valueMatrix_ = valueMatrix; }
 
   /**
    * Get the values of the quantity matrix.
    * WARNING: This method circumvents quantity type safety.
    * @return ValueMatrix of the quantity matrix.
    */
-  const ValueMatrix& getValueMatrix() const { return valueMatrix_; }
+  const ValueMatrixT& getValueMatrix() const { return valueMatrix_; }
 
   template <typename ValueMatrixOther, typename UnitMatrixOther>
   bool isApprox(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& other) const {
     // Note: Allow other value types to support lazy evaluation.
-    static_assert(std::is_same<UnitMatrix, UnitMatrixOther>::value, "Units do not match.");
+    static_assert(std::is_same<UnitMatrixT, UnitMatrixOther>::value, "Units do not match.");
     return valueMatrix_.isApprox(other.getValueMatrix());
   }
 
@@ -95,9 +117,7 @@ class QuantityMatrix {
   auto inverse() const { return typename Inverse<This>::type(valueMatrix_.inverse()); }
 
  private:
-  using This = QuantityMatrix<ValueMatrix, UnitMatrix>;
-
-  ValueMatrix valueMatrix_;
+  ValueMatrixT valueMatrix_;
 };
 
 template <typename ValueMatrix, typename UnitMatrix>

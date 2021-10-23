@@ -84,6 +84,16 @@ Documentation:
 
 ## Design Decisions
 
+## Order of methods
+
+1. Empty constructor
+1. Copy constructor
+1. Move constructor
+1. Constructor copying members
+1. Constructor moving members
+1. Destructor
+1. Others
+
 ### Handling of Coordinate System Transformations
 
 Options:
