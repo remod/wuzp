@@ -43,12 +43,11 @@ class CoordinateMatrix {
 
   CoordinateMatrix() = default;
 
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!is_specialization<T0, Tag>::value>>
-  // NOLINTNEXTLINE(google-explicit-constructor)
-  CoordinateMatrix(const T0& t0, const Ts&... ts) : CoordinateMatrix(typename GetTag<This, T0, Ts...>::type(), t0, ts...) {}
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!is_specialization<T0, Tag>::value>>
-  // NOLINTNEXTLINE(google-explicit-constructor)
-  CoordinateMatrix(T0&& t0, Ts&&... ts)
+  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromCoordinateMatrix>) CoordinateMatrix(const T0& t0, const Ts&... ts)
+      : CoordinateMatrix(typename GetTag<This, T0, Ts...>::type(), t0, ts...) {}
+  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromCoordinateMatrix>) CoordinateMatrix(T0&& t0, Ts&&... ts)
       : CoordinateMatrix(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
   ~CoordinateMatrix() = default;
@@ -91,7 +90,7 @@ class CoordinateMatrix {
  private:
   template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
   // Allow other value matrix types to support lazy evaluation.
-  explicit CoordinateMatrix(FromCoordinateMatrix,
+  explicit CoordinateMatrix(FromCoordinateMatrix /*tag*/,
                             const CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>& other)
       : quantityMatrix_(other.getQuantityMatrix()) {
     static_assert(std::is_same<UnitMatrixT, UnitMatrixOther>::value, "Units do not match.");
@@ -99,7 +98,8 @@ class CoordinateMatrix {
   }
   template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
   // Allow other value matrix types to support lazy evaluation.
-  explicit CoordinateMatrix(FromCoordinateMatrix, CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>&& other)
+  explicit CoordinateMatrix(FromCoordinateMatrix /*tag*/,
+                            CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>&& other)
       : quantityMatrix_(std::move(other.getQuantityMatrix())) {
     static_assert(std::is_same<UnitMatrixT, UnitMatrixOther>::value, "Units do not match.");
     static_assert(std::is_same<CoordinateSystemMatrixT, CoordinateSystemMatrixOther>::value, "Coordinate systems do not match.");
@@ -107,17 +107,17 @@ class CoordinateMatrix {
 
   // Allow other value types to support lazy evaluation.
   template <typename ValueMatrixOther>
-  explicit CoordinateMatrix(FromQuantityMatrix, const QuantityMatrix<ValueMatrixOther, UnitMatrixT>& quantityMatrix)
+  explicit CoordinateMatrix(FromQuantityMatrix /*tag*/, const QuantityMatrix<ValueMatrixOther, UnitMatrixT>& quantityMatrix)
       : quantityMatrix_(quantityMatrix) {}
   // Allow other value types to support lazy evaluation.
   template <typename ValueMatrixOther>
-  explicit CoordinateMatrix(FromQuantityMatrix, QuantityMatrix<ValueMatrixOther, UnitMatrixT>&& quantityMatrix)
+  explicit CoordinateMatrix(FromQuantityMatrix /*tag*/, QuantityMatrix<ValueMatrixOther, UnitMatrixT>&& quantityMatrix)
       : quantityMatrix_(std::move(quantityMatrix)) {}
 
   template <typename... Ts>
-  explicit CoordinateMatrix(FromQuantityMatrixArgs, const Ts&... ts) : quantityMatrix_(ts...) {}
+  explicit CoordinateMatrix(FromQuantityMatrixArgs /*tag*/, const Ts&... ts) : quantityMatrix_(ts...) {}
   template <typename... Ts>
-  explicit CoordinateMatrix(FromQuantityMatrixArgs, Ts&&... ts) : quantityMatrix_(std::forward<Ts>(ts)...) {}
+  explicit CoordinateMatrix(FromQuantityMatrixArgs /*tag*/, Ts&&... ts) : quantityMatrix_(std::forward<Ts>(ts)...) {}
 
   QuantityMatrix<ValueMatrixT, UnitMatrixT> quantityMatrix_;
 };
@@ -128,9 +128,9 @@ struct GetTag<CoordinateMatrix<Xs...>, Ts...> {
   using type = typename Chose<
       sizeof...(Ts) == 1,
       typename Chose<
-          is_specialization<first, CoordinateMatrix>::value, FromCoordinateMatrix,
-          typename Chose<(is_specialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type,
-      typename Chose<(is_specialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type;
+          IsSpecialization<first, CoordinateMatrix>::value, FromCoordinateMatrix,
+          typename Chose<(IsSpecialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type,
+      typename Chose<(IsSpecialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type;
 };
 
 template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>

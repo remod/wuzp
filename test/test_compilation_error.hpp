@@ -12,7 +12,7 @@ inline std::string getCMakeListsContent() {
   return "cmake_minimum_required(VERSION 3.12)\n"
          "project(test_compilation)\n"
          "\n"
-         "set(CMAKE_CXX_STANDARD 17)\n"
+         "set(CMAKE_CXX_STANDARD 20)\n"
          "\n"
          "add_compile_options(-Wall -Wextra -Wpedantic)\n"
          "\n"
@@ -77,19 +77,21 @@ inline std::pair<bool, std::string> compile(const std::string& code) {
   return {result.first == EXIT_SUCCESS, result.second};
 }
 
-#define ASSERT_NO_COMPILATION_ERROR(code) \
-  const auto result = compile(code);      \
+#define ASSERT_NO_COMPILATION_ERROR(code)         \
+  const auto result = compile(std::string{code}); \
   ASSERT_TRUE(result.first) << result.second;
-#define ASSERT_COMPILATION_ERROR(code) \
-  const auto result = compile(code);   \
+#define ASSERT_COMPILATION_ERROR(code)            \
+  const auto result = compile(std::string{code}); \
   ASSERT_FALSE(result.first) << result.second;
-#define ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, message) \
-  const auto result = compile(code);                                \
-  ASSERT_FALSE(result.first) << result.second;                      \
-  std::string searchString{"error: static assertion failed"};       \
-  const std::string messageString{message};                         \
-  if (!messageString.empty()) {                                     \
-    searchString += ": " + messageString;                           \
-  }                                                                 \
+#define ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, message)                 \
+  const auto result = compile(std::string{code});                            \
+  ASSERT_FALSE(result.first) << result.second;                               \
+  const auto searchString = std::string{"error: "} + std::string{(message)}; \
   ASSERT_NE(result.second.find(searchString), std::string::npos) << result.second;
+#define ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, message)     \
+  std::string staticAssertionMessage{"static assertion failed"};        \
+  if (!std::string{message}.empty()) {                                  \
+    staticAssertionMessage += std::string{": "} + std::string{message}; \
+  }                                                                     \
+  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, staticAssertionMessage)
 #define ASSERT_STATIC_ASSERTION_FAILURE(code) ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, std::string{})

@@ -23,10 +23,63 @@ TEST(TestQuantityMatrix2, GetTag) {  // NOLINT
 }
 
 TEST(TestQuantityMatrix2, EmptyConstructor) {  // NOLINT
-  using MyValueMatrix = ValueMatrix<int, 4, 1>;
-  using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix myMatrix;
+  [[maybe_unused]] const MyQuantityMatrix myMatrix;
+}
+
+TEST(TestQuantityMatrix2, ConstructImplicityFromQuantityMatrix) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  const MyQuantityMatrix quantityMatrix1;
+  const MyQuantityMatrix quantityMatrix2;
+  const auto quantityMatrix3 = quantityMatrix1 + quantityMatrix2;
+  const MyQuantityMatrix quantityMatrix = quantityMatrix3;
+  EXPECT_EQ(quantityMatrix, quantityMatrix3);
+}
+
+TEST(TestQuantityMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
+  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
+#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
+
+using namespace wuzp;  // NOLINT
+
+using MyValueMatrix = ValueMatrix<int, 2, 3>;
+using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+
+int main() {
+  MyValueMatrix valueMatrix;
+  valueMatrix << 1, 2, 3, 4, 5, 6;
+  [[maybe_unused]] const MyQuantityMatrix quantityMatrix = valueMatrix;
+  return 0;
+}
+)",
+                                        "conversion from");
+}
+
+TEST(TestQuantityMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  MyValueMatrix valueMatrix;
+  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyQuantityMatrix quantityMatrix(valueMatrix);
+  EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
+}
+
+TEST(TestQuantityMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  MyValueMatrix valueMatrix;
+  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyQuantityMatrix quantityMatrix(1, 2, 3, 4, 5, 6);
+  EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
 }
 
 TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT

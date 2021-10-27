@@ -100,12 +100,12 @@ class Tensor {
 
   Tensor() = default;
 
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!is_specialization<T0, Tag>::value>>
-  // NOLINTNEXTLINE(google-explicit-constructor)
-  Tensor(const T0& t0, const Ts&... ts) : Tensor(typename GetTag<This, T0, Ts...>::type(), t0, ts...) {}
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!is_specialization<T0, Tag>::value>>
-  // NOLINTNEXTLINE(google-explicit-constructor)
-  Tensor(T0&& t0, Ts&&... ts) : Tensor(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
+  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(const T0& t0, const Ts&... ts)
+      : Tensor(typename GetTag<This, T0, Ts...>::type(), t0, ts...) {}
+  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(T0&& t0, Ts&&... ts)
+      : Tensor(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
   ~Tensor() = default;
 
@@ -118,31 +118,32 @@ class Tensor {
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
   // Allow other coordinate matrix types to support lazy evaluation. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit Tensor(FromTensor, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other)
+  explicit Tensor(FromTensor /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other)
       : coordinateMatrix_(other.getCoordinateMatrix()) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
   }
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
   // Allow other coordinate matrix types to support lazy evaluation. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit Tensor(FromTensor, Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>&& other)
+  explicit Tensor(FromTensor /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>&& other)
       : coordinateMatrix_(std::move(other.getCoordinateMatrix())) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
   }
 
   template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
-  explicit Tensor(FromCoordinateMatrix,
+  explicit Tensor(FromCoordinateMatrix /*tag*/,
                   const CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>& coordinateMatrix)
       : coordinateMatrix_(coordinateMatrix) {}
   template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
-  explicit Tensor(FromCoordinateMatrix, CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>&& coordinateMatrix)
+  explicit Tensor(FromCoordinateMatrix /*tag*/,
+                  CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>&& coordinateMatrix)
       : coordinateMatrix_(std::move(coordinateMatrix)) {}
 
   template <typename... Ts>
-  explicit Tensor(FromCoordinateMatrixArgs, const Ts&... ts) : coordinateMatrix_(ts...) {}
+  explicit Tensor(FromCoordinateMatrixArgs /*tag*/, const Ts&... ts) : coordinateMatrix_(ts...) {}
   template <typename... Ts>
-  explicit Tensor(FromCoordinateMatrixArgs, Ts&&... ts) : coordinateMatrix_(std::forward<Ts>(ts)...) {}
+  explicit Tensor(FromCoordinateMatrixArgs /*tag*/, Ts&&... ts) : coordinateMatrix_(std::forward<Ts>(ts)...) {}
 
   CoordinateMatrixT coordinateMatrix_;
 };
@@ -152,10 +153,10 @@ struct GetTag<Tensor<X0, X1, X3>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
   using type = typename Chose<
       sizeof...(Ts) == 1,
-      typename Chose<is_specialization_i<first, Tensor>::value, FromTensor,
-                     typename Chose<(is_specialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix,
+      typename Chose<IsSpecializationInts<first, Tensor>::value, FromTensor,
+                     typename Chose<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix,
                                     FromCoordinateMatrixArgs>::type>::type,
-      typename Chose<(is_specialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix, FromCoordinateMatrixArgs>::type>::type;
+      typename Chose<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix, FromCoordinateMatrixArgs>::type>::type;
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
