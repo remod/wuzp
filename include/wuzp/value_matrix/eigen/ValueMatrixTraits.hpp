@@ -17,25 +17,25 @@ struct comma_collapse<T0, T1, Ts...> {
   using type = decltype(std::declval<T0>(), std::declval<typename comma_collapse<T1, Ts...>::type>());
 };
 
-// template <typename LHS>
-// LHS&& comma_splice(LHS&& lhs) {
-//  return std::forward<LHS>(lhs);
-//}
-// template <typename LHS, typename RHS, typename... Tail>
-// typename comma_collapse<LHS, RHS, Tail...>::type&& comma_splice(LHS&& lhs, RHS&& rhs, Tail&&... tail) {
-//  auto&& first_two = (std::forward<LHS>(lhs), std::forward<RHS>(rhs));
-//  return comma_splice(std::forward<decltype(first_two)>(first_two), std::forward<Tail>(tail)...);
-//}
-
 template <typename LHS>
-LHS comma_splice(LHS lhs) {
-  return lhs;
+LHS&& comma_splice(LHS&& lhs) {
+  return std::forward<LHS>(lhs);
 }
 template <typename LHS, typename RHS, typename... Tail>
-typename comma_collapse<LHS, RHS, Tail...>::type comma_splice(LHS lhs, RHS rhs, Tail... tail) {
-  auto first_two = (lhs, rhs);
-  return comma_splice(first_two, tail...);
+typename comma_collapse<LHS, RHS, Tail...>::type&& comma_splice(LHS&& lhs, RHS&& rhs, Tail&&... tail) {
+  auto&& first_two = (std::forward<LHS>(lhs), std::forward<RHS>(rhs));
+  return comma_splice(std::forward<decltype(first_two)>(first_two), std::forward<Tail>(tail)...);
 }
+
+// template <typename LHS>
+// LHS comma_splice(LHS lhs) {
+//  return lhs;
+//}
+// template <typename LHS, typename RHS, typename... Tail>
+// typename comma_collapse<LHS, RHS, Tail...>::type comma_splice(LHS lhs, RHS rhs, Tail... tail) {
+//  auto first_two = (lhs, rhs);
+//  return comma_splice(first_two, tail...);
+//}
 
 struct ValueMatrixTraits {
   template <typename T>
@@ -66,13 +66,38 @@ struct ValueMatrixTraits {
   //      return t;
   //    }
   //  };
+  struct FromConstructor {};
+  struct FromCommaInitializer {};
+  //  template <typename... Ts>
+  //  struct SplitTypes;
+  //  template <typename T0, typename... Ts>
+  //  struct SplitTypes<T0, Ts...> {
+  //    using First = T0;
+  //    using Other = Ts...;
+  //  };
   template <typename T, typename... Ts>
   struct Construct;
-  template <typename Derived, typename T>
-  struct Construct<Eigen::EigenBase<Derived>, T> {
-    static Derived value(T t) { return Derived(t); }
+  template <typename T>
+  struct Construct<T> {
+    static T value() { return T(); }
   };
-  //  template <typename T, typename T0, typename... Ts>
+  template <typename T, typename T0>
+  struct Construct<T, T0> {
+    static T value(T0 t0) { return T(t0); }
+  };
+  template <typename T, typename T0, typename... Ts>
+  struct Construct<T, T0, Ts...> {
+    static T value(T0 t0, Ts... ts) {
+      T t;
+      comma_splice((t << std::forward<T0>(t0)), std::forward<Ts>(ts)...);
+      return t;
+    }
+  };
+  //  template <typename Derived, typename T>
+  //  struct Construct<Eigen::EigenBase<Derived>, T> {
+  //    static Derived value(T t) { return Derived(t); }
+  //  };
+  //  template <typename T, typename T0, typename... Ts, typename = std::enable_if_t<(sizeof...(Ts) > 0)>>
   //  struct Construct<T, T0, Ts...> {
   //    static T value(T0&& t0, Ts&&... ts) {
   //      T arr;
@@ -80,14 +105,14 @@ struct ValueMatrixTraits {
   //      return arr;
   //    }
   //  };
-  template <typename T, typename T0, typename... Ts>
-  struct Construct<T, T0, Ts...> {
-    static T value(T0 t0, Ts... ts) {
-      T arr;
-      comma_splice((arr << t0), ts...);
-      return arr;
-    }
-  };
+  //  template <typename T, typename T0, typename... Ts>
+  //  struct Construct<T, T0, Ts...> {
+  //    static T value(T0 t0, Ts... ts) {
+  //      T arr;
+  //      comma_splice((arr << t0), ts...);
+  //      return arr;
+  //    }
+  //  };
 
   DEFINE_RECURSIVE_TRAIT(Sum)
   template <typename Lhs, typename Rhs>

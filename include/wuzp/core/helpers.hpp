@@ -48,6 +48,15 @@ struct Chose<false, TypeA, TypeB> {
   using type = TypeB;
 };
 
+template <class T, template <class...> class Template>
+struct is_specialization : std::false_type {};
+template <template <class...> class Template, class... Args>
+struct is_specialization<Template<Args...>, Template> : std::true_type {};
+template <class T, template <int, int, class...> class Template>
+struct is_specialization_i : std::false_type {};
+template <template <int, int, class...> class Template, int Int0, int Int1, class... Args>
+struct is_specialization_i<Template<Int0, Int1, Args...>, Template> : std::true_type {};
+
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>
 struct GetSubsetImpl;
 template <int Start, int End, int Increment, typename... Ts, size_t... Is>

@@ -10,6 +10,25 @@
 
 using namespace wuzp;  // NOLINT
 
+TEST(TestQuantityMatrix2, GetTag) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 4, 1>;
+  using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyQuantityMatrix>::type, FromQuantityMatrix>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, const MyQuantityMatrix&>::type, FromQuantityMatrix>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyQuantityMatrix&&>::type, FromQuantityMatrix>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, Quantity<double, Length>>::type, FromQuantities>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyValueMatrix>::type, FromValueMatrixArgs>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, double>::type, FromValueMatrixArgs>);
+}
+
+TEST(TestQuantityMatrix2, EmptyConstructor) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 4, 1>;
+  using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  MyQuantityMatrix myMatrix;
+}
+
 TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;

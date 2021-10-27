@@ -21,6 +21,35 @@ using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
 using CoordinateSystemE = CoordinateSystem<CoordinateSystemEName>;
 using CoordinateSystemF = CoordinateSystem<CoordinateSystemFName>;
 
+TEST(TestCoordinateMatrix2, GetTag) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
+                                                          CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyCoordinateMatrix>::type, FromCoordinateMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, const MyCoordinateMatrix&>::type, FromCoordinateMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyCoordinateMatrix&&>::type, FromCoordinateMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyQuantityMatrix>::type, FromQuantityMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, Quantity<double, Length>>::type, FromQuantityMatrixArgs>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyValueMatrix>::type, FromQuantityMatrixArgs>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, double>::type, FromQuantityMatrixArgs>);
+}
+
+TEST(TestCoordinateMatrix2, EmptyConstructor) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
+                                                          CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  MyCoordinateMatrix coordinateMatrix(0, 0, 0, 0, 0, 0);
+  MyQuantityMatrix q(1, 2, 3, 4, 5, 6);
+  //  coordinateMatrix = q;
+  //  EXPECT_EQ(coordinateMatrix, MyCoordinateMatrix(1, 2, 3, 4, 5, 6));
+}
+
 class TestCoordinateMatrix : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
