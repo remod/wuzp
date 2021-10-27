@@ -33,6 +33,8 @@ TEST(TestRotation, TransformPositionPoint) {  // NOLINT
   using Object = PositionPoint3D<double, FromCoordinateSystem>;
   using Transformation = Rotation3D<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
   using TransformedObject = PositionPoint3D<double, ToCoordinateSystem>;
+  // TODO(remod): Enable this.
+  //  const Object object(1.0, 2.0, 3.0);
   const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
   const TransformedObject transformedObject(Eigen::Vector3d(1.0, -2.0, -3.0));
   const Transformation transformation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());

@@ -14,17 +14,27 @@
 int main() {
   using namespace wuzp;
   struct FromCoordinateSystemName {};
-  struct ToCoordinateSystemName {};
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
-  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
-  using Object = PositionVector3D<double, FromCoordinateSystem>;
-  using Transformation = Rotation3D<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
-  using TransformedObject = PositionVector3D<double, ToCoordinateSystem>;
-  const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
-  const TransformedObject transformedObject(Eigen::Vector3d(1.0, -2.0, -3.0));
-  const Transformation transformation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
-  std::cout << getTypeName<GetCoordinateSystem<std::decay_t<decltype(transformation.transform(object))>>::type>() << std::endl;
-  std::cout << getTypeName<GetCoordinateSystem<std::decay_t<decltype(transformedObject)>>::type>() << std::endl;
+  QuantityMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>> q(1.0, 2.0, 3.0);
+  CoordinateMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>, CoordinateSystemMatrix<3, 1, FromCoordinateSystem>> c(1.0, 2.0,
+                                                                                                                              3.0);
+  Tensor<1, 0, CoordinateMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>, CoordinateSystemMatrix<3, 1, FromCoordinateSystem>>> t(
+      1.0, 2.0, 3.0);
+  std::cout << q << std::endl;
+  std::cout << c << std::endl;
+  std::cout << t << std::endl;
+  //  struct FromCoordinateSystemName {};
+  //  struct ToCoordinateSystemName {};
+  //  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
+  //  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
+  //  using Object = PositionVector3D<double, FromCoordinateSystem>;
+  //  using Transformation = Rotation3D<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
+  //  using TransformedObject = PositionVector3D<double, ToCoordinateSystem>;
+  //  const Object object(1.0, 2.0, 3.0);
+  //  const TransformedObject transformedObject(Eigen::Vector3d(1.0, -2.0, -3.0));
+  //  const Transformation transformation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
+  //  std::cout << getTypeName<GetCoordinateSystem<std::decay_t<decltype(transformation.transform(object))>>::type>() << std::endl;
+  //  std::cout << getTypeName<GetCoordinateSystem<std::decay_t<decltype(transformedObject)>>::type>() << std::endl;
   //  transformation.transform(object) == transformedObject;
   return 0;
 }

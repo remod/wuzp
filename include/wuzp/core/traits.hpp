@@ -19,6 +19,26 @@ namespace wuzp {
     using type = typename Name<typename Name<T0, T1>::type, Ts...>::type; \
   };
 
+template <typename Label>
+struct Tag {};
+template <typename T, typename... Args>
+struct GetTag;
+
+struct FromTensorLabel {};
+using FromTensor = Tag<FromTensorLabel>;
+struct FromCoordinateMatrixLabel {};
+using FromCoordinateMatrix = Tag<FromCoordinateMatrixLabel>;
+struct FromQuantityMatrixLabel {};
+using FromQuantityMatrix = Tag<FromQuantityMatrixLabel>;
+struct FromQuantitiesLabel {};
+using FromQuantities = Tag<FromQuantitiesLabel>;
+struct FromCoordinateMatrixArgsLabel {};
+using FromCoordinateMatrixArgs = Tag<FromCoordinateMatrixArgsLabel>;
+struct FromQuantityMatrixArgsLabel {};
+using FromQuantityMatrixArgs = Tag<FromQuantityMatrixArgsLabel>;
+struct FromValueMatrixArgsLabel {};
+using FromValueMatrixArgs = Tag<FromValueMatrixArgsLabel>;
+
 template <typename T>
 struct Dimension {
   static_assert(FakeDependency<Dimension<T>>::value, "'Dimension' trait not specialized for given type.");

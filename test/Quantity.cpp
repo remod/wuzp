@@ -102,7 +102,15 @@ TEST(TestQuantity, Inverse) {  // NOLINT
   EXPECT_EQ(inverse(createTimeQuantity(2.0)), createFrequencyQuantity(0.5));
 }
 
-TEST(TestQuantity, ImplicitConversion) {  // NOLINT
+TEST(TestQuantity, ImplicitConversionToValue) {  // NOLINT
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+  static_assert(!std::is_convertible_v<Quantity<double, Dimensionless>, double>);
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+  static_assert(std::is_convertible_v<Quantity<double, Dimensionless>, double>);
+#endif
+}
+
+TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
   const auto radius = QuantityTraits::Create<Quantity<double, Length>>::create(2.0);
   const auto angle = QuantityTraits::Create<Quantity<double, Angle>>::create(3.0);
   [[maybe_unused]] const Quantity<double, Length> arcLength =
