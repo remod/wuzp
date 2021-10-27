@@ -16,6 +16,8 @@ class Translation : public PassiveTransformation<Translation<Dimension, Scalar, 
 
   template <typename... Args>
   explicit Translation(Args... args) : tensor_(args...) {}
+  //  template <typename... Args>
+  //  explicit Translation(Args&&... args) : tensor_(std::forward<Args>(args)...) {}
 
   const TensorT& getTensor() const { return tensor_; }
 

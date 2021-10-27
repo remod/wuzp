@@ -5,6 +5,9 @@
 #include "wuzp/core/traits.hpp"
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/value_matrix/ValueMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrixTraits.hpp"
+
+#include "test_compilation_error.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -20,6 +23,130 @@ using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
 using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
 using CoordinateSystemE = CoordinateSystem<CoordinateSystemEName>;
 using CoordinateSystemF = CoordinateSystem<CoordinateSystemFName>;
+
+TEST(TestCoordinateMatrix2, GetTag) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
+                                                          CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyCoordinateMatrix>::type, FromCoordinateMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, const MyCoordinateMatrix&>::type, FromCoordinateMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyCoordinateMatrix&&>::type, FromCoordinateMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyQuantityMatrix>::type, FromQuantityMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, Quantity<double, Length>>::type, FromQuantityMatrixArgs>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyValueMatrix>::type, FromQuantityMatrixArgs>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, double>::type, FromQuantityMatrixArgs>);
+}
+
+TEST(TestCoordinateMatrix2, EmptyConstructor) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  [[maybe_unused]] const MyCoordinateMatrix coordinateMatrix;
+}
+
+TEST(TestCoordinateMatrix2, ConstructImplicitlyFromCoordinateMatrix) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  const MyCoordinateMatrix coordinateMatrix1;
+  const MyCoordinateMatrix coordinateMatrix2;
+  const auto coordinateMatrix3 = coordinateMatrix1 + coordinateMatrix2;
+  const MyCoordinateMatrix coordinateMatrix = coordinateMatrix3;
+  EXPECT_EQ(coordinateMatrix, coordinateMatrix3);
+}
+
+TEST(TestCoordinateMatrix2, ConstructImplicitlyFromQuantityMatrix) {  // NOLINT
+  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
+#include "wuzp/core/CoordinateMatrix.hpp"
+#include "wuzp/core/CoordinateSystemMatrix.hpp"
+#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
+
+using namespace wuzp;  // NOLINT
+
+struct CoordinateSystemAName {};
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+using MyValueMatrix = ValueMatrix<int, 2, 3>;
+using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
+using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+
+int main() {
+  const MyQuantityMatrix quantityMatrix(1, 2, 3, 4, 5, 6);
+  [[maybe_unused]] const MyCoordinateMatrix coordinateMatrix = quantityMatrix;
+  return 0;
+}
+)",
+                                        "conversion from");
+}
+
+TEST(TestCoordinateMatrix2, ConstructExplicitlyFromQuantityMatrix) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  const MyQuantityMatrix quantityMatrix(1, 2, 3, 4, 5, 6);
+  const MyCoordinateMatrix coordinateMatrix(quantityMatrix);
+  EXPECT_EQ(coordinateMatrix.getQuantityMatrix(), quantityMatrix);
+}
+
+TEST(TestCoordinateMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
+  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
+#include "wuzp/core/CoordinateMatrix.hpp"
+#include "wuzp/core/CoordinateSystemMatrix.hpp"
+#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
+
+using namespace wuzp;  // NOLINT
+
+struct CoordinateSystemAName {};
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+using MyValueMatrix = ValueMatrix<int, 2, 3>;
+using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
+using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+
+int main() {
+  MyValueMatrix valueMatrix;
+  valueMatrix << 1, 2, 3, 4, 5, 6;
+  [[maybe_unused]] const MyCoordinateMatrix coordinateMatrix = valueMatrix;
+  return 0;
+}
+)",
+                                        "conversion from");
+}
+
+TEST(TestCoordinateMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  MyValueMatrix valueMatrix;
+  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyCoordinateMatrix coordinateMatrix(valueMatrix);
+  EXPECT_EQ(coordinateMatrix.getValueMatrix(), valueMatrix);
+}
+
+TEST(TestCoordinateMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  MyValueMatrix valueMatrix;
+  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyCoordinateMatrix coordinateMatrix(1, 2, 3, 4, 5, 6);
+  EXPECT_EQ(coordinateMatrix.getValueMatrix(), valueMatrix);
+}
 
 class TestCoordinateMatrix : public ::testing::Test {
  public:
