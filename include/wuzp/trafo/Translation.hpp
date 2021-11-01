@@ -9,8 +9,9 @@ class Translation : public PassiveTransformation<Translation<Dimension, Scalar, 
  public:
   using ValueMatrixT = ValueMatrix<Scalar, Dimension, 1>;
   using UnitMatrixT = UnitMatrix<Dimension, 1, Units...>;
+  using QuantityMatrixT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
   using CoordinateSystemMatrixT = CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>;
-  using CoordinateMatrixT = CoordinateMatrix<ValueMatrixT, UnitMatrixT, CoordinateSystemMatrixT>;
+  using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
   using TensorT = Tensor<1, 0, CoordinateMatrixT>;
   static_assert(!IsAbsolute<UnitMatrixT>::value, "Units are not relative.");
 

@@ -16,9 +16,9 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
   constexpr int FromDimension = 3;
   constexpr int ToDimension = 2;
-  using Object =
-      Vector<CoordinateMatrix<ValueMatrix<double, FromDimension, 1>, UnitMatrix<FromDimension, 1, Velocity, Velocity, AngularVelocity>,
-                              CoordinateSystemMatrix<FromDimension, 1, FromCoordinateSystem>>>;
+  using Object = Vector<CoordinateMatrix<
+      QuantityMatrix<ValueMatrix<double, FromDimension, 1>, UnitMatrix<FromDimension, 1, Velocity, Velocity, AngularVelocity>>,
+      CoordinateSystemMatrix<FromDimension, 1, FromCoordinateSystem>>>;
   // Note: With wuzp units angles are dimensionless, but with boost units not.
   using AngleOverLength = UnitTraits::Division<Angle, Length>::type;
   using LengthOverAngle = UnitTraits::Inverse<AngleOverLength>::type;
@@ -26,7 +26,7 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
                                   AngleOverLength, AngleOverLength, Dimensionless, Dimensionless, Dimensionless, LengthOverAngle>;
   using TransformedObject =
       Tensor<1, 0,
-             CoordinateMatrix<ValueMatrix<double, ToDimension, 1>, UnitMatrix<ToDimension, 1, AngularVelocity, Velocity>,
+             CoordinateMatrix<QuantityMatrix<ValueMatrix<double, ToDimension, 1>, UnitMatrix<ToDimension, 1, AngularVelocity, Velocity>>,
                               CoordinateSystemMatrix<ToDimension, 1, ToCoordinateSystem>>>;
   const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
   const TransformedObject transformedObject(Eigen::Vector2d(14.0, 32.0));
@@ -43,17 +43,19 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
   constexpr int FromDimension = 3;
   constexpr int ToDimension = 2;
-  using Object = Tensor<0, 2,
-                        CoordinateMatrix<ValueMatrix<double, FromDimension, FromDimension>, UnitMatrix<FromDimension, FromDimension, Mass>,
-                                         CoordinateSystemMatrix<FromDimension, FromDimension, FromCoordinateSystem>>>;
+  using Object = Tensor<
+      0, 2,
+      CoordinateMatrix<QuantityMatrix<ValueMatrix<double, FromDimension, FromDimension>, UnitMatrix<FromDimension, FromDimension, Mass>>,
+                       CoordinateSystemMatrix<FromDimension, FromDimension, FromCoordinateSystem>>>;
   using LengthInv = UnitTraits::Inverse<Length>::type;
   using Transformation = Jacobian<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
                                   LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
   using MassLength = UnitTraits::Product<Mass, Length>::type;
   using MassLength2 = UnitTraits::Product<MassLength, Length>::type;
-  using TransformedObject = CoordinateMatrix<ValueMatrix<double, ToDimension, ToDimension>,
-                                             UnitMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>,
-                                             CoordinateSystemMatrix<ToDimension, ToDimension, ToCoordinateSystem>>;
+  using TransformedObject =
+      CoordinateMatrix<QuantityMatrix<ValueMatrix<double, ToDimension, ToDimension>,
+                                      UnitMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>>,
+                       CoordinateSystemMatrix<ToDimension, ToDimension, ToCoordinateSystem>>;
   Eigen::Matrix3d valueMatrixObject;
   valueMatrixObject << 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0;
   const Object object(valueMatrixObject);

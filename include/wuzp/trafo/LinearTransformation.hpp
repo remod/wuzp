@@ -13,8 +13,9 @@ class LinearTransformation
  public:
   using ValueMatrixT = ValueMatrix<Scalar, DimensionTo, DimensionFrom>;
   using UnitMatrixT = UnitMatrix<DimensionTo, DimensionFrom, Units...>;
+  using QuantityMatrixT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
   using CoordinateSystemMatrixT = CoordinateSystemMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
-  using CoordinateMatrixT = CoordinateMatrix<ValueMatrixT, UnitMatrixT, CoordinateSystemMatrixT>;
+  using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
   using TensorT = Tensor<1, 1, CoordinateMatrixT>;
 
   template <typename... Args>

@@ -24,8 +24,8 @@ Lhs&& spliceCommas(Lhs&& lhs) {
 }
 template <typename Lhs, typename Rhs, typename... Tail>
 typename CollapseCommas<Lhs, Rhs, Tail...>::type&& spliceCommas(Lhs&& lhs, Rhs&& rhs, Tail&&... tail) {
-  auto&& first_two = (std::forward<Lhs>(lhs), std::forward<Rhs>(rhs));
-  return spliceCommas(std::forward<decltype(first_two)>(first_two), std::forward<Tail>(tail)...);
+  auto&& firstTwo = (std::forward<Lhs>(lhs), std::forward<Rhs>(rhs));
+  return spliceCommas(std::forward<decltype(firstTwo)>(firstTwo), std::forward<Tail>(tail)...);
 }
 
 }  // namespace internal

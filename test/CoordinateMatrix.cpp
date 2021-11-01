@@ -5,7 +5,6 @@
 #include "wuzp/core/traits.hpp"
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/value_matrix/ValueMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrixTraits.hpp"
 
 #include "test_compilation_error.hpp"
 
@@ -30,7 +29,7 @@ TEST(TestCoordinateMatrix2, GetTag) {  // NOLINT
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
                                                           CoordinateSystemE, CoordinateSystemF>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyCoordinateMatrix>::type, FromCoordinateMatrix>);
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, const MyCoordinateMatrix&>::type, FromCoordinateMatrix>);
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyCoordinateMatrix&&>::type, FromCoordinateMatrix>);
@@ -43,16 +42,18 @@ TEST(TestCoordinateMatrix2, GetTag) {  // NOLINT
 TEST(TestCoordinateMatrix2, EmptyConstructor) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   [[maybe_unused]] const MyCoordinateMatrix coordinateMatrix;
 }
 
 TEST(TestCoordinateMatrix2, ConstructImplicitlyFromCoordinateMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   const MyCoordinateMatrix coordinateMatrix1;
   const MyCoordinateMatrix coordinateMatrix2;
   const auto coordinateMatrix3 = coordinateMatrix1 + coordinateMatrix2;
@@ -76,7 +77,7 @@ using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = UnitMatrix<2, 3, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
 using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
-using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
 
 int main() {
   const MyQuantityMatrix quantityMatrix(1, 2, 3, 4, 5, 6);
@@ -92,7 +93,7 @@ TEST(TestCoordinateMatrix2, ConstructExplicitlyFromQuantityMatrix) {  // NOLINT
   using MyUnitMatrix = UnitMatrix<2, 3, Length>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   const MyQuantityMatrix quantityMatrix(1, 2, 3, 4, 5, 6);
   const MyCoordinateMatrix coordinateMatrix(quantityMatrix);
   EXPECT_EQ(coordinateMatrix.getQuantityMatrix(), quantityMatrix);
@@ -114,7 +115,7 @@ using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = UnitMatrix<2, 3, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
 using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
-using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
 
 int main() {
   MyValueMatrix valueMatrix;
@@ -129,8 +130,9 @@ int main() {
 TEST(TestCoordinateMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   MyValueMatrix valueMatrix;
   valueMatrix << 1, 2, 3, 4, 5, 6;
   const MyCoordinateMatrix coordinateMatrix(valueMatrix);
@@ -140,8 +142,9 @@ TEST(TestCoordinateMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
 TEST(TestCoordinateMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   MyValueMatrix valueMatrix;
   valueMatrix << 1, 2, 3, 4, 5, 6;
   const MyCoordinateMatrix coordinateMatrix(1, 2, 3, 4, 5, 6);
@@ -152,9 +155,10 @@ class TestCoordinateMatrix : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
                                                           CoordinateSystemE, CoordinateSystemF>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
 
   const MyCoordinateMatrix& getCoordinateMatrix() const { return coordinateMatrix_; }
 
@@ -176,9 +180,10 @@ TEST_F(TestCoordinateMatrix, EqualityOperator) {  // NOLINT
 TEST_F(TestCoordinateMatrix, Block) {  // NOLINT
   using MyValueMatrixB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
+  using MyQuantityMatrixB = QuantityMatrix<MyValueMatrixB, MyUnitMatrixB>;
   using MyCoordinateSystemMatrixB =
       CoordinateSystemMatrix<2, 2, CoordinateSystemB, CoordinateSystemC, CoordinateSystemE, CoordinateSystemF>;
-  using MyCoordinateMatrixB = CoordinateMatrix<MyValueMatrixB, MyUnitMatrixB, MyCoordinateSystemMatrixB>;
+  using MyCoordinateMatrixB = CoordinateMatrix<MyQuantityMatrixB, MyCoordinateSystemMatrixB>;
   MyValueMatrixB valueMatrixB;
   valueMatrixB << 2, 3, 5, 6;
   MyCoordinateMatrixB coordinateMatrixB(valueMatrixB);
@@ -188,9 +193,10 @@ TEST_F(TestCoordinateMatrix, Block) {  // NOLINT
 TEST_F(TestCoordinateMatrix, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
+  using MyQuantityMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitMatrixT>;
   using MyCoordinateSystemMatrixT = CoordinateSystemMatrix<3, 2, CoordinateSystemA, CoordinateSystemD, CoordinateSystemB, CoordinateSystemE,
                                                            CoordinateSystemC, CoordinateSystemF>;
-  using MyCoordinateMatrixT = CoordinateMatrix<MyValueMatrixT, MyUnitMatrixT, MyCoordinateSystemMatrixT>;
+  using MyCoordinateMatrixT = CoordinateMatrix<MyQuantityMatrixT, MyCoordinateSystemMatrixT>;
   MyValueMatrixT valueMatrixT;
   valueMatrixT << 1, 4, 2, 5, 3, 6;
   MyCoordinateMatrixT coordinateMatrixT(valueMatrixT);
@@ -200,10 +206,12 @@ TEST_F(TestCoordinateMatrix, Transpose) {  // NOLINT
 TEST(TestCoordinateMatrix2, ProductCoordinateMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
   using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
-  using MyCoordinateMatrixResult = CoordinateMatrix<MyValueMatrix, MyUnitMatrixResult, MyCoordinateSystemMatrix>;
+  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrixResult = CoordinateMatrix<MyQuantityMatrixResult, MyCoordinateSystemMatrix>;
   MyValueMatrix valueMatrix;
   valueMatrix << 1, 2, 3, 4;
   MyCoordinateMatrix coordinateMatrix;
@@ -214,7 +222,7 @@ TEST(TestCoordinateMatrix2, ProductCoordinateMatrix) {  // NOLINT
   //  using MyUnitMatrix = UnitMatrix<2, 2, Length>;
   //  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
   //  using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
-  //  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  //  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   //  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   //  MyValueMatrix valueMatrix;
   //  valueMatrix << 1, 2, 3, 4;
@@ -226,12 +234,14 @@ TEST(TestCoordinateMatrix2, ProductCoordinateMatrix) {  // NOLINT
 TEST(TestCoordinateMatrix2, ProductQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
   using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
-  using MyCoordinateMatrixResult = CoordinateMatrix<MyValueMatrix, MyUnitMatrixResult, MyCoordinateSystemMatrix>;
+  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
+  using MyCoordinateMatrixResult = CoordinateMatrix<MyQuantityMatrixResult, MyCoordinateSystemMatrix>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
   MyValueMatrix valueMatrix;
@@ -245,12 +255,14 @@ TEST(TestCoordinateMatrix2, ProductQuantity) {  // NOLINT
 TEST(TestCoordinateMatrix2, DivisionQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = UnitMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 2, CoordinateSystemA>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
   using MyUnitMatrixResult = UnitMatrix<2, 2, Dimensionless>;
-  using MyCoordinateMatrixResult = CoordinateMatrix<MyValueMatrix, MyUnitMatrixResult, MyCoordinateSystemMatrix>;
+  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
+  using MyCoordinateMatrixResult = CoordinateMatrix<MyQuantityMatrixResult, MyCoordinateSystemMatrix>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
   MyValueMatrix valueMatrix;
@@ -263,8 +275,9 @@ TEST(TestCoordinateMatrix2, DivisionQuantity) {  // NOLINT
 TEST(TestCoordinateMatrix2, ScalarProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = UnitMatrix<4, 1, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<4, 1, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD>;
-  using MyCoordinateMatrix = CoordinateMatrix<MyValueMatrix, MyUnitMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyQuantityResult = Quantity<int, Area>;
   MyValueMatrix valueMatrix1;
   valueMatrix1 << 1, 2, 3, 4;
@@ -278,22 +291,27 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   struct CartesianCoordinateSystemName {};
   using CartesianCoordinateSystem = CoordinateSystem<CartesianCoordinateSystemName>;
 
-  using MinimalCoordinatesValues = ValueMatrix<double, 3, 1>;
-  using MinimalCoordinatesUnits = UnitMatrix<3, 1, Absolute<Length>, Absolute<Length>, Angle>;
-  using MinimalCoordinatesDtUnits = UnitMatrix<3, 1, Velocity, Velocity, AngularVelocity>;
-  using MinimalCoordinatesCoordinateSystems =
+  using MinimalCoordinatesValueMatrix = ValueMatrix<double, 3, 1>;
+  using MinimalCoordinatesUnitMatrix = UnitMatrix<3, 1, Absolute<Length>, Absolute<Length>, Angle>;
+  using MinimalCoordinatesQuantityMatrix = QuantityMatrix<MinimalCoordinatesValueMatrix, MinimalCoordinatesUnitMatrix>;
+  using MinimalCoordinatesDtUnitMatrix = UnitMatrix<3, 1, Velocity, Velocity, AngularVelocity>;
+  using MinimalCoordinatesDtQuantityMatrix = QuantityMatrix<MinimalCoordinatesValueMatrix, MinimalCoordinatesDtUnitMatrix>;
+  using MinimalCoordinatesCoordinateSystemMatrix =
       CoordinateSystemMatrix<3, 1, CartesianCoordinateSystem, CartesianCoordinateSystem, NoCoordinateSystem>;
-  using MinimalCoordinates = CoordinateMatrix<MinimalCoordinatesValues, MinimalCoordinatesUnits, MinimalCoordinatesCoordinateSystems>;
-  using MinimalCoordinatesDt = CoordinateMatrix<MinimalCoordinatesValues, MinimalCoordinatesDtUnits, MinimalCoordinatesCoordinateSystems>;
+  using MinimalCoordinates = CoordinateMatrix<MinimalCoordinatesQuantityMatrix, MinimalCoordinatesCoordinateSystemMatrix>;
+  using MinimalCoordinatesDt = CoordinateMatrix<MinimalCoordinatesDtQuantityMatrix, MinimalCoordinatesCoordinateSystemMatrix>;
 
-  using PointValues = ValueMatrix<double, 2, 1>;
-  using PointUnits = UnitMatrix<2, 1, Absolute<Length>>;
-  using DirectionUnits = UnitMatrix<2, 1, Dimensionless>;
-  using VelocityUnits = UnitMatrix<2, 1, Velocity>;
-  using PointCoordinateSystems = CoordinateSystemMatrix<2, 1, CartesianCoordinateSystem>;
-  using Point = CoordinateMatrix<PointValues, PointUnits, PointCoordinateSystems>;
-  using Direction = CoordinateMatrix<PointValues, DirectionUnits, PointCoordinateSystems>;
-  using Velocity_ = CoordinateMatrix<PointValues, VelocityUnits, PointCoordinateSystems>;
+  using PointValueMatrix = ValueMatrix<double, 2, 1>;
+  using PointUnitMatrix = UnitMatrix<2, 1, Absolute<Length>>;
+  using DirectionUnitMatrix = UnitMatrix<2, 1, Dimensionless>;
+  using VelocityUnitMatrix = UnitMatrix<2, 1, Velocity>;
+  using PointQuantityMatrix = QuantityMatrix<PointValueMatrix, PointUnitMatrix>;
+  using DirectionQuantityMatrix = QuantityMatrix<PointValueMatrix, DirectionUnitMatrix>;
+  using VelocityQuantityMatrix = QuantityMatrix<PointValueMatrix, VelocityUnitMatrix>;
+  using PointCoordinateSystemMatrix = CoordinateSystemMatrix<2, 1, CartesianCoordinateSystem>;
+  using Point = CoordinateMatrix<PointQuantityMatrix, PointCoordinateSystemMatrix>;
+  using Direction = CoordinateMatrix<DirectionQuantityMatrix, PointCoordinateSystemMatrix>;
+  using Velocity_ = CoordinateMatrix<VelocityQuantityMatrix, PointCoordinateSystemMatrix>;
 
   using Radius = Quantity<double, Length>;
   using Mass_ = Quantity<double, Mass>;
@@ -305,8 +323,8 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   using MassMatrixUnits = UnitMatrix<3, 3, Mass, Mass, MassLength, Mass, Mass, MassLength, MassLength, MassLength, MassLength2>;
   using MassMatrix = QuantityMatrix<MassMatrixValues, MassMatrixUnits>;
 
-  const MinimalCoordinates minimalCoordinates(MinimalCoordinatesValues::Random());
-  const MinimalCoordinatesDt minimalCoordinatesDt(MinimalCoordinatesValues::Random());
+  const MinimalCoordinates minimalCoordinates(MinimalCoordinatesValueMatrix::Random());
+  const MinimalCoordinatesDt minimalCoordinatesDt(MinimalCoordinatesValueMatrix::Random());
   const Radius radius = QuantityTraits::Create<Radius>::create(2.0);
   const Mass_ mass1 = QuantityTraits::Create<Mass_>::create(1.0);
   const Mass_ mass2 = QuantityTraits::Create<Mass_>::create(1.0);
