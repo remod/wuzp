@@ -156,6 +156,16 @@ struct Dimension<QuantityMatrix<ValueMatrix, UnitMatrix>> {
   static constexpr int value = ValueMatrixTraits::Dimension<ValueMatrix>::value;
 };
 
+template <typename ValueMatrix, typename UnitMatrix>
+struct Rows<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  static constexpr int value = ValueMatrixTraits::Rows<ValueMatrix>::value;
+};
+
+template <typename ValueMatrix, typename UnitMatrix>
+struct Cols<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  static constexpr int value = ValueMatrixTraits::Cols<ValueMatrix>::value;
+};
+
 template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
 struct Sum<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
   using type = QuantityMatrix<typename ValueMatrixTraits::template Sum<ValueMatrixLhs, ValueMatrixRhs>::type,

@@ -47,11 +47,10 @@ TEST(TestRotation, TransformPointCloud) {  // NOLINT
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
   using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
   using ValueMatrix = Eigen::Matrix<double, 3, 2>;
-  using Object =
-      Tensor<1, 0, CoordinateMatrix<ValueMatrix, UnitMatrix<3, 2, Absolute<Length>>, CoordinateSystemMatrix<3, 2, FromCoordinateSystem>>>;
+  using QuantityMatrix = QuantityMatrix<ValueMatrix, UnitMatrix<3, 2, Absolute<Length>>>;
+  using Object = Tensor<1, 0, CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix<3, 2, FromCoordinateSystem>>>;
   using Transformation = Rotation3D<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
-  using TransformedObject =
-      Tensor<1, 0, CoordinateMatrix<ValueMatrix, UnitMatrix<3, 2, Absolute<Length>>, CoordinateSystemMatrix<3, 2, ToCoordinateSystem>>>;
+  using TransformedObject = Tensor<1, 0, CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix<3, 2, ToCoordinateSystem>>>;
   ValueMatrix valueMatrixObject;
   valueMatrixObject << 1.0, 4.0, 2.0, 5.0, 3.0, 6.0;
   const Object object(valueMatrixObject);

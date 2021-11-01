@@ -9,8 +9,6 @@
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrixTraits.hpp"
 
 namespace wuzp {
 
@@ -25,21 +23,23 @@ namespace wuzp {
 
 // Orthogonal matrix: R^-1 == R^T
 
-// TODO(remod): Just template on QuantityMatrix and CoordinateSystemMatrix?
-template <typename ValueMatrix_, typename UnitMatrix_, typename CoordinateSystemMatrix_>
+/**
+ * Class representing a coordinate matrix.
+ * A coordinate matrix is a matrix of quantities and coordinate systems.
+ * A coordinate matrix does _not_ include any information about how it is transformed - for this, have a look at the Tensor class.
+ * @tparam QuantityMatrix_         Type of the underlying quantity matrix.
+ * @tparam CoordinateSystemMatrix_ Matrix of coordinate systems.
+ */
+template <typename QuantityMatrix_, typename CoordinateSystemMatrix_>
 class CoordinateMatrix {
  public:
-  using ValueMatrixT = ValueMatrix_;
-  using UnitMatrixT = UnitMatrix_;
+  using QuantityMatrixT = QuantityMatrix_;
   using CoordinateSystemMatrixT = CoordinateSystemMatrix_;
-  using This = CoordinateMatrix<ValueMatrixT, UnitMatrixT, CoordinateSystemMatrixT>;
+  using ValueMatrixT = typename QuantityMatrixT::ValueMatrixT;
+  using This = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
 
-  static_assert(ValueMatrixTraits::Rows<ValueMatrixT>::value == Rows<UnitMatrixT>::value &&
-                    ValueMatrixTraits::Rows<ValueMatrixT>::value == Rows<CoordinateSystemMatrixT>::value,
-                "Number of rows do not match.");
-  static_assert(ValueMatrixTraits::Cols<ValueMatrixT>::value == Cols<UnitMatrixT>::value &&
-                    ValueMatrixTraits::Cols<ValueMatrixT>::value == Cols<CoordinateSystemMatrixT>::value,
-                "Number of columns do not match.");
+  static_assert(Rows<QuantityMatrixT>::value == Rows<CoordinateSystemMatrixT>::value, "Number of rows do not match.");
+  static_assert(Cols<QuantityMatrixT>::value == Cols<CoordinateSystemMatrixT>::value, "Number of columns do not match.");
 
   CoordinateMatrix() = default;
 
@@ -52,21 +52,21 @@ class CoordinateMatrix {
 
   ~CoordinateMatrix() = default;
 
-  template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
-  This& operator=(const CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>& other) {
+  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
+  This& operator=(const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& other) {
     quantityMatrix_ = other.getQuantityMatrix();
     return *this;
   }
 
-  static This zero() { return This(QuantityMatrix<ValueMatrixT, UnitMatrixT>::zero()); }
+  static This zero() { return This(QuantityMatrixT::zero()); }
 
-  const QuantityMatrix<ValueMatrixT, UnitMatrixT>& getQuantityMatrix() const { return quantityMatrix_; }
+  const QuantityMatrixT& getQuantityMatrix() const { return quantityMatrix_; }
 
   void setValueMatrix(const ValueMatrixT& values) { quantityMatrix_.setValueMatrix(values); }
   const ValueMatrixT& getValueMatrix() const { return quantityMatrix_.getValueMatrix(); }
 
-  template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
-  bool isApprox(const CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>& other) const {
+  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
+  bool isApprox(const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& other) const {
     // Note: Allow other value types to support lazy evaluation.
     static_assert(std::is_same<CoordinateSystemMatrixT, CoordinateSystemMatrixOther>::value, "Coordinate systems do not match.");
     return quantityMatrix_.isApprox(other.getQuantityMatrix());
@@ -80,38 +80,34 @@ class CoordinateMatrix {
 
   auto transpose() const { return typename Transpose<This>::type(getQuantityMatrix().transpose()); }
 
-  template <typename ValueMatrixRhs, typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-  auto dot(const CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>& other) const {
+  template <typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+  auto dot(const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& other) const {
     return getQuantityMatrix().dot(other.getQuantityMatrix());
   }
 
   auto inverse() const { return typename Inverse<This>::type(quantityMatrix_.inverse()); }
 
  private:
-  template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
+  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
   // Allow other value matrix types to support lazy evaluation.
-  explicit CoordinateMatrix(FromCoordinateMatrix /*tag*/,
-                            const CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>& other)
+  explicit CoordinateMatrix(FromCoordinateMatrix /*tag*/, const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& other)
       : quantityMatrix_(other.getQuantityMatrix()) {
-    static_assert(std::is_same<UnitMatrixT, UnitMatrixOther>::value, "Units do not match.");
     static_assert(std::is_same<CoordinateSystemMatrixT, CoordinateSystemMatrixOther>::value, "Coordinate systems do not match.");
   }
-  template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
+  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
   // Allow other value matrix types to support lazy evaluation.
-  explicit CoordinateMatrix(FromCoordinateMatrix /*tag*/,
-                            CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>&& other)
+  explicit CoordinateMatrix(FromCoordinateMatrix /*tag*/, CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>&& other)
       : quantityMatrix_(std::move(other.getQuantityMatrix())) {
-    static_assert(std::is_same<UnitMatrixT, UnitMatrixOther>::value, "Units do not match.");
     static_assert(std::is_same<CoordinateSystemMatrixT, CoordinateSystemMatrixOther>::value, "Coordinate systems do not match.");
   }
 
   // Allow other value types to support lazy evaluation.
-  template <typename ValueMatrixOther>
-  explicit CoordinateMatrix(FromQuantityMatrix /*tag*/, const QuantityMatrix<ValueMatrixOther, UnitMatrixT>& quantityMatrix)
+  template <typename ValueMatrixOther, typename UnitMatrixOther>
+  explicit CoordinateMatrix(FromQuantityMatrix /*tag*/, const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& quantityMatrix)
       : quantityMatrix_(quantityMatrix) {}
   // Allow other value types to support lazy evaluation.
-  template <typename ValueMatrixOther>
-  explicit CoordinateMatrix(FromQuantityMatrix /*tag*/, QuantityMatrix<ValueMatrixOther, UnitMatrixT>&& quantityMatrix)
+  template <typename ValueMatrixOther, typename UnitMatrixOther>
+  explicit CoordinateMatrix(FromQuantityMatrix /*tag*/, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>&& quantityMatrix)
       : quantityMatrix_(std::move(quantityMatrix)) {}
 
   template <typename... Ts>
@@ -119,7 +115,7 @@ class CoordinateMatrix {
   template <typename... Ts>
   explicit CoordinateMatrix(FromQuantityMatrixArgs /*tag*/, Ts&&... ts) : quantityMatrix_(std::forward<Ts>(ts)...) {}
 
-  QuantityMatrix<ValueMatrixT, UnitMatrixT> quantityMatrix_;
+  QuantityMatrixT quantityMatrix_;
 };
 
 template <typename... Xs, typename... Ts>
@@ -133,47 +129,48 @@ struct GetTag<CoordinateMatrix<Xs...>, Ts...> {
       typename Chose<(IsSpecialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type;
 };
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-struct Dimension<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>> {
-  static constexpr int value = ValueMatrixTraits::Dimension<ValueMatrix>::value;
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct Dimension<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  static constexpr int value = Dimension<QuantityMatrix>::value;
 };
 
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueMatrixRhs,
-          typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-struct Sum<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>,
-           CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>> {
-  using type = CoordinateMatrix<typename ValueMatrixTraits::template Sum<ValueMatrixLhs, ValueMatrixRhs>::type,
-                                typename Sum<UnitMatrixLhs, UnitMatrixRhs>::type,
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct Rows<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  static constexpr int value = Rows<QuantityMatrix>::value;
+};
+
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct Cols<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  static constexpr int value = Cols<QuantityMatrix>::value;
+};
+
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+struct Sum<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>> {
+  using type = CoordinateMatrix<typename Sum<QuantityMatrixLhs, QuantityMatrixRhs>::type,
                                 typename Sum<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type>;
 };
 
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueMatrixRhs,
-          typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-struct Difference<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>,
-                  CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>> {
-  using type = CoordinateMatrix<typename ValueMatrixTraits::template Difference<ValueMatrixLhs, ValueMatrixRhs>::type,
-                                typename Difference<UnitMatrixLhs, UnitMatrixRhs>::type,
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+struct Difference<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
+                  CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>> {
+  using type = CoordinateMatrix<typename Difference<QuantityMatrixLhs, QuantityMatrixRhs>::type,
                                 typename Difference<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type>;
 };
 
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs, typename UnitRhs>
-struct Product<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = CoordinateMatrix<typename ValueMatrixTraits::template Product<ValueMatrixLhs, ValueRhs>::type,
-                                typename Product<UnitMatrixLhs, UnitRhs>::type, CoordinateSystemMatrixLhs>;
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs, typename UnitRhs>
+struct Product<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, Quantity<ValueRhs, UnitRhs>> {
+  using type = CoordinateMatrix<typename Product<QuantityMatrixLhs, Quantity<ValueRhs, UnitRhs>>::type, CoordinateSystemMatrixLhs>;
 };
-template <typename ValueLhs, typename UnitLhs, typename ValueMatrixRhs, typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-struct Product<Quantity<ValueLhs, UnitLhs>, CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>> {
-  using type =
-      typename Product<CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>, Quantity<ValueLhs, UnitLhs>>::type;
+template <typename ValueLhs, typename UnitLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+struct Product<Quantity<ValueLhs, UnitLhs>, CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>> {
+  using type = typename Product<CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>, Quantity<ValueLhs, UnitLhs>>::type;
 };
 // Use case: Rotate a vector.
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueMatrixRhs,
-          typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-struct Product<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>,
-               CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>> {
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+struct Product<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
+               CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>> {
   // NEW: The outcome is a coordinate matrix (cross product, rotation, etc.)
-  using type = CoordinateMatrix<typename ValueMatrixTraits::template Product<ValueMatrixLhs, ValueMatrixRhs>::type,
-                                typename Product<UnitMatrixLhs, UnitMatrixRhs>::type,
+  using type = CoordinateMatrix<typename Product<QuantityMatrixLhs, QuantityMatrixRhs>::type,
                                 typename Product<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type>;
 
   // TODO(remod): Remove if unused.
@@ -189,152 +186,134 @@ struct Product<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemM
   //                "Coordinate systems do not match.");
 };
 
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs, typename UnitRhs>
-struct Division<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = CoordinateMatrix<typename ValueMatrixTraits::template Division<ValueMatrixLhs, ValueRhs>::type,
-                                typename Division<UnitMatrixLhs, UnitRhs>::type, CoordinateSystemMatrixLhs>;
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs, typename UnitRhs>
+struct Division<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, Quantity<ValueRhs, UnitRhs>> {
+  using type = CoordinateMatrix<typename Division<QuantityMatrixLhs, Quantity<ValueRhs, UnitRhs>>::type, CoordinateSystemMatrixLhs>;
 };
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-struct Transpose<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>> {
-  using type = CoordinateMatrix<typename ValueMatrixTraits::template Transpose<ValueMatrix>::type, typename Transpose<UnitMatrix>::type,
-                                typename Transpose<CoordinateSystemMatrix>::type>;
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct Transpose<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  using type = CoordinateMatrix<typename Transpose<QuantityMatrix>::type, typename Transpose<CoordinateSystemMatrix>::type>;
 };
 
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueMatrixRhs,
-          typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-struct DotProduct<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>,
-                  CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>> {
-  using type = Quantity<typename ValueMatrixTraits::template DotProduct<ValueMatrixLhs, ValueMatrixRhs>::type,
-                        typename DotProduct<UnitMatrixLhs, UnitMatrixRhs>::type>;
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+struct DotProduct<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
+                  CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>> {
+  using type = typename DotProduct<QuantityMatrixLhs, QuantityMatrixRhs>::type;
   using assert_frames_match = typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type;
 };
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix, int BlockRowId, int BlockColId, int BlockRows,
-          int BlockCols>
-struct Block<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type = CoordinateMatrix<typename ValueMatrixTraits::template Block<ValueMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-                                typename Block<UnitMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+template <typename QuantityMatrix, typename CoordinateSystemMatrix, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct Block<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+  using type = CoordinateMatrix<typename Block<QuantityMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
                                 typename Block<CoordinateSystemMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
 };
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-struct GetCoordinateSystem<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>> {
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct GetCoordinateSystem<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
   static_assert(IsHomogeneous<CoordinateSystemMatrix>::value, "Coordinate systems are heterogeneous.");
   using type = typename std::tuple_element<0, typename GetTypes<CoordinateSystemMatrix>::type>::type;
 };
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-struct IsAbsolute<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>> {
-  static constexpr bool value = IsAbsolute<UnitMatrix>::value;
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct IsAbsolute<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  static constexpr bool value = IsAbsolute<QuantityMatrix>::value;
 };
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-struct MakeRelative<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>> {
-  using type = CoordinateMatrix<ValueMatrix, typename MakeRelative<UnitMatrix>::type, CoordinateSystemMatrix>;
-  static type make(const CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>& object) {
-    return type(object.getValueMatrix());
-  }
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct MakeRelative<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  using type = CoordinateMatrix<typename MakeRelative<QuantityMatrix>::type, CoordinateSystemMatrix>;
+  static type make(const CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>& object) { return type(object.getValueMatrix()); }
 };
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-struct MakeAbsolute<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>> {
-  using type = CoordinateMatrix<ValueMatrix, typename MakeAbsolute<UnitMatrix>::type, CoordinateSystemMatrix>;
-  static type make(const CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>& object) {
-    return type(object.getValueMatrix());
-  }
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct MakeAbsolute<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  using type = CoordinateMatrix<typename MakeAbsolute<QuantityMatrix>::type, CoordinateSystemMatrix>;
+  static type make(const CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>& object) { return type(object.getValueMatrix()); }
 };
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix, typename NewCoordinateSystem>
-struct CastCoordinateSystem<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>, NewCoordinateSystem> {
-  using type = CoordinateMatrix<ValueMatrix, UnitMatrix, typename CastCoordinateSystem<CoordinateSystemMatrix, NewCoordinateSystem>::type>;
+template <typename QuantityMatrix, typename CoordinateSystemMatrix, typename NewCoordinateSystem>
+struct CastCoordinateSystem<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>, NewCoordinateSystem> {
+  using type = CoordinateMatrix<QuantityMatrix, typename CastCoordinateSystem<CoordinateSystemMatrix, NewCoordinateSystem>::type>;
 };
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-struct Evaluate<CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>> {
-  using type = CoordinateMatrix<typename ValueMatrixTraits::Evaluate<ValueMatrix>::type, UnitMatrix, CoordinateSystemMatrix>;
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct Evaluate<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  using type = CoordinateMatrix<typename Evaluate<QuantityMatrix>::type, CoordinateSystemMatrix>;
 };
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-auto operator+(const CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>& coordinateMatrix) {
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+auto operator+(const CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>& coordinateMatrix) {
   return coordinateMatrix;
 }
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueMatrixRhs,
-          typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-auto operator+(const CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
-               const CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
-  return typename Sum<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>,
-                      CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>>::type(lhs.getQuantityMatrix() +
-                                                                                                        rhs.getQuantityMatrix());
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+auto operator+(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
+               const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
+  return
+      typename Sum<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
+                   CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>>::type(lhs.getQuantityMatrix() + rhs.getQuantityMatrix());
 }
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-auto operator-(const CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>& coordinateMatrix) {
-  return CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>(-coordinateMatrix.getQuantityMatrix());
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+auto operator-(const CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>& coordinateMatrix) {
+  return CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>(-coordinateMatrix.getQuantityMatrix());
 }
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueMatrixRhs,
-          typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-auto operator-(const CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
-               const CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
-  return typename Difference<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>,
-                             CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>>::type(lhs.getQuantityMatrix() -
-                                                                                                               rhs.getQuantityMatrix());
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+auto operator-(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
+               const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
+  return typename Difference<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
+                             CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>>::type(lhs.getQuantityMatrix() -
+                                                                                                   rhs.getQuantityMatrix());
 }
 
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs>
-auto operator*(const CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const ValueRhs rhs) {
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs>
+auto operator*(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const ValueRhs rhs) {
   return lhs * Quantity<ValueRhs, Dimensionless>(rhs);
 }
-template <typename ValueLhs, typename ValueMatrixRhs, typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-auto operator*(const ValueLhs lhs, const CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
+template <typename ValueLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+auto operator*(const ValueLhs lhs, const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
   return rhs * lhs;
 }
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs, typename UnitRhs>
-auto operator*(const CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
-               const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Product<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>, Quantity<ValueRhs, UnitRhs>>::type(
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs, typename UnitRhs>
+auto operator*(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Product<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, Quantity<ValueRhs, UnitRhs>>::type(
       lhs.getQuantityMatrix() * rhs);
 }
-template <typename ValueLhs, typename UnitLhs, typename ValueMatrixRhs, typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs,
-               const CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
+template <typename ValueLhs, typename UnitLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
   return rhs * lhs;
 }
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueMatrixRhs,
-          typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-auto operator*(const CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
-               const CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
-  return typename Product<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>,
-                          CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>>::type(lhs.getQuantityMatrix() *
-                                                                                                            rhs.getQuantityMatrix());
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+auto operator*(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
+               const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
+  return typename Product<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
+                          CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>>::type(lhs.getQuantityMatrix() *
+                                                                                                rhs.getQuantityMatrix());
 }
 
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs>
-auto operator/(const CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const ValueRhs rhs) {
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs>
+auto operator/(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const ValueRhs rhs) {
   return lhs / Quantity<ValueRhs, Dimensionless>(rhs);
 }
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs, typename UnitRhs>
-auto operator/(const CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
-               const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Division<CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>, Quantity<ValueRhs, UnitRhs>>::type(
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs, typename UnitRhs>
+auto operator/(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Division<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, Quantity<ValueRhs, UnitRhs>>::type(
       lhs.getQuantityMatrix() / rhs);
 }
 
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueMatrixRhs,
-          typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-bool operator==(const CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
-                const CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+bool operator==(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
+                const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
   static_assert(std::is_same<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::value, "Coordinate systems do not match.");
   return lhs.getQuantityMatrix() == rhs.getQuantityMatrix();
 }
 
-template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueMatrixRhs,
-          typename UnitMatrixRhs, typename CoordinateSystemMatrixRhs>
-bool operator!=(const CoordinateMatrix<ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
-                const CoordinateMatrix<ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
+template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
+bool operator!=(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
+                const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
   return !(lhs == rhs);
 }
 
-template <typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix>
-std::ostream& operator<<(std::ostream& stream, const CoordinateMatrix<ValueMatrix, UnitMatrix, CoordinateSystemMatrix>& coordinateMatrix) {
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+std::ostream& operator<<(std::ostream& stream, const CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>& coordinateMatrix) {
   stream << coordinateMatrix.getQuantityMatrix();
   return stream;
 }

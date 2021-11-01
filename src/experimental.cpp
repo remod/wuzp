@@ -16,10 +16,12 @@ int main() {
   struct FromCoordinateSystemName {};
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
   QuantityMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>> q(1.0, 2.0, 3.0);
-  CoordinateMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>, CoordinateSystemMatrix<3, 1, FromCoordinateSystem>> c(1.0, 2.0,
-                                                                                                                              3.0);
-  Tensor<1, 0, CoordinateMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>, CoordinateSystemMatrix<3, 1, FromCoordinateSystem>>> t(
-      1.0, 2.0, 3.0);
+  CoordinateMatrix<QuantityMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>>, CoordinateSystemMatrix<3, 1, FromCoordinateSystem>>
+      c(1.0, 2.0, 3.0);
+  Tensor<1, 0,
+         CoordinateMatrix<QuantityMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>>,
+                          CoordinateSystemMatrix<3, 1, FromCoordinateSystem>>>
+      t(1.0, 2.0, 3.0);
   std::cout << q << std::endl;
   std::cout << c << std::endl;
   std::cout << t << std::endl;

@@ -131,13 +131,11 @@ class Tensor {
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
   }
 
-  template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
-  explicit Tensor(FromCoordinateMatrix /*tag*/,
-                  const CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>& coordinateMatrix)
+  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
+  explicit Tensor(FromCoordinateMatrix /*tag*/, const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& coordinateMatrix)
       : coordinateMatrix_(coordinateMatrix) {}
-  template <typename ValueMatrixOther, typename UnitMatrixOther, typename CoordinateSystemMatrixOther>
-  explicit Tensor(FromCoordinateMatrix /*tag*/,
-                  CoordinateMatrix<ValueMatrixOther, UnitMatrixOther, CoordinateSystemMatrixOther>&& coordinateMatrix)
+  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
+  explicit Tensor(FromCoordinateMatrix /*tag*/, CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>&& coordinateMatrix)
       : coordinateMatrix_(std::move(coordinateMatrix)) {}
 
   template <typename... Ts>
@@ -162,6 +160,16 @@ struct GetTag<Tensor<X0, X1, X3>, Ts...> {
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
 struct Dimension<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
   static constexpr int value = Dimension<CoordinateMatrix>::value;
+};
+
+template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
+struct Rows<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
+  static constexpr int value = Rows<CoordinateMatrix>::value;
+};
+
+template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
+struct Cols<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
+  static constexpr int value = Cols<CoordinateMatrix>::value;
 };
 
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
@@ -314,13 +322,13 @@ template <typename CoordinateMatrix>
 using Vector = Tensor<1, 0, CoordinateMatrix>;
 // TODO(remod): Do not call this "simple", but the other one "advanced"
 template <int Dimension, typename Scalar, typename Unit, typename CoordinateSystem>
-using SimpleVector = Vector<CoordinateMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Unit>,
+using SimpleVector = Vector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Unit>>,
                                              CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>>;
 
 template <typename CoordinateMatrix>
 using Covector = Tensor<0, 1, CoordinateMatrix>;
 template <int Dimension, typename Scalar, typename Unit, typename CoordinateSystem>
-using SimpleCovector = Covector<CoordinateMatrix<ValueMatrix<Scalar, 1, Dimension>, UnitMatrix<1, Dimension, Unit>,
+using SimpleCovector = Covector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, 1, Dimension>, UnitMatrix<1, Dimension, Unit>>,
                                                  CoordinateSystemMatrix<1, Dimension, CoordinateSystem>>>;
 
 template <int Dimension, typename Scalar, typename CoordinateSystem>
