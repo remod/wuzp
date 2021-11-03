@@ -79,13 +79,16 @@ inline std::pair<bool, std::string> compile(const std::string& code) {
 
 #define ASSERT_NO_COMPILATION_ERROR(code)         \
   const auto result = compile(std::string{code}); \
-  ASSERT_TRUE(result.first) << result.second;
+  const auto compiles = result.first ;                                               \
+  ASSERT_TRUE(compiles) << result.second;
 #define ASSERT_COMPILATION_ERROR(code)            \
   const auto result = compile(std::string{code}); \
-  ASSERT_FALSE(result.first) << result.second;
+  const auto compiles = result.first;                                                \
+  ASSERT_FALSE(compiles) << result.second;
 #define ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, message)                 \
   const auto result = compile(std::string{code});                            \
-  ASSERT_FALSE(result.first) << result.second;                               \
+  const auto compiles = result.first ;                                               \
+  ASSERT_FALSE(compiles) << result.second;                               \
   const auto searchString = std::string{"error: "} + std::string{(message)}; \
   ASSERT_NE(result.second.find(searchString), std::string::npos) << result.second;
 #define ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, message)     \

@@ -302,14 +302,68 @@ TEST(TestCoordinateMatrix2, Dot) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = UnitMatrix<4, 1, Length>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<4, 1, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD>;
+  using MyCoordinateSystemMatrix = CoordinateSystemMatrix<4, 1, CoordinateSystemA>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyQuantityResult = Quantity<int, Area>;
-  MyValueMatrix valueMatrix1;
-  valueMatrix1 << 1, 2, 3, 4;
-  MyValueMatrix valueMatrix2;
-  valueMatrix2 << 0, 3, -1, 2;
-  EXPECT_EQ(MyCoordinateMatrix(valueMatrix1).dot(MyCoordinateMatrix(valueMatrix2)), QuantityTraits::Create<MyQuantityResult>::create(11));
+  EXPECT_EQ(MyCoordinateMatrix(1, 2, 3, 4).dot(MyCoordinateMatrix(0, 3, -1, 2)), QuantityTraits::Create<MyQuantityResult>::create(11));
+}
+
+TEST(TestCoordinateMatrix2, DotBadFrames) {  // NOLINT
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "wuzp/core/CoordinateMatrix.hpp"
+#include "wuzp/core/CoordinateSystemMatrix.hpp"
+#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
+
+using namespace wuzp;  // NOLINT
+
+struct CoordinateSystemAName {};
+struct CoordinateSystemBName {};
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+using MyValueMatrix = ValueMatrix<int, 4, 1>;
+using MyUnitMatrix = UnitMatrix<4, 1, Length>;
+using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+using MyCoordinateSystemMatrixLhs = CoordinateSystemMatrix<4, 1, CoordinateSystemA>;
+using MyCoordinateSystemMatrixRhs = CoordinateSystemMatrix<4, 1, CoordinateSystemB>;
+using MyCoordinateMatrixLhs = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrixLhs>;
+using MyCoordinateMatrixRhs = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrixRhs>;
+
+int main() {
+  MyCoordinateMatrixLhs(1, 2, 3, 4).dot(MyCoordinateMatrixRhs(0, 3, -1, 2));
+  return 0;
+}
+)",
+                                        "Coordinate systems do not match.");
+}
+
+TEST(TestCoordinateMatrix2, DotBadFrames2) {  // NOLINT
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "wuzp/core/CoordinateMatrix.hpp"
+#include "wuzp/core/CoordinateSystemMatrix.hpp"
+#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/value_matrix/ValueMatrix.hpp"
+
+using namespace wuzp;  // NOLINT
+
+struct CoordinateSystemAName {};
+struct CoordinateSystemBName {};
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+using MyValueMatrix = ValueMatrix<int, 4, 1>;
+using MyUnitMatrix = UnitMatrix<4, 1, Length>;
+using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+using MyCoordinateSystemMatrix = CoordinateSystemMatrix<4, 1, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, CoordinateSystemB>;
+using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
+
+int main() {
+  MyCoordinateMatrix(1, 2, 3, 4).dot(MyCoordinateMatrix(0, 3, -1, 2));
+  return 0;
+}
+)",
+                                               "Coordinate systems do not match.");
 }
 
 TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT

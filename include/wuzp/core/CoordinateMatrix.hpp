@@ -89,7 +89,7 @@ class CoordinateMatrix {
 
   template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
   auto dot(const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& other) const {
-    return quantityMatrix_.dot(other.getQuantityMatrix());
+    return typename DotProduct<This, CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>>::type(quantityMatrix_.dot(other.getQuantityMatrix()));
   }
 
   auto inverse() const { return typename Inverse<This>::type(quantityMatrix_.inverse()); }
@@ -207,9 +207,9 @@ template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typena
 struct DotProduct<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
                   CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>> {
   using type = typename DotProduct<QuantityMatrixLhs, QuantityMatrixRhs>::type;
-  static_assert(FakeDependency<typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type>::value,
-                "Coordinate systems do not match.");
-  //  using assert_frames_match = typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type;
+//  static_assert(FakeDependency<typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type>::value,
+//                "Coordinate systems do not match.");
+    using assert_frames_match = typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type;
 };
 
 template <typename QuantityMatrix, typename CoordinateSystemMatrix, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
