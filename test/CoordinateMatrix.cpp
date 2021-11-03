@@ -23,6 +23,32 @@ using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
 using CoordinateSystemE = CoordinateSystem<CoordinateSystemEName>;
 using CoordinateSystemF = CoordinateSystem<CoordinateSystemFName>;
 
+template <int Rows, int Cols>
+using TestValueMatrix = ValueMatrix<double, Rows, Cols>;
+template <int Rows, int Cols>
+using TestUnitMatrix = UnitMatrix<Rows, Cols, Length>;
+template <int Rows, int Cols>
+using TestQuantityMatrix = QuantityMatrix<TestValueMatrix<Rows, Cols>, TestUnitMatrix<Rows, Cols>>;
+template <int Rows, int Cols>
+using TestCoordinateSystemMatrix = CoordinateSystemMatrix<Rows, Cols, CoordinateSystemA>;
+template <int Rows, int Cols>
+using TestCoordinateMatrix = CoordinateMatrix<TestQuantityMatrix<Rows, Cols>, TestCoordinateSystemMatrix<Rows, Cols>>;
+
+TEST(TestCoordinateMatrix2, Dimension) {  // NOLINT
+  static_assert(Dimension<TestCoordinateMatrix<1, 1>>::value == 0);
+  static_assert(Dimension<TestCoordinateMatrix<3, 1>>::value == 1);
+  static_assert(Dimension<TestCoordinateMatrix<1, 2>>::value == 1);
+  static_assert(Dimension<TestCoordinateMatrix<3, 2>>::value == 2);
+}
+
+TEST(TestCoordinateMatrix2, Rows) {  // NOLINT
+  static_assert(Rows<TestQuantityMatrix<3, 2>>::value == 3);
+}
+
+TEST(TestCoordinateMatrix2, Cols) {  // NOLINT
+  static_assert(Cols<TestQuantityMatrix<3, 2>>::value == 2);
+}
+
 TEST(TestCoordinateMatrix2, GetTag) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
@@ -151,7 +177,7 @@ TEST(TestCoordinateMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
   EXPECT_EQ(coordinateMatrix.getValueMatrix(), valueMatrix);
 }
 
-class TestCoordinateMatrix : public ::testing::Test {
+class TestCoordinateMatrixF : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
@@ -173,11 +199,11 @@ class TestCoordinateMatrix : public ::testing::Test {
   MyCoordinateMatrix coordinateMatrix_;
 };
 
-TEST_F(TestCoordinateMatrix, EqualityOperator) {  // NOLINT
+TEST_F(TestCoordinateMatrixF, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getCoordinateMatrix(), getCoordinateMatrix());
 }
 
-TEST_F(TestCoordinateMatrix, Block) {  // NOLINT
+TEST_F(TestCoordinateMatrixF, Block) {  // NOLINT
   using MyValueMatrixB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyQuantityMatrixB = QuantityMatrix<MyValueMatrixB, MyUnitMatrixB>;
@@ -190,7 +216,7 @@ TEST_F(TestCoordinateMatrix, Block) {  // NOLINT
   EXPECT_EQ((getCoordinateMatrix().block<0, 1, 2, 2>()), coordinateMatrixB);
 }
 
-TEST_F(TestCoordinateMatrix, Transpose) {  // NOLINT
+TEST_F(TestCoordinateMatrixF, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantityMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitMatrixT>;
@@ -272,7 +298,7 @@ TEST(TestCoordinateMatrix2, DivisionQuantity) {  // NOLINT
   EXPECT_EQ(coordinateMatrix / quantity, MyCoordinateMatrixResult(valueMatrix / value));
 }
 
-TEST(TestCoordinateMatrix2, ScalarProduct) {  // NOLINT
+TEST(TestCoordinateMatrix2, Dot) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = UnitMatrix<4, 1, Length>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;

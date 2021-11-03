@@ -60,9 +60,16 @@ class CoordinateMatrix {
 
   static This zero() { return This(QuantityMatrixT::zero()); }
 
+  template <typename ValueMatrixOther, typename UnitMatrixOther>
+  void setQuantityMatrix(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& quantityMatrix) {
+    quantityMatrix_ = quantityMatrix;
+  }
   const QuantityMatrixT& getQuantityMatrix() const { return quantityMatrix_; }
 
-  void setValueMatrix(const ValueMatrixT& values) { quantityMatrix_.setValueMatrix(values); }
+  template <typename ValueMatrixOther>
+  void setValueMatrix(const ValueMatrixOther& values) {
+    quantityMatrix_.setValueMatrix(values);
+  }
   const ValueMatrixT& getValueMatrix() const { return quantityMatrix_.getValueMatrix(); }
 
   template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
@@ -78,11 +85,11 @@ class CoordinateMatrix {
         quantityMatrix_.template block<BlockRowId, BlockColId, BlockRows, BlockCols>());
   }
 
-  auto transpose() const { return typename Transpose<This>::type(getQuantityMatrix().transpose()); }
+  auto transpose() const { return typename Transpose<This>::type(quantityMatrix_.transpose()); }
 
-  template <typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
-  auto dot(const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& other) const {
-    return getQuantityMatrix().dot(other.getQuantityMatrix());
+  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
+  auto dot(const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& other) const {
+    return quantityMatrix_.dot(other.getQuantityMatrix());
   }
 
   auto inverse() const { return typename Inverse<This>::type(quantityMatrix_.inverse()); }
@@ -200,7 +207,9 @@ template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typena
 struct DotProduct<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
                   CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>> {
   using type = typename DotProduct<QuantityMatrixLhs, QuantityMatrixRhs>::type;
-  using assert_frames_match = typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type;
+  static_assert(FakeDependency<typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type>::value,
+                "Coordinate systems do not match.");
+  //  using assert_frames_match = typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type;
 };
 
 template <typename QuantityMatrix, typename CoordinateSystemMatrix, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>

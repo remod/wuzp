@@ -52,7 +52,10 @@ class QuantityMatrix {
    * WARNING: This method circumvents quantity type safety.
    * @param valueMatrix Value matrix.
    */
-  void setValueMatrix(const ValueMatrixT& valueMatrix) { valueMatrix_ = valueMatrix; }
+  template <typename ValueMatrixOther>
+  void setValueMatrix(const ValueMatrixOther& valueMatrix) {
+    valueMatrix_ = valueMatrix;
+  }
 
   /**
    * Get the values of the quantity matrix.

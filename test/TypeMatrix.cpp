@@ -29,6 +29,13 @@ TEST(TestTypeMatrix, Interface) {  // NOLINT
                              RationalMatrix<3, 2, Integer<4>, Integer<4>, Integer<4>, Integer<4>, Integer<4>, Integer<4>>>::value);
 }
 
+TEST(TestTypeMatrix, Dimension) {  // NOLINT
+  static_assert(Dimension<RationalMatrix<1, 1, Integer<4>>>::value == 0);
+  static_assert(Dimension<RationalMatrix<3, 1, Integer<4>>>::value == 1);
+  static_assert(Dimension<RationalMatrix<1, 2, Integer<4>>>::value == 1);
+  static_assert(Dimension<RationalMatrix<3, 2, Integer<4>>>::value == 2);
+}
+
 TEST(TestTypeMatrix, Rows) {  // NOLINT
   static_assert(Rows<RationalMatrix<3, 2, Integer<4>>>::value == 3);
 }

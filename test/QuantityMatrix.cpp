@@ -10,6 +10,28 @@
 
 using namespace wuzp;  // NOLINT
 
+template <int Rows, int Cols>
+using TestValueMatrix = ValueMatrix<double, Rows, Cols>;
+template <int Rows, int Cols>
+using TestUnitMatrix = UnitMatrix<Rows, Cols, Length>;
+template <int Rows, int Cols>
+using TestQuantityMatrix = QuantityMatrix<TestValueMatrix<Rows, Cols>, TestUnitMatrix<Rows, Cols>>;
+
+TEST(TestQuantityMatrix2, Dimension) {  // NOLINT
+  static_assert(Dimension<TestQuantityMatrix<1, 1>>::value == 0);
+  static_assert(Dimension<TestQuantityMatrix<3, 1>>::value == 1);
+  static_assert(Dimension<TestQuantityMatrix<1, 2>>::value == 1);
+  static_assert(Dimension<TestQuantityMatrix<3, 2>>::value == 2);
+}
+
+TEST(TestQuantityMatrix2, Rows) {  // NOLINT
+  static_assert(Rows<TestQuantityMatrix<3, 2>>::value == 3);
+}
+
+TEST(TestQuantityMatrix2, Cols) {  // NOLINT
+  static_assert(Cols<TestQuantityMatrix<3, 2>>::value == 2);
+}
+
 TEST(TestQuantityMatrix2, GetTag) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;
@@ -116,7 +138,7 @@ TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
                                                "Units do not match.")
 }
 
-class TestQuantityMatrix : public ::testing::Test {
+class TestQuantityMatrixF : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
@@ -143,13 +165,13 @@ class TestQuantityMatrix : public ::testing::Test {
   MyQuantityMatrix quantityMatrix2_;
 };
 
-TEST_F(TestQuantityMatrix, SetGetValueMatrix) {  // NOLINT
+TEST_F(TestQuantityMatrixF, SetGetValueMatrix) {  // NOLINT
   EXPECT_EQ(getMatrix1().getValueMatrix(), getValues1());
   getMatrix1().setValueMatrix(getValues2());
   EXPECT_EQ(getMatrix1().getValueMatrix(), getValues2());
 }
 
-TEST_F(TestQuantityMatrix, SetGetQuantity) {  // NOLINT
+TEST_F(TestQuantityMatrixF, SetGetQuantity) {  // NOLINT
   using EnergyQuantity = Quantity<int, Energy>;
   EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), QuantityTraits::Create<EnergyQuantity>::create(getValues1()(1, 2)));
   const auto quantity = QuantityTraits::Create<EnergyQuantity>::create(7);
@@ -179,23 +201,23 @@ TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
   )",
                                                                                                 "Units do not match.")}
 
-TEST_F(TestQuantityMatrix, Addition) {  // NOLINT
+TEST_F(TestQuantityMatrixF, Addition) {  // NOLINT
   EXPECT_EQ(getMatrix1() + getMatrix2(), MyQuantityMatrix(getValues1() + getValues2()));
 }
 
-TEST_F(TestQuantityMatrix, Subtraction) {  // NOLINT
+TEST_F(TestQuantityMatrixF, Subtraction) {  // NOLINT
   EXPECT_EQ(getMatrix1() - getMatrix2(), MyQuantityMatrix(getValues1() - getValues2()));
 }
 
-TEST_F(TestQuantityMatrix, EqualityOperator) {  // NOLINT
+TEST_F(TestQuantityMatrixF, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getMatrix1(), getMatrix1());
 }
 
-TEST_F(TestQuantityMatrix, InequalityOperator) {  // NOLINT
+TEST_F(TestQuantityMatrixF, InequalityOperator) {  // NOLINT
   EXPECT_NE(getMatrix1(), getMatrix1() + getMatrix2());
 }
 
-TEST_F(TestQuantityMatrix, Block) {  // NOLINT
+TEST_F(TestQuantityMatrixF, Block) {  // NOLINT
   using MyValueMatrixB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyQuantityMatrixB = QuantityMatrix<MyValueMatrixB, MyUnitMatrixB>;
@@ -205,7 +227,7 @@ TEST_F(TestQuantityMatrix, Block) {  // NOLINT
   EXPECT_EQ((getMatrix1().block<0, 1, 2, 2>()), quantityMatrixB);
 }
 
-TEST_F(TestQuantityMatrix, Transpose) {  // NOLINT
+TEST_F(TestQuantityMatrixF, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantityMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitMatrixT>;
@@ -263,7 +285,7 @@ TEST(TestQuantityMatrix2, DivisionQuantity) {  // NOLINT
   EXPECT_EQ(quantityMatrix / quantity, MyQuantityMatrixResult(valueMatrix / value));
 }
 
-TEST(TestQuantityMatrix2, ScalarProduct) {  // NOLINT
+TEST(TestQuantityMatrix2, Dot) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = UnitMatrix<4, 1, Length>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
