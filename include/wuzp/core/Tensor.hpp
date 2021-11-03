@@ -104,9 +104,11 @@ class Tensor {
   Tensor() = default;
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(const T0& t0, const Ts&... ts)
       : Tensor(typename GetTag<This, T0, Ts...>::type(), t0, ts...) {}
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(T0&& t0, Ts&&... ts)
       : Tensor(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
@@ -158,14 +160,14 @@ class Tensor {
 
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
-  // Allow other coordinate matrix types to support lazy evaluation. NOLINTNEXTLINE(google-explicit-constructor)
+  // Allow other coordinate matrix types to support lazy evaluation.
   explicit Tensor(FromTensor /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other)
       : coordinateMatrix_(other.getCoordinateMatrix()) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
   }
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
-  // Allow other coordinate matrix types to support lazy evaluation. NOLINTNEXTLINE(google-explicit-constructor)
+  // Allow other coordinate matrix types to support lazy evaluation.
   explicit Tensor(FromTensor /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>&& other)
       : coordinateMatrix_(std::move(other.getCoordinateMatrix())) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");

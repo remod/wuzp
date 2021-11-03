@@ -335,7 +335,7 @@ int main() {
   return 0;
 }
 )",
-                                        "Coordinate systems do not match.");
+                                               "Coordinate systems do not match.");
 }
 
 TEST(TestCoordinateMatrix2, DotBadFrames2) {  // NOLINT
