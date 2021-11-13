@@ -1,8 +1,19 @@
 # Wrong Unit? Zero Points!
 
-[![Build and Test](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml)
+*WUZP* is a C++ library for compile time analysis of units and coordinate frames for linear algebra.
 
+[![Build and Test](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml)
 [![Code Coverage](https://codecov.io/gh/remod/wuzp/branch/master/graph/badge.svg?token=FVPNHZKXVX)](https://codecov.io/gh/remod/wuzp)
+
+## Introduction
+
+When writing C++ code, it is often desirable to discover as many errors as possible already in the compilation stage.
+This helps to fix these errors early in the development phase, reduces the number of unit tests which have to be written or runtime sanity checks to be performed.
+
+[Eigen](https://gitlab.com/libeigen/eigen) is a popular library to write linear algebra code.
+While it is extandable to use different scalar types, it is not possible to introduce physical quantities like the ones provided by libraries like [boost/units](https://github.com/boostorg/units) or [nholthaus/units](https://github.com/nholthaus/units) (TODO: source).
+
+This is where *WUZP* comes into play.
 
 ## Preparations
 
