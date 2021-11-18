@@ -491,18 +491,18 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   auto massMatrix01 = QuantityTraits::Create<MassQuantity>::create(0.0);
   auto massMatrix02 = -radius * massDelta * sin(relativeAngle)
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                                / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
+                      / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
 #endif
       ;
   auto massMatrix12 = radius * massDelta * cos(relativeAngle)
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                                / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
+                      / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
 #endif
       ;
   auto massMatrix22 = pow<2>(radius) * mass
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                      / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
-                      / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
+                      / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0) /
+                      QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
 #endif
       ;
   MassMatrix massMatrix(massMatrix00, massMatrix01, massMatrix02, massMatrix01, massMatrix00, massMatrix12, massMatrix02, massMatrix12,
