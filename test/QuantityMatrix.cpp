@@ -104,6 +104,23 @@ TEST(TestQuantityMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
   EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
 }
 
+// TODO(remod): Support construction from const values.
+// TEST(TestQuantityMatrix2, ConstructExplicitlyFromConstValues) {  // NOLINT
+//  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+//  using MyUnitMatrix = UnitMatrix<2, 3, Length>;
+//  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+//  MyValueMatrix valueMatrix;
+//  valueMatrix << 1, 2, 3, 4, 5, 6;
+//  const int v1 = 1;
+//  const int v2 = 2;
+//  const int v3 = 3;
+//  const int v4 = 4;
+//  const int v5 = 5;
+//  const int v6 = 6;
+//  const MyQuantityMatrix quantityMatrix(v1, v2, v3, v4, v5, v6);
+//  EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
+//}
+
 TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = UnitMatrix<4, 1, Length, Area, Volume, Mass>;

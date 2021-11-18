@@ -112,7 +112,8 @@ class QuantityMatrix {
   template <typename... Units>
   explicit QuantityMatrix(FromQuantities /*tag*/,
                           const Quantity<typename ValueMatrixTraits::Scalar<ValueMatrixT>::type, Units>&... quantities)
-      : valueMatrix_(
+      : QuantityMatrix(
+            FromValueMatrixArgs(),
             QuantityTraits::GetValue<Quantity<typename ValueMatrixTraits::Scalar<ValueMatrixT>::type, Units>>::get(quantities)...) {
     static_assert(std::is_same<std::tuple<Units...>, typename GetTypes<UnitMatrixT>::type>::value, "Units do not match.");
   }
@@ -124,7 +125,8 @@ class QuantityMatrix {
    */
   template <typename... Units>
   explicit QuantityMatrix(FromQuantities /*tag*/, Quantity<typename ValueMatrixTraits::Scalar<ValueMatrixT>::type, Units>&&... quantities)
-      : valueMatrix_(
+      : QuantityMatrix(
+            FromValueMatrixArgs(),
             QuantityTraits::GetValue<Quantity<typename ValueMatrixTraits::Scalar<ValueMatrixT>::type, Units>>::get(quantities)...) {
     static_assert(std::is_same<std::tuple<Units...>, typename GetTypes<UnitMatrixT>::type>::value, "Units do not match.");
   }
@@ -149,11 +151,11 @@ struct GetTag<QuantityMatrix<Xs...>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
 
  public:
-  using type =
-      typename Chose<sizeof...(Ts) == 1,
-                     typename Chose<IsSpecialization<first, QuantityMatrix>::value, FromQuantityMatrix,
-                                    typename Chose<(IsQuantity<Ts>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type,
-                     typename Chose<(IsQuantity<Ts>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type;
+  using type = typename Chose<
+      sizeof...(Ts) == 1,
+      typename Chose<IsSpecialization<first, QuantityMatrix>::value, FromQuantityMatrix,
+                     typename Chose<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type,
+      typename Chose<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type;
 };
 
 template <typename ValueMatrix, typename UnitMatrix>

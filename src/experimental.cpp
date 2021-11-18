@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+//#include <../../eigen/unsupported/Eigen/CXX11/Tensor>
 
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
@@ -12,31 +13,26 @@
 #include "wuzp/value_matrix/ValueMatrix.hpp"
 
 int main() {
-  using namespace wuzp;
-  struct FromCoordinateSystemName {};
-  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
-  QuantityMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>> q(1.0, 2.0, 3.0);
-  CoordinateMatrix<QuantityMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>>, CoordinateSystemMatrix<3, 1, FromCoordinateSystem>>
-      c(1.0, 2.0, 3.0);
-  Tensor<1, 0,
-         CoordinateMatrix<QuantityMatrix<ValueMatrix<double, 3, 1>, UnitMatrix<3, 1, Length>>,
-                          CoordinateSystemMatrix<3, 1, FromCoordinateSystem>>>
-      t(1.0, 2.0, 3.0);
-  std::cout << q << std::endl;
-  std::cout << c << std::endl;
-  std::cout << t << std::endl;
-  //  struct FromCoordinateSystemName {};
-  //  struct ToCoordinateSystemName {};
-  //  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
-  //  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
-  //  using Object = PositionVector3D<double, FromCoordinateSystem>;
-  //  using Transformation = Rotation3D<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
-  //  using TransformedObject = PositionVector3D<double, ToCoordinateSystem>;
-  //  const Object object(1.0, 2.0, 3.0);
-  //  const TransformedObject transformedObject(Eigen::Vector3d(1.0, -2.0, -3.0));
-  //  const Transformation transformation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
-  //  std::cout << getTypeName<GetCoordinateSystem<std::decay_t<decltype(transformation.transform(object))>>::type>() << std::endl;
-  //  std::cout << getTypeName<GetCoordinateSystem<std::decay_t<decltype(transformedObject)>>::type>() << std::endl;
-  //  transformation.transform(object) == transformedObject;
+  //  // Create 2 matrices using tensors of rank 2
+  //  Eigen::Tensor<int, 2> a(2, 3);
+  //  a.setValues({{1, 2, 3}, {6, 5, 4}});
+  //  Eigen::Tensor<int, 2> b(3, 2);
+  //  b.setValues({{1, 2}, {4, 5}, {5, 6}});
+  //
+  //  // Compute the traditional matrix product
+  //  Eigen::array<Eigen::IndexPair<int>, 1> product_dims = { Eigen::IndexPair<int>(1, 0) };
+  //  Eigen::Tensor<int, 2> AB = a.contract(b, product_dims);
+  //
+  //  // Compute the product of the transpose of the matrices
+  //  Eigen::array<Eigen::IndexPair<int>, 1> transposed_product_dims = { Eigen::IndexPair<int>(0, 1) };
+  //  Eigen::Tensor<int, 2> AtBt = a.contract(b, transposed_product_dims);
+  //
+  //  // Contraction to scalar value using a double contraction.
+  //  // First coordinate of both tensors are contracted as well as both second coordinates, i.e., this computes the sum of the squares of
+  //  the elements. Eigen::array<Eigen::IndexPair<int>, 2> double_contraction_product_dims = { Eigen::IndexPair<int>(0, 0),
+  //  Eigen::IndexPair<int>(1, 1) }; Eigen::Tensor<int, 0> AdoubleContractedA = a.contract(a, double_contraction_product_dims);
+  //
+  //  // Extracting the scalar value of the tensor contraction for further usage
+  //  int value = AdoubleContractedA(0);
   return 0;
 }

@@ -210,6 +210,7 @@ template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typena
 struct DotProduct<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
                   CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>> {
   using type = typename DotProduct<QuantityMatrixLhs, QuantityMatrixRhs>::type;
+
  private:
   using assert_frames_match = typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type;
 };
