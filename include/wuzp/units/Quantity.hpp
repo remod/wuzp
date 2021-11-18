@@ -10,6 +10,25 @@
 
 namespace wuzp {
 
+template <typename Value, typename Unit>
+struct IsAbsolute<Quantity<Value, Unit>> {
+  static constexpr bool value = UnitTraits::IsAbsolute<Unit>::value;
+};
+template <typename Value, typename Unit>
+struct MakeRelative<Quantity<Value, Unit>> {
+  using type = Quantity<Value, typename UnitTraits::MakeRelative<Unit>::type>;
+  static type make(const Quantity<Value, Unit>& object) {
+    return QuantityTraits::Create<type>::create(QuantityTraits::GetValue<Quantity<Value, Unit>>::get(object));
+  }
+};
+template <typename Value, typename Unit>
+struct MakeAbsolute<Quantity<Value, Unit>> {
+  using type = Quantity<Value, typename UnitTraits::MakeAbsolute<Unit>::type>;
+  static type make(const Quantity<Value, Unit>& object) {
+    return QuantityTraits::Create<type>::create(QuantityTraits::GetValue<Quantity<Value, Unit>>::get(object));
+  }
+};
+
 // Exponent first, as value and unit can be derived automatically.
 template <int Exponent, typename Value, typename Unit>
 auto pow(const Quantity<Value, Unit>& quantity) {

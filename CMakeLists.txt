@@ -76,7 +76,7 @@ if (ENABLE_TESTS)
         test/ValueMatrix.cpp
         test/QuantityMatrix.cpp
         test/CoordinateMatrix.cpp
-#        test/Tensor.cpp
+        test/Tensor.cpp
         test/Translation.cpp
         test/Rotation.cpp
         test/Jacobian.cpp

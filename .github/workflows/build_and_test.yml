@@ -26,7 +26,7 @@ jobs:
       run: ${SOURCE_DIR}/scripts/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
       run: ${SOURCE_DIR}/scripts/steps/test.sh ${SOURCE_DIR} ${BUILD_DIR} ${BUILD_TYPE}
-    - name: Format
+    - name: Format  # TODO(remod): Run this step earlier, potentially in a separate job (it is compiler independent)
       shell: bash
       run: ${SOURCE_DIR}/scripts/steps/format.sh ${SOURCE_DIR} ${BUILD_DIR}
     - name: Tidy
