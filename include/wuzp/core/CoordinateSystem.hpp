@@ -31,11 +31,6 @@ struct CoordinateSystemTraits {
   };
 
   DEFINE_RECURSIVE_TRAIT(Product)
-  //  template <typename Lhs, typename Rhs>
-  //  struct Product<Lhs, Rhs> {
-  //    static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
-  //    using type = NoCoordinateSystem;
-  //  };
   template <typename Lhs, typename Rhs>
   struct Product<Lhs, Rhs> {
     static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");

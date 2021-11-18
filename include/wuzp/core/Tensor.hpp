@@ -93,6 +93,9 @@ template <int ContravariantIndices, int CovariantIndices, typename CoordinateMat
 class Tensor {
  public:
   using CoordinateMatrixT = CoordinateMatrix_;
+  using QuantityMatrixT = typename CoordinateMatrixT::QuantityMatrixT;
+  using UnitMatrixT = typename QuantityMatrixT::UnitMatrixT;
+  using ValueMatrixT = typename QuantityMatrixT::ValueMatrixT;
   using This = Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrixT>;
 
   // TODO(remod): This is disabled to support batch processing of vectors, e.g. for point clouds. Remove it at one point.
@@ -101,9 +104,11 @@ class Tensor {
   Tensor() = default;
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(const T0& t0, const Ts&... ts)
       : Tensor(typename GetTag<This, T0, Ts...>::type(), t0, ts...) {}
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(T0&& t0, Ts&&... ts)
       : Tensor(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
@@ -111,20 +116,58 @@ class Tensor {
 
   static This zero() { return This(CoordinateMatrixT::zero()); }
 
+  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
+  void setCoordinateMatrix(const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& coordinateMatrix) {
+    coordinateMatrix_ = coordinateMatrix;
+  }
   const CoordinateMatrixT& getCoordinateMatrix() const { return coordinateMatrix_; }
+
+  template <typename ValueMatrixOther, typename UnitMatrixOther>
+  void setQuantityMatrix(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& quantityMatrix) {
+    coordinateMatrix_.setQuantityMatrix(quantityMatrix);
+  }
+  const QuantityMatrixT& getQuantityMatrix() const { return coordinateMatrix_.getQuantityMatrix(); }
+
+  template <typename ValueMatrixOther>
+  void setValueMatrix(const ValueMatrixOther& valueMatrix) {
+    coordinateMatrix_.setValueMatrix(valueMatrix);
+  }
+  const ValueMatrixT& getValueMatrix() const { return coordinateMatrix_.getValueMatrix(); }
+
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
+  bool isApprox(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other) const {
+    // Note: Allow other value types to support lazy evaluation.
+    static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
+    static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
+    return coordinateMatrix_.isApprox(other.getCoordinateMatrix());
+  }
+
+  template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+  auto block() const {
+    return typename Block<This, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
+        coordinateMatrix_.template block<BlockRowId, BlockColId, BlockRows, BlockCols>());
+  }
+
+  auto transpose() const { return typename Transpose<This>::type(coordinateMatrix_.transpose()); }
+
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
+  auto dot(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other) const {
+    // TODO(remod): Check indices.
+    return coordinateMatrix_.dot(other.getCoordinateMatrix());
+  }
 
   auto inverse() const { return typename Inverse<This>::type(coordinateMatrix_.inverse()); }
 
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
-  // Allow other coordinate matrix types to support lazy evaluation. NOLINTNEXTLINE(google-explicit-constructor)
+  // Allow other coordinate matrix types to support lazy evaluation.
   explicit Tensor(FromTensor /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other)
       : coordinateMatrix_(other.getCoordinateMatrix()) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
   }
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
-  // Allow other coordinate matrix types to support lazy evaluation. NOLINTNEXTLINE(google-explicit-constructor)
+  // Allow other coordinate matrix types to support lazy evaluation.
   explicit Tensor(FromTensor /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>&& other)
       : coordinateMatrix_(std::move(other.getCoordinateMatrix())) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
@@ -146,8 +189,8 @@ class Tensor {
   CoordinateMatrixT coordinateMatrix_;
 };
 
-template <int X0, int X1, typename X3, typename... Ts>
-struct GetTag<Tensor<X0, X1, X3>, Ts...> {
+template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix_, typename... Ts>
+struct GetTag<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix_>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
   using type = typename Chose<
       sizeof...(Ts) == 1,
@@ -204,28 +247,21 @@ struct Transpose<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix
   using type = Tensor<CovariantIndices, ContravariantIndices, typename Transpose<CoordinateMatrix>::type>;
 };
 
-// TODO(remod)
-// template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs,
-//          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-// struct DotProduct<
-//    Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, ValueMatrixLhs, UnitMatrixLhs, CoordinateSystemMatrixLhs>,
-//    Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, ValueMatrixRhs, UnitMatrixRhs, CoordinateSystemMatrixRhs>> {
-//  static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
-//  static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
-//  using type = Quantity<typename ValueMatrixTraits::template DotProduct<ValueMatrixLhs, ValueMatrixRhs>::type,
-//                        typename DotProduct<UnitMatrixLhs, UnitMatrixRhs>::type>;
-//  using assert_frames_match = typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type;
-//};
+template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix, int BlockRowId, int BlockColId, int BlockRows,
+          int BlockCols>
+struct Block<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+  using type =
+      Tensor<ContravariantIndices, CovariantIndices, typename Block<CoordinateMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+};
 
-// template <int ContravariantIndices, int CovariantIndices, typename ValueMatrix, typename UnitMatrix, typename CoordinateSystemMatrix,
-//          int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-// struct Block<Tensor<ContravariantIndices, CovariantIndices, ValueMatrix, UnitMatrix, CoordinateSystemMatrix>, BlockRowId,
-//             BlockColId, BlockRows, BlockCols> {
-//  using type = Tensor<ContravariantIndices, CovariantIndices,
-//                                typename ValueMatrixTraits::template Block<ValueMatrix, BlockRowId, BlockColId, BlockRows,
-//                                BlockCols>::type, typename Block<UnitMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type, typename
-//                                Block<CoordinateSystemMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
-//};
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
+          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
+struct DotProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
+                  Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>> {
+  static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
+  static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
+  using type = typename DotProduct<CoordinateMatrixLhs, CoordinateMatrixRhs>::type;
+};
 
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
 struct GetCoordinateSystem<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
@@ -320,33 +356,32 @@ std::ostream& operator<<(std::ostream& stream, const Tensor<ContravariantIndices
 
 template <typename CoordinateMatrix>
 using Vector = Tensor<1, 0, CoordinateMatrix>;
-// TODO(remod): Do not call this "simple", but the other one "advanced"
 template <int Dimension, typename Scalar, typename Unit, typename CoordinateSystem>
-using SimpleVector = Vector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Unit>>,
-                                             CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>>;
+using HomogeneousVector = Vector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Unit>>,
+                                                  CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>>;
 
 template <typename CoordinateMatrix>
 using Covector = Tensor<0, 1, CoordinateMatrix>;
 template <int Dimension, typename Scalar, typename Unit, typename CoordinateSystem>
-using SimpleCovector = Covector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, 1, Dimension>, UnitMatrix<1, Dimension, Unit>>,
-                                                 CoordinateSystemMatrix<1, Dimension, CoordinateSystem>>>;
+using HomogeneousCovector = Covector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, 1, Dimension>, UnitMatrix<1, Dimension, Unit>>,
+                                                      CoordinateSystemMatrix<1, Dimension, CoordinateSystem>>>;
 
 template <int Dimension, typename Scalar, typename CoordinateSystem>
-using PositionPoint = SimpleVector<Dimension, Scalar, Absolute<Length>, CoordinateSystem>;
+using PositionPoint = HomogeneousVector<Dimension, Scalar, Absolute<Length>, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>
 using PositionPoint2D = PositionPoint<2, Scalar, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>
 using PositionPoint3D = PositionPoint<3, Scalar, CoordinateSystem>;
 
 template <int Dimension, typename Scalar, typename CoordinateSystem>
-using PositionVector = SimpleVector<Dimension, Scalar, Length, CoordinateSystem>;
+using PositionVector = HomogeneousVector<Dimension, Scalar, Length, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>
 using PositionVector2D = PositionVector<2, Scalar, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>
 using PositionVector3D = PositionVector<3, Scalar, CoordinateSystem>;
 
 template <int Dimension, typename Scalar, typename CoordinateSystem>
-using VelocityVector = SimpleVector<Dimension, Scalar, Velocity, CoordinateSystem>;
+using VelocityVector = HomogeneousVector<Dimension, Scalar, Velocity, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>
 using VelocityVector2D = VelocityVector<2, Scalar, CoordinateSystem>;
 template <typename Scalar, typename CoordinateSystem>

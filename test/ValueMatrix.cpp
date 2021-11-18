@@ -6,6 +6,13 @@
 
 using namespace wuzp;  // NOLINT
 
+TEST(TestValueMatrix, Dimension) {  // NOLINT
+  static_assert(ValueMatrixTraits::Dimension<ValueMatrix<double, 1, 1>>::value == 0);
+  static_assert(ValueMatrixTraits::Dimension<ValueMatrix<double, 3, 1>>::value == 1);
+  static_assert(ValueMatrixTraits::Dimension<ValueMatrix<double, 1, 2>>::value == 1);
+  static_assert(ValueMatrixTraits::Dimension<ValueMatrix<double, 3, 2>>::value == 2);
+}
+
 TEST(TestValueMatrix, Rows) {  // NOLINT
   static_assert(ValueMatrixTraits::Rows<ValueMatrix<double, 3, 2>>::value == 3);
 }
