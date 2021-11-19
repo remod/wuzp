@@ -40,11 +40,11 @@ using Intermediate = CoordinateSystem<IntermediateName<From, To>>;
 
 }  // namespace internal
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename CoordinateSystem, typename From, typename To, typename Scalar>
-using ProperRigidTransformation =
-    ProperRigidTransformationTemplate<CoordinateSystem, From, To,
-                                      Rotation<ValueMatrix, Scalar, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
-                                      SpatialTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, internal::Intermediate<From, To>, To>>;
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename CoordinateSystem, typename From, typename To,
+          typename Scalar>
+using ProperRigidTransformation = ProperRigidTransformationTemplate<
+    CoordinateSystem, From, To, Rotation<ValueMatrix, Scalar, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
+    SpatialTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, internal::Intermediate<From, To>, To>>;
 template <template <typename, int, int> typename ValueMatrix, typename CoordinateSystem, typename From, typename To, typename Scalar>
 using ProperRigidTransformation2D = ProperRigidTransformation<ValueMatrix, 2, CoordinateSystem, From, To, Scalar>;
 template <template <typename, int, int> typename ValueMatrix, typename CoordinateSystem, typename From, typename To, typename Scalar>

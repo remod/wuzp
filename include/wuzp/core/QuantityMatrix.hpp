@@ -8,7 +8,6 @@
 #include "wuzp/units/Quantity.hpp"
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
-#include "wuzp/value_matrix/ValueMatrixTraits.hpp"
 
 namespace wuzp {
 

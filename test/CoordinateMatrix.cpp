@@ -10,7 +10,7 @@
 using namespace wuzp;  // NOLINT
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
@@ -102,7 +102,7 @@ TEST(TestCoordinateMatrix2, ConstructImplicitlyFromQuantityMatrix) {  // NOLINT
 using namespace wuzp;  // NOLINT
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
@@ -145,7 +145,7 @@ TEST(TestCoordinateMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
 using namespace wuzp;  // NOLINT
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
@@ -202,9 +202,7 @@ class TestCoordinateMatrixF : public ::testing::Test {
   const MyCoordinateMatrix& getCoordinateMatrix() const { return coordinateMatrix_; }
 
  protected:
-  void SetUp() override {
-    coordinateMatrix_.setValueMatrix(valueMatrix_);
-  }
+  void SetUp() override { coordinateMatrix_.setValueMatrix(valueMatrix_); }
 
  private:
   MyValueMatrix valueMatrix_{1, 2, 3, 4, 5, 6};
@@ -322,7 +320,7 @@ TEST(TestCoordinateMatrix2, DotBadFrames) {  // NOLINT
 using namespace wuzp;  // NOLINT
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
@@ -357,7 +355,7 @@ TEST(TestCoordinateMatrix2, DotBadFrames2) {  // NOLINT
 using namespace wuzp;  // NOLINT
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif

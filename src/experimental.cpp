@@ -10,7 +10,6 @@
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/trafo/Rotation.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 int main() {
   //  // Create 2 matrices using tensors of rank 2

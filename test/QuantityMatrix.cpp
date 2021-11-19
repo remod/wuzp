@@ -8,7 +8,7 @@
 #include "test_compilation_error.hpp"
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
@@ -75,7 +75,7 @@ TEST(TestQuantityMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
 using namespace wuzp;  // NOLINT
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
@@ -147,7 +147,7 @@ TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
 #include "wuzp/units/UnitMatrix.hpp"
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
@@ -218,7 +218,7 @@ TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
  using namespace wuzp;  // NOLINT
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif

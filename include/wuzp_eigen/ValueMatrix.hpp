@@ -50,7 +50,8 @@ class GenericValueMatrix {
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!wuzp::IsSpecialization<T0, wuzp::Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename wuzp::GetTag<This, T0, Ts...>::type, wuzp::FromValueMatrix>) GenericValueMatrix(const T0& t0, const Ts&... ts)
+  explicit(!std::is_same_v<typename wuzp::GetTag<This, T0, Ts...>::type, wuzp::FromValueMatrix>)
+      GenericValueMatrix(const T0& t0, const Ts&... ts)
       : GenericValueMatrix(typename wuzp::GetTag<This, T0, Ts...>::type(), t0, ts...) {}
   template <typename T0, typename... Ts, typename = std::enable_if_t<!wuzp::IsSpecialization<T0, wuzp::Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)

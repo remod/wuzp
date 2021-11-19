@@ -4,8 +4,10 @@
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units>
-class Translation : public PassiveTransformation<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, From, To> {
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
+          typename To, typename... Units>
+class Translation
+    : public PassiveTransformation<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, From, To> {
  public:
   using ValueMatrixT = ValueMatrix<Scalar, Dimension, 1>;
   using UnitMatrixT = UnitMatrix<Dimension, 1, Units...>;
@@ -26,15 +28,16 @@ class Translation : public PassiveTransformation<Translation<ValueMatrix, Dimens
   TensorT tensor_;
 };
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units,
-          typename NewCoordinateSystem>
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
+          typename To, typename... Units, typename NewCoordinateSystem>
 struct CastCoordinateSystem<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, NewCoordinateSystem> {
   using type = Translation<ValueMatrix, Dimension, Scalar, NewCoordinateSystem, From, To, Units...>;
 };
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units,
-          typename CoordinateMatrix>
-struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, Tensor<1, 0, CoordinateMatrix>> {
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
+          typename To, typename... Units, typename CoordinateMatrix>
+struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>,
+                            Tensor<1, 0, CoordinateMatrix>> {
   static auto transform(const Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>& transformation,
                         const Tensor<1, 0, CoordinateMatrix>& object) {
     if constexpr (IsAbsolute<Tensor<1, 0, CoordinateMatrix>>::value) {
@@ -51,7 +54,8 @@ struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, Coordina
   }
 };
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To>
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
+          typename To>
 using SpatialTranslation = Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Length>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
 using SpatialTranslation2D = SpatialTranslation<ValueMatrix, 2, Scalar, CoordinateSystem, From, To>;

@@ -10,7 +10,7 @@
 using namespace wuzp;  // NOLINT
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
@@ -28,8 +28,9 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   // Note: With wuzp units angles are dimensionless, but with boost units not.
   using AngleOverLength = UnitTraits::Division<Angle, Length>::type;
   using LengthOverAngle = UnitTraits::Inverse<AngleOverLength>::type;
-  using Transformation = Jacobian<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
-                                  AngleOverLength, AngleOverLength, Dimensionless, Dimensionless, Dimensionless, LengthOverAngle>;
+  using Transformation =
+      Jacobian<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
+               AngleOverLength, AngleOverLength, Dimensionless, Dimensionless, Dimensionless, LengthOverAngle>;
   using TransformedObject =
       Tensor<1, 0,
              CoordinateMatrix<QuantityMatrix<ValueMatrix<double, ToDimension, 1>, UnitMatrix<ToDimension, 1, AngularVelocity, Velocity>>,
@@ -53,8 +54,8 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
       CoordinateMatrix<QuantityMatrix<ValueMatrix<double, FromDimension, FromDimension>, UnitMatrix<FromDimension, FromDimension, Mass>>,
                        CoordinateSystemMatrix<FromDimension, FromDimension, FromCoordinateSystem>>>;
   using LengthInv = UnitTraits::Inverse<Length>::type;
-  using Transformation = Jacobian<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
-                                  LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
+  using Transformation = Jacobian<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension,
+                                  ToDimension, LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
   using MassLength = UnitTraits::Product<Mass, Length>::type;
   using MassLength2 = UnitTraits::Product<MassLength, Length>::type;
   using TransformedObject =
