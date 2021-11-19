@@ -4,8 +4,8 @@
 
 namespace wuzp {
 
-template <int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units>
-class Translation : public PassiveTransformation<Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>, From, To> {
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units>
+class Translation : public PassiveTransformation<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, From, To> {
  public:
   using ValueMatrixT = ValueMatrix<Scalar, Dimension, 1>;
   using UnitMatrixT = UnitMatrix<Dimension, 1, Units...>;
@@ -26,16 +26,16 @@ class Translation : public PassiveTransformation<Translation<Dimension, Scalar, 
   TensorT tensor_;
 };
 
-template <int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units,
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units,
           typename NewCoordinateSystem>
-struct CastCoordinateSystem<Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>, NewCoordinateSystem> {
-  using type = Translation<Dimension, Scalar, NewCoordinateSystem, From, To, Units...>;
+struct CastCoordinateSystem<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, NewCoordinateSystem> {
+  using type = Translation<ValueMatrix, Dimension, Scalar, NewCoordinateSystem, From, To, Units...>;
 };
 
-template <int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units,
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To, typename... Units,
           typename CoordinateMatrix>
-struct TransformationTraits<Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>, Tensor<1, 0, CoordinateMatrix>> {
-  static auto transform(const Translation<Dimension, Scalar, CoordinateSystem, From, To, Units...>& transformation,
+struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, Tensor<1, 0, CoordinateMatrix>> {
+  static auto transform(const Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>& transformation,
                         const Tensor<1, 0, CoordinateMatrix>& object) {
     if constexpr (IsAbsolute<Tensor<1, 0, CoordinateMatrix>>::value) {
       const auto fromResult = transformation.getTensor() + object;
@@ -51,11 +51,11 @@ struct TransformationTraits<Translation<Dimension, Scalar, CoordinateSystem, Fro
   }
 };
 
-template <int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using SpatialTranslation = Translation<Dimension, Scalar, CoordinateSystem, From, To, Length>;
-template <typename Scalar, typename CoordinateSystem, typename From, typename To>
-using SpatialTranslation2D = SpatialTranslation<2, Scalar, CoordinateSystem, From, To>;
-template <typename Scalar, typename CoordinateSystem, typename From, typename To>
-using SpatialTranslation3D = SpatialTranslation<3, Scalar, CoordinateSystem, From, To>;
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From, typename To>
+using SpatialTranslation = Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Length>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
+using SpatialTranslation2D = SpatialTranslation<ValueMatrix, 2, Scalar, CoordinateSystem, From, To>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
+using SpatialTranslation3D = SpatialTranslation<ValueMatrix, 3, Scalar, CoordinateSystem, From, To>;
 
 }  // namespace wuzp

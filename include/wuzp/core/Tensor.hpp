@@ -115,6 +115,7 @@ class Tensor {
   ~Tensor() = default;
 
   static This zero() { return This(CoordinateMatrixT::zero()); }
+  static This random() { return This(CoordinateMatrixT::random()); }
 
   template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
   void setCoordinateMatrix(const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& coordinateMatrix) {
@@ -161,30 +162,30 @@ class Tensor {
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
   // Allow other coordinate matrix types to support lazy evaluation.
-  explicit Tensor(FromTensor /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other)
+  Tensor(FromTensor /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other)
       : coordinateMatrix_(other.getCoordinateMatrix()) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
   }
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
   // Allow other coordinate matrix types to support lazy evaluation.
-  explicit Tensor(FromTensor /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>&& other)
+  Tensor(FromTensor /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>&& other)
       : coordinateMatrix_(std::move(other.getCoordinateMatrix())) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
   }
 
   template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
-  explicit Tensor(FromCoordinateMatrix /*tag*/, const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& coordinateMatrix)
+  Tensor(FromCoordinateMatrix /*tag*/, const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& coordinateMatrix)
       : coordinateMatrix_(coordinateMatrix) {}
   template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
-  explicit Tensor(FromCoordinateMatrix /*tag*/, CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>&& coordinateMatrix)
+  Tensor(FromCoordinateMatrix /*tag*/, CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>&& coordinateMatrix)
       : coordinateMatrix_(std::move(coordinateMatrix)) {}
 
   template <typename... Ts>
-  explicit Tensor(FromCoordinateMatrixArgs /*tag*/, const Ts&... ts) : coordinateMatrix_(ts...) {}
+  Tensor(FromCoordinateMatrixArgs /*tag*/, const Ts&... ts) : coordinateMatrix_(ts...) {}
   template <typename... Ts>
-  explicit Tensor(FromCoordinateMatrixArgs /*tag*/, Ts&&... ts) : coordinateMatrix_(std::forward<Ts>(ts)...) {}
+  Tensor(FromCoordinateMatrixArgs /*tag*/, Ts&&... ts) : coordinateMatrix_(std::forward<Ts>(ts)...) {}
 
   CoordinateMatrixT coordinateMatrix_;
 };
@@ -356,35 +357,35 @@ std::ostream& operator<<(std::ostream& stream, const Tensor<ContravariantIndices
 
 template <typename CoordinateMatrix>
 using Vector = Tensor<1, 0, CoordinateMatrix>;
-template <int Dimension, typename Scalar, typename Unit, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename Unit, typename CoordinateSystem>
 using HomogeneousVector = Vector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, Dimension, 1>, UnitMatrix<Dimension, 1, Unit>>,
                                                   CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>>>;
 
 template <typename CoordinateMatrix>
 using Covector = Tensor<0, 1, CoordinateMatrix>;
-template <int Dimension, typename Scalar, typename Unit, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename Unit, typename CoordinateSystem>
 using HomogeneousCovector = Covector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, 1, Dimension>, UnitMatrix<1, Dimension, Unit>>,
                                                       CoordinateSystemMatrix<1, Dimension, CoordinateSystem>>>;
 
-template <int Dimension, typename Scalar, typename CoordinateSystem>
-using PositionPoint = HomogeneousVector<Dimension, Scalar, Absolute<Length>, CoordinateSystem>;
-template <typename Scalar, typename CoordinateSystem>
-using PositionPoint2D = PositionPoint<2, Scalar, CoordinateSystem>;
-template <typename Scalar, typename CoordinateSystem>
-using PositionPoint3D = PositionPoint<3, Scalar, CoordinateSystem>;
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using PositionPoint = HomogeneousVector<Dimension, ValueMatrix, Scalar, Absolute<Length>, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using PositionPoint2D = PositionPoint<2, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using PositionPoint3D = PositionPoint<3, ValueMatrix, Scalar, CoordinateSystem>;
 
-template <int Dimension, typename Scalar, typename CoordinateSystem>
-using PositionVector = HomogeneousVector<Dimension, Scalar, Length, CoordinateSystem>;
-template <typename Scalar, typename CoordinateSystem>
-using PositionVector2D = PositionVector<2, Scalar, CoordinateSystem>;
-template <typename Scalar, typename CoordinateSystem>
-using PositionVector3D = PositionVector<3, Scalar, CoordinateSystem>;
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using PositionVector = HomogeneousVector<Dimension, ValueMatrix, Scalar, Length, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using PositionVector2D = PositionVector<2, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using PositionVector3D = PositionVector<3, ValueMatrix, Scalar, CoordinateSystem>;
 
-template <int Dimension, typename Scalar, typename CoordinateSystem>
-using VelocityVector = HomogeneousVector<Dimension, Scalar, Velocity, CoordinateSystem>;
-template <typename Scalar, typename CoordinateSystem>
-using VelocityVector2D = VelocityVector<2, Scalar, CoordinateSystem>;
-template <typename Scalar, typename CoordinateSystem>
-using VelocityVector3D = VelocityVector<3, Scalar, CoordinateSystem>;
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using VelocityVector = HomogeneousVector<Dimension, ValueMatrix, Scalar, Velocity, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using VelocityVector2D = VelocityVector<2, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using VelocityVector3D = VelocityVector<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 }  // namespace wuzp

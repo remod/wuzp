@@ -4,9 +4,14 @@
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 #include "test_compilation_error.hpp"
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 using namespace wuzp;  // NOLINT
 
@@ -66,9 +71,14 @@ TEST(TestQuantityMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = UnitMatrix<2, 3, Length>;
@@ -88,8 +98,7 @@ TEST(TestQuantityMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyQuantityMatrix quantityMatrix(valueMatrix);
   EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
 }
@@ -98,8 +107,7 @@ TEST(TestQuantityMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = UnitMatrix<2, 3, Length>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyQuantityMatrix quantityMatrix(1, 2, 3, 4, 5, 6);
   EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
 }
@@ -137,7 +145,12 @@ TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
  using namespace wuzp;  // NOLINT
 
@@ -161,39 +174,37 @@ class TestQuantityMatrixF : public ::testing::Test {
   using MyUnitMatrix = UnitMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
 
-  const MyValueMatrix& getValues1() const { return valueMatrix1_; }
-  const MyValueMatrix& getValues2() const { return valueMatrix2_; }
-  const MyQuantityMatrix& getMatrix1() const { return quantityMatrix1_; }
-  const MyQuantityMatrix& getMatrix2() const { return quantityMatrix2_; }
-  MyQuantityMatrix& getMatrix1() { return quantityMatrix1_; }
+  const MyValueMatrix& getValueMatrix1() const { return valueMatrix1_; }
+  const MyValueMatrix& getValueMatrix2() const { return valueMatrix2_; }
+  const MyQuantityMatrix& getQuantityMatrix1() const { return quantityMatrix1_; }
+  const MyQuantityMatrix& getQuantityMatrix2() const { return quantityMatrix2_; }
+  MyQuantityMatrix& getQuantityMatrix1() { return quantityMatrix1_; }
 
  protected:
   void SetUp() override {
-    valueMatrix1_ << 1, 2, 3, 4, 5, 6;
     quantityMatrix1_.setValueMatrix(valueMatrix1_);
-    valueMatrix2_ << 3, 1, 4, 1, 5, 9;
     quantityMatrix2_.setValueMatrix(valueMatrix2_);
   }
 
  private:
-  MyValueMatrix valueMatrix1_;
+  MyValueMatrix valueMatrix1_{1, 2, 3, 4, 5, 6};
   MyQuantityMatrix quantityMatrix1_;
-  MyValueMatrix valueMatrix2_;
+  MyValueMatrix valueMatrix2_{3, 1, 4, 1, 5, 9};
   MyQuantityMatrix quantityMatrix2_;
 };
 
 TEST_F(TestQuantityMatrixF, SetGetValueMatrix) {  // NOLINT
-  EXPECT_EQ(getMatrix1().getValueMatrix(), getValues1());
-  getMatrix1().setValueMatrix(getValues2());
-  EXPECT_EQ(getMatrix1().getValueMatrix(), getValues2());
+  EXPECT_EQ(getQuantityMatrix1().getValueMatrix(), getValueMatrix1());
+  getQuantityMatrix1().setValueMatrix(getValueMatrix2());
+  EXPECT_EQ(getQuantityMatrix1().getValueMatrix(), getValueMatrix2());
 }
 
 TEST_F(TestQuantityMatrixF, SetGetQuantity) {  // NOLINT
   using EnergyQuantity = Quantity<int, Energy>;
-  EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), QuantityTraits::Create<EnergyQuantity>::create(getValues1()(1, 2)));
+  EXPECT_EQ((getQuantityMatrix1().getQuantity<1, 2>()), QuantityTraits::Create<EnergyQuantity>::create(getValueMatrix1().getValue<1, 2>()));
   const auto quantity = QuantityTraits::Create<EnergyQuantity>::create(7);
-  getMatrix1().setQuantity<1, 2>(quantity);
-  EXPECT_EQ((getMatrix1().getQuantity<1, 2>()), quantity);
+  getQuantityMatrix1().setQuantity<1, 2>(quantity);
+  EXPECT_EQ((getQuantityMatrix1().getQuantity<1, 2>()), quantity);
 }
 
 TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
@@ -203,9 +214,14 @@ TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
 #include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
  using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
  int main() {
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
@@ -219,39 +235,37 @@ TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
                                                                                                 "Units do not match.")}
 
 TEST_F(TestQuantityMatrixF, Addition) {  // NOLINT
-  EXPECT_EQ(getMatrix1() + getMatrix2(), MyQuantityMatrix(getValues1() + getValues2()));
+  EXPECT_EQ(getQuantityMatrix1() + getQuantityMatrix2(), MyQuantityMatrix(getValueMatrix1() + getValueMatrix2()));
 }
 
 TEST_F(TestQuantityMatrixF, Subtraction) {  // NOLINT
-  EXPECT_EQ(getMatrix1() - getMatrix2(), MyQuantityMatrix(getValues1() - getValues2()));
+  EXPECT_EQ(getQuantityMatrix1() - getQuantityMatrix2(), MyQuantityMatrix(getValueMatrix1() - getValueMatrix2()));
 }
 
 TEST_F(TestQuantityMatrixF, EqualityOperator) {  // NOLINT
-  EXPECT_EQ(getMatrix1(), getMatrix1());
+  EXPECT_EQ(getQuantityMatrix1(), getQuantityMatrix1());
 }
 
 TEST_F(TestQuantityMatrixF, InequalityOperator) {  // NOLINT
-  EXPECT_NE(getMatrix1(), getMatrix1() + getMatrix2());
+  EXPECT_NE(getQuantityMatrix1(), getQuantityMatrix1() + getQuantityMatrix2());
 }
 
 TEST_F(TestQuantityMatrixF, Block) {  // NOLINT
   using MyValueMatrixB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = UnitMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyQuantityMatrixB = QuantityMatrix<MyValueMatrixB, MyUnitMatrixB>;
-  MyValueMatrixB valueMatrixB;
-  valueMatrixB << 2, 3, 5, 6;
-  MyQuantityMatrixB quantityMatrixB(valueMatrixB);
-  EXPECT_EQ((getMatrix1().block<0, 1, 2, 2>()), quantityMatrixB);
+  const MyValueMatrixB valueMatrixB(2, 3, 5, 6);
+  const MyQuantityMatrixB quantityMatrixB(valueMatrixB);
+  EXPECT_EQ((getQuantityMatrix1().block<0, 1, 2, 2>()), quantityMatrixB);
 }
 
 TEST_F(TestQuantityMatrixF, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = UnitMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantityMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitMatrixT>;
-  MyValueMatrixT valueMatrixT;
-  valueMatrixT << 1, 4, 2, 5, 3, 6;
-  MyQuantityMatrixT quantityMatrixT(valueMatrixT);
-  EXPECT_EQ(getMatrix1().transpose(), quantityMatrixT);
+  const MyValueMatrixT valueMatrixT(1, 4, 2, 5, 3, 6);
+  const MyQuantityMatrixT quantityMatrixT(valueMatrixT);
+  EXPECT_EQ(getQuantityMatrix1().transpose(), quantityMatrixT);
 }
 
 TEST(TestQuantityMatrix2, ProductQuantityMatrix) {  // NOLINT
@@ -260,10 +274,8 @@ TEST(TestQuantityMatrix2, ProductQuantityMatrix) {  // NOLINT
   using MyUnitMatrixResult = UnitMatrix<2, 2, Area>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4;
-  MyQuantityMatrix quantityMatrix;
-  quantityMatrix.setValueMatrix(valueMatrix);
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyQuantityMatrix quantityMatrix(valueMatrix);
   EXPECT_EQ(quantityMatrix * quantityMatrix, MyQuantityMatrixResult(valueMatrix * valueMatrix));
 }
 
@@ -277,10 +289,8 @@ TEST(TestQuantityMatrix2, ProductQuantity) {  // NOLINT
   using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4;
-  MyQuantityMatrix quantityMatrix;
-  quantityMatrix.setValueMatrix(valueMatrix);
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyQuantityMatrix quantityMatrix(valueMatrix);
   EXPECT_EQ(quantityMatrix * quantity, MyQuantityMatrixResult(valueMatrix * value));
   EXPECT_EQ(quantity * quantityMatrix, MyQuantityMatrixResult(valueMatrix * value));
 }
@@ -295,10 +305,8 @@ TEST(TestQuantityMatrix2, DivisionQuantity) {  // NOLINT
   using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4;
-  MyQuantityMatrix quantityMatrix;
-  quantityMatrix.setValueMatrix(valueMatrix);
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyQuantityMatrix quantityMatrix(valueMatrix);
   EXPECT_EQ(quantityMatrix / quantity, MyQuantityMatrixResult(valueMatrix / value));
 }
 
@@ -307,10 +315,8 @@ TEST(TestQuantityMatrix2, Dot) {  // NOLINT
   using MyUnitMatrix = UnitMatrix<4, 1, Length>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyQuantityResult = Quantity<int, Area>;
-  MyValueMatrix valueMatrix1;
-  valueMatrix1 << 1, 2, 3, 4;
-  MyValueMatrix valueMatrix2;
-  valueMatrix2 << 0, 3, -1, 2;
+  const MyValueMatrix valueMatrix1(1, 2, 3, 4);
+  const MyValueMatrix valueMatrix2(0, 3, -1, 2);
   EXPECT_EQ(MyQuantityMatrix(valueMatrix1).dot(MyQuantityMatrix(valueMatrix2)), QuantityTraits::Create<MyQuantityResult>::create(11));
 }
 
@@ -322,10 +328,9 @@ TEST(TestQuantityMatrix2, Chain) {  // NOLINT
   using MyQuantityMatrix1 = QuantityMatrix<MyValueMatrix, MyUnitMatrix1>;
   using MyQuantityMatrix2 = QuantityMatrix<MyValueMatrix, MyUnitMatrix2>;
   using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4;
-  MyQuantityMatrix1 quantityMatrix1(valueMatrix);
-  MyQuantityMatrix2 quantityMatrix2(valueMatrix);
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyQuantityMatrix1 quantityMatrix1(valueMatrix);
+  const MyQuantityMatrix2 quantityMatrix2(valueMatrix);
   EXPECT_EQ(quantityMatrix2 + quantityMatrix1 * quantityMatrix1, MyQuantityMatrixResult(valueMatrix + valueMatrix * valueMatrix));
 }
 
@@ -335,25 +340,21 @@ class TestQuantityMatrixInvertible : public ::testing::Test {
   using MyUnitMatrix = UnitMatrix<2, 2, Time>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
 
-  const MyValueMatrix& getValues() const { return valueMatrix_; }
-  const MyQuantityMatrix& getMatrix() const { return quantityMatrix_; }
+  const MyValueMatrix& getValueMatrix() const { return valueMatrix_; }
+  const MyQuantityMatrix& getQuantityMatrix() const { return quantityMatrix_; }
 
  protected:
-  void SetUp() override {
-    valueMatrix_ << 4.0, 7.0, 2.0, 6.0;
-    quantityMatrix_.setValueMatrix(valueMatrix_);
-  }
+  void SetUp() override { quantityMatrix_.setValueMatrix(valueMatrix_); }
 
  private:
-  MyValueMatrix valueMatrix_;
+  MyValueMatrix valueMatrix_{4.0, 7.0, 2.0, 6.0};
   MyQuantityMatrix quantityMatrix_;
 };
 
 TEST_F(TestQuantityMatrixInvertible, Inverse) {  // NOLINT
   using MyUnitMatrixInv = UnitMatrix<2, 2, Frequency>;
   using MyQuantityMatrixInv = QuantityMatrix<MyValueMatrix, MyUnitMatrixInv>;
-  MyValueMatrix valueMatrixInv;
-  valueMatrixInv << 0.6, -0.7, -0.2, 0.4;
-  MyQuantityMatrixInv quantityMatrixInv(valueMatrixInv);
-  EXPECT_TRUE(getMatrix().inverse().isApprox(quantityMatrixInv));
+  const MyValueMatrix valueMatrixInv{0.6, -0.7, -0.2, 0.4};
+  const MyQuantityMatrixInv quantityMatrixInv(valueMatrixInv);
+  EXPECT_TRUE(getQuantityMatrix().inverse().isApprox(quantityMatrixInv));
 }

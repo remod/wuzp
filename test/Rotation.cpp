@@ -9,16 +9,22 @@
 
 using namespace wuzp;  // NOLINT
 
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
+
 TEST(TestRotation, TransformPositionVector) {  // NOLINT
   struct FromCoordinateSystemName {};
   struct ToCoordinateSystemName {};
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
   using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
-  using Object = PositionVector3D<double, FromCoordinateSystem>;
-  using Transformation = Rotation3D<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
-  using TransformedObject = PositionVector3D<double, ToCoordinateSystem>;
-  const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
-  const TransformedObject transformedObject(Eigen::Vector3d(1.0, -2.0, -3.0));
+  using Object = PositionVector3D<ValueMatrix, double, FromCoordinateSystem>;
+  using Transformation = Rotation3D<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
+  using TransformedObject = PositionVector3D<ValueMatrix, double, ToCoordinateSystem>;
+  const Object object(1.0, 2.0, 3.0);
+  const TransformedObject transformedObject(1.0, -2.0, -3.0);
   const Transformation transformation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
   auto result = TransformedObject::zero();
   result = transformation.transform(object);
@@ -30,13 +36,11 @@ TEST(TestRotation, TransformPositionPoint) {  // NOLINT
   struct ToCoordinateSystemName {};
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
   using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
-  using Object = PositionPoint3D<double, FromCoordinateSystem>;
-  using Transformation = Rotation3D<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
-  using TransformedObject = PositionPoint3D<double, ToCoordinateSystem>;
-  // TODO(remod): Enable this.
-  //  const Object object(1.0, 2.0, 3.0);
-  const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
-  const TransformedObject transformedObject(Eigen::Vector3d(1.0, -2.0, -3.0));
+  using Object = PositionPoint3D<ValueMatrix, double, FromCoordinateSystem>;
+  using Transformation = Rotation3D<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
+  using TransformedObject = PositionPoint3D<ValueMatrix, double, ToCoordinateSystem>;
+  const Object object(1.0, 2.0, 3.0);
+  const TransformedObject transformedObject(1.0, -2.0, -3.0);
   const Transformation transformation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
@@ -46,16 +50,14 @@ TEST(TestRotation, TransformPointCloud) {  // NOLINT
   struct ToCoordinateSystemName {};
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
   using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
-  using ValueMatrix = Eigen::Matrix<double, 3, 2>;
-  using QuantityMatrix = QuantityMatrix<ValueMatrix, UnitMatrix<3, 2, Absolute<Length>>>;
-  using Object = Tensor<1, 0, CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix<3, 2, FromCoordinateSystem>>>;
-  using Transformation = Rotation3D<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
-  using TransformedObject = Tensor<1, 0, CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix<3, 2, ToCoordinateSystem>>>;
-  ValueMatrix valueMatrixObject;
-  valueMatrixObject << 1.0, 4.0, 2.0, 5.0, 3.0, 6.0;
+  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, UnitMatrix<3, 2, Absolute<Length>>>;
+  using Object = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, CoordinateSystemMatrix<3, 2, FromCoordinateSystem>>>;
+  using Transformation = Rotation3D<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
+  using TransformedObject = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, CoordinateSystemMatrix<3, 2, ToCoordinateSystem>>>;
+  const MyValueMatrix valueMatrixObject(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const Object object(valueMatrixObject);
-  ValueMatrix valueMatrixTransformedObject;
-  valueMatrixTransformedObject << 1.0, 4.0, -2.0, -5.0, -3.0, -6.0;
+  const MyValueMatrix valueMatrixTransformedObject(1.0, 4.0, -2.0, -5.0, -3.0, -6.0);
   const TransformedObject transformedObject(valueMatrixTransformedObject);
   const Transformation transformation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
   EXPECT_EQ(transformation.transform(object), transformedObject);

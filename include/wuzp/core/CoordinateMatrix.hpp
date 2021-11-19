@@ -61,6 +61,7 @@ class CoordinateMatrix {
   }
 
   static This zero() { return This(QuantityMatrixT::zero()); }
+  static This random() { return This(QuantityMatrixT::random()); }
 
   template <typename ValueMatrixOther, typename UnitMatrixOther>
   void setQuantityMatrix(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& quantityMatrix) {
@@ -100,30 +101,30 @@ class CoordinateMatrix {
  private:
   template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
   // Allow other value matrix types to support lazy evaluation.
-  explicit CoordinateMatrix(FromCoordinateMatrix /*tag*/, const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& other)
+  CoordinateMatrix(FromCoordinateMatrix /*tag*/, const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& other)
       : quantityMatrix_(other.getQuantityMatrix()) {
     static_assert(std::is_same<CoordinateSystemMatrixT, CoordinateSystemMatrixOther>::value, "Coordinate systems do not match.");
   }
   template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
   // Allow other value matrix types to support lazy evaluation.
-  explicit CoordinateMatrix(FromCoordinateMatrix /*tag*/, CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>&& other)
+  CoordinateMatrix(FromCoordinateMatrix /*tag*/, CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>&& other)
       : quantityMatrix_(std::move(other.getQuantityMatrix())) {
     static_assert(std::is_same<CoordinateSystemMatrixT, CoordinateSystemMatrixOther>::value, "Coordinate systems do not match.");
   }
 
   // Allow other value types to support lazy evaluation.
   template <typename ValueMatrixOther, typename UnitMatrixOther>
-  explicit CoordinateMatrix(FromQuantityMatrix /*tag*/, const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& quantityMatrix)
+  CoordinateMatrix(FromQuantityMatrix /*tag*/, const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& quantityMatrix)
       : quantityMatrix_(quantityMatrix) {}
   // Allow other value types to support lazy evaluation.
   template <typename ValueMatrixOther, typename UnitMatrixOther>
-  explicit CoordinateMatrix(FromQuantityMatrix /*tag*/, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>&& quantityMatrix)
+  CoordinateMatrix(FromQuantityMatrix /*tag*/, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>&& quantityMatrix)
       : quantityMatrix_(std::move(quantityMatrix)) {}
 
   template <typename... Ts>
-  explicit CoordinateMatrix(FromQuantityMatrixArgs /*tag*/, const Ts&... ts) : quantityMatrix_(ts...) {}
+  CoordinateMatrix(FromQuantityMatrixArgs /*tag*/, const Ts&... ts) : quantityMatrix_(ts...) {}
   template <typename... Ts>
-  explicit CoordinateMatrix(FromQuantityMatrixArgs /*tag*/, Ts&&... ts) : quantityMatrix_(std::forward<Ts>(ts)...) {}
+  CoordinateMatrix(FromQuantityMatrixArgs /*tag*/, Ts&&... ts) : quantityMatrix_(std::forward<Ts>(ts)...) {}
 
   QuantityMatrixT quantityMatrix_;
 };
@@ -186,7 +187,7 @@ struct Product<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>,
   // TODO(remod): Remove if unused.
   // OLD: The outcome is a quantity matrix (scalar product).
   // public:
-  //  using type = QuantityMatrix<typename ValueMatrixTraits::template Product<ValueMatrixLhs, ValueMatrixRhs>::type,
+  //  using type = QuantityMatrix<typename template Product<ValueMatrixLhs, ValueMatrixRhs>::type,
   //                              typename Product<UnitMatrixLhs, UnitMatrixRhs>::type>;
   //
   // private:

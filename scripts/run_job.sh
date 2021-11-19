@@ -3,7 +3,7 @@
 # Check arguments.
 if [ $# != 7 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./run_job.sh SOURCE_DIR BUILD_DIR C_COMPILER CXX_COMPILER BUILD_TYPE UNITS_IMPLEMENTATION MATRIX_IMPLEMENTATION"
+  echo "Usage: ./run_job.sh SOURCE_DIR BUILD_DIR C_COMPILER CXX_COMPILER BUILD_TYPE UNITS_IMPLEMENTATION VALUE_MATRIX_IMPLEMENTATION"
   exit 1
 fi
 
@@ -13,11 +13,11 @@ C_COMPILER=${3}
 CXX_COMPILER=${4}
 BUILD_TYPE=${5}
 UNITS_IMPLEMENTATION=${6}
-MATRIX_IMPLEMENTATION=${7}
+VALUE_MATRIX_IMPLEMENTATION=${7}
 
 # Run all steps.
-${SOURCE_DIR}/scripts/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} &&
-${SOURCE_DIR}/scripts/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${C_COMPILER} ${CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} &&
+${SOURCE_DIR}/scripts/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
+${SOURCE_DIR}/scripts/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${C_COMPILER} ${CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${SOURCE_DIR}/scripts/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&
 ${SOURCE_DIR}/scripts/steps/test.sh ${SOURCE_DIR} ${BUILD_DIR} ${BUILD_TYPE} &&
 ${SOURCE_DIR}/scripts/steps/format.sh ${SOURCE_DIR} ${BUILD_DIR} &&

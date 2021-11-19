@@ -4,12 +4,13 @@
 
 namespace wuzp {
 
-template <typename Scalar, typename CoordinateSystem, typename From, typename To, int Dimension>
-using Rotation = LinearTransformation<Scalar, CoordinateSystem, From, To, Dimension, Dimension, Dimensionless>;
-template <typename Scalar, typename CoordinateSystem, typename From, typename To>
-using Rotation2D = Rotation<Scalar, CoordinateSystem, From, To, 2>;
-template <typename Scalar, typename CoordinateSystem, typename From, typename To>
-using Rotation3D = Rotation<Scalar, CoordinateSystem, From, To, 3>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
+          int Dimension>
+using Rotation = LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension, Dimensionless>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
+using Rotation2D = Rotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 2>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
+using Rotation3D = Rotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 3>;
 
 // template <typename Derived, typename From, typename To, typename DimensionlessQuantity>
 // class QuaternionBase : public PassiveTransformation<Derived, From, To> {

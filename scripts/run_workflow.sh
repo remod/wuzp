@@ -22,13 +22,13 @@ WORKSPACE_DIR=/root
 BUILD_TYPE=Debug
 for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
-    for MATRIX_IMPLEMENTATION in 1; do
+    for VALUE_MATRIX_IMPLEMENTATION in 1; do
       # Run job.
-      echo "Building and testing ${C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION} ..."
-      BUILD_DIR=/tmp/build_${C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${MATRIX_IMPLEMENTATION}
+      echo "Building and testing ${C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
+      BUILD_DIR=/tmp/build_${C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${BUILD_DIR}
       mkdir ${BUILD_DIR}
-      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ubuntu:latest /bin/bash ${WORKSPACE_DIR}/scripts/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ubuntu:latest /bin/bash ${WORKSPACE_DIR}/scripts/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done

@@ -9,6 +9,12 @@
 
 using namespace wuzp;  // NOLINT
 
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
+
 TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   struct FromCoordinateSystemName {};
   struct ToCoordinateSystemName {};
@@ -22,16 +28,15 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   // Note: With wuzp units angles are dimensionless, but with boost units not.
   using AngleOverLength = UnitTraits::Division<Angle, Length>::type;
   using LengthOverAngle = UnitTraits::Inverse<AngleOverLength>::type;
-  using Transformation = Jacobian<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
+  using Transformation = Jacobian<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
                                   AngleOverLength, AngleOverLength, Dimensionless, Dimensionless, Dimensionless, LengthOverAngle>;
   using TransformedObject =
       Tensor<1, 0,
              CoordinateMatrix<QuantityMatrix<ValueMatrix<double, ToDimension, 1>, UnitMatrix<ToDimension, 1, AngularVelocity, Velocity>>,
                               CoordinateSystemMatrix<ToDimension, 1, ToCoordinateSystem>>>;
-  const Object object(Eigen::Vector3d(1.0, 2.0, 3.0));
-  const TransformedObject transformedObject(Eigen::Vector2d(14.0, 32.0));
-  Transformation::ValueMatrixT valueMatrix;
-  valueMatrix << 1.0, 2.0, 3.0, 4.0, 5.0, 6.0;
+  const Object object(1.0, 2.0, 3.0);
+  const TransformedObject transformedObject(14.0, 32.0);
+  const Transformation::ValueMatrixT valueMatrix(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
   const Transformation transformation((Transformation::TensorT(valueMatrix)));
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
@@ -48,7 +53,7 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
       CoordinateMatrix<QuantityMatrix<ValueMatrix<double, FromDimension, FromDimension>, UnitMatrix<FromDimension, FromDimension, Mass>>,
                        CoordinateSystemMatrix<FromDimension, FromDimension, FromCoordinateSystem>>>;
   using LengthInv = UnitTraits::Inverse<Length>::type;
-  using Transformation = Jacobian<double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
+  using Transformation = Jacobian<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, FromDimension, ToDimension,
                                   LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
   using MassLength = UnitTraits::Product<Mass, Length>::type;
   using MassLength2 = UnitTraits::Product<MassLength, Length>::type;
@@ -56,15 +61,9 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
       CoordinateMatrix<QuantityMatrix<ValueMatrix<double, ToDimension, ToDimension>,
                                       UnitMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>>,
                        CoordinateSystemMatrix<ToDimension, ToDimension, ToCoordinateSystem>>;
-  Eigen::Matrix3d valueMatrixObject;
-  valueMatrixObject << 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0;
-  const Object object(valueMatrixObject);
-  Eigen::Matrix2d valueMatrixObjectTransformed;
-  valueMatrixObjectTransformed << 1.0, 2.0, 3.0, 4.0;
-  const TransformedObject transformedObject(valueMatrixObjectTransformed);
-  Transformation::ValueMatrixT valueMatrix;
-  valueMatrix << 1.0, 2.0, 3.0, 4.0, 5.0, 6.0;
-  const Transformation transformation((Transformation::TensorT(valueMatrix)));
+  const Object object(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+  const TransformedObject transformedObject(1.0, 2.0, 3.0, 4.0);
+  const Transformation transformation(Transformation::TensorT(1.0, 2.0, 3.0, 4.0, 5.0, 6.0));
   // TODO(remod): Jacobian::inverse() does not exist yet.
   //  EXPECT_EQ(transformation.transform(object), transformedObject);
 }

@@ -3,13 +3,17 @@
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/trafo/Transformation.hpp"
 #include "wuzp/units/QuantityTraits.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 #include "test_compilation_error.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 struct CoordinateSystemAName {};
 struct CoordinateSystemBName {};
@@ -94,9 +98,14 @@ TEST(TestCoordinateMatrix2, ConstructImplicitlyFromQuantityMatrix) {  // NOLINT
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
@@ -132,9 +141,14 @@ TEST(TestCoordinateMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
@@ -160,8 +174,7 @@ TEST(TestCoordinateMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyCoordinateMatrix coordinateMatrix(valueMatrix);
   EXPECT_EQ(coordinateMatrix.getValueMatrix(), valueMatrix);
 }
@@ -172,8 +185,7 @@ TEST(TestCoordinateMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyCoordinateMatrix coordinateMatrix(1, 2, 3, 4, 5, 6);
   EXPECT_EQ(coordinateMatrix.getValueMatrix(), valueMatrix);
 }
@@ -191,12 +203,11 @@ class TestCoordinateMatrixF : public ::testing::Test {
 
  protected:
   void SetUp() override {
-    valueMatrix_ << 1, 2, 3, 4, 5, 6;
     coordinateMatrix_.setValueMatrix(valueMatrix_);
   }
 
  private:
-  MyValueMatrix valueMatrix_;
+  MyValueMatrix valueMatrix_{1, 2, 3, 4, 5, 6};
   MyCoordinateMatrix coordinateMatrix_;
 };
 
@@ -211,9 +222,8 @@ TEST_F(TestCoordinateMatrixF, Block) {  // NOLINT
   using MyCoordinateSystemMatrixB =
       CoordinateSystemMatrix<2, 2, CoordinateSystemB, CoordinateSystemC, CoordinateSystemE, CoordinateSystemF>;
   using MyCoordinateMatrixB = CoordinateMatrix<MyQuantityMatrixB, MyCoordinateSystemMatrixB>;
-  MyValueMatrixB valueMatrixB;
-  valueMatrixB << 2, 3, 5, 6;
-  MyCoordinateMatrixB coordinateMatrixB(valueMatrixB);
+  const MyValueMatrixB valueMatrixB(2, 3, 5, 6);
+  const MyCoordinateMatrixB coordinateMatrixB(valueMatrixB);
   EXPECT_EQ((getCoordinateMatrix().block<0, 1, 2, 2>()), coordinateMatrixB);
 }
 
@@ -224,9 +234,8 @@ TEST_F(TestCoordinateMatrixF, Transpose) {  // NOLINT
   using MyCoordinateSystemMatrixT = CoordinateSystemMatrix<3, 2, CoordinateSystemA, CoordinateSystemD, CoordinateSystemB, CoordinateSystemE,
                                                            CoordinateSystemC, CoordinateSystemF>;
   using MyCoordinateMatrixT = CoordinateMatrix<MyQuantityMatrixT, MyCoordinateSystemMatrixT>;
-  MyValueMatrixT valueMatrixT;
-  valueMatrixT << 1, 4, 2, 5, 3, 6;
-  MyCoordinateMatrixT coordinateMatrixT(valueMatrixT);
+  const MyValueMatrixT valueMatrixT(1, 4, 2, 5, 3, 6);
+  const MyCoordinateMatrixT coordinateMatrixT(valueMatrixT);
   EXPECT_EQ(getCoordinateMatrix().transpose(), coordinateMatrixT);
 }
 
@@ -239,10 +248,8 @@ TEST(TestCoordinateMatrix2, ProductCoordinateMatrix) {  // NOLINT
   using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyCoordinateMatrixResult = CoordinateMatrix<MyQuantityMatrixResult, MyCoordinateSystemMatrix>;
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4;
-  MyCoordinateMatrix coordinateMatrix;
-  coordinateMatrix.setValueMatrix(valueMatrix);
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyCoordinateMatrix coordinateMatrix(valueMatrix);
   EXPECT_EQ(coordinateMatrix * coordinateMatrix, MyCoordinateMatrixResult(valueMatrix * valueMatrix));
   // OLD:
   //  using MyValueMatrix = ValueMatrix<int, 2, 2>;
@@ -271,10 +278,8 @@ TEST(TestCoordinateMatrix2, ProductQuantity) {  // NOLINT
   using MyCoordinateMatrixResult = CoordinateMatrix<MyQuantityMatrixResult, MyCoordinateSystemMatrix>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4;
-  MyCoordinateMatrix coordinateMatrix;
-  coordinateMatrix.setValueMatrix(valueMatrix);
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyCoordinateMatrix coordinateMatrix(valueMatrix);
   EXPECT_EQ(coordinateMatrix * quantity, MyCoordinateMatrixResult(valueMatrix * value));
   EXPECT_EQ(quantity * coordinateMatrix, MyCoordinateMatrixResult(valueMatrix * value));
 }
@@ -292,10 +297,8 @@ TEST(TestCoordinateMatrix2, DivisionQuantity) {  // NOLINT
   using MyCoordinateMatrixResult = CoordinateMatrix<MyQuantityMatrixResult, MyCoordinateSystemMatrix>;
   const MyValue value{2};
   const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4;
-  MyCoordinateMatrix coordinateMatrix;
-  coordinateMatrix.setValueMatrix(valueMatrix);
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyCoordinateMatrix coordinateMatrix(valueMatrix);
   EXPECT_EQ(coordinateMatrix / quantity, MyCoordinateMatrixResult(valueMatrix / value));
 }
 
@@ -315,9 +318,14 @@ TEST(TestCoordinateMatrix2, DotBadFrames) {  // NOLINT
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 struct CoordinateSystemAName {};
 struct CoordinateSystemBName {};
@@ -345,9 +353,14 @@ TEST(TestCoordinateMatrix2, DotBadFrames2) {  // NOLINT
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 struct CoordinateSystemAName {};
 struct CoordinateSystemBName {};
@@ -460,8 +473,8 @@ auto minimalToCartesian(const MinimalCoordinates& minimalCoordinates, const Mini
 }
 
 TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
-  const MinimalCoordinates minimalCoordinates(MinimalCoordinatesValueMatrix::Random());
-  const MinimalCoordinatesDt minimalCoordinatesDt(MinimalCoordinatesValueMatrix::Random());
+  const auto minimalCoordinates = MinimalCoordinates::random();
+  const auto minimalCoordinatesDt = MinimalCoordinatesDt::random();
   const RadiusQuantity radius = QuantityTraits::Create<RadiusQuantity>::create(2.0);
   const MassQuantity mass1 = QuantityTraits::Create<MassQuantity>::create(1.0);
   const MassQuantity mass2 = QuantityTraits::Create<MassQuantity>::create(1.0);

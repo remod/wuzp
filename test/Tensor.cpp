@@ -4,12 +4,16 @@
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/units/QuantityTraits.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 #include "test_compilation_error.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 struct CoordinateSystemAName {};
 struct CoordinateSystemBName {};
@@ -100,9 +104,14 @@ TEST(TestTensor2, ConstructImplicitlyFromCoordinateMatrix) {  // NOLINT
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
@@ -141,9 +150,14 @@ TEST(TestTensor2, ConstructImplicitlyFromQuantityMatrix) {  // NOLINT
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
@@ -182,9 +196,14 @@ TEST(TestTensor2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
+
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#include "wuzp/value_matrix/eigen/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
@@ -212,8 +231,7 @@ TEST(TestTensor2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyTensor = Tensor<1, 0, MyCoordinateMatrix>;
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(valueMatrix);
   EXPECT_EQ(tensor.getValueMatrix(), valueMatrix);
 }
@@ -225,8 +243,7 @@ TEST(TestTensor2, ConstructExplicitlyFromValues) {  // NOLINT
   using MyCoordinateSystemMatrix = CoordinateSystemMatrix<2, 3, CoordinateSystemA>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyTensor = Tensor<1, 0, MyCoordinateMatrix>;
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(1, 2, 3, 4, 5, 6);
   EXPECT_EQ(tensor.getValueMatrix(), valueMatrix);
 }
@@ -243,15 +260,8 @@ class TestTensorF : public ::testing::Test {
 
   const MyTensor& getTensor() const { return tensor_; }
 
- protected:
-  void SetUp() override {
-    MyValueMatrix valueMatrix;
-    valueMatrix << 1, 2, 3, 4, 5, 6;
-    tensor_.setValueMatrix(valueMatrix);
-  }
-
  private:
-  MyTensor tensor_;
+  MyTensor tensor_{1, 2, 3, 4, 5, 6};
 };
 
 TEST_F(TestTensorF, EqualityOperator) {  // NOLINT
@@ -278,7 +288,7 @@ TEST_F(TestTensorF, Transpose) {  // NOLINT
                                                            CoordinateSystemC, CoordinateSystemF>;
   using MyCoordinateMatrixT = CoordinateMatrix<MyQuantityMatrixT, MyCoordinateSystemMatrixT>;
   using MyTensorT = Tensor<0, 1, MyCoordinateMatrixT>;
-  MyTensorT tensorT(1, 4, 2, 5, 3, 6);
+  const MyTensorT tensorT(1, 4, 2, 5, 3, 6);
   EXPECT_EQ(getTensor().transpose(), tensorT);
 }
 

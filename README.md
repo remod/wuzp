@@ -11,7 +11,7 @@ When writing C++ code, it is often desirable to discover as many errors as possi
 This helps to fix these errors early in the development phase, reduces the number of unit tests which have to be written or runtime sanity checks to be performed.
 
 [Eigen](https://gitlab.com/libeigen/eigen) is a popular library to write linear algebra code.
-While it is extandable to use different scalar types, it is not possible to introduce physical quantities like the ones provided by libraries like [boost/units](https://github.com/boostorg/units) or [nholthaus/units](https://github.com/nholthaus/units) (TODO: source).
+While it is extensible to use different scalar types, it is not possible to introduce physical quantities like the ones provided by libraries like [boost/units](https://github.com/boostorg/units) or [nholthaus/units](https://github.com/nholthaus/units) (TODO: source).
 
 This is where *WUZP* comes into play.
 

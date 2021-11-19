@@ -36,12 +36,14 @@ struct FromCoordinateMatrixArgsLabel {};
 using FromCoordinateMatrixArgs = Tag<FromCoordinateMatrixArgsLabel>;
 struct FromQuantityMatrixArgsLabel {};
 using FromQuantityMatrixArgs = Tag<FromQuantityMatrixArgsLabel>;
+struct FromValueMatrixLabel {};
+using FromValueMatrix = Tag<FromValueMatrixLabel>;
 struct FromValueMatrixArgsLabel {};
 using FromValueMatrixArgs = Tag<FromValueMatrixArgsLabel>;
 
 template <typename T>
-struct Dimension {
-  static_assert(FakeDependency<Dimension<T>>::value, "'Dimension' trait not specialized for given type.");
+struct Scalar {
+  static_assert(FakeDependency<Scalar<T>>::value, "'Scalar' trait not specialized for given type.");
 };
 
 template <typename T>
@@ -52,6 +54,11 @@ struct Rows {
 template <typename T>
 struct Cols {
   static_assert(FakeDependency<Cols<T>>::value, "'Cols' trait not specialized for given type.");
+};
+
+template <typename T>
+struct Dimension {
+  static constexpr int value = static_cast<int>(Rows<T>::value > 1) + static_cast<int>(Cols<T>::value > 1);
 };
 
 DEFINE_RECURSIVE_TRAIT(Sum)
@@ -84,6 +91,23 @@ template <typename T>
 struct Inverse {
   static_assert(FakeDependency<Inverse<T>>::value, "'Inverse' trait not specialized for given type.");
 };
+
+template <typename T>
+struct Zero {
+  static_assert(FakeDependency<Zero<T>>::value, "'Zero' trait not specialized for given type.");
+};
+
+template <typename T>
+struct Random {
+  static_assert(FakeDependency<Random<T>>::value, "'Random' trait not specialized for given type.");
+};
+
+template <typename T>
+struct Evaluate {
+  static_assert(FakeDependency<Evaluate<T>>::value, "'Evaluate' trait not specialized for given type.");
+};
+template <typename T>
+static auto evaluate(T t);
 
 template <typename T>
 struct IsAbsolute {
