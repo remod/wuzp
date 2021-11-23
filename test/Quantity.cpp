@@ -1,9 +1,17 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/traits.hpp"
-#include "wuzp/units/Quantity.hpp"
-#include "wuzp/units/QuantityTraits.hpp"
-#include "wuzp/units/Unit.hpp"
+
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp/units/wuzp/Quantity.hpp"
+#include "wuzp/units/wuzp/Unit.hpp"
+template <typename Scalar, int Rows, int Cols>
+using Quantity = wuzp::Quantity<Scalar, Rows, Cols>;
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
 
 using namespace wuzp;  // NOLINT
 
@@ -102,23 +110,15 @@ TEST(TestQuantity, Inverse) {  // NOLINT
   EXPECT_EQ(inverse(createTimeQuantity(2.0)), createFrequencyQuantity(0.5));
 }
 
-TEST(TestQuantity, ImplicitConversionToValue) {  // NOLINT
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-  static_assert(!std::is_convertible_v<Quantity<double, Dimensionless>, double>);
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-  static_assert(std::is_convertible_v<Quantity<double, Dimensionless>, double>);
-#endif
-}
-
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
-  const auto radius = QuantityTraits::Create<Quantity<double, Length>>::create(2.0);
-  const auto angle = QuantityTraits::Create<Quantity<double, Angle>>::create(3.0);
+  const auto radius = Quantity<double, Length>(2.0);
+  const auto angle = Quantity<double, Angle>(3.0);
   [[maybe_unused]] const Quantity<double, Length> arcLength =
       angle *
       radius
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
       // With boost, angles are not dimensionless. We need to "normalize" the result.
-      / QuantityTraits::Create<Quantity<double, Angle>>::create(1.0)
+      / Quantity<double, Angle>(1.0)
 #endif
       ;
 }

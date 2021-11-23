@@ -6,8 +6,6 @@
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
-#include "wuzp/units/QuantityTraits.hpp"
-#include "wuzp/units/Unit.hpp"
 #include "wuzp/units/UnitMatrix.hpp"
 
 namespace wuzp {

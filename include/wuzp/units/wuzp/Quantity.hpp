@@ -9,41 +9,43 @@
 
 namespace wuzp {
 
-template <typename Value, typename Unit>
+template <typename ValueT_, typename UnitT_>
 class Quantity {
  public:
+  using ValueT = ValueT_;
+  using UnitT = UnitT_;
+  using ThisT = Quantity<ValueT, UnitT>;
+
   Quantity() = default;
-  template <typename ValueOther>
-  explicit Quantity(const ValueOther value) : value_(value) {
+  template <typename ValueOtherT>
+  explicit Quantity(const ValueOtherT value) : value_(value) {
     // Design decision: Do not allow mixing types, require a manual cast.
     static_assert(std::is_same<Value, ValueOther>::value, "Values do not match.");
   }
 
-  template <typename ValueOther>
-  void setValue(const ValueOther value) {
+  template <typename ValueOtherT>
+  void setValue(const ValueOtherT value) {
     // Design decision: Do not allow mixing types, require a manual cast.
     static_assert(std::is_same<Value, ValueOther>::value, "Values do not match.");
     value_ = value;
   }
-  Value getValue() const { return value_; }
+  ValueT getValue() const { return value_; }
 
-  template <typename TargetValue>
-  Quantity<TargetValue, Unit> cast() const {
-    return Quantity<TargetValue, Unit>(value_);
+  template <typename TargetValueT>
+  Quantity<TargetValueT, UnitT> cast() const {
+    return Quantity<TargetValueT, UnitT>(value_);
   }
 
-  template <typename ValueOther, typename UnitOther>
-  bool isApprox(const Quantity<ValueOther, UnitOther>& other) const {
+  template <typename ValueOtherT, typename UnitOtherT>
+  bool isApprox(const Quantity<ValueOtherT, UnitOtherT>& other) const {
     // Note: Allow other value types to support lazy evaluation.
-    static_assert(std::is_same<Unit, UnitOther>::value, "Units do not match.");
+    static_assert(std::is_same<UnitT, UnitOtherT>::value, "Units do not match.");
     return value_.isApprox(other.getValue());
   }
 
-  auto inverse() const { return typename QuantityTraits::Inverse<This>::type(ValueTraits::Identity<Value>::value_ / value_); }
+  auto inverse() const { return typename QuantityTraits::Inverse<This>::type(ValueTraits::Identity<ValueT>::value_ / value_); }
 
  private:
-  using This = Quantity<Value, Unit>;
-
   Value value_;
 };
 
@@ -100,5 +102,42 @@ std::ostream& operator<<(std::ostream& stream, const Quantity<Value, Unit>& quan
   stream << quantity.getValue();
   return stream;
 }
+
+}  // namespace wuzp
+
+namespace wuzp {
+
+template <typename Value, typename Unit>
+struct IsAbsolute<wuzp_boost::Quantity<Value, Unit>> {
+  static constexpr bool value = IsAbsolute<Unit>::value;
+};
+template <typename Value, typename Unit>
+struct MakeRelative<wuzp_boost::Quantity<Value, Unit>> {
+  using type = wuzp_boost::Quantity<Value, typename MakeRelative<Unit>::type>;
+  static type make(const wuzp_boost::Quantity<Value, Unit>& object) { return type(object.getValue()); }
+};
+template <typename Value, typename Unit>
+struct MakeAbsolute<wuzp_boost::Quantity<Value, Unit>> {
+  using type = wuzp_boost::Quantity<Value, typename MakeAbsolute<Unit>::type>;
+  static type make(const wuzp_boost::Quantity<Value, Unit>& object) { return type(object.getValue()); }
+};
+
+// Exponent first, as value and unit can be derived automatically.
+template <int Exponent, typename Value, typename Unit>
+auto pow(const wuzp_boost::Quantity<Value, Unit>& quantity) {
+  return Quantity<Value, typename Power<Unit, Exponent>::type>(std::pow(quantity.getValue(), Exponent));
+}
+
+template <typename Value>
+auto sin(const wuzp_boost::Quantity<Value, wuzp_boost::Angle>& angle) {
+  return Quantity<Value, wuzp_boost::Dimensionless>(std::sin(angle.getValue()));
+}
+
+template <typename Value>
+auto cos(const wuzp_boost::Quantity<Value, wuzp_boost::Angle>& angle) {
+  return Quantity<Value, wuzp_boost::Dimensionless>(std::cos(angle.getValue()));
+}
+
+// TODO(remod): add more math functions.
 
 }  // namespace wuzp

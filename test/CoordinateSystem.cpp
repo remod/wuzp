@@ -9,7 +9,7 @@ using namespace wuzp;  // NOLINT
 TEST(TestCoordinateSystemMatrix, IsSame) {  // NOLINT
   struct CoordinateSystemAName {};
   using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-  using MyCoordinateSystems = TypeMatrix<3, 2, CoordinateSystemTraits, CoordinateSystemA, CoordinateSystemA, CoordinateSystemA,
-                                         CoordinateSystemA, CoordinateSystemA, CoordinateSystemA>;
+  using MyCoordinateSystems =
+      TypeMatrix<3, 2, CoordinateSystemA, CoordinateSystemA, CoordinateSystemA, CoordinateSystemA, CoordinateSystemA, CoordinateSystemA>;
   static_assert(std::is_same<Sum<MyCoordinateSystems, MyCoordinateSystems>::type, MyCoordinateSystems>::value);
 }

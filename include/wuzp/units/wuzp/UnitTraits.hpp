@@ -29,7 +29,7 @@ struct UnitTraits {
   };
   template <typename Lhs, typename Rhs>
   struct Sum<Absolute<Lhs>, Absolute<Rhs>> {
-    static_assert(FakeDependency<Sum<Absolute<Lhs>, Absolute<Rhs>>>::value, "Two absolute units cannot be summed.");
+    static_assert(FailOnInstantiation<Sum<Absolute<Lhs>, Absolute<Rhs>>>::value, "Two absolute units cannot be summed.");
   };
 
   DEFINE_RECURSIVE_TRAIT(Difference)
@@ -45,7 +45,8 @@ struct UnitTraits {
   };
   template <typename Lhs, typename Rhs>
   struct Difference<Lhs, Absolute<Rhs>> {
-    static_assert(FakeDependency<Difference<Lhs, Absolute<Rhs>>>::value, "An absolute unit cannot be subtracted from a relative unit.");
+    static_assert(FailOnInstantiation<Difference<Lhs, Absolute<Rhs>>>::value,
+                  "An absolute unit cannot be subtracted from a relative unit.");
   };
   template <typename Lhs, typename Rhs>
   struct Difference<Absolute<Lhs>, Absolute<Rhs>> {
@@ -127,7 +128,7 @@ struct UnitTraits {
   };
   template <typename Unit>
   struct MakeAbsolute<Absolute<Unit>> {
-    static_assert(FakeDependency<MakeAbsolute<Absolute<Unit>>>::value, "Unit is already absolute.");
+    static_assert(FailOnInstantiation<MakeAbsolute<Absolute<Unit>>>::value, "Unit is already absolute.");
   };
 };
 

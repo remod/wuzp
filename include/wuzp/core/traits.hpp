@@ -43,17 +43,17 @@ using FromValueMatrixArgs = Tag<FromValueMatrixArgsLabel>;
 
 template <typename T>
 struct Scalar {
-  static_assert(FakeDependency<Scalar<T>>::value, "'Scalar' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Scalar<T>>::value, "'Scalar' trait not specialized for given type.");
 };
 
 template <typename T>
 struct Rows {
-  static_assert(FakeDependency<Rows<T>>::value, "'Rows' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Rows<T>>::value, "'Rows' trait not specialized for given type.");
 };
 
 template <typename T>
 struct Cols {
-  static_assert(FakeDependency<Cols<T>>::value, "'Cols' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Cols<T>>::value, "'Cols' trait not specialized for given type.");
 };
 
 template <typename T>
@@ -66,60 +66,70 @@ DEFINE_RECURSIVE_TRAIT(Difference)
 DEFINE_RECURSIVE_TRAIT(Product)
 DEFINE_RECURSIVE_TRAIT(Division)
 
+template <typename T, int Exponent>
+struct Power {
+  static_assert(FailOnInstantiation<Power<T, Exponent>>::value, "'Power' trait not specialized for given type.");
+};
+
 template <typename T>
 struct Transpose {
-  static_assert(FakeDependency<Transpose<T>>::value, "'Transpose' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Transpose<T>>::value, "'Transpose' trait not specialized for given type.");
 };
 
 template <typename Lhs, typename Rhs>
 struct DotProduct {
-  static_assert(FakeDependency<DotProduct<Lhs, Rhs>>::value, "'DotProduct' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<DotProduct<Lhs, Rhs>>::value, "'DotProduct' trait not specialized for given type.");
 };
 
 template <typename Object, int ElementRowId, int ElementColId>
 struct Element {
-  static_assert(FakeDependency<Element<Object, ElementRowId, ElementColId>>::value, "'Element' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Element<Object, ElementRowId, ElementColId>>::value, "'Element' trait not specialized for given type.");
 };
 
 template <typename Object, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block {
-  static_assert(FakeDependency<Block<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value,
+  static_assert(FailOnInstantiation<Block<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value,
                 "'Block' trait not specialized for given type.");
 };
 
 template <typename T>
 struct Inverse {
-  static_assert(FakeDependency<Inverse<T>>::value, "'Inverse' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Inverse<T>>::value, "'Inverse' trait not specialized for given type.");
+};
+
+template <typename T>
+struct Identity {
+  static_assert(FailOnInstantiation<Identity<T>>::value, "'Identity' trait not specialized for given type.");
 };
 
 template <typename T>
 struct Zero {
-  static_assert(FakeDependency<Zero<T>>::value, "'Zero' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Zero<T>>::value, "'Zero' trait not specialized for given type.");
 };
 
 template <typename T>
 struct Random {
-  static_assert(FakeDependency<Random<T>>::value, "'Random' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Random<T>>::value, "'Random' trait not specialized for given type.");
 };
 
 template <typename T>
 struct Evaluate {
-  static_assert(FakeDependency<Evaluate<T>>::value, "'Evaluate' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Evaluate<T>>::value, "'Evaluate' trait not specialized for given type.");
 };
 template <typename T>
 static auto evaluate(T t);
 
 template <typename T>
 struct IsAbsolute {
-  static_assert(FakeDependency<IsAbsolute<T>>::value, "'IsAbsolute' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<IsAbsolute<T>>::value, "'IsAbsolute' trait not specialized for given type.");
 };
 template <typename T>
 struct MakeRelative {
-  static_assert(FakeDependency<MakeRelative<T>>::value, "'MakeRelative' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<MakeRelative<T>>::value, "'MakeRelative' trait not specialized for given type.");
 };
 template <typename T>
 struct MakeAbsolute {
-  static_assert(FakeDependency<MakeAbsolute<T>>::value, "'MakeAbsolute' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<MakeAbsolute<T>>::value, "'MakeAbsolute' trait not specialized for given type.");
 };
 
 template <typename T, typename NewCoordinateSystem>
@@ -127,6 +137,9 @@ struct CastCoordinateSystem;
 
 template <typename T>
 struct Evaluate;
+
+template <typename T>
+struct GetQuantity;
 
 // TODO(remod): Cleanup - remove traits and only use these methods?
 

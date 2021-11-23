@@ -61,8 +61,6 @@ class GenericValueMatrix {
   static This zero() { return wuzp::Zero<This>::value(); }
   static This random() { return wuzp::Random<This>::value(); }
 
-  const Implementation& getImplementation() const { return implementation_; }
-
   template <int RowId, int ColId, typename ValueT>
   void setValue(ValueT value) {
     implementation_(RowId, ColId) = value;
@@ -97,6 +95,8 @@ class GenericValueMatrix {
 
   auto inverse() const { return typename wuzp::Inverse<This>::type(implementation_.inverse()); }
 
+  const Implementation& getImplementation() const { return implementation_; }
+
  private:
   template <typename ImplementationOther_>
   // Allow other implementation types to support lazy evaluation.
@@ -117,8 +117,8 @@ class GenericValueMatrix {
   Implementation implementation_;
 };
 
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = GenericValueMatrix<Eigen::Matrix<Scalar, Rows, Cols>>;
+template <typename ValueT, int Rows, int Cols>
+using ValueMatrix = GenericValueMatrix<Eigen::Matrix<ValueT, Rows, Cols>>;
 
 }  // namespace wuzp_eigen
 

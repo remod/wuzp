@@ -1,22 +1,23 @@
 #pragma once
 
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/units/UnitTraits.hpp"
+#include "wuzp/units/Unit.hpp"
 
 namespace wuzp {
 
-template <int Rows, int Cols, typename... Units>
-using UnitMatrix = TypeMatrix<Rows, Cols, UnitTraits, Units...>;
+// TODO(remod): Do we still need this?
+// template <int Rows, int Cols, typename... Implementations>
+// using UnitMatrix = TypeMatrix<Rows, Cols, Unit<Implementations>...>;
 
 template <int Rows, int Cols, typename... Units>
-struct Inverse<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
+struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {
   static_assert(Rows == Cols, "Matrix is not square.");
   // Invert the types individually and transpose to get a candidate for the result of the inversion.
-  using type = typename Transpose<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<typename UnitTraits::Inverse<Units>::type...>>>::type;
+  using type = typename Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<typename Inverse<Unit<Units>>::type...>>>::type;
 
  private:
   // Verify the candidate: If the candidate multiplied by itself is idempotent (A^2 == A), it is valid.
-  using Identity = typename Product<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>, type>::type;
+  using Identity = typename Product<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>, type>::type;
   static_assert(std::is_same<typename Product<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
 
   /* Proof:
@@ -51,16 +52,16 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
 };
 
 template <int Rows, int Cols, typename... Units>
-struct IsAbsolute<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
-  static constexpr bool value = std::conjunction_v<typename UnitTraits::IsAbsolute<Units>::type...>;
+struct IsAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {
+  static constexpr bool value = std::conjunction_v<typename IsAbsolute<Unit<Units>>::type...>;
 };
 template <int Rows, int Cols, typename... Units>
-struct MakeRelative<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
-  using type = UnitMatrix<Rows, Cols, typename UnitTraits::MakeRelative<Units>::type...>;
+struct MakeRelative<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {
+  using type = TypeMatrix<Rows, Cols, typename MakeRelative<Unit<Units>>::type...>;
 };
 template <int Rows, int Cols, typename... Units>
-struct MakeAbsolute<TypeMatrixImpl<Rows, Cols, UnitTraits, std::tuple<Units...>>> {
-  using type = UnitMatrix<Rows, Cols, typename UnitTraits::MakeAbsolute<Units>::type...>;
+struct MakeAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {
+  using type = TypeMatrix<Rows, Cols, typename MakeAbsolute<Unit<Units>>::type...>;
 };
 
 }  // namespace wuzp
