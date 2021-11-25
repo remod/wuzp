@@ -6,7 +6,8 @@ namespace wuzp {
 
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
           int Dimension>
-using Rotation = LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension, typename GetUnit<SpecializationDummy<Scalar>>::Dimensionless>;
+using Rotation = LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
+                                      typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
 using Rotation2D = Rotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 2>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>

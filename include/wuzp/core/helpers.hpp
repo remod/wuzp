@@ -37,14 +37,14 @@ struct SelectIf<false> {
   using type = std::tuple<>;
 };
 
-template <bool UseTypeA, typename TypeA, typename TypeB>
-struct Chose;
+template <bool ChooseTypeA, typename TypeA, typename TypeB>
+struct Choose;
 template <typename TypeA, typename TypeB>
-struct Chose<true, TypeA, TypeB> {
+struct Choose<true, TypeA, TypeB> {
   using type = TypeA;
 };
 template <typename TypeA, typename TypeB>
-struct Chose<false, TypeA, TypeB> {
+struct Choose<false, TypeA, TypeB> {
   using type = TypeB;
 };
 

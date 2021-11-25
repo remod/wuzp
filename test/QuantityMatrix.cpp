@@ -7,10 +7,9 @@
 #include "test_compilation_error.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Quantity.hpp"
-#include "wuzp/units/wuzp/Unit.hpp"
-template <typename Scalar, int Rows, int Cols>
-using Quantity = wuzp::Quantity<Scalar, Rows, Cols>;
+#include "wuzp_units/Quantity.hpp"
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
@@ -78,14 +77,14 @@ TEST(TestQuantityMatrix2, ConstructImplicityFromQuantityMatrix) {  // NOLINT
 
 TEST(TestQuantityMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
@@ -149,21 +148,19 @@ TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix myMatrix(
-      Quantity<int, Length>(1), Quantity<int, Area>(2),
-      Quantity<int, Volume>(3), Quantity<int, Mass>(4));
+  MyQuantityMatrix myMatrix(Quantity<int, Length>(1), Quantity<int, Area>(2), Quantity<int, Volume>(3), Quantity<int, Mass>(4));
 }
 
 TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/units/Quantity.hpp"
 #include "wuzp/units/Unit.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
@@ -232,14 +229,14 @@ TEST_F(TestQuantityMatrixF, SetGetQuantity) {  // NOLINT
 
 TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
                                                    ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/units/Quantity.hpp"
 #include "wuzp/units/Unit.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT

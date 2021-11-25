@@ -9,10 +9,9 @@
 using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Quantity.hpp"
-#include "wuzp/units/wuzp/Unit.hpp"
-template <typename Scalar, int Rows, int Cols>
-using Quantity = wuzp::Quantity<Scalar, Rows, Cols>;
+#include "wuzp_units/Quantity.hpp"
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
@@ -68,8 +67,8 @@ TEST(TestCoordinateMatrix2, GetTag) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  using MyCoordinateSystemMatrix = TypeMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
-                                                          CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateSystemMatrix =
+      TypeMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD, CoordinateSystemE, CoordinateSystemF>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyCoordinateMatrix>::type, FromCoordinateMatrix>);
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, const MyCoordinateMatrix&>::type, FromCoordinateMatrix>);
@@ -104,13 +103,13 @@ TEST(TestCoordinateMatrix2, ConstructImplicitlyFromCoordinateMatrix) {  // NOLIN
 
 TEST(TestCoordinateMatrix2, ConstructImplicitlyFromQuantityMatrix) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
@@ -154,13 +153,13 @@ TEST(TestCoordinateMatrix2, ConstructExplicitlyFromQuantityMatrix) {  // NOLINT
 
 TEST(TestCoordinateMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
@@ -219,8 +218,8 @@ class TestCoordinateMatrixF : public ::testing::Test {
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  using MyCoordinateSystemMatrix = TypeMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
-                                                          CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateSystemMatrix =
+      TypeMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD, CoordinateSystemE, CoordinateSystemF>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
 
   const MyCoordinateMatrix& getCoordinateMatrix() const { return coordinateMatrix_; }
@@ -241,8 +240,7 @@ TEST_F(TestCoordinateMatrixF, Block) {  // NOLINT
   using MyValueMatrixB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = TypeMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyQuantityMatrixB = QuantityMatrix<MyValueMatrixB, MyUnitMatrixB>;
-  using MyCoordinateSystemMatrixB =
-      TypeMatrix<2, 2, CoordinateSystemB, CoordinateSystemC, CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateSystemMatrixB = TypeMatrix<2, 2, CoordinateSystemB, CoordinateSystemC, CoordinateSystemE, CoordinateSystemF>;
   using MyCoordinateMatrixB = CoordinateMatrix<MyQuantityMatrixB, MyCoordinateSystemMatrixB>;
   const MyValueMatrixB valueMatrixB(2, 3, 5, 6);
   const MyCoordinateMatrixB coordinateMatrixB(valueMatrixB);
@@ -253,8 +251,8 @@ TEST_F(TestCoordinateMatrixF, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = TypeMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantityMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitMatrixT>;
-  using MyCoordinateSystemMatrixT = TypeMatrix<3, 2, CoordinateSystemA, CoordinateSystemD, CoordinateSystemB, CoordinateSystemE,
-                                                           CoordinateSystemC, CoordinateSystemF>;
+  using MyCoordinateSystemMatrixT =
+      TypeMatrix<3, 2, CoordinateSystemA, CoordinateSystemD, CoordinateSystemB, CoordinateSystemE, CoordinateSystemC, CoordinateSystemF>;
   using MyCoordinateMatrixT = CoordinateMatrix<MyQuantityMatrixT, MyCoordinateSystemMatrixT>;
   const MyValueMatrixT valueMatrixT(1, 4, 2, 5, 3, 6);
   const MyCoordinateMatrixT coordinateMatrixT(valueMatrixT);
@@ -336,13 +334,13 @@ TEST(TestCoordinateMatrix2, Dot) {  // NOLINT
 
 TEST(TestCoordinateMatrix2, DotBadFrames) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
@@ -378,13 +376,13 @@ int main() {
 
 TEST(TestCoordinateMatrix2, DotBadFrames2) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
@@ -550,12 +548,11 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
       ;
   auto massMatrix22 = pow<2>(radius) * mass
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                      / Quantity<double, Angle>(1.0) /
-                      Quantity<double, Angle>(1.0)
+                      / Quantity<double, Angle>(1.0) / Quantity<double, Angle>(1.0)
 #endif
       ;
-  const MassMatrix massMatrix(massMatrix00, massMatrix01, massMatrix02, massMatrix01, massMatrix00, massMatrix12, massMatrix02, massMatrix12,
-                        massMatrix22);
+  const MassMatrix massMatrix(massMatrix00, massMatrix01, massMatrix02, massMatrix01, massMatrix00, massMatrix12, massMatrix02,
+                              massMatrix12, massMatrix22);
 
   // TODO(remod): Enable implicit conversion.
   const EnergyQuantity energy2 =

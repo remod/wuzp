@@ -3,10 +3,9 @@
 #include "wuzp/core/traits.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Quantity.hpp"
-#include "wuzp/units/wuzp/Unit.hpp"
-template <typename Scalar, int Rows, int Cols>
-using Quantity = wuzp::Quantity<Scalar, Rows, Cols>;
+#include "wuzp_units/Quantity.hpp"
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
@@ -15,110 +14,63 @@ using namespace wuzp_boost;  // NOLINT
 
 using namespace wuzp;  // NOLINT
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-template <typename Value>
-auto createDimensionlessQuantity(const Value value) {
-  return Quantity<Value, Dimensionless>(value);
-}
-template <typename Value>
-auto createTimeQuantity(const Value value) {
-  return Quantity<Value, Time>(value);
-}
-template <typename Value>
-auto createFrequencyQuantity(const Value value) {
-  return Quantity<Value, Frequency>(value);
-}
-template <typename Value, typename Unit>
-void setValue(Quantity<Value, Unit>& quantity, const Value value) {
-  quantity.setValue(value);
-}
-template <typename Value, typename Unit>
-Value getValue(const Quantity<Value, Unit> quantity) {
-  return quantity.getValue();
-}
-template <typename Value, typename Unit>
-auto inverse(const Quantity<Value, Unit> quantity) {
-  return quantity.inverse();
-}
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-template <typename Value>
-boost::units::quantity<boost::units::si::dimensionless, Value> createDimensionlessQuantity(const Value value) {
-  return value;
-}
-template <typename Value>
-boost::units::quantity<boost::units::si::time, Value> createTimeQuantity(const Value value) {
-  return value * boost::units::si::second;
-}
-template <typename Value>
-boost::units::quantity<boost::units::si::frequency, Value> createFrequencyQuantity(const Value value) {
-  return value * boost::units::si::frequency{};
-}
-template <typename Value>
-void setValue(boost::units::quantity<boost::units::si::time, Value>& quantity, const Value value) {
-  quantity = value * boost::units::si::second;
-}
-template <typename Value>
-Value getValue(const boost::units::quantity<boost::units::si::time, Value> quantity) {
-  return quantity.value();
-}
-template <typename Value>
-boost::units::quantity<boost::units::si::frequency, Value> inverse(const boost::units::quantity<boost::units::si::time, Value> quantity) {
-  return createDimensionlessQuantity(1.0) / quantity;
-}
-#endif
+using TimeQuantity = Quantity<double, Time>;
+using DimensionlessQuantity = Quantity<double, Dimensionless>;
+using FrequencyQuantity = Quantity<double, Frequency>;
+using AngleQuantity = Quantity<double, Angle>;
+using LengthQuantity = Quantity<double, Length>;
 
 TEST(TestQuantity, CopyConstructor) {  // NOLINT
-  const auto time = createTimeQuantity(1.0);
-  EXPECT_EQ(getValue(time), 1.0);
+  const auto time = TimeQuantity(1.0);
+  EXPECT_EQ(time.getValue(), 1.0);
   const auto time2(time);
-  EXPECT_EQ(getValue(time2), 1.0);
+  EXPECT_EQ(time2.getValue(), 1.0);
   EXPECT_EQ(time2, time);
 }
 
 TEST(TestQuantity, ValueAccess) {  // NOLINT
-  auto time = createTimeQuantity(1.0);
-  EXPECT_EQ(getValue(time), 1.0);
-  setValue(time, 2.0);
-  EXPECT_EQ(getValue(time), 2.0);
+  auto time = TimeQuantity(1.0);
+  EXPECT_EQ(time.getValue(), 1.0);
+  time.setValue(2.0);
+  EXPECT_EQ(time.getValue(), 2.0);
 }
 
 TEST(TestQuantity, Addition) {  // NOLINT
-  EXPECT_EQ(createTimeQuantity(1.0) + createTimeQuantity(2.0), createTimeQuantity(3.0));
+  EXPECT_EQ(TimeQuantity(1.0) + TimeQuantity(2.0), TimeQuantity(3.0));
 }
 
 TEST(TestQuantity, Subtraction) {  // NOLINT
-  EXPECT_EQ(createTimeQuantity(3.0) - createTimeQuantity(2.0), createTimeQuantity(1.0));
+  EXPECT_EQ(TimeQuantity(3.0) - TimeQuantity(2.0), TimeQuantity(1.0));
 }
 
 TEST(TestQuantity, EqualityOperator) {  // NOLINT
-  EXPECT_EQ(createTimeQuantity(1.0), createTimeQuantity(1.0));
+  EXPECT_EQ(TimeQuantity(1.0), TimeQuantity(1.0));
 }
 
 TEST(TestQuantity, InEqualityOperator) {  // NOLINT
-  EXPECT_NE(createTimeQuantity(1.0), createTimeQuantity(2.0));
+  EXPECT_NE(TimeQuantity(1.0), TimeQuantity(2.0));
 }
 
 TEST(TestQuantity, Product) {  // NOLINT
-  EXPECT_EQ(createTimeQuantity(2.0) * createFrequencyQuantity(3.0), createDimensionlessQuantity(6.0));
+  EXPECT_EQ(TimeQuantity(2.0) * FrequencyQuantity(3.0), DimensionlessQuantity(6.0));
 }
 
 TEST(TestQuantity, Chain) {  // NOLINT
-  EXPECT_EQ(createTimeQuantity(1.0) + createTimeQuantity(2.0) * createDimensionlessQuantity(3.0), createTimeQuantity(7.0));
+  EXPECT_EQ(TimeQuantity(1.0) + TimeQuantity(2.0) * DimensionlessQuantity(3.0), TimeQuantity(7.0));
 }
 
 TEST(TestQuantity, Inverse) {  // NOLINT
-  EXPECT_EQ(inverse(createTimeQuantity(2.0)), createFrequencyQuantity(0.5));
+  EXPECT_EQ(TimeQuantity(2.0).inverse(), FrequencyQuantity(0.5));
 }
 
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
-  const auto radius = Quantity<double, Length>(2.0);
-  const auto angle = Quantity<double, Angle>(3.0);
-  [[maybe_unused]] const Quantity<double, Length> arcLength =
-      angle *
-      radius
+  const auto radius = LengthQuantity(2.0);
+  const auto angle = AngleQuantity(3.0);
+  [[maybe_unused]] const LengthQuantity arcLength = angle *
+                                                    radius
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-      // With boost, angles are not dimensionless. We need to "normalize" the result.
-      / Quantity<double, Angle>(1.0)
+                                                    // With boost, angles are not dimensionless. We need to "normalize" the result.
+                                                    / AngleQuantity(1.0)
 #endif
       ;
 }

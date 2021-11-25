@@ -23,10 +23,15 @@ class Quantity {
   explicit Quantity(ImplementationT&& implementation) : implementation_(std::move(implementation)) {}
   explicit Quantity(const ValueT& value) { setValue(value); }
 
-  void setValue(const ValueT& value) { setQuantityValue(*this, value); }
+  ThisT& setValue(const ValueT& value) {
+    setQuantityValue(*this, value);
+    return *this;
+  }
   ValueT getValue() const { return getQuantityValue<ValueT>(*this); }
 
-  const ImplementationT& getImplementation() const { return implementation_; }
+  auto inverse() const { return pow<-1>(*this); }
+
+  ImplementationT getImplementation() const { return implementation_; }
   void setImplementation(const ImplementationT& implementation) { implementation_ = implementation; }
 
  private:

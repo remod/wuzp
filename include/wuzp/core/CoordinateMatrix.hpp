@@ -130,12 +130,12 @@ class CoordinateMatrix {
 template <typename... Xs, typename... Ts>
 struct GetTag<CoordinateMatrix<Xs...>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
-  using type = typename Chose<
+  using type = typename Choose<
       sizeof...(Ts) == 1,
-      typename Chose<
+      typename Choose<
           IsSpecialization<first, CoordinateMatrix>::value, FromCoordinateMatrix,
-          typename Chose<(IsSpecialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type,
-      typename Chose<(IsSpecialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type;
+          typename Choose<(IsSpecialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type,
+      typename Choose<(IsSpecialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type;
 };
 
 template <typename QuantityMatrix, typename CoordinateSystemMatrix>

@@ -68,9 +68,9 @@ if (ENABLE_TESTS)
         test/helpers.cpp
         test/Rational.cpp
         test/Integer.cpp
+        test/Unit.cpp
         test/TypeMatrix.cpp
         test/CoordinateSystem.cpp
-        test/Unit.cpp
         test/UnitMatrix.cpp
         test/Quantity.cpp
         test/ValueMatrix.cpp

@@ -62,8 +62,9 @@ class GenericValueMatrix {
   static This random() { return wuzp::Random<This>::value(); }
 
   template <int RowId, int ColId, typename ValueT>
-  void setValue(ValueT value) {
+  This& setValue(ValueT value) {
     implementation_(RowId, ColId) = value;
+    return *this;
   }
   template <int RowId, int ColId>
   auto getValue() const {
@@ -130,9 +131,9 @@ struct GetTag<wuzp_eigen::GenericValueMatrix<Xs...>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
 
  public:
-  using type = typename Chose<
+  using type = typename Choose<
       sizeof...(Ts) == 1,
-      typename Chose<IsSpecialization<first, wuzp_eigen::GenericValueMatrix>::value, FromValueMatrix, FromValueMatrixArgs>::type,
+      typename Choose<IsSpecialization<first, wuzp_eigen::GenericValueMatrix>::value, FromValueMatrix, FromValueMatrixArgs>::type,
       FromValueMatrixArgs>::type;
 };
 

@@ -135,17 +135,20 @@ struct MakeAbsolute {
 
 template <typename T, typename NewCoordinateSystem>
 struct CastCoordinateSystem {
-  static_assert(FailOnInstantiation<CastCoordinateSystem<T, NewCoordinateSystem>>::value, "'CastCoordinateSystem' trait not specialized for given types.");
+  static_assert(FailOnInstantiation<CastCoordinateSystem<T, NewCoordinateSystem>>::value,
+                "'CastCoordinateSystem' trait not specialized for given types.");
 };
 
 template <typename UnitT>
-struct GetUnit {
-  static_assert(FailOnInstantiation<GetUnit<UnitT>>::value, "'GetUnit' trait not specialized for given type. Make sure you included the necessary unit headers.");
+struct AccessUnits {
+  static_assert(FailOnInstantiation<AccessUnits<UnitT>>::value,
+                "'AccessUnits' trait not specialized for given type. Make sure you included the necessary unit headers.");
 };
 
 template <typename ValueT, typename UnitT>
 struct GetQuantityImplementation {
-  static_assert(FailOnInstantiation<GetQuantityImplementation<ValueT, UnitT>>::value, "'GetQuantityImplementation' trait not specialized for given types.");
+  static_assert(FailOnInstantiation<GetQuantityImplementation<ValueT, UnitT>>::value,
+                "'GetQuantityImplementation' trait not specialized for given types.");
 };
 
 // TODO(remod): Cleanup - remove traits and only use these methods?

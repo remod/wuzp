@@ -4,8 +4,8 @@
 
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
 
@@ -190,12 +190,12 @@ class Tensor {
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix_, typename... Ts>
 struct GetTag<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix_>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
-  using type = typename Chose<
+  using type = typename Choose<
       sizeof...(Ts) == 1,
-      typename Chose<IsSpecializationInts<first, Tensor>::value, FromTensor,
-                     typename Chose<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix,
-                                    FromCoordinateMatrixArgs>::type>::type,
-      typename Chose<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix, FromCoordinateMatrixArgs>::type>::type;
+      typename Choose<IsSpecializationInts<first, Tensor>::value, FromTensor,
+                      typename Choose<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix,
+                                      FromCoordinateMatrixArgs>::type>::type,
+      typename Choose<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix, FromCoordinateMatrixArgs>::type>::type;
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
@@ -365,21 +365,24 @@ using HomogeneousCovector = Covector<CoordinateMatrix<QuantityMatrix<ValueMatrix
                                                       TypeMatrix<1, Dimension, CoordinateSystem>>>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using PositionPoint = HomogeneousVector<Dimension, ValueMatrix, Scalar, typename GetUnit<SpecializationDummy<Scalar>>::AbsoluteLength, CoordinateSystem>;
+using PositionPoint =
+    HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::AbsoluteLength, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using PositionPoint2D = PositionPoint<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using PositionPoint3D = PositionPoint<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using PositionVector = HomogeneousVector<Dimension, ValueMatrix, Scalar, typename GetUnit<SpecializationDummy<Scalar>>::Length, CoordinateSystem>;
+using PositionVector =
+    HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Length, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using PositionVector2D = PositionVector<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using PositionVector3D = PositionVector<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using VelocityVector = HomogeneousVector<Dimension, ValueMatrix, Scalar, typename GetUnit<SpecializationDummy<Scalar>>::Velocity, CoordinateSystem>;
+using VelocityVector =
+    HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Velocity, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using VelocityVector2D = VelocityVector<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>

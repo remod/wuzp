@@ -53,7 +53,7 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>..
 
 template <int Rows, int Cols, typename... Units>
 struct IsAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {
-  static constexpr bool value = std::conjunction_v<typename IsAbsolute<Unit<Units>>::type...>;
+  static constexpr bool value = (IsAbsolute<Unit<Units>>::value && ...);
 };
 template <int Rows, int Cols, typename... Units>
 struct MakeRelative<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {

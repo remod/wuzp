@@ -10,10 +10,9 @@
 using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Quantity.hpp"
-#include "wuzp/units/wuzp/Unit.hpp"
-template <typename Scalar, int Rows, int Cols>
-using Quantity = wuzp::Quantity<Scalar, Rows, Cols>;
+#include "wuzp_units/Quantity.hpp"
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
@@ -71,8 +70,8 @@ TEST(TestTensor2, GetTag) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  using MyCoordinateSystemMatrix = TypeMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
-                                                          CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateSystemMatrix =
+      TypeMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD, CoordinateSystemE, CoordinateSystemF>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyTensor = Tensor<1, 0, MyCoordinateMatrix>;
   static_assert(std::is_same_v<GetTag<MyTensor, MyTensor>::type, FromTensor>);
@@ -110,14 +109,14 @@ TEST(TestTensor2, ConstructImplicitlyFromTensor) {  // NOLINT
 
 TEST(TestTensor2, ConstructImplicitlyFromCoordinateMatrix) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/Tensor.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
@@ -169,8 +168,8 @@ TEST(TestTensor2, ConstructImplicitlyFromQuantityMatrix) {  // NOLINT
 #include "wuzp/core/TypeMatrix.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
@@ -217,13 +216,13 @@ TEST(TestTensor2, ConstructExplicitlyFromQuantityMatrix) {  // NOLINT
 TEST(TestTensor2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
 #include "wuzp/core/CoordinateMatrix.hpp"
+#include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/core/QuantityMatrix.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp/units/wuzp/Unit.hpp"
-using namespace wuzp_unit;  // NOLINT
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
@@ -285,8 +284,8 @@ class TestTensorF : public ::testing::Test {
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  using MyCoordinateSystemMatrix = TypeMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD,
-                                                          CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateSystemMatrix =
+      TypeMatrix<2, 3, CoordinateSystemA, CoordinateSystemB, CoordinateSystemC, CoordinateSystemD, CoordinateSystemE, CoordinateSystemF>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyTensor = Tensor<1, 0, MyCoordinateMatrix>;
 
@@ -304,8 +303,7 @@ TEST_F(TestTensorF, Block) {  // NOLINT
   using MyValueMatrixB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = TypeMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyQuantityMatrixB = QuantityMatrix<MyValueMatrixB, MyUnitMatrixB>;
-  using MyCoordinateSystemMatrixB =
-      TypeMatrix<2, 2, CoordinateSystemB, CoordinateSystemC, CoordinateSystemE, CoordinateSystemF>;
+  using MyCoordinateSystemMatrixB = TypeMatrix<2, 2, CoordinateSystemB, CoordinateSystemC, CoordinateSystemE, CoordinateSystemF>;
   using MyCoordinateMatrixB = CoordinateMatrix<MyQuantityMatrixB, MyCoordinateSystemMatrixB>;
   using MyTensorB = Tensor<1, 0, MyCoordinateMatrixB>;
   MyTensorB tensorB(2, 3, 5, 6);
@@ -316,8 +314,8 @@ TEST_F(TestTensorF, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = TypeMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantityMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitMatrixT>;
-  using MyCoordinateSystemMatrixT = TypeMatrix<3, 2, CoordinateSystemA, CoordinateSystemD, CoordinateSystemB, CoordinateSystemE,
-                                                           CoordinateSystemC, CoordinateSystemF>;
+  using MyCoordinateSystemMatrixT =
+      TypeMatrix<3, 2, CoordinateSystemA, CoordinateSystemD, CoordinateSystemB, CoordinateSystemE, CoordinateSystemC, CoordinateSystemF>;
   using MyCoordinateMatrixT = CoordinateMatrix<MyQuantityMatrixT, MyCoordinateSystemMatrixT>;
   using MyTensorT = Tensor<0, 1, MyCoordinateMatrixT>;
   const MyTensorT tensorT(1, 4, 2, 5, 3, 6);

@@ -102,12 +102,14 @@ auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const ValueRhs rhs) {
 }
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getImplementation() * rhs.getImplementation());
+  return
+      typename Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getImplementation() * rhs.getImplementation());
 }
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator/(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getImplementation() / rhs.getImplementation());
+  return
+      typename Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getImplementation() / rhs.getImplementation());
 }
 
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>

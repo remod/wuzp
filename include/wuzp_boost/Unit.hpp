@@ -12,46 +12,35 @@
 
 namespace wuzp_boost {
 
-// template <typename Implementation>
-// using Unit = wuzp::Unit<Implementation>;
-
-// template <typename Dim, typename System, typename Enable>
-// using Unit = wuzp::Unit<boost::units::unit<Dim, System, Enable>>;
-
-// template <typename Unit>
-// using Absolute = boost::units::absolute<Unit>;
-
-// These typedefs make sure all unit implementations have the same interface.
-// We could use the pure implementation types here, but then everywhere in the code we have to wrap them with Unit<>.
-
-using Angle = wuzp::Unit<boost::units::si::plane_angle>;
-using AbsoluteAngle = wuzp::Unit<boost::units::absolute<boost::units::si::plane_angle>>;
-using AngularVelocity = wuzp::Unit<boost::units::si::angular_velocity>;
-using AbsoluteAngularVelocity = wuzp::Unit<boost::units::absolute<boost::units::si::angular_velocity>>;
-using AngularAcceleration = wuzp::Unit<boost::units::si::angular_acceleration>;
-using AbsoluteAngularAcceleration = wuzp::Unit<boost::units::absolute<boost::units::si::angular_acceleration>>;
-using Length = wuzp::Unit<boost::units::si::length>;
-using AbsoluteLength = wuzp::Unit<boost::units::absolute<boost::units::si::length>>;
-using Time = wuzp::Unit<boost::units::si::time>;
-using AbsoluteTime = wuzp::Unit<boost::units::absolute<boost::units::si::time>>;
-using Area = wuzp::Unit<boost::units::si::area>;
-using AbsoluteArea = wuzp::Unit<boost::units::absolute<boost::units::si::area>>;
-using Mass = wuzp::Unit<boost::units::si::mass>;
-using AbsoluteMass = wuzp::Unit<boost::units::absolute<boost::units::si::mass>>;
-using Force = wuzp::Unit<boost::units::si::force>;
-using AbsoluteForce = wuzp::Unit<boost::units::absolute<boost::units::si::force>>;
-using Energy = wuzp::Unit<boost::units::si::energy>;
-using AbsoluteEnergy = wuzp::Unit<boost::units::absolute<boost::units::si::energy>>;
-using Dimensionless = wuzp::Unit<boost::units::si::dimensionless>;
-using AbsoluteDimensionless = wuzp::Unit<boost::units::absolute<boost::units::si::dimensionless>>;
-using Velocity = wuzp::Unit<boost::units::si::velocity>;
-using AbsoluteVelocity = wuzp::Unit<boost::units::absolute<boost::units::si::velocity>>;
 using Acceleration = wuzp::Unit<boost::units::si::acceleration>;
-using AbsoluteAcceleration = wuzp::Unit<boost::units::absolute<boost::units::si::acceleration>>;
-using Volume = wuzp::Unit<boost::units::si::volume>;
-using AbsoluteVolume = wuzp::Unit<boost::units::absolute<boost::units::si::volume>>;
+using Angle = wuzp::Unit<boost::units::si::plane_angle>;
+using AngularAcceleration = wuzp::Unit<boost::units::si::angular_acceleration>;
+using AngularVelocity = wuzp::Unit<boost::units::si::angular_velocity>;
+using Area = wuzp::Unit<boost::units::si::area>;
+using Dimensionless = wuzp::Unit<boost::units::si::dimensionless>;
+using Energy = wuzp::Unit<boost::units::si::energy>;
+using Force = wuzp::Unit<boost::units::si::force>;
 using Frequency = wuzp::Unit<boost::units::si::frequency>;
+using Length = wuzp::Unit<boost::units::si::length>;
+using Mass = wuzp::Unit<boost::units::si::mass>;
+using Time = wuzp::Unit<boost::units::si::time>;
+using Velocity = wuzp::Unit<boost::units::si::velocity>;
+using Volume = wuzp::Unit<boost::units::si::volume>;
+
+using AbsoluteAcceleration = wuzp::Unit<boost::units::absolute<boost::units::si::acceleration>>;
+using AbsoluteAngle = wuzp::Unit<boost::units::absolute<boost::units::si::plane_angle>>;
+using AbsoluteAngularAcceleration = wuzp::Unit<boost::units::absolute<boost::units::si::angular_acceleration>>;
+using AbsoluteAngularVelocity = wuzp::Unit<boost::units::absolute<boost::units::si::angular_velocity>>;
+using AbsoluteArea = wuzp::Unit<boost::units::absolute<boost::units::si::area>>;
+using AbsoluteDimensionless = wuzp::Unit<boost::units::absolute<boost::units::si::dimensionless>>;
+using AbsoluteEnergy = wuzp::Unit<boost::units::absolute<boost::units::si::energy>>;
+using AbsoluteForce = wuzp::Unit<boost::units::absolute<boost::units::si::force>>;
 using AbsoluteFrequency = wuzp::Unit<boost::units::absolute<boost::units::si::frequency>>;
+using AbsoluteLength = wuzp::Unit<boost::units::absolute<boost::units::si::length>>;
+using AbsoluteMass = wuzp::Unit<boost::units::absolute<boost::units::si::mass>>;
+using AbsoluteTime = wuzp::Unit<boost::units::absolute<boost::units::si::time>>;
+using AbsoluteVelocity = wuzp::Unit<boost::units::absolute<boost::units::si::velocity>>;
+using AbsoluteVolume = wuzp::Unit<boost::units::absolute<boost::units::si::volume>>;
 
 }  // namespace wuzp_boost
 
@@ -104,7 +93,6 @@ struct IsAbsolute<Unit<boost::units::absolute<Implementation>>> : public std::tr
 template <typename Implementation>
 struct MakeRelative<Unit<Implementation>> {
   static_assert(FailOnInstantiation<MakeRelative<Unit<Implementation>>>::value, "Unit is already relative.");
-  //  using type = Unit;
 };
 template <typename Implementation>
 struct MakeRelative<Unit<boost::units::absolute<Implementation>>> {
@@ -121,35 +109,36 @@ struct MakeAbsolute<Unit<boost::units::absolute<Implementation>>> {
 };
 
 template <typename T>
-struct GetUnit<SpecializationDummy<T>> {
-  using Angle = wuzp_boost::Angle;
-  using AbsoluteAngle = wuzp_boost::AbsoluteAngle;
-  using AngularVelocity = wuzp_boost::AngularVelocity;
-  using AbsoluteAngularVelocity = wuzp_boost::AbsoluteAngularVelocity;
-  using AngularAcceleration = wuzp_boost::AngularAcceleration;
-  using AbsoluteAngularAcceleration = wuzp_boost::AbsoluteAngularAcceleration;
-  using Length = wuzp_boost::Length;
-  using AbsoluteLength = wuzp_boost::AbsoluteLength;
-  using Time = wuzp_boost::Time;
-  using AbsoluteTime = wuzp_boost::AbsoluteTime;
-  using Area = wuzp_boost::Area;
-  using AbsoluteArea = wuzp_boost::AbsoluteArea;
-  using Mass = wuzp_boost::Mass;
-  using AbsoluteMass = wuzp_boost::AbsoluteMass;
-  using Force = wuzp_boost::Force;
-  using AbsoluteForce = wuzp_boost::AbsoluteForce;
-  using Energy = wuzp_boost::Energy;
-  using AbsoluteEnergy = wuzp_boost::AbsoluteEnergy;
-  using Dimensionless = wuzp_boost::Dimensionless;
-  using AbsoluteDimensionless = wuzp_boost::AbsoluteDimensionless;
-  using Velocity = wuzp_boost::Velocity;
-  using AbsoluteVelocity = wuzp_boost::AbsoluteVelocity;
-  using Acceleration = wuzp_boost::Acceleration;
+struct AccessUnits<SpecializationDummy<T>> {
   using AbsoluteAcceleration = wuzp_boost::AbsoluteAcceleration;
-  using Volume = wuzp_boost::Volume;
-  using AbsoluteVolume = wuzp_boost::AbsoluteVolume;
-  using Frequency = wuzp_boost::Frequency;
+  using AbsoluteAngle = wuzp_boost::AbsoluteAngle;
+  using AbsoluteAngularAcceleration = wuzp_boost::AbsoluteAngularAcceleration;
+  using AbsoluteAngularVelocity = wuzp_boost::AbsoluteAngularVelocity;
+  using AbsoluteArea = wuzp_boost::AbsoluteArea;
+  using AbsoluteDimensionless = wuzp_boost::AbsoluteDimensionless;
+  using AbsoluteEnergy = wuzp_boost::AbsoluteEnergy;
+  using AbsoluteForce = wuzp_boost::AbsoluteForce;
   using AbsoluteFrequency = wuzp_boost::AbsoluteFrequency;
+  using AbsoluteLength = wuzp_boost::AbsoluteLength;
+  using AbsoluteMass = wuzp_boost::AbsoluteMass;
+  using AbsoluteTime = wuzp_boost::AbsoluteTime;
+  using AbsoluteVelocity = wuzp_boost::AbsoluteVelocity;
+  using AbsoluteVolume = wuzp_boost::AbsoluteVolume;
+
+  using Acceleration = wuzp_boost::Acceleration;
+  using Angle = wuzp_boost::Angle;
+  using AngularAcceleration = wuzp_boost::AngularAcceleration;
+  using AngularVelocity = wuzp_boost::AngularVelocity;
+  using Area = wuzp_boost::Area;
+  using Dimensionless = wuzp_boost::Dimensionless;
+  using Energy = wuzp_boost::Energy;
+  using Force = wuzp_boost::Force;
+  using Frequency = wuzp_boost::Frequency;
+  using Length = wuzp_boost::Length;
+  using Mass = wuzp_boost::Mass;
+  using Time = wuzp_boost::Time;
+  using Velocity = wuzp_boost::Velocity;
+  using Volume = wuzp_boost::Volume;
 };
 
 }  // namespace wuzp

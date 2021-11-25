@@ -225,7 +225,7 @@ template <int Size, typename ZeroType, typename OneType, typename IndexSequence>
 struct DiagonalTypeMatrixImpl;
 template <int Size, typename ZeroType, typename OneType, size_t... Is>
 struct DiagonalTypeMatrixImpl<Size, ZeroType, OneType, std::index_sequence<Is...>> {
-  using type = TypeMatrixImpl<Size, Size, std::tuple<typename Chose<Is % (Size + 1) != 0, ZeroType, OneType>::type...>>;
+  using type = TypeMatrixImpl<Size, Size, std::tuple<typename Choose<Is % (Size + 1) != 0, ZeroType, OneType>::type...>>;
 };
 
 template <int Size, typename ZeroType, typename OneType>

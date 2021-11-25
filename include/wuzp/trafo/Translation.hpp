@@ -57,7 +57,8 @@ struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, Coordina
 
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
           typename To>
-using SpatialTranslation = Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, typename GetUnit<SpecializationDummy<Scalar>>::Length>;
+using SpatialTranslation =
+    Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, typename AccessUnits<SpecializationDummy<Scalar>>::Length>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
 using SpatialTranslation2D = SpatialTranslation<ValueMatrix, 2, Scalar, CoordinateSystem, From, To>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
