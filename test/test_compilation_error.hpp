@@ -19,9 +19,9 @@ inline std::string getCMakeListsContent() {
          "add_compile_definitions(UNITS_IMPLEMENTATION=" TO_STRING(UNITS_IMPLEMENTATION) ")\n"
          "add_compile_definitions(UNITS_IMPLEMENTATION_WUZP=" TO_STRING(UNITS_IMPLEMENTATION_WUZP) ")\n"
          "add_compile_definitions(UNITS_IMPLEMENTATION_BOOST=" TO_STRING(UNITS_IMPLEMENTATION_BOOST) ")\n"
-         "add_compile_definitions(MATRIX_IMPLEMENTATION=" TO_STRING(MATRIX_IMPLEMENTATION) ")\n"
-         "add_compile_definitions(MATRIX_IMPLEMENTATION_WUZP=" TO_STRING(MATRIX_IMPLEMENTATION_WUZP) ")\n"
-         "add_compile_definitions(MATRIX_IMPLEMENTATION_EIGEN=" TO_STRING(MATRIX_IMPLEMENTATION_EIGEN) ")\n"
+         "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION) ")\n"
+         "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_WUZP=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION_WUZP) ")\n"
+         "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_EIGEN=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION_EIGEN) ")\n"
          "\n"
          "add_executable(tests test.cpp)\n"
          "target_include_directories(tests PRIVATE " TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/include)\n"
@@ -30,7 +30,7 @@ inline std::string getCMakeListsContent() {
          "find_package(Boost 1.56 REQUIRED)\n"
          "target_include_directories(tests PRIVATE ${Boost_INCLUDE_DIRS})\n"
 #endif
-#if MATRIX_IMPLEMENTATION == MATRIX_IMPLEMENTATION_EIGEN
+#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
          "\n"
          "find_package(Eigen3 3.3 REQUIRED NO_MODULE)\n"
          "target_link_libraries(tests Eigen3::Eigen)\n"

@@ -15,27 +15,22 @@ using NoCoordinateSystem = CoordinateSystem<NoCoordinateSystemName>;
 template <typename Object>
 struct GetCoordinateSystem;
 
-struct CoordinateSystemTraits {
-  DEFINE_RECURSIVE_TRAIT(Sum)
-  template <typename Lhs, typename Rhs>
-  struct Sum<Lhs, Rhs> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
-    using type = Lhs;
-  };
+template <typename Lhs, typename Rhs>
+struct Sum<CoordinateSystem<Lhs>, CoordinateSystem<Rhs>> {
+  static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
+  using type = CoordinateSystem<Lhs>;
+};
 
-  DEFINE_RECURSIVE_TRAIT(Difference)
-  template <typename Lhs, typename Rhs>
-  struct Difference<Lhs, Rhs> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
-    using type = Lhs;
-  };
+template <typename Lhs, typename Rhs>
+struct Difference<CoordinateSystem<Lhs>, CoordinateSystem<Rhs>> {
+  static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
+  using type = CoordinateSystem<Lhs>;
+};
 
-  DEFINE_RECURSIVE_TRAIT(Product)
-  template <typename Lhs, typename Rhs>
-  struct Product<Lhs, Rhs> {
-    static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
-    using type = Lhs;
-  };
+template <typename Lhs, typename Rhs>
+struct Product<CoordinateSystem<Lhs>, CoordinateSystem<Rhs>> {
+  static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
+  using type = CoordinateSystem<Lhs>;
 };
 
 }  // namespace wuzp

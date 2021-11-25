@@ -3,8 +3,8 @@ project(wuzp)
 
 set(UNITS_IMPLEMENTATION_WUZP 0)
 set(UNITS_IMPLEMENTATION_BOOST 1)
-set(MATRIX_IMPLEMENTATION_WUZP 0)
-set(MATRIX_IMPLEMENTATION_EIGEN 1)
+set(VALUE_MATRIX_IMPLEMENTATION_WUZP 0)
+set(VALUE_MATRIX_IMPLEMENTATION_EIGEN 1)
 
 option(ENABLE_TESTS "Enables the definition of a 'tests' target to run the unit tests." OFF)
 option(ENABLE_FORMAT "Enables the definition of a 'format' target to format the code." OFF)
@@ -12,7 +12,7 @@ option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clan
 
 # Use `set` instead of `option` for non-boolean values.
 set(UNITS_IMPLEMENTATION ${UNITS_IMPLEMENTATION_WUZP} CACHE STRING "Define what kind of units implementation to use: ${UNITS_IMPLEMENTATION_WUZP} = WUZP, ${UNITS_IMPLEMENTATION_BOOST} = Boost.")
-set(MATRIX_IMPLEMENTATION ${MATRIX_IMPLEMENTATION_EIGEN} CACHE STRING "Define what kind of matrix implementation to use: ${MATRIX_IMPLEMENTATION_WUZP} = WUZP, ${MATRIX_IMPLEMENTATION_EIGEN} = Eigen.")
+set(VALUE_MATRIX_IMPLEMENTATION ${VALUE_MATRIX_IMPLEMENTATION_EIGEN} CACHE STRING "Define what kind of matrix implementation to use: ${VALUE_MATRIX_IMPLEMENTATION_WUZP} = WUZP, ${VALUE_MATRIX_IMPLEMENTATION_EIGEN} = Eigen.")
 
 message(STATUS "------------------------------------------")
 message(STATUS "Building with the following configuration:")
@@ -21,7 +21,7 @@ message(STATUS "ENABLE_TESTS:          ${ENABLE_TESTS}")
 message(STATUS "ENABLE_FORMAT:         ${ENABLE_FORMAT}")
 message(STATUS "ENABLE_TIDY:           ${ENABLE_TIDY}")
 message(STATUS "UNITS_IMPLEMENTATION:  ${UNITS_IMPLEMENTATION}")
-message(STATUS "MATRIX_IMPLEMENTATION: ${MATRIX_IMPLEMENTATION}")
+message(STATUS "VALUE_MATRIX_IMPLEMENTATION: ${VALUE_MATRIX_IMPLEMENTATION}")
 message(STATUS "------------------------------------------")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -33,9 +33,9 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 add_compile_definitions(UNITS_IMPLEMENTATION=${UNITS_IMPLEMENTATION})
 add_compile_definitions(UNITS_IMPLEMENTATION_WUZP=${UNITS_IMPLEMENTATION_WUZP})
 add_compile_definitions(UNITS_IMPLEMENTATION_BOOST=${UNITS_IMPLEMENTATION_BOOST})
-add_compile_definitions(MATRIX_IMPLEMENTATION=${MATRIX_IMPLEMENTATION})
-add_compile_definitions(MATRIX_IMPLEMENTATION_WUZP=${MATRIX_IMPLEMENTATION_WUZP})
-add_compile_definitions(MATRIX_IMPLEMENTATION_EIGEN=${MATRIX_IMPLEMENTATION_EIGEN})
+add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION=${VALUE_MATRIX_IMPLEMENTATION})
+add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_WUZP=${VALUE_MATRIX_IMPLEMENTATION_WUZP})
+add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_EIGEN=${VALUE_MATRIX_IMPLEMENTATION_EIGEN})
 
 add_executable(main src/main.cpp)
 target_include_directories(main PRIVATE include)
@@ -43,7 +43,7 @@ if (UNITS_IMPLEMENTATION EQUAL UNITS_IMPLEMENTATION_BOOST)
     find_package(Boost 1.56 REQUIRED)
     target_include_directories(main PRIVATE ${Boost_INCLUDE_DIRS})
 endif()
-if (MATRIX_IMPLEMENTATION EQUAL MATRIX_IMPLEMENTATION_EIGEN)
+if (VALUE_MATRIX_IMPLEMENTATION EQUAL VALUE_MATRIX_IMPLEMENTATION_EIGEN)
     find_package(Eigen3 3.3 REQUIRED NO_MODULE)
     target_link_libraries(main Eigen3::Eigen)
 endif()
@@ -54,7 +54,7 @@ if (UNITS_IMPLEMENTATION EQUAL UNITS_IMPLEMENTATION_BOOST)
     find_package(Boost 1.56 REQUIRED)
     target_include_directories(experimental PRIVATE ${Boost_INCLUDE_DIRS})
 endif()
-if (MATRIX_IMPLEMENTATION EQUAL MATRIX_IMPLEMENTATION_EIGEN)
+if (VALUE_MATRIX_IMPLEMENTATION EQUAL VALUE_MATRIX_IMPLEMENTATION_EIGEN)
     find_package(Eigen3 3.3 REQUIRED NO_MODULE)
     target_link_libraries(experimental Eigen3::Eigen)
 endif()
@@ -68,9 +68,9 @@ if (ENABLE_TESTS)
         test/helpers.cpp
         test/Rational.cpp
         test/Integer.cpp
+        test/Unit.cpp
         test/TypeMatrix.cpp
         test/CoordinateSystem.cpp
-        test/Unit.cpp
         test/UnitMatrix.cpp
         test/Quantity.cpp
         test/ValueMatrix.cpp
@@ -90,7 +90,7 @@ if (ENABLE_TESTS)
         target_include_directories(tests PRIVATE ${Boost_INCLUDE_DIRS})
     endif()
     target_link_libraries(tests GTest::GTest GTest::Main)
-    if (MATRIX_IMPLEMENTATION EQUAL MATRIX_IMPLEMENTATION_EIGEN)
+    if (VALUE_MATRIX_IMPLEMENTATION EQUAL VALUE_MATRIX_IMPLEMENTATION_EIGEN)
         target_link_libraries(tests Eigen3::Eigen)
     endif()
     target_link_libraries(tests --coverage)
