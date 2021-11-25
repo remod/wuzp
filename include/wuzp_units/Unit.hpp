@@ -89,9 +89,9 @@ struct Inverse<Unit<wuzp_units::UnitImpl<IsAbsolute, Exponents...>>> {
   using type = Unit<wuzp_units::UnitImpl<false, (-Exponents)...>>;
 };
 
-template <bool IsAbsolute, int... Exponents>
-struct IsAbsolute<Unit<wuzp_units::UnitImpl<IsAbsolute, Exponents...>>> {
-  static constexpr bool value = IsAbsolute;
+template <bool IsAbsoluteV, int... ExponentsV>
+struct IsAbsolute<Unit<wuzp_units::UnitImpl<IsAbsoluteV, ExponentsV...>>> {
+  static constexpr bool value = IsAbsoluteV;
 };
 
 template <bool IsAbsolute, int... Exponents>
