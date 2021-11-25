@@ -277,6 +277,7 @@ auto operator-(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixL
 
 template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs>
 auto operator*(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const ValueRhs rhs) {
+  using Dimensionless = typename Identity<typename Element<typename QuantityMatrixLhs::UnitMatrixT, 0, 0>::type>::type;
   return lhs * Quantity<ValueRhs, Dimensionless>(rhs);
 }
 template <typename ValueLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
@@ -302,6 +303,7 @@ auto operator*(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixL
 
 template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs>
 auto operator/(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const ValueRhs rhs) {
+  using Dimensionless = typename Identity<typename Element<typename QuantityMatrixLhs::UnitMatrixT, 0, 0>::type>::type;
   return lhs / Quantity<ValueRhs, Dimensionless>(rhs);
 }
 template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename ValueRhs, typename UnitRhs>

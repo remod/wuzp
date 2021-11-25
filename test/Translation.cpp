@@ -7,6 +7,17 @@
 
 using namespace wuzp;  // NOLINT
 
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp/units/wuzp/Quantity.hpp"
+#include "wuzp/units/wuzp/Unit.hpp"
+template <typename Scalar, int Rows, int Cols>
+using Quantity = wuzp::Quantity<Scalar, Rows, Cols>;
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
+
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>

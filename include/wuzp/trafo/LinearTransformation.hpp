@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/trafo/Transformation.hpp"
 
@@ -12,9 +13,9 @@ class LinearTransformation
           LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>, From, To> {
  public:
   using ValueMatrixT = ValueMatrix<Scalar, DimensionTo, DimensionFrom>;
-  using UnitMatrixT = UnitMatrix<DimensionTo, DimensionFrom, Units...>;
+  using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
   using QuantityMatrixT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
-  using CoordinateSystemMatrixT = CoordinateSystemMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
+  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
   using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
   using TensorT = Tensor<1, 1, CoordinateMatrixT>;
 

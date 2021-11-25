@@ -120,4 +120,36 @@ struct MakeAbsolute<Unit<boost::units::absolute<Implementation>>> {
   static_assert(FailOnInstantiation<Unit<boost::units::absolute<Implementation>>>::value, "Unit is already absolute.");
 };
 
+template <typename T>
+struct GetUnit<SpecializationDummy<T>> {
+  using Angle = wuzp_boost::Angle;
+  using AbsoluteAngle = wuzp_boost::AbsoluteAngle;
+  using AngularVelocity = wuzp_boost::AngularVelocity;
+  using AbsoluteAngularVelocity = wuzp_boost::AbsoluteAngularVelocity;
+  using AngularAcceleration = wuzp_boost::AngularAcceleration;
+  using AbsoluteAngularAcceleration = wuzp_boost::AbsoluteAngularAcceleration;
+  using Length = wuzp_boost::Length;
+  using AbsoluteLength = wuzp_boost::AbsoluteLength;
+  using Time = wuzp_boost::Time;
+  using AbsoluteTime = wuzp_boost::AbsoluteTime;
+  using Area = wuzp_boost::Area;
+  using AbsoluteArea = wuzp_boost::AbsoluteArea;
+  using Mass = wuzp_boost::Mass;
+  using AbsoluteMass = wuzp_boost::AbsoluteMass;
+  using Force = wuzp_boost::Force;
+  using AbsoluteForce = wuzp_boost::AbsoluteForce;
+  using Energy = wuzp_boost::Energy;
+  using AbsoluteEnergy = wuzp_boost::AbsoluteEnergy;
+  using Dimensionless = wuzp_boost::Dimensionless;
+  using AbsoluteDimensionless = wuzp_boost::AbsoluteDimensionless;
+  using Velocity = wuzp_boost::Velocity;
+  using AbsoluteVelocity = wuzp_boost::AbsoluteVelocity;
+  using Acceleration = wuzp_boost::Acceleration;
+  using AbsoluteAcceleration = wuzp_boost::AbsoluteAcceleration;
+  using Volume = wuzp_boost::Volume;
+  using AbsoluteVolume = wuzp_boost::AbsoluteVolume;
+  using Frequency = wuzp_boost::Frequency;
+  using AbsoluteFrequency = wuzp_boost::AbsoluteFrequency;
+};
+
 }  // namespace wuzp

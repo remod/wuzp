@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/trafo/Transformation.hpp"
 
 namespace wuzp {
@@ -10,9 +11,9 @@ class Translation
     : public PassiveTransformation<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, From, To> {
  public:
   using ValueMatrixT = ValueMatrix<Scalar, Dimension, 1>;
-  using UnitMatrixT = UnitMatrix<Dimension, 1, Units...>;
+  using UnitMatrixT = TypeMatrix<Dimension, 1, Units...>;
   using QuantityMatrixT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
-  using CoordinateSystemMatrixT = CoordinateSystemMatrix<Dimension, 1, CoordinateSystem>;
+  using CoordinateSystemMatrixT = TypeMatrix<Dimension, 1, CoordinateSystem>;
   using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
   using TensorT = Tensor<1, 0, CoordinateMatrixT>;
   static_assert(!IsAbsolute<UnitMatrixT>::value, "Units are not relative.");
@@ -56,7 +57,7 @@ struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, Coordina
 
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
           typename To>
-using SpatialTranslation = Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Length>;
+using SpatialTranslation = Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, typename GetUnit<SpecializationDummy<Scalar>>::Length>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
 using SpatialTranslation2D = SpatialTranslation<ValueMatrix, 2, Scalar, CoordinateSystem, From, To>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>

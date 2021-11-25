@@ -9,6 +9,17 @@
 
 using namespace wuzp;  // NOLINT
 
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp/units/wuzp/Quantity.hpp"
+#include "wuzp/units/wuzp/Unit.hpp"
+template <typename Scalar, int Rows, int Cols>
+using Quantity = wuzp::Quantity<Scalar, Rows, Cols>;
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
+
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
@@ -51,10 +62,10 @@ TEST(TestRotation, TransformPointCloud) {  // NOLINT
   using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
   using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, UnitMatrix<3, 2, Absolute<Length>>>;
-  using Object = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, CoordinateSystemMatrix<3, 2, FromCoordinateSystem>>>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
+  using Object = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, TypeMatrix<3, 2, FromCoordinateSystem>>>;
   using Transformation = Rotation3D<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
-  using TransformedObject = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, CoordinateSystemMatrix<3, 2, ToCoordinateSystem>>>;
+  using TransformedObject = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, TypeMatrix<3, 2, ToCoordinateSystem>>>;
   const MyValueMatrix valueMatrixObject(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const Object object(valueMatrixObject);
   const MyValueMatrix valueMatrixTransformedObject(1.0, 4.0, -2.0, -5.0, -3.0, -6.0);

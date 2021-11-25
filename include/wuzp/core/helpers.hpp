@@ -83,7 +83,8 @@ struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true
 // TODO(remod): This is a special case for the quantity matrix.
 template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantityMatrix>
 struct IsSpecializationQuantityMatrix : std::false_type {};
-template <template <typename, typename, template <typename, typename> typename> typename QuantityMatrix, typename ValueMatrixT_, typename UnitMatrixT_, template <typename, typename> typename QuantityT_>
+template <template <typename, typename, template <typename, typename> typename> typename QuantityMatrix, typename ValueMatrixT_,
+          typename UnitMatrixT_, template <typename, typename> typename QuantityT_>
 struct IsSpecializationQuantityMatrix<QuantityMatrix<ValueMatrixT_, UnitMatrixT_, QuantityT_>, QuantityMatrix> : std::true_type {};
 
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>
@@ -107,6 +108,9 @@ template <typename... Ts>
 struct IsHomogeneous<std::tuple<Ts...>> {
   static constexpr bool value = IsHomogeneous<Ts...>::value;
 };
+
+template <typename T>
+struct SpecializationDummy;
 
 template <typename T>
 constexpr auto getTypeName() noexcept {

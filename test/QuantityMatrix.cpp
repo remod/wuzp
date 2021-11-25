@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/units/Unit.hpp"
 
 #include "test_compilation_error.hpp"
@@ -19,7 +19,7 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen; // NOLINT
+using namespace wuzp_eigen;  // NOLINT
 #endif
 
 using namespace wuzp;  // NOLINT
@@ -29,7 +29,7 @@ using TestValueMatrix = ValueMatrix<double, Rows, Cols>;
 template <int Rows, int Cols>
 using TestUnitMatrix = TypeMatrix<Rows, Cols, Length>;
 template <int Rows, int Cols>
-using TestQuantityMatrix = QuantityMatrix<TestValueMatrix<Rows, Cols>, TestUnitMatrix<Rows, Cols>, Quantity>;
+using TestQuantityMatrix = QuantityMatrix<TestValueMatrix<Rows, Cols>, TestUnitMatrix<Rows, Cols>>;
 
 TEST(TestQuantityMatrix2, Dimension) {  // NOLINT
   static_assert(Dimension<TestQuantityMatrix<1, 1>>::value == 0);
@@ -83,6 +83,14 @@ TEST(TestQuantityMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
 
 using namespace wuzp;  // NOLINT
 
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp/units/wuzp/Unit.hpp"
+using namespace wuzp_unit;  // NOLINT
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
+
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
@@ -94,8 +102,7 @@ using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
 
 int main() {
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   [[maybe_unused]] const MyQuantityMatrix quantityMatrix = valueMatrix;
   return 0;
 }
@@ -143,8 +150,8 @@ TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   MyQuantityMatrix myMatrix(
-      QuantityTraits::Create<Quantity<int, Length>>::create(1), QuantityTraits::Create<Quantity<int, Area>>::create(2),
-      QuantityTraits::Create<Quantity<int, Volume>>::create(3), QuantityTraits::Create<Quantity<int, Mass>>::create(4));
+      Quantity<int, Length>(1), Quantity<int, Area>(2),
+      Quantity<int, Volume>(3), Quantity<int, Mass>(4));
 }
 
 TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
@@ -152,8 +159,15 @@ TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/units/Quantity.hpp"
-#include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
+
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp/units/wuzp/Unit.hpp"
+using namespace wuzp_unit;  // NOLINT
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
@@ -167,10 +181,10 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix myMatrix(QuantityTraits::Create<Quantity<int, Length>>::create(1),
-                    QuantityTraits::Create<Quantity<int, Area>>::create(2),
-                    QuantityTraits::Create<Quantity<int, Volume>>::create(3),
-                    QuantityTraits::Create<Quantity<int, Length>>::create(4));
+  MyQuantityMatrix myMatrix(Quantity<int, Length>(1),
+                    Quantity<int, Area>(2),
+                    Quantity<int, Volume>(3),
+                    Quantity<int, Length>(4));
   return 0;
 }
   )",
@@ -210,8 +224,8 @@ TEST_F(TestQuantityMatrixF, SetGetValueMatrix) {  // NOLINT
 
 TEST_F(TestQuantityMatrixF, SetGetQuantity) {  // NOLINT
   using EnergyQuantity = Quantity<int, Energy>;
-  EXPECT_EQ((getQuantityMatrix1().getQuantity<1, 2>()), QuantityTraits::Create<EnergyQuantity>::create(getValueMatrix1().getValue<1, 2>()));
-  const auto quantity = QuantityTraits::Create<EnergyQuantity>::create(7);
+  EXPECT_EQ((getQuantityMatrix1().getQuantity<1, 2>()), EnergyQuantity(getValueMatrix1().getValue<1, 2>()));
+  const auto quantity = EnergyQuantity(7);
   getQuantityMatrix1().setQuantity<1, 2>(quantity);
   EXPECT_EQ((getQuantityMatrix1().getQuantity<1, 2>()), quantity);
 }
@@ -221,10 +235,15 @@ TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/units/Quantity.hpp"
-#include "wuzp/units/QuantityTraits.hpp"
 #include "wuzp/units/Unit.hpp"
 
- using namespace wuzp;  // NOLINT
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp/units/wuzp/Unit.hpp"
+using namespace wuzp_unit;  // NOLINT
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
@@ -232,12 +251,14 @@ template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
 
- int main() {
+using namespace wuzp;  // NOLINT
+
+in() {
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   MyQuantityMatrix quantityMatrix;
-  quantityMatrix.setQuantity<1, 2>(QuantityTraits::Create<Quantity<int, Time>>::create(7));
+  quantityMatrix.setQuantity<1, 2>(Quantity<int, Time>(7));
   return 0;
 }
   )",
@@ -297,7 +318,7 @@ TEST(TestQuantityMatrix2, ProductQuantity) {  // NOLINT
   using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
   using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   const MyValue value{2};
-  const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
+  const auto quantity = MyQuantity(value);
   const MyValueMatrix valueMatrix(1, 2, 3, 4);
   const MyQuantityMatrix quantityMatrix(valueMatrix);
   EXPECT_EQ(quantityMatrix * quantity, MyQuantityMatrixResult(valueMatrix * value));
@@ -313,7 +334,7 @@ TEST(TestQuantityMatrix2, DivisionQuantity) {  // NOLINT
   using MyUnitMatrixResult = TypeMatrix<2, 2, Dimensionless>;
   using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
   const MyValue value{2};
-  const auto quantity = QuantityTraits::Create<MyQuantity>::create(value);
+  const auto quantity = MyQuantity(value);
   const MyValueMatrix valueMatrix(1, 2, 3, 4);
   const MyQuantityMatrix quantityMatrix(valueMatrix);
   EXPECT_EQ(quantityMatrix / quantity, MyQuantityMatrixResult(valueMatrix / value));
@@ -326,7 +347,7 @@ TEST(TestQuantityMatrix2, Dot) {  // NOLINT
   using MyQuantityResult = Quantity<int, Area>;
   const MyValueMatrix valueMatrix1(1, 2, 3, 4);
   const MyValueMatrix valueMatrix2(0, 3, -1, 2);
-  EXPECT_EQ(MyQuantityMatrix(valueMatrix1).dot(MyQuantityMatrix(valueMatrix2)), QuantityTraits::Create<MyQuantityResult>::create(11));
+  EXPECT_EQ(MyQuantityMatrix(valueMatrix1).dot(MyQuantityMatrix(valueMatrix2)), MyQuantityResult(11));
 }
 
 TEST(TestQuantityMatrix2, Chain) {  // NOLINT

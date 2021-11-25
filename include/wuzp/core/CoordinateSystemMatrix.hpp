@@ -5,13 +5,13 @@
 
 namespace wuzp {
 
-template <int Rows, int Cols, typename... CoordinateSystems>
-using CoordinateSystemMatrix = TypeMatrix<Rows, Cols, CoordinateSystemTraits, CoordinateSystems...>;
+//template <int Rows, int Cols, typename... CoordinateSystems>
+//using CoordinateSystemMatrix = TypeMatrix<Rows, Cols, CoordinateSystems...>;
 
 template <int Rows, int Cols, typename... CoordinateSystems, typename NewCoordinateSystem>
-struct CastCoordinateSystem<TypeMatrixImpl<Rows, Cols, CoordinateSystemTraits, CoordinateSystems...>, NewCoordinateSystem> {
+struct CastCoordinateSystem<TypeMatrixImpl<Rows, Cols, CoordinateSystems...>, NewCoordinateSystem> {
   static_assert(IsHomogeneous<CoordinateSystems...>::value, "Coordinate systems are heterogeneous.");
-  using type = CoordinateSystemMatrix<Rows, Cols, NewCoordinateSystem>;
+  using type = TypeMatrix<Rows, Cols, NewCoordinateSystem>;
 };
 
 }  // namespace wuzp
