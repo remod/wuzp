@@ -6,7 +6,7 @@ namespace wuzp {
 
 template <typename Transformation, typename Object>
 struct TransformationTraits {
-  static_assert(FakeDependency<TransformationTraits<Transformation, Object>>::value, "'TransformationTraits' trait not specialized.");
+  static_assert(FailOnInstantiation<TransformationTraits<Transformation, Object>>::value, "'TransformationTraits' trait not specialized.");
 };
 
 class Transformation {};

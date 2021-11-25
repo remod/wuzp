@@ -14,14 +14,14 @@ jobs:
       matrix:
         C_CXX_COMPILER: ["gcc g++", "clang clang++"]
         UNITS_IMPLEMENTATION: [0, 1]
-        MATRIX_IMPLEMENTATION: [1]
+        VALUE_MATRIX_IMPLEMENTATION: [1]
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
     - name: Install Dependencies
-      run: sudo ${SOURCE_DIR}/scripts/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.MATRIX_IMPLEMENTATION}}
+      run: sudo ${SOURCE_DIR}/scripts/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     - name: Create Build Environment
-      run: ${SOURCE_DIR}/scripts/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${{matrix.C_CXX_COMPILER}} ${BUILD_TYPE} ON ON ON ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.MATRIX_IMPLEMENTATION}}
+      run: ${SOURCE_DIR}/scripts/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${{matrix.C_CXX_COMPILER}} ${BUILD_TYPE} ON ON ON ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     - name: Build
       run: ${SOURCE_DIR}/scripts/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test

@@ -1,16 +1,15 @@
 #include <iostream>
 
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-//#include <../../eigen/unsupported/Eigen/CXX11/Tensor>
-
-#include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/CoordinateSystemMatrix.hpp"
-#include "wuzp/core/QuantityMatrix.hpp"
-#include "wuzp/core/Tensor.hpp"
-#include "wuzp/trafo/Rotation.hpp"
-#include "wuzp/units/UnitMatrix.hpp"
-#include "wuzp/value_matrix/ValueMatrix.hpp"
+//#include <Eigen/Core>
+//#include <Eigen/Geometry>
+////#include <../../eigen/unsupported/Eigen/CXX11/Tensor>
+//
+//#include "wuzp/core/CoordinateSystem.hpp"
+//#include "wuzp/core/CoordinateSystemMatrix.hpp"
+//#include "wuzp/core/QuantityMatrix.hpp"
+//#include "wuzp/core/Tensor.hpp"
+//#include "wuzp/trafo/Rotation.hpp"
+//#include "wuzp/units/UnitMatrix.hpp"
 
 int main() {
   //  // Create 2 matrices using tensors of rank 2

@@ -78,25 +78,25 @@ TEST(TestRational, MinusInfinity){// NOLINT
                                       "The divisor must not be zero.")}
 
 TEST(TestRational, Identity) {  // NOLINT
-  static_assert(std::is_same<typename RationalTraits::Identity<Rational<-3, 2>>::type, Rational<1, 1>>::value);
+  static_assert(std::is_same<typename Identity<Rational<-3, 2>>::type, Rational<1, 1>>::value);
 }
 
 TEST(TestRational, Sum) {  // NOLINT
-  static_assert(std::is_same<typename RationalTraits::Sum<Rational<-3, 12>, Rational<5, 12>>::type, Rational<1, 6>>::value);
+  static_assert(std::is_same<typename Sum<Rational<-3, 12>, Rational<5, 12>>::type, Rational<1, 6>>::value);
 }
 
 TEST(TestRational, Difference) {  // NOLINT
-  static_assert(std::is_same<typename RationalTraits::Difference<Rational<-3, 12>, Rational<5, 12>>::type, Rational<-2, 3>>::value);
+  static_assert(std::is_same<typename Difference<Rational<-3, 12>, Rational<5, 12>>::type, Rational<-2, 3>>::value);
 }
 
 TEST(TestRational, Product) {  // NOLINT
-  static_assert(std::is_same<typename RationalTraits::Product<Rational<-3, 12>, Rational<5, 12>>::type, Rational<-15, 144>>::value);
+  static_assert(std::is_same<typename Product<Rational<-3, 12>, Rational<5, 12>>::type, Rational<-15, 144>>::value);
 }
 
 TEST(TestRational, Division) {  // NOLINT
-  static_assert(std::is_same<typename RationalTraits::Division<Rational<-3, 12>, Rational<5, 12>>::type, Rational<-3, 5>>::value);
+  static_assert(std::is_same<typename Division<Rational<-3, 12>, Rational<5, 12>>::type, Rational<-3, 5>>::value);
 }
 
 TEST(TestRational, Inverse) {  // NOLINT
-  static_assert(std::is_same<typename RationalTraits::Inverse<Rational<-3, 2>>::type, Rational<-2, 3>>::value);
+  static_assert(std::is_same<typename Inverse<Rational<-3, 2>>::type, Rational<-2, 3>>::value);
 }

@@ -52,44 +52,34 @@ struct ReduceRational {
 template <int Dividend, int Divisor>
 using Rational = typename internal::ReduceRational<Dividend, Divisor>::type;
 
-struct RationalTraits {
-  template <typename T>
-  struct Identity;
-  template <int Dividend, int Divisor>
-  struct Identity<internal::ReducedRational<Dividend, Divisor>> {
-    using type = Rational<1, 1>;
-  };
+template <int Dividend, int Divisor>
+struct Identity<internal::ReducedRational<Dividend, Divisor>> {
+  using type = Rational<1, 1>;
+};
 
-  DEFINE_RECURSIVE_TRAIT(Sum)
-  template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
-  struct Sum<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
-    using type = Rational<DividendLhs * DivisorRhs + DividendRhs * DivisorLhs, DivisorLhs * DivisorRhs>;
-  };
+template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
+struct Sum<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
+  using type = Rational<DividendLhs * DivisorRhs + DividendRhs * DivisorLhs, DivisorLhs * DivisorRhs>;
+};
 
-  DEFINE_RECURSIVE_TRAIT(Difference)
-  template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
-  struct Difference<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
-    using type = Rational<DividendLhs * DivisorRhs - DividendRhs * DivisorLhs, DivisorLhs * DivisorRhs>;
-  };
+template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
+struct Difference<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
+  using type = Rational<DividendLhs * DivisorRhs - DividendRhs * DivisorLhs, DivisorLhs * DivisorRhs>;
+};
 
-  DEFINE_RECURSIVE_TRAIT(Product)
-  template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
-  struct Product<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
-    using type = Rational<DividendLhs * DividendRhs, DivisorLhs * DivisorRhs>;
-  };
+template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
+struct Product<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
+  using type = Rational<DividendLhs * DividendRhs, DivisorLhs * DivisorRhs>;
+};
 
-  DEFINE_RECURSIVE_TRAIT(Division)
-  template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
-  struct Division<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
-    using type = Rational<DividendLhs * DivisorRhs, DivisorLhs * DividendRhs>;
-  };
+template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
+struct Division<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
+  using type = Rational<DividendLhs * DivisorRhs, DivisorLhs * DividendRhs>;
+};
 
-  template <typename T>
-  struct Inverse;
-  template <int Dividend, int Divisor>
-  struct Inverse<internal::ReducedRational<Dividend, Divisor>> {
-    using type = Rational<Divisor, Dividend>;
-  };
+template <int Dividend, int Divisor>
+struct Inverse<internal::ReducedRational<Dividend, Divisor>> {
+  using type = Rational<Divisor, Dividend>;
 };
 
 }  // namespace wuzp

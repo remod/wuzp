@@ -8,7 +8,7 @@
 namespace wuzp {
 
 template <typename T>
-struct FakeDependency : public std::false_type {};
+struct FailOnInstantiation : public std::false_type {};
 
 template <int Size, typename T>
 using HomogeneousTuple = decltype(std::tuple_cat(std::declval<std::array<T, Size>>()));
@@ -37,14 +37,14 @@ struct SelectIf<false> {
   using type = std::tuple<>;
 };
 
-template <bool UseTypeA, typename TypeA, typename TypeB>
-struct Chose;
+template <bool ChooseTypeA, typename TypeA, typename TypeB>
+struct Choose;
 template <typename TypeA, typename TypeB>
-struct Chose<true, TypeA, TypeB> {
+struct Choose<true, TypeA, TypeB> {
   using type = TypeA;
 };
 template <typename TypeA, typename TypeB>
-struct Chose<false, TypeA, TypeB> {
+struct Choose<false, TypeA, TypeB> {
   using type = TypeB;
 };
 
@@ -80,6 +80,12 @@ template <typename T, template <int, int, typename...> typename Template>
 struct IsSpecializationInts : std::false_type {};
 template <template <int, int, typename...> typename Template, int Int0, int Int1, typename... Args>
 struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true_type {};
+// TODO(remod): This is a special case for the quantity matrix.
+template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantityMatrix>
+struct IsSpecializationQuantityMatrix : std::false_type {};
+template <template <typename, typename, template <typename, typename> typename> typename QuantityMatrix, typename ValueMatrixT_,
+          typename UnitMatrixT_, template <typename, typename> typename QuantityT_>
+struct IsSpecializationQuantityMatrix<QuantityMatrix<ValueMatrixT_, UnitMatrixT_, QuantityT_>, QuantityMatrix> : std::true_type {};
 
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>
 struct GetSubsetImpl;
@@ -102,6 +108,9 @@ template <typename... Ts>
 struct IsHomogeneous<std::tuple<Ts...>> {
   static constexpr bool value = IsHomogeneous<Ts...>::value;
 };
+
+template <typename T>
+struct SpecializationDummy;
 
 template <typename T>
 constexpr auto getTypeName() noexcept {
