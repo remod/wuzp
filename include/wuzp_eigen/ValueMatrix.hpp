@@ -155,40 +155,39 @@ struct Cols<wuzp_eigen::GenericValueMatrix<Implementation_>> {
 template <typename ImplementationLhs_, typename ImplementationRhs_>
 struct Sum<wuzp_eigen::GenericValueMatrix<ImplementationLhs_>, wuzp_eigen::GenericValueMatrix<ImplementationRhs_>> {
   // Use decltype/declval to allow for lazy evaluation.
-  // TODO(remod): Use std::decay to avoid the introduction of const?
   using type =
-      wuzp_eigen::GenericValueMatrix<decltype(std::declval<const ImplementationLhs_>() + std::declval<const ImplementationRhs_>())>;
+      wuzp_eigen::GenericValueMatrix<decltype(std::declval<ImplementationLhs_>() + std::declval<ImplementationRhs_>())>;
 };
 
 template <typename ImplementationLhs_, typename ImplementationRhs_>
 struct Difference<wuzp_eigen::GenericValueMatrix<ImplementationLhs_>, wuzp_eigen::GenericValueMatrix<ImplementationRhs_>> {
   // Use decltype/declval to allow for lazy evaluation.
   using type =
-      wuzp_eigen::GenericValueMatrix<decltype(std::declval<const ImplementationLhs_>() - std::declval<const ImplementationRhs_>())>;
+      wuzp_eigen::GenericValueMatrix<decltype(std::declval<ImplementationLhs_>() - std::declval<ImplementationRhs_>())>;
 };
 
 template <typename ImplementationLhs_, typename ValueRhs_>
 struct Product<wuzp_eigen::GenericValueMatrix<ImplementationLhs_>, ValueRhs_> {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = wuzp_eigen::GenericValueMatrix<decltype(std::declval<const ImplementationLhs_>() * std::declval<ValueRhs_>())>;
+  using type = wuzp_eigen::GenericValueMatrix<decltype(std::declval<ImplementationLhs_>() * std::declval<ValueRhs_>())>;
 };
 template <typename ImplementationLhs_, typename ImplementationRhs_>
 struct Product<wuzp_eigen::GenericValueMatrix<ImplementationLhs_>, wuzp_eigen::GenericValueMatrix<ImplementationRhs_>> {
   // Use decltype/declval to allow for lazy evaluation.
   using type =
-      wuzp_eigen::GenericValueMatrix<decltype(std::declval<const ImplementationLhs_>() * std::declval<const ImplementationRhs_>())>;
+      wuzp_eigen::GenericValueMatrix<decltype(std::declval<ImplementationLhs_>() * std::declval<ImplementationRhs_>())>;
 };
 
 template <typename ImplementationLhs_, typename ValueRhs_>
 struct Division<wuzp_eigen::GenericValueMatrix<ImplementationLhs_>, ValueRhs_> {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = wuzp_eigen::GenericValueMatrix<decltype(std::declval<const ImplementationLhs_>() / std::declval<ValueRhs_>())>;
+  using type = wuzp_eigen::GenericValueMatrix<decltype(std::declval<ImplementationLhs_>() / std::declval<ValueRhs_>())>;
 };
 template <typename ImplementationLhs_, typename ImplementationRhs_>
 struct Division<wuzp_eigen::GenericValueMatrix<ImplementationLhs_>, wuzp_eigen::GenericValueMatrix<ImplementationRhs_>> {
   // Use decltype/declval to allow for lazy evaluation.
   using type =
-      wuzp_eigen::GenericValueMatrix<decltype(std::declval<const ImplementationLhs_>() / std::declval<const ImplementationRhs_>())>;
+      wuzp_eigen::GenericValueMatrix<decltype(std::declval<ImplementationLhs_>() / std::declval<ImplementationRhs_>())>;
 };
 
 template <typename Implementation_>
@@ -200,13 +199,13 @@ struct Transpose<wuzp_eigen::GenericValueMatrix<Implementation_>> {
 template <typename ImplementationLhs_, typename ImplementationRhs_>
 struct DotProduct<wuzp_eigen::GenericValueMatrix<ImplementationLhs_>, wuzp_eigen::GenericValueMatrix<ImplementationRhs_>> {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(std::declval<const ImplementationLhs_>().dot(std::declval<const ImplementationRhs_>()));
+  using type = decltype(std::declval<ImplementationLhs_>().dot(std::declval<ImplementationRhs_>()));
 };
 
 template <typename Implementation_>
 struct Inverse<wuzp_eigen::GenericValueMatrix<Implementation_>> {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = wuzp_eigen::GenericValueMatrix<decltype(std::declval<const Implementation_>().inverse())>;
+  using type = wuzp_eigen::GenericValueMatrix<decltype(std::declval<Implementation_>().inverse())>;
 };
 
 // template <typename Implementation_, int ElementRowId, int ElementColId>
