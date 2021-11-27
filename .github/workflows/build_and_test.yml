@@ -2,9 +2,10 @@ name: Build and Test
 
 on: [push]
 
-env:
+env:  # Note: Nested environment variables are not supported.
   SOURCE_DIR: ${{github.workspace}}
-  BUILD_DIR: ${{github.workspace}}/build  # Note: Nested environment variables are not supported.
+  BUILD_DIR: ${{github.workspace}}/build
+  PACKAGE_DIR: ${{github.workspace}}/package_wuzp/wuzp-0.0.1
   BUILD_TYPE: Debug
 
 jobs:
@@ -32,6 +33,9 @@ jobs:
     - name: Tidy
       shell: bash
       run: ${SOURCE_DIR}/scripts/steps/tidy.sh ${BUILD_DIR}
+    - name: Package
+      shell: bash
+      run: ${SOURCE_DIR}/scripts/steps/package.sh ${SOURCE_DIR} ${BUILD_DIR} ${PACKAGE_DIR}
     - name: Upload Code Coverage  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
       shell: bash
       run: |

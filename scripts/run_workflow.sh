@@ -26,9 +26,10 @@ for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
       # Run job.
       echo "Building and testing ${C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
       BUILD_DIR=/tmp/build_${C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
-      rm -rf ${BUILD_DIR}
-      mkdir ${BUILD_DIR}
-      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ubuntu:latest /bin/bash ${WORKSPACE_DIR}/scripts/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      PACKAGE_DIR=/tmp/package_wuzp/wuzp-0.0.1
+      rm -rf ${BUILD_DIR} ${PACKAGE_DIR}
+      mkdir ${BUILD_DIR} ${PACKAGE_DIR}
+      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ubuntu:latest /bin/bash ${WORKSPACE_DIR}/scripts/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${PACKAGE_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
