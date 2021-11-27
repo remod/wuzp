@@ -2,7 +2,7 @@
 
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/units/Unit.hpp"
+#include "wuzp/core/Unit.hpp"
 
 #include "test_compilation_error.hpp"
 
@@ -153,10 +153,10 @@ TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
 
 TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/units/Quantity.hpp"
-#include "wuzp/units/Unit.hpp"
+#include "wuzp/core/Unit.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Unit.hpp"
@@ -229,10 +229,10 @@ TEST_F(TestQuantityMatrixF, SetGetQuantity) {  // NOLINT
 
 TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
                                                    ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/units/Quantity.hpp"
-#include "wuzp/units/Unit.hpp"
+#include "wuzp/core/Unit.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Unit.hpp"

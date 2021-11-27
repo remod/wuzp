@@ -3,8 +3,8 @@
 #include <cmath>
 #include <ostream>
 
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/units/Quantity.hpp"
 
 #include "wuzp_units/Unit.hpp"
 

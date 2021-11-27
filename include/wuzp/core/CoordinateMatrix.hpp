@@ -6,7 +6,7 @@
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
-#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/core/UnitMatrix.hpp"
 
 namespace wuzp {
 

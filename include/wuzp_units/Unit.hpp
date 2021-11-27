@@ -1,7 +1,7 @@
 #pragma once
 
+#include "wuzp/core/Unit.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/units/Unit.hpp"
 
 namespace wuzp_units {
 
