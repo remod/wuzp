@@ -7,8 +7,8 @@
 #include <boost/units/systems/si.hpp>
 #include <boost/units/unit.hpp>
 
+#include "wuzp/core/Unit.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/units/Unit.hpp"
 
 namespace wuzp_boost {
 

@@ -3,10 +3,10 @@
 #include <ostream>
 #include <type_traits>
 
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/UnitMatrix.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/units/Quantity.hpp"
-#include "wuzp/units/UnitMatrix.hpp"
 
 namespace wuzp {
 

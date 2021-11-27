@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/units/UnitMatrix.hpp"
+#include "wuzp/core/UnitMatrix.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Unit.hpp"

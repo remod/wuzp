@@ -1,7 +1,7 @@
 #pragma once
 
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/units/Unit.hpp"
+#include "wuzp/core/Unit.hpp"
 
 namespace wuzp {
 

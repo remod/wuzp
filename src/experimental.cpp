@@ -9,7 +9,7 @@
 //#include "wuzp/core/QuantityMatrix.hpp"
 //#include "wuzp/core/Tensor.hpp"
 //#include "wuzp/trafo/Rotation.hpp"
-//#include "wuzp/units/UnitMatrix.hpp"
+//#include "wuzp/core/UnitMatrix.hpp"
 
 int main() {
   //  // Create 2 matrices using tensors of rank 2
