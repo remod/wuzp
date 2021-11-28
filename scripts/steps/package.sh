@@ -11,12 +11,15 @@ if [ $# != 3 ]; then
 fi
 
 # Package.
-sudo apt install dh-make
+sudo apt install dh-make devscripts dput
 export DEBFULLNAME="Remo Diethelm"
 export DEBEMAIL="rdiethelm@gmail.com"
 cd ${PACKAGE_DIR}
 cp -r ${SOURCE_DIR} .
 cp ${BUILD_DIR}/Makefile .
 dh_make --packageclass s --yes --createorig
+debuild -S -sa
+cd ..
+dput ppa:remod/wuzp wuzp_0.0.1-1_source.changes
 
 exit 0
