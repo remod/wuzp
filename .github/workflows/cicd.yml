@@ -17,8 +17,8 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      DRY_RUN=${{ github.event_name=="merge_request" }}
-      DRY_RUN2=${{ ${{github.event_name}}=="merge_request" }}
+      DRY_RUN=${{ github.event_name=='pull_request' }}
+      DRY_RUN2=${{ ${{github.event_name}}=='pull_request' }}
     steps:
     - name: Print Info
       run: echo ${GITHUB_EVENT_NAME}
