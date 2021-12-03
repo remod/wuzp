@@ -15,7 +15,20 @@ While it is extensible to use different scalar types, it is not possible to intr
 
 This is where *wuzp* comes into play.
 
-## Preparations
+## How to get wuzp
+
+There are two options to get *wuzp*, through Debian packages or through the git repository.
+The Debian option is recommended to always get the newest version when you upgrade your system.
+
+### Option 1: Debian package
+
+```
+sudo add-apt-repository ppa:remod/wuzp
+sudo apt update
+sudo apt install wuzp
+```
+
+### Option 2: Git repository
 
 ```
 sudo apt install git cmake libboost-dev libeigen3-dev

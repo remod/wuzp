@@ -43,3 +43,17 @@ jobs:
         curl -Os https://uploader.codecov.io/latest/linux/codecov
         chmod +x codecov
         ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${BUILD_DIR}/code_coverage/output.xml
+  deliver:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare Repository
+        uses: actions/checkout@v2
+      - name: Configure GPG Key
+        env:
+          GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
+        run: |
+          echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
+      - name: Install Dependencies
+        run: sudo ${SOURCE_DIR}/scripts/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      - name: Create Build Environment
+        run: ${SOURCE_DIR}/scripts/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} true

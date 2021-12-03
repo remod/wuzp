@@ -20,6 +20,6 @@ fi
 if [[ "${2}" == "1" ]]; then
   DEPENDENCIES="${DEPENDENCIES} libeigen3-dev"
 fi
-apt install -y ${DEPENDENCIES}
+apt install -y "${DEPENDENCIES}"
 
 exit 0
