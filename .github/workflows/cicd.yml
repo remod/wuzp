@@ -17,8 +17,8 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      DRY_RUN: ${{ GITHUB_REF_NAME!='master' }}
-      DRY_RUN2: ${{ GITHUB_REF_NAME != 'master' }}
+      DRY_RUN: ${{ ${GITHUB_REF_NAME}!='master' }}
+      DRY_RUN2: ${{ ${GITHUB_REF_NAME} != 'master' }}
     steps:
     - name: Print Info
       run: echo ${GITHUB_REF}
