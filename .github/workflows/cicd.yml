@@ -17,14 +17,13 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-#      DRY_RUN: ${{ GITHUB_BASE_REF!='' }}
-#      DRY_RUN2: ${{ ${GITHUB_BASE_REF}!='' }}
-       DRY_RUN: ${GITHUB_BASE_REF}!=''
+      DRY_RUN: ${{ github.event.pull_request.head.ref!='' }}
+#      DRY_RUN2: ${{ ${{github.event_name}}=='pull_request' }}
     steps:
     - name: Print Info
-      run: echo ${GITHUB_EVENT_NAME}
+      run: echo ${{github.event}}
     - name: Print Info 2
-      run: echo ${{github.event_name}}
+      run: echo ${{github.event.pull_request.head.ref}}
     - name: Print dry run
       run: echo ${DRY_RUN}
     - name: Print dry run 2
