@@ -17,8 +17,9 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      DRY_RUN: ${{ GITHUB_BASE_REF!='' }}
-      DRY_RUN2: ${{ ${GITHUB_BASE_REF}!='' }}
+#      DRY_RUN: ${{ GITHUB_BASE_REF!='' }}
+#      DRY_RUN2: ${{ ${GITHUB_BASE_REF}!='' }}
+       DRY_RUN: ${GITHUB_BASE_REF}!=''
     steps:
     - name: Print Info
       run: echo ${GITHUB_EVENT_NAME}
