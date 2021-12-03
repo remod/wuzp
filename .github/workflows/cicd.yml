@@ -16,7 +16,18 @@ jobs:
         C_CXX_COMPILER: ["gcc g++", "clang clang++"]
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
+    env:
+      DRY_RUN=${{ github.event_name=="merge_request" }}
+      DRY_RUN2=${{ ${{github.event_name}}=="merge_request" }}
     steps:
+    - name: Print Info
+      run: echo ${GITHUB_EVENT_NAME}
+    - name: Print Info 2
+      run: echo ${{github.event_name}}
+    - name: Print dry run
+      run: echo ${DRY_RUN}
+    - name: Print dry run 2
+      run: echo ${DRY_RUN2}
     - name: Prepare Repository
       uses: actions/checkout@v2
     - name: Install Dependencies
@@ -33,9 +44,6 @@ jobs:
     - name: Tidy
       shell: bash
       run: ${SOURCE_DIR}/scripts/build_and_test/steps/tidy.sh ${BUILD_DIR}
-    - name: Package
-      shell: bash
-      run: ${SOURCE_DIR}/scripts/build_and_test/steps/package.sh ${SOURCE_DIR} ${BUILD_DIR} ${PACKAGE_DIR}
     - name: Upload Code Coverage  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
       shell: bash
       run: |
