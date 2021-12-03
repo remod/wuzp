@@ -1,4 +1,4 @@
-name: Build and Test
+name: CI/CD
 
 on: [push]
 
@@ -45,6 +45,11 @@ jobs:
         ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${BUILD_DIR}/code_coverage/output.xml
   deliver:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        TARGET_NAME: ["wuzp"]
+    env:
+      DRY_RUN: true
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
@@ -52,8 +57,12 @@ jobs:
         env:
           GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
         run: |
-          echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
+          echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --batch --import
+      - name: Parse Package Version
+        run: source ${SOURCE_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR}/${{matrix.TARGET_NAME}}
       - name: Install Dependencies
-        run: sudo ${SOURCE_DIR}/scripts/deliver/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
-      - name: Create Build Environment
-        run: ${SOURCE_DIR}/scripts/deliver/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} true
+        run: sudo ${SOURCE_DIR}/scripts/deliver/steps/install_dependencies.sh
+      - name: Package
+        run: ${SOURCE_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR}/${{matrix.TARGET_NAME}} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${GNUPG_DIR}
+      - name: Deliver
+        run: ${SOURCE_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${{matrix.TARGET_NAME}} ${TARGET_VERSION} ${BUILD_INCREMENT} ${DRY_RUN}
