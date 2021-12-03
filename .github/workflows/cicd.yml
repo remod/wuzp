@@ -16,18 +16,7 @@ jobs:
         C_CXX_COMPILER: ["gcc g++", "clang clang++"]
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
-    env:
-      DRY_RUN: ${{ github.ref!='master' }}
-      DRY_RUN2: ${{ github.ref_name!='master' }}
     steps:
-    - name: Print Info
-      run: echo ${{github.ref}}
-    - name: Print Info 2
-      run: echo ${{github.ref_name}}
-    - name: Print dry run
-      run: echo ${DRY_RUN}
-    - name: Print dry run 2
-      run: echo ${DRY_RUN2}
     - name: Prepare Repository
       uses: actions/checkout@v2
     - name: Install Dependencies
@@ -58,7 +47,7 @@ jobs:
       matrix:
         TARGET_NAME: ["wuzp"]
     env:
-      DRY_RUN: true
+      DRY_RUN: ${{ github.ref_name!='master' }}
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
