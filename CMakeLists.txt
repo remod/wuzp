@@ -40,8 +40,12 @@ add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_WUZP=${VALUE_MATRIX_IMPLEMEN
 add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_EIGEN=${VALUE_MATRIX_IMPLEMENTATION_EIGEN})
 
 add_subdirectory(wuzp)
-add_subdirectory(wuzp_boost)
-add_subdirectory(wuzp_eigen)
+if (UNITS_IMPLEMENTATION EQUAL UNITS_IMPLEMENTATION_BOOST)
+    add_subdirectory(wuzp_boost)
+endif()
+if (VALUE_MATRIX_IMPLEMENTATION EQUAL VALUE_MATRIX_IMPLEMENTATION_EIGEN)
+    add_subdirectory(wuzp_eigen)
+endif()
 
 add_executable(main src/main.cpp)
 target_include_directories(main PRIVATE include)
