@@ -6,6 +6,7 @@ set(UNITS_IMPLEMENTATION_BOOST 1)
 set(VALUE_MATRIX_IMPLEMENTATION_WUZP 0)
 set(VALUE_MATRIX_IMPLEMENTATION_EIGEN 1)
 
+option(FROM_SOURCE "True: Code is expected to lie in this directory. False: Code is expected to be installed." OFF)
 option(ENABLE_TESTS "Enables the definition of a 'tests' target to run the unit tests." OFF)
 option(ENABLE_FORMAT "Enables the definition of a 'format' target to format the code." OFF)
 option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clang warnings." OFF)
@@ -17,6 +18,7 @@ set(VALUE_MATRIX_IMPLEMENTATION ${VALUE_MATRIX_IMPLEMENTATION_EIGEN} CACHE STRIN
 message(STATUS "------------------------------------------")
 message(STATUS "Building with the following configuration:")
 message(STATUS "------------------------------------------")
+message(STATUS "FROM_SOURCE:           ${FROM_SOURCE}")
 message(STATUS "ENABLE_TESTS:          ${ENABLE_TESTS}")
 message(STATUS "ENABLE_FORMAT:         ${ENABLE_FORMAT}")
 message(STATUS "ENABLE_TIDY:           ${ENABLE_TIDY}")
@@ -36,6 +38,8 @@ add_compile_definitions(UNITS_IMPLEMENTATION_BOOST=${UNITS_IMPLEMENTATION_BOOST}
 add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION=${VALUE_MATRIX_IMPLEMENTATION})
 add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_WUZP=${VALUE_MATRIX_IMPLEMENTATION_WUZP})
 add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_EIGEN=${VALUE_MATRIX_IMPLEMENTATION_EIGEN})
+
+find_library()
 
 add_executable(main src/main.cpp)
 target_include_directories(main PRIVATE include)
