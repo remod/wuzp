@@ -23,17 +23,17 @@ inline std::string getCMakeListsContent() {
          "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_WUZP=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION_WUZP) ")\n"
          "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_EIGEN=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION_EIGEN) ")\n"
          "\n"
-         "add_executable(tests test.cpp)\n"
-         "target_include_directories(tests PRIVATE " TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/include)\n"
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+         "add_subdirectory(" TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/wuzp wuzp_build)\n"
+         "add_subdirectory(" TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/wuzp_boost wuzp_boost_build)\n"
+         "add_subdirectory(" TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/wuzp_eigen wuzp_eigen_build)\n"
          "\n"
-         "find_package(Boost 1.56 REQUIRED)\n"
-         "target_include_directories(tests PRIVATE ${Boost_INCLUDE_DIRS})\n"
+         "add_executable(tests test.cpp)\n"
+         "target_include_directories(tests PRIVATE wuzp)\n"
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+         "target_link_libraries(tests PRIVATE wuzp_boost)\n"
 #endif
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-         "\n"
-         "find_package(Eigen3 3.3 REQUIRED NO_MODULE)\n"
-         "target_link_libraries(tests Eigen3::Eigen)\n"
+         "target_link_libraries(tests PRIVATE wuzp_eigen)\n"
 #endif
       ;
 }
