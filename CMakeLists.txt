@@ -76,10 +76,10 @@ if (ENABLE_TESTS)
         test/Jacobian.cpp
         test/ProperRigidTransformation.cpp
     )
-    # The source directory is required for the compilation tests.
     target_compile_options(tests PRIVATE --coverage)
     target_compile_definitions(tests PRIVATE CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)
+    target_link_libraries(tests PRIVATE wuzp)
     if (UNITS_IMPLEMENTATION EQUAL UNITS_IMPLEMENTATION_BOOST)
         target_link_libraries(tests PRIVATE wuzp_boost)
     endif()
@@ -90,13 +90,19 @@ if (ENABLE_TESTS)
     gtest_discover_tests(tests)
 endif()
 
-if (ENABLE_FORMAT)
-    find_program(CLANG_FORMAT "clang-format")
+if (ENABLE_FORMAT OR ENABLE_TIDY)
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
-        ${PROJECT_SOURCE_DIR}/include/*.hpp
+        ${PROJECT_SOURCE_DIR}/wuzp/include/wuzp/*.hpp
+        ${PROJECT_SOURCE_DIR}/wuzp/include/wuzp_units/*.hpp
+        ${PROJECT_SOURCE_DIR}/wuzp_boost/include/wuzp_boost/*.hpp
+        ${PROJECT_SOURCE_DIR}/wuzp_eigen/include/wuzp_eigen/*.hpp
         ${PROJECT_SOURCE_DIR}/src/*.[ch]pp
         ${PROJECT_SOURCE_DIR}/test/*.[ch]pp
     )
+endif()
+
+if (ENABLE_FORMAT)
+    find_program(CLANG_FORMAT "clang-format")
     add_custom_target(format
         COMMAND clang-format -i --verbose -style=file ${ALL_CXX_SOURCE_FILES}
     )
@@ -104,11 +110,6 @@ endif()
 
 if (ENABLE_TIDY)
     find_program(CLANG_TIDY "clang-tidy")
-    file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
-        ${PROJECT_SOURCE_DIR}/include/*.hpp
-        ${PROJECT_SOURCE_DIR}/src/*.[ch]pp
-        ${PROJECT_SOURCE_DIR}/test/*.[ch]pp
-    )
     add_custom_target(tidy
         COMMAND clang-tidy --format-style=file -p build ${ALL_CXX_SOURCE_FILES}
     )
