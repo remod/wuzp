@@ -15,7 +15,7 @@ fi
 
 # Check GPG signing key file.
 GPG_SIGNING_KEY_FILE=${1}
-if [ ! -f "${GPG_SIGNING_KEY_FILE}" ]; then
+if [ ! -f ${GPG_SIGNING_KEY_FILE} ]; then
     echo "GPG signing key file '${GPG_SIGNING_KEY_FILE}' does not exist."
     exit 1
 fi
@@ -29,7 +29,7 @@ fi
 echo "Running workflow in docker image ${DOCKER_IMAGE} ..."
 
 # Find out the location of the repository.
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" &> /dev/null && pwd )"
 REPO_DIR=${SCRIPT_DIR}/..
 
 # Run all jobs of the Github workflow.
@@ -51,7 +51,7 @@ for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
 done
 
 # Deliver.
-GPG_SIGNING_KEY_TMP=$(cat "${GPG_SIGNING_KEY_FILE}")
+GPG_SIGNING_KEY_TMP=$(cat ${GPG_SIGNING_KEY_FILE})
 export GPG_SIGNING_KEY=${GPG_SIGNING_KEY_TMP}
 for TARGET_NAME in "wuzp"; do
   # Run job.
@@ -59,7 +59,7 @@ for TARGET_NAME in "wuzp"; do
   PACKAGE_DIR=/tmp/package_${TARGET_NAME}
   rm -rf ${PACKAGE_DIR}
   mkdir ${PACKAGE_DIR}
-  docker run --rm -ti -e GPG_SIGNING_KEY -v "${REPO_DIR}":${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} true
+  docker run --rm -ti -e GPG_SIGNING_KEY -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} true
 done
 
 echo "Done."

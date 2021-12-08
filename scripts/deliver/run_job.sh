@@ -15,14 +15,14 @@ SOURCE_DIR=${REPO_DIR}/${TARGET_NAME}
 
 # Run all steps.
 # TODO(remod): Compare version to version in CMakeLists.
-source "${REPO_DIR}"/scripts/deliver/steps/parse_package_version.sh "${SOURCE_DIR}" &&
+source ${REPO_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR} &&
 ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh &&
-source "${REPO_DIR}"/scripts/deliver/steps/configure_gpg_key.sh &&
-${REPO_DIR}/scripts/deliver/steps/package.sh "${SOURCE_DIR}" ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${GNUPG_DIR} &&
-${REPO_DIR}/scripts/deliver/steps/deliver.sh "${PACKAGE_DIR}" ${TARGET_NAME} ${TARGET_VERSION} ${BUILD_INCREMENT} ${DRY_RUN}
+source ${REPO_DIR}/scripts/deliver/steps/configure_gpg_key.sh &&
+${REPO_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${GNUPG_DIR} &&
+${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${BUILD_INCREMENT} ${DRY_RUN}
 RETURN_CODE=$?
 
 # Make the host user the owner of the package directory.
-chown -R 1000:1000 "${PACKAGE_DIR}"
+chown -R 1000:1000 ${PACKAGE_DIR}
 
 exit ${RETURN_CODE}

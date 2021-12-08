@@ -19,9 +19,9 @@ PACKAGE_WORKSPACE_DIR=${PACKAGE_DIR}/${TARGET_NAME}-${TARGET_VERSION}
 # Package.
 export DEBFULLNAME="Remo Diethelm"
 export DEBEMAIL="rdiethelm@gmail.com"
-mkdir -p "${PACKAGE_DIR}"
-cp -r "${SOURCE_DIR}" "${PACKAGE_WORKSPACE_DIR}"
-cd "${PACKAGE_WORKSPACE_DIR}"
+mkdir -p ${PACKAGE_DIR}
+cp -r ${SOURCE_DIR} ${PACKAGE_WORKSPACE_DIR}
+cd ${PACKAGE_WORKSPACE_DIR}
 dh_make --packageclass s --createorig --yes && true
 debuild -S -sa
 cd -

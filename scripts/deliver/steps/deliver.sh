@@ -17,7 +17,7 @@ BUILD_INCREMENT=${4}
 DRY_RUN=${5}
 
 # Deliver.
-if [ "${DRY_RUN}" = true ]; then
+if [ ${DRY_RUN} = true ]; then
   # The '--simulate' argument can be repeated twice to also simulate the network connection.
   # See http://manpages.ubuntu.com/manpages/trusty/man1/dput.1.html for more info.
   OPTIONS="--simulate --simulate"
