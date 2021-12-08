@@ -15,7 +15,10 @@ SOURCE_DIR=${1}
 # Parse package version.
 PATTERN='\((.*)-(.*)\)'
 FIRST_LINE=$(head -n 1 ${SOURCE_DIR}/debian/changelog)
-[[ $FIRST_LINE =~ $PATTERN ]]
+if ! [[ $FIRST_LINE =~ $PATTERN ]]; then
+  echo "Failed to parse package version in '${FIRST_LINE}'."
+  return 1
+fi
 export TARGET_VERSION=${BASH_REMATCH[1]}
 export BUILD_INCREMENT=${BASH_REMATCH[2]}
 

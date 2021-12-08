@@ -4,7 +4,6 @@ on: [push]
 
 env:  # Note: Nested environment variables are not supported.
   REPO_DIR: ${{github.workspace}}
-  SOURCE_DIR: ${{github.workspace}}/${TARGET_NAME}
   BUILD_DIR: ${{github.workspace}}/build
   PACKAGE_DIR: ${{github.workspace}}/package_wuzp/wuzp-0.0.1
   BUILD_TYPE: Debug
@@ -42,14 +41,15 @@ jobs:
         chmod +x codecov
         ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${BUILD_DIR}/code_coverage/output.xml
   deliver:
-    needs: build_and_test
+#    needs: build_and_test
     runs-on: ubuntu-latest
     strategy:
       matrix:
         TARGET_NAME: ["wuzp"]
     env:
-      DRY_RUN: ${{ github.ref_name!='master' }}
+      DRY_RUN: ${{github.ref_name!='master'}}
       TARGET_NAME: ${{matrix.TARGET_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/${TARGET_NAME}
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
