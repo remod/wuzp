@@ -63,10 +63,13 @@ jobs:
       - name: Configure GPG Key
         env:
           GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
-        run: source ${REPO_DIR}/scripts/deliver/steps/configure_gpg_key.sh
+        run: | 
+          source ${REPO_DIR}/scripts/deliver/steps/configure_gpg_key.sh
+          echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
       - name: Package
         env:
           TARGET_VERSION: ${{env.GH_TARGET_VERSION}}
+          GNUPGHOME: ${{env.GH_GNUPGHOME}}
         run: ${REPO_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION}
       - name: Deliver
         env:
