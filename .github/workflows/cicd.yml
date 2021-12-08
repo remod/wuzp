@@ -48,11 +48,12 @@ jobs:
         TARGET_NAME: ["wuzp"]
     env:
       DRY_RUN: ${{ github.ref_name!='master' }}
+      TARGET_NAME: ${{matrix.TARGET_NAME}}
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
       - name: Parse Package Version
-        run: source ${SOURCE_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR}/${{matrix.TARGET_NAME}}
+        run: source ${SOURCE_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR}/${TARGET_NAME}
       - name: Install Dependencies
         run: sudo ${SOURCE_DIR}/scripts/deliver/steps/install_dependencies.sh
       - name: Configure GPG Key
@@ -60,6 +61,6 @@ jobs:
           GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
         run: source ${SOURCE_DIR}/scripts/deliver/steps/configure_gpg_key.sh
       - name: Package
-        run: ${SOURCE_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR}/${{matrix.TARGET_NAME}} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION}
+        run: ${SOURCE_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR}/${TARGET_NAME} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION}
       - name: Deliver
-        run: ${SOURCE_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${{matrix.TARGET_NAME}} ${TARGET_VERSION} ${BUILD_INCREMENT} ${DRY_RUN}
+        run: ${SOURCE_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${BUILD_INCREMENT} ${DRY_RUN}
