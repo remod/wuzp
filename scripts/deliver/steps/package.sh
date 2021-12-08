@@ -16,6 +16,11 @@ TARGET_NAME=${3}
 TARGET_VERSION=${4}
 PACKAGE_WORKSPACE_DIR=${PACKAGE_DIR}/${TARGET_NAME}-${TARGET_VERSION}
 
+sudo aptitude install gnupg-agent pinentry-gtk2 pinentry-curses
+export GPGKEY=0xE10ED773
+killall -q gpg-agent
+eval $(gpg-agent --daemon)
+
 # Package.
 export DEBFULLNAME="Remo Diethelm"
 export DEBEMAIL="rdiethelm@gmail.com"
