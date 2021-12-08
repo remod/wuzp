@@ -3,7 +3,8 @@ name: CI/CD
 on: [push]
 
 env:  # Note: Nested environment variables are not supported.
-  SOURCE_DIR: ${{github.workspace}}
+  REPO_DIR: ${{github.workspace}}
+  SOURCE_DIR: ${{github.workspace}}/${TARGET_NAME}
   BUILD_DIR: ${{github.workspace}}/build
   PACKAGE_DIR: ${{github.workspace}}/package_wuzp/wuzp-0.0.1
   BUILD_TYPE: Debug
@@ -20,19 +21,19 @@ jobs:
     - name: Prepare Repository
       uses: actions/checkout@v2
     - name: Install Dependencies
-      run: sudo ${SOURCE_DIR}/scripts/build_and_test/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      run: sudo ${REPO_DIR}/scripts/build_and_test/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     - name: Create Build Environment
-      run: ${SOURCE_DIR}/scripts/build_and_test/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${{matrix.C_CXX_COMPILER}} ${BUILD_TYPE} ON ON ON ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      run: ${REPO_DIR}/scripts/build_and_test/steps/create_build_environment.sh ${REPO_DIR} ${BUILD_DIR} ${{matrix.C_CXX_COMPILER}} ${BUILD_TYPE} ON ON ON ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     - name: Build
-      run: ${SOURCE_DIR}/scripts/build_and_test/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${REPO_DIR}/scripts/build_and_test/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
-      run: ${SOURCE_DIR}/scripts/build_and_test/steps/test.sh ${SOURCE_DIR} ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${REPO_DIR}/scripts/build_and_test/steps/test.sh ${REPO_DIR} ${BUILD_DIR} ${BUILD_TYPE}
     - name: Format  # TODO(remod): Run this step earlier, potentially in a separate job (it is compiler independent)
       shell: bash
-      run: ${SOURCE_DIR}/scripts/build_and_test/steps/format.sh ${SOURCE_DIR} ${BUILD_DIR}
+      run: ${REPO_DIR}/scripts/build_and_test/steps/format.sh ${REPO_DIR} ${BUILD_DIR}
     - name: Tidy
       shell: bash
-      run: ${SOURCE_DIR}/scripts/build_and_test/steps/tidy.sh ${BUILD_DIR}
+      run: ${REPO_DIR}/scripts/build_and_test/steps/tidy.sh ${BUILD_DIR}
     - name: Upload Code Coverage  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
       shell: bash
       run: |
@@ -53,14 +54,16 @@ jobs:
       - name: Prepare Repository
         uses: actions/checkout@v2
       - name: Parse Package Version
-        run: source ${SOURCE_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR}/${TARGET_NAME}
+        run: source ${REPO_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR} && echo ${TARGET_VERSION}
+      - name: Echo
+        run: echo ${TARGET_VERSION}
       - name: Install Dependencies
-        run: sudo ${SOURCE_DIR}/scripts/deliver/steps/install_dependencies.sh
+        run: sudo ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh
       - name: Configure GPG Key
         env:
           GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
-        run: source ${SOURCE_DIR}/scripts/deliver/steps/configure_gpg_key.sh
+        run: source ${REPO_DIR}/scripts/deliver/steps/configure_gpg_key.sh
       - name: Package
-        run: ${SOURCE_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR}/${TARGET_NAME} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION}
+        run: ${REPO_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION}
       - name: Deliver
-        run: ${SOURCE_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${BUILD_INCREMENT} ${DRY_RUN}
+        run: ${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${BUILD_INCREMENT} ${DRY_RUN}
