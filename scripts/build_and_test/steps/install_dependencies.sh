@@ -15,10 +15,10 @@ export DEBIAN_FRONTEND=noninteractive
 apt update
 DEPENDENCIES="git build-essential cmake gcc g++ clang libgtest-dev clang-format clang-tidy gcovr"
 if [[ ${1} == "1" ]]; then
-  DEPENDENCIES=${DEPENDENCIES} libboost-dev"
+  DEPENDENCIES="${DEPENDENCIES} libboost-dev"
 fi
 if [[ ${2} == "1" ]]; then
-  DEPENDENCIES=${DEPENDENCIES} libeigen3-dev"
+  DEPENDENCIES="${DEPENDENCIES} libeigen3-dev"
 fi
 apt install -y ${DEPENDENCIES}
 
