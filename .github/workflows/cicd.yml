@@ -55,13 +55,9 @@ jobs:
         uses: actions/checkout@v2
       - name: Parse Package Version
         run: | 
-          source ${REPO_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR} && echo ${TARGET_VERSION}
+          source ${REPO_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR}
           echo "GH_TARGET_VERSION=${TARGET_VERSION}" >> $GITHUB_ENV
           echo "GH_BUILD_INCREMENT=${BUILD_INCREMENT}" >> $GITHUB_ENV
-      - name: Echo
-        env:
-          TARGET_VERSION: ${{env.GH_TARGET_VERSION}}
-        run: echo ${TARGET_VERSION}
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh
       - name: Configure GPG Key
