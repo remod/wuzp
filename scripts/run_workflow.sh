@@ -7,14 +7,22 @@
 set -e
 
 # Check arguments.
-if [ $# -gt 1 ]; then
+if [ $# -gt 2 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./run_workflow.sh [docker-image=ubuntu:latest]"
+  echo "Usage: ./run_workflow.sh GPG_SIGNING_KEY_FILE [DOCKER_IMAGE=ubuntu:latest]"
   exit 1
 fi
 
-if [ $# == 1 ]; then
-  DOCKER_IMAGE=${1}
+# Check GPG signing key file.
+GPG_SIGNING_KEY_FILE=${1}
+if [ ! -f "${GPG_SIGNING_KEY_FILE}" ]; then
+    echo "GPG signing key file '${GPG_SIGNING_KEY_FILE}' does not exist."
+    exit 1
+fi
+
+# Check docker image.
+if [ $# == 2 ]; then
+  DOCKER_IMAGE=${2}
 else
   DOCKER_IMAGE="ubuntu:latest"
 fi
@@ -43,16 +51,15 @@ for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
 done
 
 # Deliver.
+GPG_SIGNING_KEY_TMP=$(cat "${GPG_SIGNING_KEY_FILE}")
+export GPG_SIGNING_KEY=${GPG_SIGNING_KEY_TMP}
 for TARGET_NAME in "wuzp"; do
   # Run job.
   echo "Delivering target ${TARGET_NAME} ..."
   PACKAGE_DIR=/tmp/package_${TARGET_NAME}
   rm -rf ${PACKAGE_DIR}
   mkdir ${PACKAGE_DIR}
-  GNUPG_DIR=/tmp/.gnupg
-  rm -rf ${GNUPG_DIR}
-  mkdir -p ${GNUPG_DIR}
-  docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${HOME}/.gnupg:/tmp/.gnupg:rw -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} ${GNUPG_DIR} true
+  docker run --rm -ti -e GPG_SIGNING_KEY -v "${REPO_DIR}":${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} true
 done
 
 echo "Done."
