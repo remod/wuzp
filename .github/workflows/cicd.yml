@@ -49,7 +49,7 @@ jobs:
     env:
       DRY_RUN: ${{github.ref_name!='master'}}
       TARGET_NAME: ${{matrix.TARGET_NAME}}
-      SOURCE_DIR: ${REPO_DIR}/${TARGET_NAME}
+      SOURCE_DIR: ${{github.workspace}}/${{matrix.TARGET_NAME}}
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
