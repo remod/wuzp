@@ -68,6 +68,8 @@ jobs:
           echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
       - name: Package
         env:
+          GPG_SIGNING_KEY_PASSPHRASE: ${{secrets.GPG_SIGNING_KEY_PASSPHRASE}}
+          GPG_SIGNING_KEYGRIP: ${{secrets.GPG_SIGNING_KEYGRIP}}
           TARGET_VERSION: ${{env.GH_TARGET_VERSION}}
           GNUPGHOME: ${{env.GH_GNUPGHOME}}
         run: ${REPO_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION}

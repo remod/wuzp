@@ -16,18 +16,22 @@ TARGET_NAME=${3}
 TARGET_VERSION=${4}
 PACKAGE_WORKSPACE_DIR=${PACKAGE_DIR}/${TARGET_NAME}-${TARGET_VERSION}
 
-sudo apt install gnupg-agent pinentry-gtk2 pinentry-curses
-export GPGKEY=0xE10ED773
-killall -q gpg-agent
-eval $(gpg-agent --daemon)
-
 # Package.
+# Configure the debuild.
 export DEBFULLNAME="Remo Diethelm"
 export DEBEMAIL="rdiethelm@gmail.com"
+# Allow signing without interactively entering passphrase.
+echo "allow-preset-passphrase" > ${GNUPGHOME}/gpg-agent.conf
+gpgconf --kill gpg-agent
+eval $(gpg-agent --daemon)
+/usr/lib/gnupg/gpg-preset-passphrase --preset --passphrase ${GPG_SIGNING_KEY_PASSPHRASE} ${GPG_SIGNING_KEYGRIP}
+# Create directory with source copy for out of source packaging.
 mkdir -p ${PACKAGE_DIR}
 cp -r ${SOURCE_DIR} ${PACKAGE_WORKSPACE_DIR}
 cd ${PACKAGE_WORKSPACE_DIR}
+# Create orig file.
 dh_make --packageclass s --createorig --yes && true
+# Package.
 debuild -S -sa
 cd -
 
