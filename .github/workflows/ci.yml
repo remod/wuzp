@@ -1,4 +1,4 @@
-name: CI/CD
+name: Continuous Integration
 
 on: [push]
 
@@ -63,6 +63,7 @@ jobs:
       - name: Configure GPG Key
         env:
           GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
+          GPG_PUBLIC_KEY: ${{secrets.GPG_PUBLIC_KEY}}
         run: | 
           source ${REPO_DIR}/scripts/deliver/steps/configure_gpg_key.sh
           echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
