@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit immediately if a command fails.
-set -e
+set -ex
 
 # Do not check arguments, as there are none and this script is sourced, it just gets all arguments of the parent script.
 ## Check arguments.

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit immediately if a command fails.
-set -e
+set -ex
 
 # Check arguments.
 if [ $# != 3 ]; then

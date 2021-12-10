@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        TARGET_NAME: ["wuzp"]
+        TARGET_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
     env:
       DRY_RUN: ${{github.ref_name!='master'}}
       TARGET_NAME: ${{matrix.TARGET_NAME}}

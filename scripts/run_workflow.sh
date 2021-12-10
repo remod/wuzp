@@ -4,7 +4,7 @@
 # The only difference is that the script performs an out-of-source build in the mounted /tmp directory.
 
 # Exit immediately if a command fails.
-set -e
+set -ex
 
 # Check arguments.
 if [ $# -lt 4 ] || [ $# -gt 5 ]; then
@@ -63,7 +63,7 @@ GPG_SIGNING_KEY_TMP=$(cat ${GPG_SIGNING_KEY_FILE})
 export GPG_SIGNING_KEY=${GPG_SIGNING_KEY_TMP}
 GPG_PUBLIC_KEY_TMP=$(cat ${GPG_PUBLIC_KEY_FILE})
 export GPG_PUBLIC_KEY=${GPG_PUBLIC_KEY_TMP}
-for TARGET_NAME in "wuzp"; do
+for TARGET_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   # Run job.
   echo "Delivering target ${TARGET_NAME} ..."
   PACKAGE_DIR=/tmp/package_${TARGET_NAME}
