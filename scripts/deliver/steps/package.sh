@@ -28,8 +28,8 @@ eval $(gpg-agent --daemon)
 # Create directory with source copy for out of source packaging.
 mkdir -p ${PACKAGE_DIR}
 cp -r ${SOURCE_DIR} ${PACKAGE_WORKSPACE_DIR}
-cd ${PACKAGE_WORKSPACE_DIR}
 # Create orig file.
+cd ${PACKAGE_WORKSPACE_DIR}
 dh_make --packageclass s --createorig --yes && true
 # Package.
 debuild -S -sa

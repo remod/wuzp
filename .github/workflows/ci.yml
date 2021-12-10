@@ -14,15 +14,18 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      BUILD_DIR: ${{github.workspace}}/build
+      BUILD_DIR: ${{github.workspace}}/build_${{matrix.C_CXX_COMPILER// /_}}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       BUILD_TYPE: Debug
+      C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
+      UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
+      VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
     - name: Install Dependencies
-      run: sudo ${REPO_DIR}/scripts/build_and_test/steps/install_dependencies.sh ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      run: sudo ${REPO_DIR}/scripts/build_and_test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Create Build Environment
-      run: ${REPO_DIR}/scripts/build_and_test/steps/create_build_environment.sh ${REPO_DIR} ${BUILD_DIR} ${{matrix.C_CXX_COMPILER}} ${BUILD_TYPE} ON ON ON ${{matrix.UNITS_IMPLEMENTATION}} ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      run: ${REPO_DIR}/scripts/build_and_test/steps/create_build_environment.sh ${REPO_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Build
       run: ${REPO_DIR}/scripts/build_and_test/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
