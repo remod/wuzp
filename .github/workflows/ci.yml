@@ -4,15 +4,14 @@ on: [push]
 
 env:  # Note: Nested environment variables are not supported.
   REPO_DIR: ${{github.workspace}}
-  BUILD_DIR: ${{github.workspace}}/build
-  PACKAGE_DIR: ${{github.workspace}}/package_wuzp/wuzp-0.0.1
-  BUILD_TYPE: Debug
 
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        BUILD_DIR: ${{github.workspace}}/build
+        BUILD_TYPE: Debug
         C_CXX_COMPILER: ["gcc g++", "clang clang++"]
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
@@ -50,6 +49,7 @@ jobs:
       DRY_RUN: ${{github.ref_name!='master'}}
       TARGET_NAME: ${{matrix.TARGET_NAME}}
       SOURCE_DIR: ${{github.workspace}}/${{matrix.TARGET_NAME}}
+      PACKAGE_DIR: ${{github.workspace}}/package_${{matrix.TARGET_NAME}}
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2

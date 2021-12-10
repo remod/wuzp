@@ -12,7 +12,6 @@ set -e
 #fi
 
 # Configure GPG key.
-mkdir /tmp/gnupg
 export GNUPGHOME=/tmp/.gnupg
 echo -n "${GPG_SIGNING_KEY}" | base64 --decode | gpg --batch --import
 echo -n "${GPG_PUBLIC_KEY}" | gpg --batch --import
