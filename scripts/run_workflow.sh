@@ -4,7 +4,7 @@
 # The only difference is that the script performs an out-of-source build in the mounted /tmp directory.
 
 # Exit immediately if a command fails.
-set -ex
+set -e
 
 # Check arguments.
 if [ $# -lt 4 ] || [ $# -gt 5 ]; then

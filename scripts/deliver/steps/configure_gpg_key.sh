@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit immediately if a command fails.
-set -ex
+set -e
 
 # Do not check arguments, as there are none and this script is sourced, it just gets all arguments of the parent script.
 ## Check arguments.
@@ -15,6 +15,6 @@ set -ex
 mkdir /tmp/gnupg
 export GNUPGHOME=/tmp/.gnupg
 echo -n "${GPG_SIGNING_KEY}" | base64 --decode | gpg --batch --import
-echo -n "${GPG_PUBLIC_KEY}" | base64 --decode | gpg --batch --import
+echo -n "${GPG_PUBLIC_KEY}" | gpg --batch --import
 
 return 0
