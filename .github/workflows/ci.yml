@@ -14,7 +14,7 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      BUILD_DIR: ${{github.workspace}}/build_${{matrix.C_CXX_COMPILER}// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
+      BUILD_DIR: ${{github.workspace}}/build
       BUILD_TYPE: Debug
       C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
@@ -53,7 +53,7 @@ jobs:
       DRY_RUN: ${{github.ref_name!='master'}}
       TARGET_NAME: ${{matrix.TARGET_NAME}}
       SOURCE_DIR: ${{github.workspace}}/${{matrix.TARGET_NAME}}
-      PACKAGE_DIR: ${{github.workspace}}/package_${{matrix.TARGET_NAME}}
+      PACKAGE_DIR: ${{github.workspace}}/package
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
