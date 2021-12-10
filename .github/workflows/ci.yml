@@ -10,11 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        BUILD_DIR: ${{github.workspace}}/build
-        BUILD_TYPE: Debug
         C_CXX_COMPILER: ["gcc g++", "clang clang++"]
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
+    env:
+      BUILD_DIR: ${{github.workspace}}/build
+      BUILD_TYPE: Debug
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
