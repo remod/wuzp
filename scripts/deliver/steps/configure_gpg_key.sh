@@ -16,9 +16,5 @@ export GNUPGHOME=/tmp/.gnupg
 echo -n "${GPG_SIGNING_KEY}" | base64 --decode | gpg --batch --import
 echo -n "${GPG_PUBLIC_KEY}" | gpg --batch --import
 echo "trusted-key 0x820A40B6E10ED773" > ${GNUPGHOME}/gpg.conf
-echo "Secret keys:"
-gpg --list-secret-keys --keyid-format=long
-echo "Public keys:"
-gpg --list-keys --keyid-format=long
 
 return 0

@@ -22,10 +22,6 @@ if [ ${DRY_RUN} = true ]; then
   # See http://manpages.ubuntu.com/manpages/trusty/man1/dput.1.html for more info.
   OPTIONS="--simulate --simulate"
 fi
-echo "Secret keys:"
-gpg --list-secret-keys --keyid-format=long
-echo "Public keys:"
-gpg --list-keys --keyid-format=long
 dput ${OPTIONS} ppa:remod/wuzp ${PACKAGE_DIR}/${TARGET_NAME//_/-}_${TARGET_VERSION}-${BUILD_INCREMENT}_source.changes
 
 exit 0

@@ -16,10 +16,6 @@ TARGET_NAME=${3}
 TARGET_VERSION=${4}
 PACKAGE_WORKSPACE_DIR=${PACKAGE_DIR}/${TARGET_NAME//_/-}-${TARGET_VERSION}
 
-echo "Secret keys:"
-gpg --list-secret-keys --keyid-format=long
-echo "Public keys:"
-gpg --list-keys --keyid-format=long
 # Package.
 # Configure the debuild.
 export DEBFULLNAME="Remo Diethelm"
@@ -38,9 +34,5 @@ dh_make --packageclass s --createorig --yes && true
 # Package.
 debuild -S -sa
 cd -
-echo "Secret keys:"
-gpg --list-secret-keys --keyid-format=long
-echo "Public keys:"
-gpg --list-keys --keyid-format=long
 
 exit 0
