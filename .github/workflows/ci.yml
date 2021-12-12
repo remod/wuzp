@@ -61,7 +61,6 @@ jobs:
         run: | 
           source ${REPO_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR}
           echo "GH_TARGET_VERSION=${TARGET_VERSION}" >> $GITHUB_ENV
-          echo "GH_BUILD_INCREMENT=${BUILD_INCREMENT}" >> $GITHUB_ENV
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh
       - name: Configure GPG Key
@@ -80,7 +79,6 @@ jobs:
         run: ${REPO_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION}
       - name: Deliver
         env:
-          BUILD_INCREMENT: ${{env.GH_BUILD_INCREMENT}}
           GNUPGHOME: ${{env.GH_GNUPGHOME}}
           TARGET_VERSION: ${{env.GH_TARGET_VERSION}}
-        run: ${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${BUILD_INCREMENT} ${DRY_RUN}
+        run: ${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${DRY_RUN}

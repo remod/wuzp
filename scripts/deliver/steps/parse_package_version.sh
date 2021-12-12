@@ -20,7 +20,5 @@ if ! [[ $FIRST_LINE =~ $PATTERN ]]; then
   return 1
 fi
 export TARGET_VERSION=${BASH_REMATCH[1]}
-BUILD_INCREMENT_TMP=$(date +%s)
-export BUILD_INCREMENT=${BUILD_INCREMENT_TMP}
 
 return 0

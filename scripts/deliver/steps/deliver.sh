@@ -4,17 +4,16 @@
 set -e
 
 # Check arguments.
-if [ $# != 5 ]; then
+if [ $# != 4 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./deliver.sh PACKAGE_DIR TARGET_NAME TARGET_VERSION BUILD_INCREMENT DRY_RUN"
+  echo "Usage: ./deliver.sh PACKAGE_DIR TARGET_NAME TARGET_VERSION DRY_RUN"
   exit 1
 fi
 
 PACKAGE_DIR=${1}
 TARGET_NAME=${2}
 TARGET_VERSION=${3}
-BUILD_INCREMENT=${4}
-DRY_RUN=${5}
+DRY_RUN=${4}
 
 # Deliver.
 if [ ${DRY_RUN} = true ]; then
@@ -22,6 +21,6 @@ if [ ${DRY_RUN} = true ]; then
   # See http://manpages.ubuntu.com/manpages/trusty/man1/dput.1.html for more info.
   OPTIONS="--simulate --simulate"
 fi
-dput ${OPTIONS} ppa:remod/wuzp ${PACKAGE_DIR}/${TARGET_NAME//_/-}_${TARGET_VERSION}-${BUILD_INCREMENT}_source.changes
+dput ${OPTIONS} ppa:remod/wuzp ${PACKAGE_DIR}/${TARGET_NAME//_/-}_${TARGET_VERSION}_source.changes
 
 exit 0
