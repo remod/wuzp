@@ -82,4 +82,5 @@ jobs:
         env:
           TARGET_VERSION: ${{env.GH_TARGET_VERSION}}
           BUILD_INCREMENT: ${{env.GH_BUILD_INCREMENT}}
+          GNUPGHOME: ${{env.GH_GNUPGHOME}}
         run: ${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${BUILD_INCREMENT} ${DRY_RUN}
