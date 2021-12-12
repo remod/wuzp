@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
-project(wuzp
-    VERSION 0.0.1
-)
+if (${TARGET_VERSION})
+    project(wuzp
+        VERSION ${TARGET_VERSION}
+    )
+else()
+    project(wuzp)
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -12,10 +16,12 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-    COMPATIBILITY SameMinorVersion
-)
+if (${TARGET_VERSION})
+    write_basic_package_version_file(
+        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        COMPATIBILITY SameMinorVersion
+    )
+endif()
 configure_package_config_file(
     "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
