@@ -77,8 +77,9 @@ jobs:
       - name: Upload Package to Cache
         uses: actions/cache@v2
         with:
-          key: ${PACKAGE_NAME}
-          path: ${PACKAGE_DIR}
+          # Note: It is not possible to reuse environment variables here.
+          key: ${{matrix.PACKAGE_NAME}}
+          path: ${{github.workspace}}/package
   deliver:
     needs: package
     runs-on: ubuntu-20.04
@@ -96,8 +97,9 @@ jobs:
       - name: Download Package from Cache
         uses: actions/cache@v2
         with:
-          key: ${PACKAGE_NAME}
-          path: ${PACKAGE_DIR}
+          # Note: It is not possible to reuse environment variables here.
+          key: ${{matrix.PACKAGE_NAME}}
+          path: ${{github.workspace}}/package
       - name: Parse Package Version
         run: | 
           source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
