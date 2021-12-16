@@ -7,7 +7,7 @@ env:  # Note: Nested environment variables are not supported.
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         C_CXX_COMPILER: ["gcc g++", "clang clang++"]
@@ -43,41 +43,68 @@ jobs:
         curl -Os https://uploader.codecov.io/latest/linux/codecov
         chmod +x codecov
         ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${BUILD_DIR}/code_coverage/output.xml
-  deliver:
-#    needs: build_and_test
-    runs-on: ubuntu-latest
+  package:
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        TARGET_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
+        PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
     env:
-      DRY_RUN: ${{github.ref_name!='master'}}
       PACKAGE_DIR: ${{github.workspace}}/package
-      SOURCE_DIR: ${{github.workspace}}/${{matrix.TARGET_NAME}}
-      TARGET_NAME: ${{matrix.TARGET_NAME}}
+      PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
       - name: Parse Package Version
-        run: | 
-          source ${REPO_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR}
-          echo "GH_TARGET_VERSION=${TARGET_VERSION}" >> $GITHUB_ENV
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
+          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Install Dependencies
-        run: sudo ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh
+        run: sudo ${REPO_DIR}/scripts/package/steps/install_dependencies.sh
       - name: Configure GPG Key
         env:
           GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
-        run: | 
-          source ${REPO_DIR}/scripts/deliver/steps/configure_gpg_key.sh
+        run: |
+          source ${REPO_DIR}/scripts/package/steps/configure_gpg_key.sh
           echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
       - name: Package
         env:
           GNUPGHOME: ${{env.GH_GNUPGHOME}}
           GPG_SIGNING_KEYGRIP: ${{secrets.GPG_SIGNING_KEYGRIP}}
           GPG_SIGNING_KEY_PASSPHRASE: ${{secrets.GPG_SIGNING_KEY_PASSPHRASE}}
-          TARGET_VERSION: ${{env.GH_TARGET_VERSION}}
-        run: ${REPO_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION}
+          PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
+        run: ${REPO_DIR}/scripts/package/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
+      - name: Upload Package to Cache
+        uses: actions/cache@v2
+        with:
+          key: ${PACKAGE_NAME}
+          path: ${PACKAGE_DIR}
+  deliver:
+    needs: package
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
+    env:
+      DRY_RUN: ${{github.ref_name!='master'}}
+      PACKAGE_DIR: ${{github.workspace}}/package
+      PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
+    steps:
+      - name: Prepare Repository
+        uses: actions/checkout@v2
+      - name: Download Package from Cache
+        uses: actions/cache@v2
+        with:
+          key: ${PACKAGE_NAME}
+          path: ${PACKAGE_DIR}
+      - name: Parse Package Version
+        run: | 
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
+          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+      - name: Install Dependencies
+        run: sudo ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh
       - name: Deliver
         env:
-          GNUPGHOME: ${{env.GH_GNUPGHOME}}
-          TARGET_VERSION: ${{env.GH_TARGET_VERSION}}
-        run: ${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${DRY_RUN}
+          PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
+        run: ${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION} ${DRY_RUN}

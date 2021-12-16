@@ -4,4 +4,4 @@
 	dh $@
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DTARGET_VERSION=$(TARGET_VERSION)
+	dh_auto_configure -- -DPACKAGE_VERSION=$(PACKAGE_VERSION)

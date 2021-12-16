@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
-if (${TARGET_VERSION})
+if (${PACKAGE_VERSION})
     project(wuzp
-        VERSION ${TARGET_VERSION}
+        VERSION ${PACKAGE_VERSION}
     )
 else()
     project(wuzp)
@@ -15,13 +15,13 @@ target_include_directories(${PROJECT_NAME} INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 
+# The installation of this package is only supported when the version number is specified.
+if (${PACKAGE_VERSION})
 include(CMakePackageConfigHelpers)
-if (${TARGET_VERSION})
     write_basic_package_version_file(
         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
         COMPATIBILITY SameMinorVersion
     )
-endif()
 configure_package_config_file(
     "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
@@ -41,3 +41,4 @@ install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
     DESTINATION lib/cmake/${PROJECT_NAME})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include)
+endif()

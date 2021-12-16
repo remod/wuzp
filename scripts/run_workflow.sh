@@ -9,7 +9,7 @@ set -e
 # Check arguments.
 if [ $# -lt 3 ] || [ $# -gt 4 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./run_workflow.sh GPG_SIGNING_KEY_FILE GPG_SIGNING_KEYGRIP GPG_SIGNING_KEY_PASSPHRASE [DOCKER_IMAGE=ubuntu:latest]"
+  echo "Usage: ./run_workflow.sh GPG_SIGNING_KEY_FILE GPG_SIGNING_KEYGRIP GPG_SIGNING_KEY_PASSPHRASE [DOCKER_IMAGE=ubuntu:20.04]"
   exit 1
 fi
 
@@ -19,7 +19,7 @@ export GPG_SIGNING_KEY_PASSPHRASE=${3}
 if [ $# == 4 ]; then
   DOCKER_IMAGE=${4}
 else
-  DOCKER_IMAGE="ubuntu:latest"
+  DOCKER_IMAGE="ubuntu:20.04"
 fi
 
 # Check GPG signing key file.
@@ -53,16 +53,24 @@ echo "Running workflow in docker image ${DOCKER_IMAGE} ..."
 #  done
 #done
 
-# Deliver.
+# Package.
 GPG_SIGNING_KEY_TMP=$(cat ${GPG_SIGNING_KEY_FILE})
 export GPG_SIGNING_KEY=${GPG_SIGNING_KEY_TMP}
-for TARGET_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
+for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   # Run job.
-  echo "Delivering target ${TARGET_NAME} ..."
-  PACKAGE_DIR=/tmp/package_${TARGET_NAME}
+  echo "Packaging ${PACKAGE_NAME} ..."
+  PACKAGE_DIR=/tmp/package_${PACKAGE_NAME}
   rm -rf ${PACKAGE_DIR}
   mkdir ${PACKAGE_DIR}
-  docker run --rm -ti -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} true
+  docker run --rm -ti -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/package/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME}
+done
+
+# Deliver.
+for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
+  # Run job.
+  echo "Delivering package ${PACKAGE_NAME} ..."
+  PACKAGE_DIR=/tmp/package_${PACKAGE_NAME}
+  docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} true
 done
 
 echo "Done."

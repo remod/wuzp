@@ -19,6 +19,6 @@ if ! [[ $FIRST_LINE =~ $PATTERN ]]; then
   echo "Failed to parse package version in '${FIRST_LINE}'."
   return 1
 fi
-export TARGET_VERSION=${BASH_REMATCH[1]}
+export PACKAGE_VERSION=${BASH_REMATCH[1]}
 
 return 0

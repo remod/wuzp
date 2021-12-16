@@ -3,27 +3,20 @@
 # Check arguments.
 if [ $# != 4 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./run_job.sh REPO_DIR PACKAGE_DIR TARGET_NAME DRY_RUN"
+  echo "Usage: ./run_job.sh REPO_DIR PACKAGE_DIR PACKAGE_NAME DRY_RUN"
   exit 1
 fi
 
 REPO_DIR=${1}
 PACKAGE_DIR=${2}
-TARGET_NAME=${3}
+PACKAGE_NAME=${3}
 DRY_RUN=${4}
-SOURCE_DIR=${REPO_DIR}/${TARGET_NAME}
+SOURCE_DIR=${REPO_DIR}/${PACKAGE_NAME}
 
 # Run all steps.
-# TODO(remod): Compare version to version in CMakeLists.
-# TODO(remod): When making this repo public, use GitHub environment to restrict deployment secrets to master.
-source ${REPO_DIR}/scripts/deliver/steps/parse_package_version.sh ${SOURCE_DIR} &&
+source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR} &&
 ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh &&
-source ${REPO_DIR}/scripts/deliver/steps/configure_gpg_key.sh &&
-${REPO_DIR}/scripts/deliver/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} &&
-${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${TARGET_NAME} ${TARGET_VERSION} ${DRY_RUN}
+${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION} ${DRY_RUN}
 RETURN_CODE=$?
-
-# Make the host user the owner of the package directory.
-chown -R 1000:1000 ${PACKAGE_DIR}
 
 exit ${RETURN_CODE}

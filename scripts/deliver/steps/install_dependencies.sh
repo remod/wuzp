@@ -13,6 +13,6 @@ fi
 # Install dependencies.
 export DEBIAN_FRONTEND=noninteractive
 apt update
-apt install -y cmake debhelper-compat devscripts dh-make dput gnupg-agent
+apt install -y dput
 
 exit 0
