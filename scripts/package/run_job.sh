@@ -17,7 +17,7 @@ SOURCE_DIR=${REPO_DIR}/${PACKAGE_NAME}
 # TODO(remod): When making this repo public, use GitHub environment to restrict deployment secrets to master.
 source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR} &&
 ${REPO_DIR}/scripts/package/steps/install_dependencies.sh &&
-source ${REPO_DIR}/scripts/package/steps/configure_gpg_key.sh &&
+source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh &&
 ${REPO_DIR}/scripts/package/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION} &&
 RETURN_CODE=$?
 

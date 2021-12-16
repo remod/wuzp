@@ -65,7 +65,7 @@ jobs:
         env:
           GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
         run: |
-          source ${REPO_DIR}/scripts/package/steps/configure_gpg_key.sh
+          source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
           echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
       - name: Package
         env:
@@ -106,7 +106,14 @@ jobs:
           echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh
+      - name: Configure GPG Key
+        env:
+          GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
+          echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
       - name: Deliver
         env:
+          GNUPGHOME: ${{env.GH_GNUPGHOME}}
           PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
         run: ${REPO_DIR}/scripts/deliver/steps/deliver.sh ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION} ${DRY_RUN}
