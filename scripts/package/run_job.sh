@@ -18,7 +18,7 @@ SOURCE_DIR=${REPO_DIR}/${PACKAGE_NAME}
 source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR} &&
 ${REPO_DIR}/scripts/package/steps/install_dependencies.sh &&
 source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh &&
-${REPO_DIR}/scripts/package/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION} &&
+${REPO_DIR}/scripts/package/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
 RETURN_CODE=$?
 
 # Make the host user the owner of the package directory.

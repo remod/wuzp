@@ -6,7 +6,7 @@ env:  # Note: Nested environment variables are not supported.
   REPO_DIR: ${{github.workspace}}
 
 jobs:
-  build_and_test:
+  test:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -14,7 +14,7 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      BUILD_DIR: ${{github.workspace}}/build
+      BUILD_DIR: ${{github.workspace}}/test
       BUILD_TYPE: Debug
       C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
@@ -23,19 +23,19 @@ jobs:
     - name: Prepare Repository
       uses: actions/checkout@v2
     - name: Install Dependencies
-      run: sudo ${REPO_DIR}/scripts/build_and_test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Create Build Environment
-      run: ${REPO_DIR}/scripts/build_and_test/steps/create_build_environment.sh ${REPO_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      run: ${REPO_DIR}/scripts/test/steps/create_build_environment.sh ${REPO_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Build
-      run: ${REPO_DIR}/scripts/build_and_test/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${REPO_DIR}/scripts/test/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
-      run: ${REPO_DIR}/scripts/build_and_test/steps/test.sh ${REPO_DIR} ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${REPO_DIR}/scripts/test/steps/test.sh ${REPO_DIR} ${BUILD_DIR} ${BUILD_TYPE}
     - name: Format  # TODO(remod): Run this step earlier, potentially in a separate job (it is compiler independent)
       shell: bash
-      run: ${REPO_DIR}/scripts/build_and_test/steps/format.sh ${REPO_DIR} ${BUILD_DIR}
+      run: ${REPO_DIR}/scripts/test/steps/format.sh ${REPO_DIR} ${BUILD_DIR}
     - name: Tidy
       shell: bash
-      run: ${REPO_DIR}/scripts/build_and_test/steps/tidy.sh ${BUILD_DIR}
+      run: ${REPO_DIR}/scripts/test/steps/tidy.sh ${BUILD_DIR}
     - name: Upload Code Coverage  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
       shell: bash
       run: |
@@ -80,8 +80,43 @@ jobs:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}
           path: ${{github.workspace}}/package
-  deliver:
+  test_packages:
     needs: package
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        C_CXX_COMPILER: ["gcc g++", "clang clang++"]
+        UNITS_IMPLEMENTATION: [0, 1]
+        VALUE_MATRIX_IMPLEMENTATION: [1]
+    env:
+      PACKAGE_DIR: ${{github.workspace}}/package
+      SOURCE_DIR: ${{github.workspace}}/tests
+      BUILD_DIR: ${{github.workspace}}/test_packages
+      BUILD_TYPE: Debug
+      C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
+      UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
+      VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+    steps:
+      - name: Prepare Repository
+        uses: actions/checkout@v2
+      - name: Download Package from Cache
+        uses: actions/cache@v2
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: ${{matrix.PACKAGE_NAME}}
+          path: ${{github.workspace}}/package
+      - name: Install Dependencies
+        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      - name: Install Packages
+        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGE_DIR} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      - name: Create Build Environment
+        run: ${REPO_DIR}/scripts/test_packages/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      - name: Build
+        run: ${REPO_DIR}/scripts/test_packages/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+      - name: Test
+        run: ${REPO_DIR}/scripts/test_packages/steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
+  deliver:
+    needs: test_packages
     runs-on: ubuntu-20.04
     strategy:
       matrix:

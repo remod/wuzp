@@ -6,7 +6,7 @@ set -e
 # Check arguments.
 if [ $# != 1 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./format.sh BUILD_DIR"
+  echo "Usage: ./tidy.sh BUILD_DIR"
   exit 1
 fi
 

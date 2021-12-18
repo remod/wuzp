@@ -2,7 +2,7 @@
 
 *wuzp* is a C++ library for compile time analysis of units and coordinate frames for linear algebra.
 
-[![Build and Test](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml)
+[![CI](https://github.com/remod/wuzp/actions/workflows/test.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/ci.yml)
 [![Code Coverage](https://codecov.io/gh/remod/wuzp/branch/master/graph/badge.svg?token=FVPNHZKXVX)](https://codecov.io/gh/remod/wuzp)
 
 ## Introduction

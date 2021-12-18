@@ -23,12 +23,12 @@ inline std::string getCMakeListsContent() {
          "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_WUZP=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION_WUZP) ")\n"
          "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_EIGEN=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION_EIGEN) ")\n"
          "\n"
-         "add_subdirectory(" TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/wuzp wuzp_build)\n"
+         "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp wuzp_build)\n"
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-         "add_subdirectory(" TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/wuzp_boost wuzp_boost_build)\n"
+         "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_boost wuzp_boost_build)\n"
 #endif
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-         "add_subdirectory(" TO_STRING(CMAKE_CURRENT_SOURCE_DIR) "/wuzp_eigen wuzp_eigen_build)\n"
+         "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_eigen wuzp_eigen_build)\n"
 #endif
          "\n"
          "add_executable(tests test.cpp)\n"
