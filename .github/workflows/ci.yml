@@ -105,19 +105,19 @@ jobs:
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp
-          path: ${{github.workspace}}/package
+          path: ${{github.workspace}}/package/wuzp
       - name: Download Package wuzp_boost from Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_boost
-          path: ${{github.workspace}}/package
+          path: ${{github.workspace}}/package/wuzp_boost
       - name: Download Package wuzp_eigen from Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_eigen
-          path: ${{github.workspace}}/package
+          path: ${{github.workspace}}/package/wuzp_eigen
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Install Packages

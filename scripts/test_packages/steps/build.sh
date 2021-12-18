@@ -11,6 +11,6 @@ if [ $# != 2 ]; then
 fi
 
 # Build.
-cmake --build ${1} --config ${2}
+cmake --build ${1} --config ${2} --parallel
 
 exit 0

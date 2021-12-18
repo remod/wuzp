@@ -17,7 +17,7 @@ BUILD_CONFIG=${2}
 # Unfortunately ctest < 3.20 does not support specifying the test directory, so we cd there.
 cd ${BUILD_DIR}
 # If some tests fail, rerun them in verbose mode.
-ctest -C ${BUILD_CONFIG} --rerun-failed --output-on-failure
+ctest -C ${BUILD_CONFIG} --rerun-failed --output-on-failure --parallel
 cd -
 
 exit 0

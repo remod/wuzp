@@ -14,7 +14,7 @@ fi
 # Unfortunately ctest < 3.20 does not support specifying the test directory, so we cd there.
 cd ${2}
 # If some tests fail, rerun them in verbose mode.
-ctest -C ${3} --rerun-failed --output-on-failure
+ctest -C ${3} --rerun-failed --output-on-failure --parallel
 # Generate HTML and XML reports.
 mkdir code_coverage
 gcovr --root ${1} --exclude ${1}/test --html-details -o code_coverage/index.html
