@@ -80,7 +80,7 @@ jobs:
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}
-          path: ${{github.workspace}}/package
+          path: ${{github.workspace}}/package/${{matrix.PACKAGE_NAME}}
   test_packages:
     needs: package
     runs-on: ubuntu-20.04
@@ -147,7 +147,7 @@ jobs:
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}
-          path: ${{github.workspace}}/package
+          path: ${{github.workspace}}/package/${{matrix.PACKAGE_NAME}}
       - name: Parse Package Version
         run: | 
           source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
