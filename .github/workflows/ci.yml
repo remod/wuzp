@@ -17,6 +17,7 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/test
       BUILD_TYPE: Debug
       C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
+      SOURCE_DIR: ${{github.workspace}}/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     steps:
@@ -25,11 +26,11 @@ jobs:
     - name: Install Dependencies
       run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Create Build Environment
-      run: ${REPO_DIR}/scripts/test/steps/create_build_environment.sh ${REPO_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      run: ${REPO_DIR}/scripts/test/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Build
       run: ${REPO_DIR}/scripts/test/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
-      run: ${REPO_DIR}/scripts/test/steps/test.sh ${REPO_DIR} ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${REPO_DIR}/scripts/test/steps/test.sh ${SOURCE_DIR} ${BUILD_DIR} ${BUILD_TYPE}
     - name: Format  # TODO(remod): Run this step earlier, potentially in a separate job (it is compiler independent)
       shell: bash
       run: ${REPO_DIR}/scripts/test/steps/format.sh ${REPO_DIR} ${BUILD_DIR}
@@ -90,10 +91,10 @@ jobs:
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
       PACKAGE_DIR: ${{github.workspace}}/package
-      SOURCE_DIR: ${{github.workspace}}/tests
       BUILD_DIR: ${{github.workspace}}/test_packages
       BUILD_TYPE: Debug
       C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
+      SOURCE_DIR: ${{github.workspace}}/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     steps:
@@ -116,7 +117,7 @@ jobs:
       - name: Test
         run: ${REPO_DIR}/scripts/test_packages/steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
   deliver:
-    needs: test_packages
+    needs: [test, test_packages]
     runs-on: ubuntu-20.04
     strategy:
       matrix:
