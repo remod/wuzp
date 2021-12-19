@@ -16,14 +16,7 @@ VALUE_MATRIX_IMPLEMENTATION=${3}
 
 # Install packages.
 export DEBIAN_FRONTEND=noninteractive
-echo "TREE"
-tree ${PACKAGE_DIR}/..
-echo "HERE0"
-ls ${PACKAGE_DIR}/..
-echo "HERE1"
-ls ${PACKAGE_DIR}
-echo "HERE2"
-ls ${PACKAGE_DIR}/wuzp
+apt update
 PACKAGES="${PACKAGE_DIR}/wuzp/*.deb"
 if [[ ${UNITS_IMPLEMENTATION} == "1" ]]; then
   PACKAGES="${PACKAGES} ${PACKAGE_DIR}/wuzp_boost/*.deb"
@@ -31,6 +24,6 @@ fi
 if [[ ${VALUE_MATRIX_IMPLEMENTATION} == "1" ]]; then
   PACKAGES="${PACKAGES} ${PACKAGE_DIR}/wuzp_eigen/*.deb"
 fi
-dpkg --install ${PACKAGES}
+apt install ${PACKAGES}
 
 exit 0

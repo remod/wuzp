@@ -100,8 +100,6 @@ jobs:
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
-      - name: Create Package Directory
-        run: mkdir -p ${PACKAGE_DIR}
       - name: Download Package wuzp from Cache
         uses: actions/cache@v2
         with:
@@ -144,8 +142,6 @@ jobs:
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
-      - name: Create Package Directory
-        run: mkdir -p ${PACKAGE_DIR}
       - name: Download Package from Cache
         uses: actions/cache@v2
         with:

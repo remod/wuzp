@@ -18,7 +18,7 @@ SOURCE_DIR=${REPO_DIR}/tests
 
 # Run all steps.
 ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
-${REPO_DIR}/scripts/test/steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ${C_COMPILER} ${CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
+${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${C_COMPILER} ${CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/test/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&
 ${REPO_DIR}/scripts/test/steps/test.sh ${SOURCE_DIR} ${BUILD_DIR} ${BUILD_TYPE} &&
 ${REPO_DIR}/scripts/test/steps/format.sh ${REPO_DIR} ${BUILD_DIR} &&
