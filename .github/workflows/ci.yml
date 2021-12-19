@@ -13,7 +13,7 @@ jobs:
         # These variables do not influence formatting.
         C_CXX_COMPILER: ["gcc g++"]
         UNITS_IMPLEMENTATION: [0]
-        VALUE_MATRIX_IMPLEMENTATION: [1]
+        VALUE_MATRIX_IMPLEMENTATION: [0]
     env:
       BUILD_DIR: ${{github.workspace}}/check_format
       BUILD_TYPE: Debug
