@@ -17,6 +17,10 @@ VALUE_MATRIX_IMPLEMENTATION=${3}
 # Install packages.
 export DEBIAN_FRONTEND=noninteractive
 apt update
+echo "HERE1"
+ls ${PACKAGE_DIR}
+echo "HERE2"
+ls ${PACKAGE_DIR}/wuzp
 PACKAGES="${PACKAGE_DIR}/wuzp/*.deb"
 if [[ ${UNITS_IMPLEMENTATION} == "1" ]]; then
   PACKAGES="${PACKAGES} ${PACKAGE_DIR}/wuzp_boost/*.deb"
