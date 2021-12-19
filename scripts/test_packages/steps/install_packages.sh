@@ -16,7 +16,6 @@ VALUE_MATRIX_IMPLEMENTATION=${3}
 
 # Install packages.
 export DEBIAN_FRONTEND=noninteractive
-apt update
 echo "HERE1"
 ls ${PACKAGE_DIR}
 echo "HERE2"

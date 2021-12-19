@@ -90,16 +90,18 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      PACKAGE_DIR: ${{github.workspace}}/package
       BUILD_DIR: ${{github.workspace}}/test_packages
       BUILD_TYPE: Debug
       C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
+      PACKAGE_DIR: ${{github.workspace}}/package
       SOURCE_DIR: ${{github.workspace}}/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
+      - name: Create Package Directory
+        run: mkdir -p ${PACKAGE_DIR}
       - name: Download Package wuzp from Cache
         uses: actions/cache@v2
         with:
@@ -142,6 +144,8 @@ jobs:
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
+      - name: Create Package Directory
+        run: mkdir -p ${PACKAGE_DIR}
       - name: Download Package from Cache
         uses: actions/cache@v2
         with:
