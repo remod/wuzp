@@ -16,6 +16,8 @@ VALUE_MATRIX_IMPLEMENTATION=${3}
 
 # Install packages.
 export DEBIAN_FRONTEND=noninteractive
+echo "HERE0"
+ls ${PACKAGE_DIR}/..
 echo "HERE1"
 ls ${PACKAGE_DIR}
 echo "HERE2"
