@@ -101,11 +101,11 @@ endif()
 
 if (${ENABLE_FORMAT} OR ${ENABLE_TIDY})
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
-        ${PROJECT_SOURCE_DIR}/wuzp/include/wuzp/*.hpp
-        ${PROJECT_SOURCE_DIR}/wuzp/include/wuzp_units/*.hpp
-        ${PROJECT_SOURCE_DIR}/wuzp_boost/include/wuzp_boost/*.hpp
-        ${PROJECT_SOURCE_DIR}/wuzp_eigen/include/wuzp_eigen/*.hpp
-        ${PROJECT_SOURCE_DIR}/tests/src/*.[ch]pp
+        ${REPO_DIR}/wuzp/include/wuzp/*.hpp
+        ${REPO_DIR}/wuzp/include/wuzp_units/*.hpp
+        ${REPO_DIR}/wuzp_boost/include/wuzp_boost/*.hpp
+        ${REPO_DIR}/wuzp_eigen/include/wuzp_eigen/*.hpp
+        ${REPO_DIR}/tests/src/*.[ch]pp
     )
 endif()
 

@@ -25,6 +25,6 @@ if [[ ${VALUE_MATRIX_IMPLEMENTATION} == "1" ]]; then
   PACKAGES="${PACKAGES} ${PACKAGES_DIR}/wuzp_eigen/*.deb"
 fi
 # Unlike "dpkg --install", "apt install" automatically installs missing dependencies.
-apt install ${PACKAGES}
+apt install -y ${PACKAGES}
 
 exit 0

@@ -39,6 +39,13 @@ BUILD_TYPE=Debug
 # Run workflow.
 echo "Running workflow in docker image ${DOCKER_IMAGE} ..."
 
+# Check format.
+echo "Checking format ..."
+BUILD_DIR=/tmp/wuzp/check_format
+rm -rf ${BUILD_DIR}
+mkdir -p ${BUILD_DIR}
+docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR}
+
 # Test.
 for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
