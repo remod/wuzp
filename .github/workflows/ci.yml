@@ -79,7 +79,7 @@ jobs:
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
-          key: ${{matrix.PACKAGE_NAME}}
+          key: ${{matrix.PACKAGE_NAME}}_${{github.run_id}}
           path: ${{github.workspace}}/package/${{matrix.PACKAGE_NAME}}
   test_packages:
     needs: package
@@ -106,19 +106,19 @@ jobs:
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
-          key: wuzp
+          key: wuzp_${{github.run_id}}
           path: ${{github.workspace}}/package/wuzp
       - name: Download Package wuzp_boost from Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
-          key: wuzp_boost
+          key: wuzp_boost_${{github.run_id}}
           path: ${{github.workspace}}/package/wuzp_boost
       - name: Download Package wuzp_eigen from Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
-          key: wuzp_eigen
+          key: wuzp_eigen_${{github.run_id}}
           path: ${{github.workspace}}/package/wuzp_eigen
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
@@ -150,7 +150,7 @@ jobs:
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
-          key: ${{matrix.PACKAGE_NAME}}
+          key: ${{matrix.PACKAGE_NAME}}_${{github.run_id}}
           path: ${{github.workspace}}/package/${{matrix.PACKAGE_NAME}}
       - name: Parse Package Version
         run: | 
