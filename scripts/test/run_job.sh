@@ -22,7 +22,7 @@ ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUI
 ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&
 ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE} &&
 ${REPO_DIR}/scripts/common_steps/generate_coverage_reports.sh ${SOURCE_DIR} ${BUILD_DIR} &&
-${REPO_DIR}/scripts/common_steps/format.sh ${REPO_DIR} ${BUILD_DIR} &&
+${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR} &&
 ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
 RETURN_CODE=$?
 

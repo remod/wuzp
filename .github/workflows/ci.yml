@@ -8,19 +8,13 @@ env:  # Note: Nested environment variables are not supported.
 jobs:
   check_format:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        # These variables do not influence formatting.
-        C_CXX_COMPILER: ["gcc g++"]
-        UNITS_IMPLEMENTATION: [0]
-        VALUE_MATRIX_IMPLEMENTATION: [0]
     env:
       BUILD_DIR: ${{github.workspace}}/check_format
       BUILD_TYPE: Debug
-      C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
+      C_CXX_COMPILER: "gcc g++"
       SOURCE_DIR: ${{github.workspace}}/tests
-      UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
-      VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      UNITS_IMPLEMENTATION: 0
+      VALUE_MATRIX_IMPLEMENTATION: 0
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
@@ -28,8 +22,8 @@ jobs:
         run: sudo ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh
       - name: Create Build Environment
         run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${C_CXX_COMPILER} ${BUILD_TYPE} OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
-      - name: Format
-        run: ${REPO_DIR}/scripts/common_steps/format.sh ${REPO_DIR} ${BUILD_DIR}
+      - name: Check Format
+        run: ${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
   test:
     runs-on: ubuntu-20.04
     strategy:

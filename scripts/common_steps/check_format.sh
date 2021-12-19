@@ -6,7 +6,7 @@ set -e
 # Check arguments.
 if [ $# != 2 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./format.sh REPO_DIR BUILD_DIR"
+  echo "Usage: ./check_format.sh REPO_DIR BUILD_DIR"
   exit 1
 fi
 
