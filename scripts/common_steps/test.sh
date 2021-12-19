@@ -4,7 +4,7 @@
 set -e
 
 # Check arguments.
-if [ $# != 3 ]; then
+if [ $# != 2 ]; then
   echo "Number of arguments is incorrect."
   echo "Usage: ./test.sh BUILD_DIR BUILD_CONFIG"
   exit 1

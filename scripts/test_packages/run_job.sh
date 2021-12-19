@@ -21,8 +21,8 @@ SOURCE_DIR=${REPO_DIR}/tests
 ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGE_DIR} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${C_COMPILER} ${CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
-${REPO_DIR}/scripts/test_packages/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&
-${REPO_DIR}/scripts/test_packages/steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
+${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&
+${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
 RETURN_CODE=$?
 
 # Make the host user the owner of the build directory.

@@ -28,9 +28,11 @@ jobs:
     - name: Create Build Environment
       run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${C_CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Build
-      run: ${REPO_DIR}/scripts/test/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
-      run: ${REPO_DIR}/scripts/test/steps/test.sh ${SOURCE_DIR} ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
+    - name: Generate Coverage Reports
+      run: ${REPO_DIR}/scripts/common_steps/generate_coverage_reports.sh ${SOURCE_DIR} ${BUILD_DIR}
     - name: Format  # TODO(remod): Run this step earlier, potentially in a separate job (it is compiler independent)
       shell: bash
       run: ${REPO_DIR}/scripts/test/steps/format.sh ${REPO_DIR} ${BUILD_DIR}
@@ -125,9 +127,9 @@ jobs:
       - name: Create Build Environment
         run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${C_CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Build
-        run: ${REPO_DIR}/scripts/test_packages/steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+        run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
       - name: Test
-        run: ${REPO_DIR}/scripts/test_packages/steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
+        run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
   deliver:
     needs: [test, test_packages]
     runs-on: ubuntu-20.04

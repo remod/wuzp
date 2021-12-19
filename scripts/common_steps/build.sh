@@ -10,7 +10,10 @@ if [ $# != 2 ]; then
   exit 1
 fi
 
+BUILD_DIR=${1}
+BUILD_CONFIG=${2}
+
 # Build.
-cmake --build ${1} --config ${2} --parallel
+cmake --build ${BUILD_DIR} --config ${BUILD_CONFIG} --parallel
 
 exit 0
