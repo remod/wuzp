@@ -50,7 +50,7 @@ jobs:
       matrix:
         PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
     env:
-      PACKAGE_DIR: ${{github.workspace}}/package
+      PACKAGE_DIR: ${{github.workspace}}/package/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
       SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
     steps:
