@@ -35,10 +35,10 @@ jobs:
       run: ${REPO_DIR}/scripts/common_steps/generate_coverage_reports.sh ${SOURCE_DIR} ${BUILD_DIR}
     - name: Format  # TODO(remod): Run this step earlier, potentially in a separate job (it is compiler independent)
       shell: bash
-      run: ${REPO_DIR}/scripts/test/steps/format.sh ${REPO_DIR} ${BUILD_DIR}
+      run: ${REPO_DIR}/scripts/common_steps/format.sh ${REPO_DIR} ${BUILD_DIR}
     - name: Tidy
       shell: bash
-      run: ${REPO_DIR}/scripts/test/steps/tidy.sh ${BUILD_DIR}
+      run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
     - name: Upload Code Coverage  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
       shell: bash
       run: |
@@ -76,7 +76,7 @@ jobs:
           GPG_SIGNING_KEYGRIP: ${{secrets.GPG_SIGNING_KEYGRIP}}
           GPG_SIGNING_KEY_PASSPHRASE: ${{secrets.GPG_SIGNING_KEY_PASSPHRASE}}
           PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
-        run: ${REPO_DIR}/scripts/package/steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
+        run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
       - name: Upload Package to Cache
         uses: actions/cache@v2
         with:
@@ -95,7 +95,7 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/test_packages
       BUILD_TYPE: Debug
       C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
-      PACKAGE_DIR: ${{github.workspace}}/package
+      PACKAGES_DIR: ${{github.workspace}}/package
       SOURCE_DIR: ${{github.workspace}}/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
@@ -123,7 +123,7 @@ jobs:
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Install Packages
-        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGE_DIR} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGES_DIR} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Create Build Environment
         run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${C_CXX_COMPILER} ${BUILD_TYPE} ON ON ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Build
@@ -138,7 +138,7 @@ jobs:
         PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
     env:
       DRY_RUN: ${{github.ref_name!='master'}}
-      PACKAGE_DIR: ${{github.workspace}}/package
+      PACKAGE_DIR: ${{github.workspace}}/package/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
       SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
     steps:

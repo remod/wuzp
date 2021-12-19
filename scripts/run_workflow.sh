@@ -40,18 +40,18 @@ BUILD_TYPE=Debug
 echo "Running workflow in docker image ${DOCKER_IMAGE} ..."
 
 # Test.
-#for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
-#  for UNITS_IMPLEMENTATION in 0 1; do
-#    for VALUE_MATRIX_IMPLEMENTATION in 1; do
-#      # Run job.
-#      echo "Testing with ${C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
-#      BUILD_DIR=/tmp/wuzp/test/${C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
-#      rm -rf ${BUILD_DIR}
-#      mkdir -p ${BUILD_DIR}
-#      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
-#    done
-#  done
-#done
+for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
+  for UNITS_IMPLEMENTATION in 0 1; do
+    for VALUE_MATRIX_IMPLEMENTATION in 1; do
+      # Run job.
+      echo "Testing with ${C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
+      BUILD_DIR=/tmp/wuzp/test/${C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
+      rm -rf ${BUILD_DIR}
+      mkdir -p ${BUILD_DIR}
+      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+    done
+  done
+done
 
 # Package.
 GPG_SIGNING_KEY_TMP=$(cat ${GPG_SIGNING_KEY_FILE})
@@ -71,11 +71,11 @@ for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
     for VALUE_MATRIX_IMPLEMENTATION in 1; do
       # Run job.
       echo "Testing packages with ${C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
-      PACKAGE_DIR=/tmp/wuzp/package
+      PACKAGES_DIR=/tmp/wuzp/package
       BUILD_DIR=/tmp/wuzp/test_packages/${C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${BUILD_DIR}
       mkdir -p ${BUILD_DIR}
-      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done

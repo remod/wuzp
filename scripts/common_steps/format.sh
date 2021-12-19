@@ -6,12 +6,15 @@ set -e
 # Check arguments.
 if [ $# != 2 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./format.sh SOURCE_DIR BUILD_DIR"
+  echo "Usage: ./format.sh REPO_DIR BUILD_DIR"
   exit 1
 fi
 
+REPO_DIR=${1}
+BUILD_DIR=${2}
+
 # Format.
-make -C ${2} format
-git -C ${1} diff --exit-code
+make -C ${BUILD_DIR} format
+git -C ${REPO_DIR} diff --exit-code
 
 exit 0

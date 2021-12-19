@@ -10,7 +10,9 @@ if [ $# != 1 ]; then
   exit 1
 fi
 
+BUILD_DIR=${1}
+
 # Tidy. TODO(remod): Re-enable.
-#make -C ${1} tidy
+#make -C ${BUILD_DIR} tidy
 
 exit 0
