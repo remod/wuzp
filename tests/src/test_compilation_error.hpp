@@ -77,7 +77,8 @@ inline std::pair<bool, std::string> compile(const std::string& code) {
   std::filesystem::create_directories("test_compilation");
   createFile("test_compilation/CMakeLists.txt", getCMakeListsContent());
   createFile("test_compilation/test.cpp", code);
-  const auto result = exec("cd test_compilation && cmake . && make 2>&1");
+  const auto result = exec("cd test_compilation && cmake -D CMAKE_C_COMPILER=" TO_STRING(C_COMPILER) " -D CMAKE_CXX_COMPILER=" TO_STRING(
+      CXX_COMPILER) " . && make 2>&1");
   return {result.first == EXIT_SUCCESS, result.second};
 }
 
