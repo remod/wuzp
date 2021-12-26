@@ -12,7 +12,8 @@ fi
 
 # Set locale.
 apt install -y locales
-locale-gen de_DE.UTF-8
+locale -a
+locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
 
 exit 0
