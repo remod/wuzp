@@ -246,8 +246,7 @@ using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystem
 using MyTensor = Tensor<1, 0, MyCoordinateMatrix>;
 
 int main() {
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   [[maybe_unused]] const MyTensor tensor = valueMatrix;
   return 0;
 }

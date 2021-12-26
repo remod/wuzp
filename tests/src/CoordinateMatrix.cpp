@@ -182,8 +182,7 @@ using MyCoordinateSystemMatrix = TypeMatrix<2, 3, CoordinateSystemA>;
 using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
 
 int main() {
-  MyValueMatrix valueMatrix;
-  valueMatrix << 1, 2, 3, 4, 5, 6;
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   [[maybe_unused]] const MyCoordinateMatrix coordinateMatrix = valueMatrix;
   return 0;
 }

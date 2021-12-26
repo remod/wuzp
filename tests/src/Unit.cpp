@@ -42,7 +42,8 @@ int main() {
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "Two absolute units cannot be summed.");
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, "no match for 'operator+'");
+                             // Use regex to comply with different locales.
+  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, "no match for .operator+.");
 #endif
 }
 

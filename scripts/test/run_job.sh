@@ -17,9 +17,6 @@ VALUE_MATRIX_IMPLEMENTATION=${7}
 SOURCE_DIR=${REPO_DIR}/tests
 
 # Run all steps.
-cat /etc/default/locale
-${REPO_DIR}/scripts/common_steps/set_locale.sh &&
-cat /etc/default/locale
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${C_COMPILER} ${CXX_COMPILER} ${BUILD_TYPE} ON OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
