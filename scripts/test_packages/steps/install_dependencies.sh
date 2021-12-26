@@ -11,7 +11,6 @@ if [ $# != 2 ]; then
 fi
 
 # Install dependencies.
-export DEBIAN_FRONTEND=noninteractive
 apt install -y build-essential cmake gcc g++ clang libgtest-dev
 
 exit 0

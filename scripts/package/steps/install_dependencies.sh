@@ -11,7 +11,6 @@ if [ $# != 0 ]; then
 fi
 
 # Install dependencies.
-export DEBIAN_FRONTEND=noninteractive
 apt install -y cmake debhelper-compat devscripts gnupg-agent
 # TODO(remod): Make this step cleaner, by only installing the required dependencies.
 apt install -y libboost-dev libeigen3-dev

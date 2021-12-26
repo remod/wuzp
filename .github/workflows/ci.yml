@@ -3,6 +3,7 @@ name: Continuous Integration
 on: [push]
 
 env:  # Note: Nested environment variables are not supported.
+  DEBIAN_FRONTEND: noninteractive
   REPO_DIR: ${{github.workspace}}
 
 jobs:

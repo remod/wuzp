@@ -74,11 +74,14 @@ inline std::pair<int, std::string> exec(const char* cmd) {
  * @return Pair of boolean indicating success and a string containing the standard output.
  */
 inline std::pair<bool, std::string> compile(const std::string& code) {
-  std::filesystem::create_directories("test_compilation");
-  createFile("test_compilation/CMakeLists.txt", getCMakeListsContent());
-  createFile("test_compilation/test.cpp", code);
-  const auto result = exec("cd test_compilation && cmake -D CMAKE_C_COMPILER=" TO_STRING(C_COMPILER) " -D CMAKE_CXX_COMPILER=" TO_STRING(
-      CXX_COMPILER) " . && make 2>&1");
+  const std::string directory = std::string{"test_compilation_"} + std::to_string(std::hash<std::string>()(code));
+  std::filesystem::create_directories(directory);
+  createFile(directory + "/CMakeLists.txt", getCMakeListsContent());
+  createFile(directory + "/test.cpp", code);
+  const auto result =
+      exec((std::string{"cd "} + directory +
+            " && cmake -D CMAKE_C_COMPILER=" TO_STRING(C_COMPILER) " -D CMAKE_CXX_COMPILER=" TO_STRING(CXX_COMPILER) " . && make 2>&1")
+               .c_str());
   return {result.first == EXIT_SUCCESS, result.second};
 }
 

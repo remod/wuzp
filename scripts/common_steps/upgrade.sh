@@ -11,7 +11,6 @@ if [ $# != 0 ]; then
 fi
 
 # Upgrade.
-export DEBIAN_FRONTEND=noninteractive
 apt update
 apt upgrade -y
 

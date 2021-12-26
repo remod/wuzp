@@ -38,18 +38,24 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" &> /dev/null && pwd )"
 REPO_DIR=${SCRIPT_DIR}/..
 
 # Run all jobs of the Github workflow.
-WORKSPACE_DIR=/root
 BUILD_TYPE=Debug
+DEBIAN_FRONTEND=noninteractive
+WORKSPACE_DIR=/root
+export DEBIAN_FRONTEND
 
 # Run workflow.
 echo "Running workflow in docker image ${DOCKER_IMAGE} ..."
 
 # Check format.
 echo "Checking format ..."
+# Instead of modifying the real code with the docker user which then owns the files, modify a copy of it.
+TMP_REPO_DIR=/tmp/wuzp/check_format_repo
+rm -rf ${TMP_REPO_DIR}
+cp -r ${REPO_DIR} ${TMP_REPO_DIR}
 BUILD_DIR=/tmp/wuzp/check_format
 rm -rf ${BUILD_DIR}
 mkdir -p ${BUILD_DIR}
-docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:rw -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR}
+docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TMP_REPO_DIR}:${TMP_REPO_DIR}:rw -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${TMP_REPO_DIR} ${BUILD_DIR}
 
 # Test.
 for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
@@ -60,7 +66,7 @@ for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
       BUILD_DIR=/tmp/wuzp/test/${C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${BUILD_DIR}
       mkdir -p ${BUILD_DIR}
-      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
@@ -72,7 +78,7 @@ for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   PACKAGE_DIR=/tmp/wuzp/package/${PACKAGE_NAME}
   rm -rf ${PACKAGE_DIR}
   mkdir -p ${PACKAGE_DIR}
-  docker run --rm -ti -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/package/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME}
+  docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/package/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME}
 done
 
 # Test packages.
@@ -85,7 +91,7 @@ for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
       BUILD_DIR=/tmp/wuzp/test_packages/${C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${BUILD_DIR}
       mkdir -p ${BUILD_DIR}
-      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
@@ -95,7 +101,7 @@ for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   # Run job.
   echo "Delivering package ${PACKAGE_NAME} ..."
   PACKAGE_DIR=/tmp/wuzp/package/${PACKAGE_NAME}
-  docker run --rm -ti -e GPG_SIGNING_KEY -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} true
+  docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} true
 done
 
 echo "Done."

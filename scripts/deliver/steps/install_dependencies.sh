@@ -11,7 +11,6 @@ if [ $# != 0 ]; then
 fi
 
 # Install dependencies.
-export DEBIAN_FRONTEND=noninteractive
 apt install -y dput
 
 exit 0
