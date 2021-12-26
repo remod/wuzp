@@ -85,7 +85,7 @@ for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
       BUILD_DIR=/tmp/wuzp/test_packages/${C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${BUILD_DIR}
       mkdir -p ${BUILD_DIR}
-      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
