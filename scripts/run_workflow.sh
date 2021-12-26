@@ -30,6 +30,8 @@ if [ ! -f ${GPG_SIGNING_KEY_FILE} ]; then
     echo "GPG signing key file '${GPG_SIGNING_KEY_FILE}' does not exist."
     exit 1
 fi
+GPG_SIGNING_KEY_TMP=$(cat ${GPG_SIGNING_KEY_FILE})
+export GPG_SIGNING_KEY=${GPG_SIGNING_KEY_TMP}
 
 # Find out the location of the repository.
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" &> /dev/null && pwd )"
@@ -64,8 +66,6 @@ for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
 done
 
 # Package.
-GPG_SIGNING_KEY_TMP=$(cat ${GPG_SIGNING_KEY_FILE})
-export GPG_SIGNING_KEY=${GPG_SIGNING_KEY_TMP}
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   # Run job.
   echo "Packaging ${PACKAGE_NAME} ..."
@@ -95,7 +95,7 @@ for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   # Run job.
   echo "Delivering package ${PACKAGE_NAME} ..."
   PACKAGE_DIR=/tmp/wuzp/package/${PACKAGE_NAME}
-  docker run --rm -ti -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} true
+  docker run --rm -ti -e GPG_SIGNING_KEY -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} true
 done
 
 echo "Done."
