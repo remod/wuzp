@@ -9,7 +9,7 @@ jobs:
   check_format:
     runs-on: ubuntu-20.04
     env:
-      BUILD_DIR: ${{github.workspace}}/check_format
+      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/check_format
       BUILD_TYPE: Debug
       C_CXX_COMPILER: "gcc g++"
       SOURCE_DIR: ${{github.workspace}}/tests
@@ -32,7 +32,7 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      BUILD_DIR: ${{github.workspace}}/test
+      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test
       BUILD_TYPE: Debug
       C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
       SOURCE_DIR: ${{github.workspace}}/tests
@@ -65,7 +65,7 @@ jobs:
       matrix:
         PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
     env:
-      PACKAGE_DIR: ${{github.workspace}}/package/${{matrix.PACKAGE_NAME}}
+      PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
       SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
     steps:
@@ -105,10 +105,10 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      BUILD_DIR: ${{github.workspace}}/test_packages
+      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test_packages
       BUILD_TYPE: Debug
       C_CXX_COMPILER: ${{matrix.C_CXX_COMPILER}}
-      PACKAGES_DIR: ${{github.workspace}}/package
+      PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package
       SOURCE_DIR: ${{github.workspace}}/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
@@ -151,7 +151,7 @@ jobs:
         PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
     env:
       DRY_RUN: ${{github.ref_name!='master'}}
-      PACKAGE_DIR: ${{github.workspace}}/package/${{matrix.PACKAGE_NAME}}
+      PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
       SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
     steps:

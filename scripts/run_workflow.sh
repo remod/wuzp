@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # This script locally runs the same steps as the Github workflow.
-# The only difference is that the script performs an out-of-source build in the mounted /tmp directory.
+# There are some differences:
+# - The workflow runs jobs in parallel, the script in sequence.
+# - The root directory for building and packaging is different.
+# - The script does not upload the code coverage results.
 
 # Exit immediately if a command fails.
 set -e

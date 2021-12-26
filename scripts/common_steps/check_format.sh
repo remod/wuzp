@@ -15,6 +15,7 @@ BUILD_DIR=${2}
 
 # Format.
 make -C ${BUILD_DIR} format
+# Return if format introduced changes.
 git -C ${REPO_DIR} diff --exit-code
 
 exit 0
