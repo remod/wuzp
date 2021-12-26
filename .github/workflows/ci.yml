@@ -43,6 +43,8 @@ jobs:
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
+    - name: LOCALE
+      run: cat /etc/default/locale
     - name: Upgrade
       run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
