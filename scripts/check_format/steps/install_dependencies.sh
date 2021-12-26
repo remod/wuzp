@@ -13,6 +13,6 @@ fi
 # Install dependencies.
 export DEBIAN_FRONTEND=noninteractive
 apt update
-apt install -y clang-format
+apt install -y clang-format git
 
 exit 0

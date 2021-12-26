@@ -13,7 +13,6 @@ fi
 # Install dependencies.
 export DEBIAN_FRONTEND=noninteractive
 apt update
-DEPENDENCIES="build-essential cmake gcc g++ clang libgtest-dev"
-apt install -y ${DEPENDENCIES}
+apt install -y build-essential cmake gcc g++ clang libgtest-dev
 
 exit 0
