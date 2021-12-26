@@ -12,7 +12,6 @@ fi
 
 # Install dependencies.
 export DEBIAN_FRONTEND=noninteractive
-apt update
 DEPENDENCIES="build-essential cmake gcc g++ clang libgtest-dev clang-tidy gcovr"
 if [[ ${1} == "1" ]]; then
   DEPENDENCIES="${DEPENDENCIES} libboost-dev"

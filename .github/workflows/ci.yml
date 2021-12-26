@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
+      - name: Upgrade
+        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh
       - name: Create Build Environment
@@ -41,6 +43,8 @@ jobs:
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
+    - name: Upgrade
+      run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
       run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Create Build Environment
@@ -75,6 +79,8 @@ jobs:
         run: |
           source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
           echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+      - name: Upgrade
+        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/package/steps/install_dependencies.sh
       - name: Configure GPG Key
@@ -133,6 +139,8 @@ jobs:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_eigen_${{github.run_id}}
           path: ${{github.workspace}}/package/wuzp_eigen
+      - name: Upgrade
+        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Install Packages
@@ -167,6 +175,8 @@ jobs:
         run: | 
           source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
           echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+      - name: Upgrade
+        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh
       - name: Configure GPG Key

@@ -17,6 +17,7 @@ VALUE_MATRIX_IMPLEMENTATION=${7}
 SOURCE_DIR=${REPO_DIR}/tests
 
 # Run all steps.
+${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${C_COMPILER} ${CXX_COMPILER} ${BUILD_TYPE} ON OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&

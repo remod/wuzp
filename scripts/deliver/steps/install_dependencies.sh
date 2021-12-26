@@ -12,7 +12,6 @@ fi
 
 # Install dependencies.
 export DEBIAN_FRONTEND=noninteractive
-apt update
 apt install -y dput
 
 exit 0
