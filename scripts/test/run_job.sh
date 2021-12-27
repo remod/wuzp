@@ -3,14 +3,14 @@
 # Check arguments.
 if [ $# != 7 ]; then
   echo "Number of arguments is incorrect."
-  echo "Usage: ./run_job.sh REPO_DIR BUILD_DIR C_COMPILER CXX_COMPILER BUILD_TYPE UNITS_IMPLEMENTATION VALUE_MATRIX_IMPLEMENTATION"
+  echo "Usage: ./run_job.sh REPO_DIR BUILD_DIR CMAKE_C_COMPILER CMAKE_CXX_COMPILER BUILD_TYPE UNITS_IMPLEMENTATION VALUE_MATRIX_IMPLEMENTATION"
   exit 1
 fi
 
 REPO_DIR=${1}
 BUILD_DIR=${2}
-C_COMPILER=${3}
-CXX_COMPILER=${4}
+CMAKE_C_COMPILER=${3}
+CMAKE_CXX_COMPILER=${4}
 BUILD_TYPE=${5}
 UNITS_IMPLEMENTATION=${6}
 VALUE_MATRIX_IMPLEMENTATION=${7}
@@ -19,7 +19,7 @@ SOURCE_DIR=${REPO_DIR}/tests
 # Run all steps.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
-${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${C_COMPILER} ${CXX_COMPILER} ${BUILD_TYPE} ON OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
+${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${BUILD_TYPE} ON OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&
 ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE} &&
 ${REPO_DIR}/scripts/common_steps/generate_coverage_reports.sh ${REPO_DIR} ${BUILD_DIR} &&

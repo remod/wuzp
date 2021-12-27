@@ -59,15 +59,15 @@ mkdir -p ${BUILD_DIR}
 docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TMP_REPO_DIR}:${TMP_REPO_DIR}:rw -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${TMP_REPO_DIR} ${BUILD_DIR}
 
 # Test.
-for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
+for CMAKE_C_CXX_COMPILER in "gcc g++" "clang clang++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
     for VALUE_MATRIX_IMPLEMENTATION in 1; do
       # Run job.
-      echo "Testing with ${C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
-      BUILD_DIR=/tmp/wuzp/test/${C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
+      echo "Testing with ${CMAKE_C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
+      BUILD_DIR=/tmp/wuzp/test/${CMAKE_C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${BUILD_DIR}
       mkdir -p ${BUILD_DIR}
-      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
@@ -83,16 +83,16 @@ for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
 done
 
 # Test packages.
-for C_CXX_COMPILER in "gcc g++" "clang clang++"; do
+for CMAKE_C_CXX_COMPILER in "gcc g++" "clang clang++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
     for VALUE_MATRIX_IMPLEMENTATION in 1; do
       # Run job.
-      echo "Testing packages with ${C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
+      echo "Testing packages with ${CMAKE_C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
       PACKAGES_DIR=/tmp/wuzp/package
-      BUILD_DIR=/tmp/wuzp/test_packages/${C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
+      BUILD_DIR=/tmp/wuzp/test_packages/${CMAKE_C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${BUILD_DIR}
       mkdir -p ${BUILD_DIR}
-      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${BUILD_DIR} ${C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${BUILD_DIR} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
