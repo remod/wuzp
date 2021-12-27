@@ -24,4 +24,4 @@ cd -
 # Check if coverage is valid.
 grep -q "wuzp" ${BUILD_DIR}/code_coverage/output.xml
 
-exit ${RETURN_CODE}
+exit 0
