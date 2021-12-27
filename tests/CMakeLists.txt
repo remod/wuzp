@@ -93,6 +93,7 @@ if (${ENABLE_TESTS})
     target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)
     target_link_libraries(tests PRIVATE wuzp)
     if (${UNITS_IMPLEMENTATION} EQUAL ${UNITS_IMPLEMENTATION_BOOST})
+        # TODO(remod): Also use "namespaced" format.
         target_link_libraries(tests PRIVATE wuzp_boost)
     endif()
     if (${VALUE_MATRIX_IMPLEMENTATION} EQUAL ${VALUE_MATRIX_IMPLEMENTATION_EIGEN})
