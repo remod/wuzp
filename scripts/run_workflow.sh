@@ -56,7 +56,7 @@ cp -r ${REPO_DIR} ${TMP_REPO_DIR}
 BUILD_DIR=/tmp/wuzp/check_format
 rm -rf ${BUILD_DIR}
 mkdir -p ${BUILD_DIR}
-docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TMP_REPO_DIR}:${TMP_REPO_DIR}:rw -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${TMP_REPO_DIR} ${BUILD_DIR}
+#docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TMP_REPO_DIR}:${TMP_REPO_DIR}:rw -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${TMP_REPO_DIR} ${BUILD_DIR}
 
 # Test.
 for CMAKE_C_CXX_COMPILER in "gcc g++" "clang clang++"; do

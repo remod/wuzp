@@ -16,17 +16,11 @@ BUILD_DIR=${2}
 # Generate coverage reports.
 cd ${BUILD_DIR}
 mkdir code_coverage
-# Generate HTML report for local inspection.
-gcovr --root ${REPO_DIR} --exclude ${REPO_DIR}/tests --html-details -o code_coverage/index.html
-# Generate XML report for uploading to codecov.
-gcovr --root ${REPO_DIR} --exclude ${REPO_DIR}/tests --xml-pretty -o code_coverage/output.xml
+# Generate HTML report for local inspection. If less than one line is covered, it is likely a configuration error.
+gcovr --root ${REPO_DIR} --fail-under-line 1 --html-details -o code_coverage/index.html ${BUILD_DIR}
+# Generate XML report for uploading to codecov. If less than one line is covered, it is likely a configuration error.
+gcovr --root ${REPO_DIR} --fail-under-line 1 --xml-pretty -o code_coverage/output.xml ${BUILD_DIR}
 cd -
 # Check if coverage is valid.
-echo "OUTPUT"
-cat ${BUILD_DIR}/code_coverage/output.xml
-if ! grep -q "wuzp" ${BUILD_DIR}/code_coverage/output.xml; then
-  echo "The code coverage output is invalid."
-  exit 1
-fi
 
 exit 0
