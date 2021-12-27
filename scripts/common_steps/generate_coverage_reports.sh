@@ -15,10 +15,13 @@ BUILD_DIR=${2}
 
 # Generate coverage reports.
 cd ${BUILD_DIR}
-# Generate HTML and XML reports.
 mkdir code_coverage
+# Generate HTML report for local inspection.
 gcovr --root ${REPO_DIR} --exclude ${REPO_DIR}/tests --html-details -o code_coverage/index.html
+# Generate XML report for uploading to codecov.
 gcovr --root ${REPO_DIR} --exclude ${REPO_DIR}/tests --xml-pretty -o code_coverage/output.xml
 cd -
+# Check if coverage is valid.
+grep -q "wuzp" ${BUILD_DIR}/code_coverage/output.xml
 
-exit 0
+exit ${RETURN_CODE}
