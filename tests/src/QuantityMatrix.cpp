@@ -106,7 +106,7 @@ int main() {
   return 0;
 }
 )",
-                                        "conversion from");
+                                        "(no viable )?conversion from");
 }
 
 TEST(TestQuantityMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
@@ -148,7 +148,7 @@ TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix myMatrix(Quantity<int, Length>(1), Quantity<int, Area>(2), Quantity<int, Volume>(3), Quantity<int, Mass>(4));
+  MyQuantityMatrix quantityMatrix(Quantity<int, Length>(1), Quantity<int, Area>(2), Quantity<int, Volume>(3), Quantity<int, Mass>(4));
 }
 
 TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
@@ -159,9 +159,11 @@ TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
 #include "wuzp/core/Unit.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
@@ -172,16 +174,16 @@ template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
 
- using namespace wuzp;  // NOLINT
+using namespace wuzp;  // NOLINT
 
- int main() {
+int main() {
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix myMatrix(Quantity<int, Length>(1),
-                    Quantity<int, Area>(2),
-                    Quantity<int, Volume>(3),
-                    Quantity<int, Length>(4));
+  MyQuantityMatrix quantityMatrix(Quantity<int, Length>(1),
+                                  Quantity<int, Area>(2),
+                                  Quantity<int, Volume>(3),
+                                  Quantity<int, Length>(4));
   return 0;
 }
   )",
@@ -235,9 +237,11 @@ TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
 #include "wuzp/core/Unit.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
@@ -250,7 +254,7 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 
 using namespace wuzp;  // NOLINT
 
-in() {
+int main() {
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;

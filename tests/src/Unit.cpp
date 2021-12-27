@@ -42,8 +42,7 @@ int main() {
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "Two absolute units cannot be summed.");
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                             // Use regex to comply with different locales.
-  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, "no match for .operator+.");
+  ASSERT_COMPILATION_ERROR(code);
 #endif
 }
 
@@ -75,7 +74,7 @@ int main() {
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "An absolute unit cannot be subtracted from a relative unit.");
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, "no match for 'operator-'");
+  ASSERT_COMPILATION_ERROR(code);
 #endif
 }
 

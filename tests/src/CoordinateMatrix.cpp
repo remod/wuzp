@@ -108,9 +108,11 @@ TEST(TestCoordinateMatrix2, ConstructImplicitlyFromQuantityMatrix) {  // NOLINT
 #include "wuzp/core/TypeMatrix.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
@@ -137,7 +139,7 @@ int main() {
   return 0;
 }
 )",
-                                        "conversion from");
+                                        "(no viable )?conversion from");
 }
 
 TEST(TestCoordinateMatrix2, ConstructExplicitlyFromQuantityMatrix) {  // NOLINT
@@ -187,7 +189,7 @@ int main() {
   return 0;
 }
 )",
-                                        "conversion from");
+                                        "(no viable )?conversion from");
 }
 
 TEST(TestCoordinateMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT

@@ -145,7 +145,7 @@ int main() {
   return 0;
 }
 )",
-                                        "conversion from");
+                                        "(no viable )?conversion from");
 }
 
 TEST(TestTensor2, ConstructExplicitlyFromCoordinateMatrix) {  // NOLINT
@@ -198,7 +198,7 @@ int main() {
   return 0;
 }
 )",
-                                        "conversion from");
+                                        "(no viable )?conversion from");
 }
 
 TEST(TestTensor2, ConstructExplicitlyFromQuantityMatrix) {  // NOLINT
@@ -251,7 +251,7 @@ int main() {
   return 0;
 }
 )",
-                                        "conversion from");
+                                        "(no viable )?conversion from");
 }
 
 TEST(TestTensor2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
