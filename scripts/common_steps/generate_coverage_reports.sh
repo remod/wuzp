@@ -22,6 +22,9 @@ gcovr --root ${REPO_DIR} --exclude ${REPO_DIR}/tests --html-details -o code_cove
 gcovr --root ${REPO_DIR} --exclude ${REPO_DIR}/tests --xml-pretty -o code_coverage/output.xml
 cd -
 # Check if coverage is valid.
-grep -q "wuzp" ${BUILD_DIR}/code_coverage/output.xml
+if [[ $(grep -q "wuzp" ${BUILD_DIR}/code_coverage/output.xml) ]]; then
+  echo "The code coverage output is invalid."
+  exit 1
+fi
 
 exit 0

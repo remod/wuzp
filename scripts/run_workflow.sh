@@ -45,6 +45,7 @@ export DEBIAN_FRONTEND
 
 # Run workflow.
 echo "Running workflow in docker image ${DOCKER_IMAGE} ..."
+mkdir -p /tmp/wuzp
 
 # Check format.
 echo "Checking format ..."
