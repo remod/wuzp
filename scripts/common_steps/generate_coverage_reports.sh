@@ -17,9 +17,9 @@ BUILD_DIR=${2}
 cd ${BUILD_DIR}
 mkdir code_coverage
 # Generate HTML report for local inspection. If less than one line is covered, it is likely a configuration error.
-gcovr --root ${REPO_DIR} --fail-under-line 1 --html-details -o code_coverage/index.html ${BUILD_DIR}
+gcovr --root ${REPO_DIR} --fail-under-line 1 --verbose --html-details --output code_coverage/index.html ${BUILD_DIR}
 # Generate XML report for uploading to codecov. If less than one line is covered, it is likely a configuration error.
-gcovr --root ${REPO_DIR} --fail-under-line 1 --xml-pretty -o code_coverage/output.xml ${BUILD_DIR}
+gcovr --root ${REPO_DIR} --fail-under-line 1 --verbose --xml-pretty --output code_coverage/output.xml ${BUILD_DIR}
 cd -
 # Check if coverage is valid.
 
