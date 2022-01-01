@@ -67,10 +67,24 @@ for CMAKE_C_CXX_COMPILER in "gcc g++" "clang clang++"; do
       BUILD_DIR=/tmp/wuzp/test/${CMAKE_C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${BUILD_DIR}
       mkdir -p ${BUILD_DIR}
-      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      if [[ ${CMAKE_C_CXX_COMPILER} == "gcc g++" ]]; then
+        ENABLE_CODE_COVERAGE=true
+        CODE_COVERAGE_DIR=/tmp/wuzp/code_coverage/${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
+        rm -rf ${CODE_COVERAGE_DIR}
+        mkdir -p ${CODE_COVERAGE_DIR}
+      else
+        ENABLE_CODE_COVERAGE=false
+      fi
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw -v ${CODE_COVERAGE_DIR}:${CODE_COVERAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${ENABLE_CODE_COVERAGE} ${CODE_COVERAGE_DIR} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
+
+# Merge code coverage.
+echo "Merging code coverage ..."
+CODE_COVERAGE_DIR=/tmp/wuzp/code_coverage
+CODE_COVERAGE_REPORTS="/tmp/wuzp/code_coverage/*/report.json"
+docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${CODE_COVERAGE_DIR}:${CODE_COVERAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/merge_code_coverage/run_job.sh ${WORKSPACE_DIR} ${CODE_COVERAGE_REPORTS} ${CODE_COVERAGE_DIR}
 
 # Package.
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
