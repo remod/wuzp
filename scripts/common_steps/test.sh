@@ -5,7 +5,7 @@ set -e
 
 # Check arguments.
 if [ $# != 2 ]; then
-  echo "Number of arguments is incorrect."
+  echo "Number of arguments is incorrect: $*"
   echo "Usage: ./test.sh BUILD_DIR BUILD_CONFIG"
   exit 1
 fi

@@ -24,7 +24,7 @@ jobs:
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh
       - name: Create Build Environment
-        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Check Format
         run: ${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
   test:
@@ -49,21 +49,49 @@ jobs:
     - name: Install Dependencies
       run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Create Build Environment
-      run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ON OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ON ON OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Build
       run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
       run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
-    - name: Generate Code Coverage
-      run: ${REPO_DIR}/scripts/common_steps/generate_code_coverage.sh ${REPO_DIR} ${BUILD_DIR}
     - name: Tidy
       run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
-    - name: Upload Code Coverage  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
+    - name: Upload Code Coverage to Cache
+      uses: actions/cache@v2
+      with:
+        # Note: It is not possible to reuse environment variables here.
+        key: test_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}_${{github.run_id}}
+        path: ${{github.workspace}}/tmp/wuzp/test
+  merge_code_coverage:
+    runs-on: ubuntu-20.04
+    env:
+      BUILDS_DIR: ${{github.workspace}}/tmp/wuzp/test
+      CODE_COVERAGE_DIR: ${{github.workspace}}/tmp/wuzp/code_coverage
+    steps:
+    - name: Download Code Coverage 0 1 from Cache
+      uses: actions/cache@v2
+      with:
+        # Note: It is not possible to reuse environment variables here.
+        key: test_0_1_${{github.run_id}}
+        path: ${{github.workspace}}/tmp/wuzp/test/0_1
+    - name: Download Code Coverage 1 1 from Cache
+      uses: actions/cache@v2
+      with:
+        # Note: It is not possible to reuse environment variables here.
+        key: test_1_1_${{github.run_id}}
+        path: ${{github.workspace}}/tmp/wuzp/test/1_1
+    - name: Upgrade
+      run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
+    - name: Install Dependencies
+      run: sudo ${REPO_DIR}/scripts/merge_code_coverage/steps/install_dependencies.sh
+    - name: Merge Code Coverage
+      run: ${REPO_DIR}/scripts/common_steps/merge_code_coverage.sh ${BUILDS_DIR} ${CODE_COVERAGE_DIR}
+    - name: Upload Code Coverage to Codecov.io  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
       run: |
         sudo apt install curl
         curl -Os https://uploader.codecov.io/latest/linux/codecov
         chmod +x codecov
-        ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${BUILD_DIR}/code_coverage/output.xml
+        ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${CODE_COVERAGE_DIR}/coverage.txt
   package:
     runs-on: ubuntu-20.04
     strategy:

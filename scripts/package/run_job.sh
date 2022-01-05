@@ -2,7 +2,7 @@
 
 # Check arguments.
 if [ $# != 3 ]; then
-  echo "Number of arguments is incorrect."
+  echo "Number of arguments is incorrect: $*"
   echo "Usage: ./run_job.sh REPO_DIR PACKAGE_DIR PACKAGE_NAME"
   exit 1
 fi

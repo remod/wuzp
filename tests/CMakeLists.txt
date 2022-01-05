@@ -10,8 +10,9 @@ set(VALUE_MATRIX_IMPLEMENTATION_EIGEN 1)
 
 option(FROM_SOURCE "True: Build packages from source. False: Search for installed packages." ON)
 option(ENABLE_TESTS "Enables the definition of a 'tests' target to run the unit tests." OFF)
+option(ENABLE_CODE_COVERAGE "Enables the analysis of code coverage. Requires the tests to be enabled and the compiler to be clang respectively clang++." OFF)
 option(ENABLE_FORMAT "Enables the definition of a 'format' target to format the code." OFF)
-option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clang warnings." OFF)
+option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clang tidy warnings." OFF)
 
 # Use `set` instead of `option` for non-boolean values.
 set(UNITS_IMPLEMENTATION ${UNITS_IMPLEMENTATION_WUZP} CACHE STRING "Define what kind of units implementation to use: ${UNITS_IMPLEMENTATION_WUZP} = WUZP, ${UNITS_IMPLEMENTATION_BOOST} = Boost.")
@@ -24,6 +25,7 @@ message(STATUS "FROM_SOURCE:                 ${FROM_SOURCE}")
 message(STATUS "CMAKE_C_COMPILER:            ${CMAKE_C_COMPILER}")
 message(STATUS "CMAKE_CXX_COMPILER:          ${CMAKE_CXX_COMPILER}")
 message(STATUS "ENABLE_TESTS:                ${ENABLE_TESTS}")
+message(STATUS "ENABLE_CODE_COVERAGE:        ${ENABLE_CODE_COVERAGE}")
 message(STATUS "ENABLE_FORMAT:               ${ENABLE_FORMAT}")
 message(STATUS "ENABLE_TIDY:                 ${ENABLE_TIDY}")
 message(STATUS "UNITS_IMPLEMENTATION:        ${UNITS_IMPLEMENTATION}")
@@ -67,6 +69,10 @@ endif()
 
 if (${ENABLE_TESTS})
     enable_testing()
+    if (${ENABLE_CODE_COVERAGE})
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-instr-generate -fcoverage-mapping -O0 -fno-inline -fno-elide-constructors")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping -O0 -fno-inline -fno-elide-constructors")
+    endif()
     find_package(GTest REQUIRED)
     # The tests are ordered by complexity, basic tests come first.
     add_executable(tests
@@ -88,7 +94,6 @@ if (${ENABLE_TESTS})
         src/Jacobian.cpp
         src/ProperRigidTransformation.cpp
     )
-    target_compile_options(tests PRIVATE --coverage)
     target_compile_definitions(tests PRIVATE REPO_DIR=${REPO_DIR})
     target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)
     target_link_libraries(tests PRIVATE wuzp)
@@ -99,8 +104,22 @@ if (${ENABLE_TESTS})
     if (${VALUE_MATRIX_IMPLEMENTATION} EQUAL ${VALUE_MATRIX_IMPLEMENTATION_EIGEN})
         target_link_libraries(tests PRIVATE wuzp_eigen)
     endif()
-    target_link_libraries(tests PRIVATE --coverage)
     gtest_discover_tests(tests)
+    if (${ENABLE_CODE_COVERAGE})
+        add_custom_target(code_coverage_preprocessing
+                COMMAND LLVM_PROFILE_FILE=tests.profraw $<TARGET_FILE:tests>
+                COMMAND llvm-profdata merge -sparse tests.profraw -o tests.profdata
+                DEPENDS tests)
+        add_custom_target(code_coverage_show
+                COMMAND llvm-cov show $<TARGET_FILE:tests> -instr-profile=tests.profdata -show-line-counts-or-regions -show-instantiation-summary
+                DEPENDS code_coverage_preprocessing)
+        add_custom_target(code_coverage_console
+                COMMAND llvm-cov report $<TARGET_FILE:tests> -instr-profile=tests.profdata
+                DEPENDS code_coverage_preprocessing)
+        add_custom_target(code_coverage_html
+                COMMAND llvm-cov show $<TARGET_FILE:tests> -instr-profile=tests.profdata -show-line-counts-or-regions -show-instantiation-summary -output-dir=${PROJECT_SOURCE_DIR}/llvm-cov -format="html"
+                DEPENDS code_coverage_preprocessing)
+    endif()
 endif()
 
 if (${ENABLE_FORMAT} OR ${ENABLE_TIDY})

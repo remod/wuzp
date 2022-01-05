@@ -5,7 +5,7 @@ set -e
 
 # Check arguments.
 if [ $# != 4 ]; then
-  echo "Number of arguments is incorrect."
+  echo "Number of arguments is incorrect: $*"
   echo "Usage: ./package.sh SOURCE_DIR PACKAGE_DIR PACKAGE_NAME PACKAGE_VERSION"
   exit 1
 fi

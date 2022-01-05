@@ -5,7 +5,7 @@ set -e
 
 # Check arguments.
 if [ $# != 1 ]; then
-  echo "Number of arguments is incorrect."
+  echo "Number of arguments is incorrect: $*"
   echo "Usage: ./parse_package_version.sh SOURCE_DIR"
   return 1
 fi

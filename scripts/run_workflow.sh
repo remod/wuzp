@@ -10,17 +10,22 @@
 set -e
 
 # Check arguments.
-if [ $# -lt 3 ] || [ $# -gt 4 ]; then
-  echo "Number of arguments is incorrect."
-  echo "Usage: ./run_workflow.sh GPG_SIGNING_KEY_FILE GPG_SIGNING_KEYGRIP GPG_SIGNING_KEY_PASSPHRASE [DOCKER_IMAGE=ubuntu:20.04]"
+if [ $# -lt 3 ] || [ $# -gt 5 ]; then
+  echo "Number of arguments is incorrect: $*"
+  echo "Usage: ./run_workflow.sh GPG_SIGNING_KEY_FILE GPG_SIGNING_KEYGRIP GPG_SIGNING_KEY_PASSPHRASE [SKIP_CHECK_FORMAT=false] [DOCKER_IMAGE=ubuntu:20.04]"
   exit 1
 fi
 
 GPG_SIGNING_KEY_FILE=${1}
 export GPG_SIGNING_KEYGRIP=${2}
 export GPG_SIGNING_KEY_PASSPHRASE=${3}
-if [ $# == 4 ]; then
-  DOCKER_IMAGE=${4}
+if [ $# -ge 4 ]; then
+  SKIP_CHECK_FORMAT=${4}
+else
+  SKIP_CHECK_FORMAT=false
+fi
+if [ $# -ge 5 ]; then
+  DOCKER_IMAGE=${5}
 else
   DOCKER_IMAGE="ubuntu:20.04"
 fi
@@ -35,28 +40,35 @@ export GPG_SIGNING_KEY=${GPG_SIGNING_KEY_TMP}
 
 # Find out the location of the repository.
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" &> /dev/null && pwd )"
+# Define directories.
 REPO_DIR=${SCRIPT_DIR}/..
-
-# Run all jobs of the Github workflow.
+WORKSPACE_DIR=/root
+TMP_DIR=/tmp/wuzp
+CHECK_FORMAT_DIR=${TMP_DIR}/check_format
+TESTS_DIR=${TMP_DIR}/test
+CODE_COVERAGE_DIR=${TMP_DIR}/code_coverage
+PACKAGES_DIR=${TMP_DIR}/package
+TEST_PACKAGES_DIR=${TMP_DIR}/test_packages
+# Define other variables.
 BUILD_TYPE=Debug
 DEBIAN_FRONTEND=noninteractive
-WORKSPACE_DIR=/root
 export DEBIAN_FRONTEND
 
 # Run workflow.
 echo "Running workflow in docker image ${DOCKER_IMAGE} ..."
-mkdir -p /tmp/wuzp
+mkdir -p ${TMP_DIR}
 
 # Check format.
-echo "Checking format ..."
-# Instead of modifying the real code with the docker user which then owns the files, modify a copy of it.
-TMP_REPO_DIR=/tmp/wuzp/check_format_repo
-rm -rf ${TMP_REPO_DIR}
-cp -r ${REPO_DIR} ${TMP_REPO_DIR}
-BUILD_DIR=/tmp/wuzp/check_format
-rm -rf ${BUILD_DIR}
-mkdir -p ${BUILD_DIR}
-docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TMP_REPO_DIR}:${TMP_REPO_DIR}:rw -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${TMP_REPO_DIR} ${BUILD_DIR}
+if [[ ${SKIP_CHECK_FORMAT} = false ]]; then
+  echo "Checking format ..."
+  # Instead of modifying the real code with the docker user which then owns the files, modify a copy of it.
+  rm -rf ${CHECK_FORMAT_DIR}
+  mkdir -p ${CHECK_FORMAT_DIR}
+  CHECK_FORMAT_REPO_DIR=${CHECK_FORMAT_DIR}/git
+  rm -rf ${CHECK_FORMAT_REPO_DIR}
+  cp -r ${REPO_DIR} ${CHECK_FORMAT_REPO_DIR}
+  docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${CHECK_FORMAT_DIR}:${CHECK_FORMAT_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${CHECK_FORMAT_REPO_DIR} ${CHECK_FORMAT_DIR}/check_format
+fi
 
 # Test.
 for CMAKE_C_CXX_COMPILER in "gcc g++" "clang clang++"; do
@@ -64,33 +76,30 @@ for CMAKE_C_CXX_COMPILER in "gcc g++" "clang clang++"; do
     for VALUE_MATRIX_IMPLEMENTATION in 1; do
       # Run job.
       echo "Testing with ${CMAKE_C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
-      BUILD_DIR=/tmp/wuzp/test/${CMAKE_C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
-      rm -rf ${BUILD_DIR}
-      mkdir -p ${BUILD_DIR}
-      if [[ ${CMAKE_C_CXX_COMPILER} == "gcc g++" ]]; then
+      TEST_DIR=${TESTS_DIR}/${CMAKE_C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
+      rm -rf ${TEST_DIR}
+      mkdir -p ${TEST_DIR}
+      if [[ ${CMAKE_C_CXX_COMPILER} == "clang clang++" ]]; then
         ENABLE_CODE_COVERAGE=true
-        CODE_COVERAGE_DIR=/tmp/wuzp/code_coverage/${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
-        rm -rf ${CODE_COVERAGE_DIR}
-        mkdir -p ${CODE_COVERAGE_DIR}
       else
         ENABLE_CODE_COVERAGE=false
       fi
-      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw -v ${CODE_COVERAGE_DIR}:${CODE_COVERAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${BUILD_DIR} ${ENABLE_CODE_COVERAGE} ${CODE_COVERAGE_DIR} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TEST_DIR}:${TEST_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${TEST_DIR} ${ENABLE_CODE_COVERAGE} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
 
 # Merge code coverage.
 echo "Merging code coverage ..."
-CODE_COVERAGE_DIR=/tmp/wuzp/code_coverage
-CODE_COVERAGE_REPORTS="/tmp/wuzp/code_coverage/*/report.json"
-docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${CODE_COVERAGE_DIR}:${CODE_COVERAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/merge_code_coverage/run_job.sh ${WORKSPACE_DIR} ${CODE_COVERAGE_REPORTS} ${CODE_COVERAGE_DIR}
+rm -rf ${CODE_COVERAGE_DIR}
+mkdir -p ${CODE_COVERAGE_DIR}
+docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TESTS_DIR}:${TESTS_DIR}:ro -v ${CODE_COVERAGE_DIR}:${CODE_COVERAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/merge_code_coverage/run_job.sh ${WORKSPACE_DIR} ${TESTS_DIR} ${CODE_COVERAGE_DIR}
 
 # Package.
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   # Run job.
   echo "Packaging ${PACKAGE_NAME} ..."
-  PACKAGE_DIR=/tmp/wuzp/package/${PACKAGE_NAME}
+  PACKAGE_DIR=${PACKAGES_DIR}/${PACKAGE_NAME}
   rm -rf ${PACKAGE_DIR}
   mkdir -p ${PACKAGE_DIR}
   docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/package/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME}
@@ -102,11 +111,10 @@ for CMAKE_C_CXX_COMPILER in "gcc g++" "clang clang++"; do
     for VALUE_MATRIX_IMPLEMENTATION in 1; do
       # Run job.
       echo "Testing packages with ${CMAKE_C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
-      PACKAGES_DIR=/tmp/wuzp/package
-      BUILD_DIR=/tmp/wuzp/test_packages/${CMAKE_C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
-      rm -rf ${BUILD_DIR}
-      mkdir -p ${BUILD_DIR}
-      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${BUILD_DIR}:${BUILD_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${BUILD_DIR} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      TEST_PACKAGE_DIR=${TEST_PACKAGES_DIR}/${CMAKE_C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
+      rm -rf ${TEST_PACKAGE_DIR}
+      mkdir -p ${TEST_PACKAGE_DIR}
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${TEST_PACKAGE_DIR}:${TEST_PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${TEST_PACKAGE_DIR} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
@@ -115,7 +123,7 @@ done
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   # Run job.
   echo "Delivering package ${PACKAGE_NAME} ..."
-  PACKAGE_DIR=/tmp/wuzp/package/${PACKAGE_NAME}
+  PACKAGE_DIR=${PACKAGES_DIR}/${PACKAGE_NAME}
   docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} true
 done
 

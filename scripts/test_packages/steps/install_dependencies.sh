@@ -5,7 +5,7 @@ set -e
 
 # Check arguments.
 if [ $# != 2 ]; then
-  echo "Number of arguments is incorrect."
+  echo "Number of arguments is incorrect: $*"
   echo "Usage: ./install_dependencies.sh UNITS_IMPLEMENTATION VALUE_MATRIX_IMPLEMENTATION"
   exit 1
 fi

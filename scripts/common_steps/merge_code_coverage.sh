@@ -5,17 +5,25 @@ set -e
 
 # Check arguments.
 if [ $# != 2 ]; then
-  echo "Number of arguments is incorrect."
-  echo "Usage: ./merge_code_coverage.sh CODE_COVERAGE_REPORTS CODE_COVERAGE_DIR"
+  echo "Number of arguments is incorrect: $*"
+  echo "Usage: ./merge_code_coverage.sh BUILDS_DIR CODE_COVERAGE_DIR"
   exit 1
 fi
 
-CODE_COVERAGE_REPORTS=${1}
+BUILDS_DIR=${1}
 CODE_COVERAGE_DIR=${2}
 
-# Generate HTML report for local inspection. If less than one line is covered, it is likely a configuration error.
-gcovr --add-tracefile "${CODE_COVERAGE_REPORTS}" --fail-under-line 1 --verbose --html-details --output ${CODE_COVERAGE_DIR}/index.html
-# Generate XML report for uploading to codecov. If less than one line is covered, it is likely a configuration error.
-gcovr --add-tracefile "${CODE_COVERAGE_REPORTS}" --fail-under-line 1 --verbose --xml-pretty --output ${CODE_COVERAGE_DIR}/output.xml
+# Merge code coverage reports.
+CODE_COVERAGE_REPORTS="${BUILDS_DIR}/*/default.profraw"
+llvm-profdata merge --sparse --output ${CODE_COVERAGE_DIR}/default.profdata ${CODE_COVERAGE_REPORTS}
+
+# Generate HTML report.
+BUILD_DIRS="$BUILDS_DIR/*"
+OBJECTS=""
+for BUILD_DIR in $BUILD_DIRS; do
+  OBJECTS="$OBJECTS --object $BUILD_DIR/tests"
+done
+llvm-cov show --ignore-filename-regex tests --show-instantiations=false --output-dir ${CODE_COVERAGE_DIR}/html --format "html" --instr-profile ${CODE_COVERAGE_DIR}/default.profdata ${OBJECTS}
+llvm-cov show --ignore-filename-regex tests --show-instantiations=false --instr-profile ${CODE_COVERAGE_DIR}/default.profdata ${OBJECTS} > ${CODE_COVERAGE_DIR}/coverage.txt
 
 exit 0

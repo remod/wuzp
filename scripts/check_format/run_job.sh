@@ -2,7 +2,7 @@
 
 # Check arguments.
 if [ $# != 2 ]; then
-  echo "Number of arguments is incorrect."
+  echo "Number of arguments is incorrect: $*"
   echo "Usage: ./run_job.sh REPO_DIR BUILD_DIR"
   exit 1
 fi
@@ -21,7 +21,7 @@ SOURCE_DIR=${REPO_DIR}/tests
 # Run all steps.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh &&
-${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${BUILD_TYPE} OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
+${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
 RETURN_CODE=$?
 

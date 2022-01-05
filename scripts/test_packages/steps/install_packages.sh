@@ -5,7 +5,7 @@ set -e
 
 # Check arguments.
 if [ $# != 3 ]; then
-  echo "Number of arguments is incorrect."
+  echo "Number of arguments is incorrect: $*"
   echo "Usage: ./install_packages.sh PACKAGES_DIR UNITS_IMPLEMENTATION VALUE_MATRIX_IMPLEMENTATION"
   exit 1
 fi

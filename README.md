@@ -48,7 +48,7 @@ make
 ## Tests
 
 ```
-sudo apt install libgtest-dev
+sudo apt install libgtest-dev llvm
 cmake -DENABLE_TESTS=ON ..
 make
 ctest ..

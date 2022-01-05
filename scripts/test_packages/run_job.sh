@@ -2,7 +2,7 @@
 
 # Check arguments.
 if [ $# != 8 ]; then
-  echo "Number of arguments is incorrect."
+  echo "Number of arguments is incorrect: $*"
   echo "Usage: ./run_job.sh REPO_DIR PACKAGES_DIR BUILD_DIR CMAKE_C_COMPILER CMAKE_CXX_COMPILER BUILD_TYPE UNITS_IMPLEMENTATION VALUE_MATRIX_IMPLEMENTATION"
   exit 1
 fi
@@ -21,7 +21,7 @@ SOURCE_DIR=${REPO_DIR}/tests
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGES_DIR} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
-${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${BUILD_TYPE} ON OFF OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
+${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${BUILD_TYPE} ON OFF OFF OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&
 ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
 RETURN_CODE=$?

@@ -5,7 +5,7 @@ set -e
 
 # Check arguments.
 if [ $# != 0 ]; then
-  echo "Number of arguments is incorrect."
+  echo "Number of arguments is incorrect: $*"
   echo "Usage: ./install_dependencies.sh"
   exit 1
 fi
