@@ -58,7 +58,7 @@ jobs:
       run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Tidy
       run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
-    - name: Upload Code Coverage to Cache
+    - name: Upload Test to Cache
       uses: actions/cache@v2
       with:
         # Note: It is not possible to reuse environment variables here.
@@ -71,13 +71,15 @@ jobs:
       BUILDS_DIR: ${{github.workspace}}/tmp/wuzp/test
       CODE_COVERAGE_DIR: ${{github.workspace}}/tmp/wuzp/code_coverage
     steps:
-    - name: Download Code Coverage 0 1 from Cache
+    - name: Prepare Repository
+      uses: actions/checkout@v2
+    - name: Download Test 0 1 from Cache
       uses: actions/cache@v2
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_0_1_${{github.run_id}}
         path: ${{github.workspace}}/tmp/wuzp/test/0_1
-    - name: Download Code Coverage 1 1 from Cache
+    - name: Download Test 1 1 from Cache
       uses: actions/cache@v2
       with:
         # Note: It is not possible to reuse environment variables here.
