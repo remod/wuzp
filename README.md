@@ -1,8 +1,8 @@
 # Wrong Unit? Zero Points!
 
-*WUZP* is a C++ library for compile time analysis of units and coordinate frames for linear algebra.
+*wuzp* is a C++ library for compile time analysis of units and coordinate frames for linear algebra.
 
-[![Build and Test](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/build_and_test.yml)
+[![CI](https://github.com/remod/wuzp/actions/workflows/test.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/ci.yml)
 [![Code Coverage](https://codecov.io/gh/remod/wuzp/branch/master/graph/badge.svg?token=FVPNHZKXVX)](https://codecov.io/gh/remod/wuzp)
 
 ## Introduction
@@ -13,9 +13,22 @@ This helps to fix these errors early in the development phase, reduces the numbe
 [Eigen](https://gitlab.com/libeigen/eigen) is a popular library to write linear algebra code.
 While it is extensible to use different scalar types, it is not possible to introduce physical quantities like the ones provided by libraries like [boost/units](https://github.com/boostorg/units) or [nholthaus/units](https://github.com/nholthaus/units) (TODO: source).
 
-This is where *WUZP* comes into play.
+This is where *wuzp* comes into play.
 
-## Preparations
+## How to get wuzp
+
+There are two options to get *wuzp*, through Debian packages or through the git repository.
+The Debian option is recommended to always get the newest version when you upgrade your system.
+
+### Option 1: Debian package
+
+```
+sudo add-apt-repository ppa:remod/wuzp
+sudo apt update
+sudo apt install wuzp
+```
+
+### Option 2: Git repository
 
 ```
 sudo apt install git cmake libboost-dev libeigen3-dev
@@ -35,7 +48,7 @@ make
 ## Tests
 
 ```
-sudo apt install libgtest-dev
+sudo apt install libgtest-dev llvm
 cmake -DENABLE_TESTS=ON ..
 make
 ctest ..
