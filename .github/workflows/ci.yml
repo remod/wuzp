@@ -35,7 +35,7 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      BUILDS_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
       SOURCE_DIR: ${{github.workspace}}/tests
@@ -65,7 +65,7 @@ jobs:
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test
+        path: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
   merge_code_coverage:
     needs: test
     runs-on: ubuntu-20.04
@@ -80,13 +80,13 @@ jobs:
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_0_1_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test/0_1
+        path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_0_1
     - name: Download Test 1 1 from Cache
       uses: actions/cache@v2
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_1_1_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test/1_1
+        path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_1_1
     - name: Upgrade
       run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
