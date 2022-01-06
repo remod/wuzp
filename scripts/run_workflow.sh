@@ -71,20 +71,20 @@ if [[ ${SKIP_CHECK_FORMAT} = false ]]; then
 fi
 
 # Test.
-for CMAKE_C_CXX_COMPILER in "gcc g++" "clang clang++"; do
+for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
     for VALUE_MATRIX_IMPLEMENTATION in 1; do
       # Run job.
-      echo "Testing with ${CMAKE_C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
-      TEST_DIR=${TESTS_DIR}/${CMAKE_C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
+      echo "Testing with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
+      TEST_DIR=${TESTS_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${TEST_DIR}
       mkdir -p ${TEST_DIR}
-      if [[ ${CMAKE_C_CXX_COMPILER} == "clang clang++" ]]; then
+      if [[ ${CMAKE_C_CXX_COMPILER} == "clang_clang++" ]]; then
         ENABLE_CODE_COVERAGE=true
       else
         ENABLE_CODE_COVERAGE=false
       fi
-      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TEST_DIR}:${TEST_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${TEST_DIR} ${ENABLE_CODE_COVERAGE} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TEST_DIR}:${TEST_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test/run_job.sh ${WORKSPACE_DIR} ${TEST_DIR} ${ENABLE_CODE_COVERAGE} ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
@@ -106,15 +106,15 @@ for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
 done
 
 # Test packages.
-for CMAKE_C_CXX_COMPILER in "gcc g++" "clang clang++"; do
+for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
     for VALUE_MATRIX_IMPLEMENTATION in 1; do
       # Run job.
-      echo "Testing packages with ${CMAKE_C_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
-      TEST_PACKAGE_DIR=${TEST_PACKAGES_DIR}/${CMAKE_C_CXX_COMPILER// /_}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
+      echo "Testing packages with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
+      TEST_PACKAGE_DIR=${TEST_PACKAGES_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${TEST_PACKAGE_DIR}
       mkdir -p ${TEST_PACKAGE_DIR}
-      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${TEST_PACKAGE_DIR}:${TEST_PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${TEST_PACKAGE_DIR} ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${TEST_PACKAGE_DIR}:${TEST_PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${TEST_PACKAGE_DIR} ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done

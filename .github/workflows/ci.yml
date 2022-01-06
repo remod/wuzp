@@ -12,7 +12,7 @@ jobs:
     env:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/check_format
       BUILD_TYPE: Debug
-      CMAKE_C_CXX_COMPILER: "gcc g++"
+      CMAKE_C_CXX_COMPILER: "clang_clang++"
       SOURCE_DIR: ${{github.workspace}}/tests
       UNITS_IMPLEMENTATION: 0
       VALUE_MATRIX_IMPLEMENTATION: 0
@@ -24,14 +24,14 @@ jobs:
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh
       - name: Create Build Environment
-        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Check Format
         run: ${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
   test:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        CMAKE_C_CXX_COMPILER: ["gcc_g++", "clang_clang++"]
+        CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
@@ -51,8 +51,7 @@ jobs:
     - name: Create Build Environment
       run: |
         [ "${CMAKE_C_CXX_COMPILER}" = "clang_clang++" ] && ENABLE_CODE_COVERAGE=1 || ENABLE_CODE_COVERAGE=0
-        CMAKE_C_CXX_COMPILER2=${CMAKE_C_CXX_COMPILER//_/ }
-        ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER2} ${BUILD_TYPE} ON ${ENABLE_CODE_COVERAGE} OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON ${ENABLE_CODE_COVERAGE} OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Build
       run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
@@ -145,7 +144,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        CMAKE_C_CXX_COMPILER: ["gcc g++", "clang clang++"]
+        CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
@@ -184,7 +183,7 @@ jobs:
       - name: Install Packages
         run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGES_DIR} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Create Build Environment
-        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ON OFF OFF OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON OFF OFF OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Build
         run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
       - name: Test
