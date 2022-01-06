@@ -58,7 +58,7 @@ jobs:
       run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Tidy
       run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
-    - if: matrix.CMAKE_C_CXX_COMPILER == "clang clang++"
+    - if: matrix.CMAKE_C_CXX_COMPILER == 'clang clang++'
       name: Upload Test to Cache
       uses: actions/cache@v2
       with:
