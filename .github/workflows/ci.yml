@@ -1,0 +1,229 @@
+name: Continuous Integration
+
+on: [push]
+
+env:  # Note: Nested environment variables are not supported.
+  DEBIAN_FRONTEND: noninteractive
+  REPO_DIR: ${{github.workspace}}
+
+jobs:
+  check_format:
+    runs-on: ubuntu-20.04
+    env:
+      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/check_format
+      BUILD_TYPE: Debug
+      CMAKE_C_CXX_COMPILER: "clang_clang++"
+      SOURCE_DIR: ${{github.workspace}}/tests
+      UNITS_IMPLEMENTATION: 0
+      VALUE_MATRIX_IMPLEMENTATION: 0
+    steps:
+      - name: Prepare Repository
+        uses: actions/checkout@v2
+      - name: Upgrade
+        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
+      - name: Install Dependencies
+        run: sudo ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh
+      - name: Create Build Environment
+        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      - name: Check Format
+        run: ${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
+  test:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
+        UNITS_IMPLEMENTATION: [0, 1]
+        VALUE_MATRIX_IMPLEMENTATION: [1]
+    env:
+      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      BUILD_TYPE: Debug
+      CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
+      SOURCE_DIR: ${{github.workspace}}/tests
+      UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
+      VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+    steps:
+    - name: Prepare Repository
+      uses: actions/checkout@v2
+    - name: Upgrade
+      run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
+    - name: Install Dependencies
+      run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+    - name: Create Build Environment
+      run: |
+        [ "${CMAKE_C_CXX_COMPILER}" = "clang_clang++" ] && ENABLE_CODE_COVERAGE=1 || ENABLE_CODE_COVERAGE=0
+        ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON ${ENABLE_CODE_COVERAGE} OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+    - name: Build
+      run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+    - name: Test
+      run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
+    - name: Tidy
+      run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
+    - if: matrix.CMAKE_C_CXX_COMPILER == 'clang_clang++'
+      name: Upload Test to Cache
+      uses: actions/cache@v2
+      with:
+        # Note: It is not possible to reuse environment variables here.
+        key: test_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}_${{github.run_id}}
+        path: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+  merge_code_coverage:
+    needs: test
+    runs-on: ubuntu-20.04
+    env:
+      BUILDS_DIR: ${{github.workspace}}/tmp/wuzp/test
+      CODE_COVERAGE_DIR: ${{github.workspace}}/tmp/wuzp/code_coverage
+    steps:
+    - name: Prepare Repository
+      uses: actions/checkout@v2
+    - name: Download Test 0 1 from Cache
+      uses: actions/cache@v2
+      with:
+        # Note: It is not possible to reuse environment variables here.
+        key: test_0_1_${{github.run_id}}
+        path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_0_1
+    - name: Download Test 1 1 from Cache
+      uses: actions/cache@v2
+      with:
+        # Note: It is not possible to reuse environment variables here.
+        key: test_1_1_${{github.run_id}}
+        path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_1_1
+    - name: Upgrade
+      run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
+    - name: Install Dependencies
+      run: sudo ${REPO_DIR}/scripts/merge_code_coverage/steps/install_dependencies.sh
+    - name: LS
+      run: sudo apt install tree && tree ${BUILDS_DIR}
+    - name: Merge Code Coverage
+      run: ${REPO_DIR}/scripts/common_steps/merge_code_coverage.sh ${BUILDS_DIR} ${CODE_COVERAGE_DIR}
+    - name: Upload Code Coverage to Codecov.io  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
+      run: |
+        sudo apt install curl
+        curl -Os https://uploader.codecov.io/latest/linux/codecov
+        chmod +x codecov
+        ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${CODE_COVERAGE_DIR}/coverage.txt
+  package:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
+    env:
+      PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
+      PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
+    steps:
+      - name: Prepare Repository
+        uses: actions/checkout@v2
+      - name: Parse Package Version
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
+          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+      - name: Upgrade
+        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
+      - name: Install Dependencies
+        run: sudo ${REPO_DIR}/scripts/package/steps/install_dependencies.sh
+      - name: Configure GPG Key
+        env:
+          GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
+          echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
+      - name: Package
+        env:
+          GNUPGHOME: ${{env.GH_GNUPGHOME}}
+          GPG_SIGNING_KEYGRIP: ${{secrets.GPG_SIGNING_KEYGRIP}}
+          GPG_SIGNING_KEY_PASSPHRASE: ${{secrets.GPG_SIGNING_KEY_PASSPHRASE}}
+          PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
+        run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
+      - name: Upload Package to Cache
+        uses: actions/cache@v2
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: ${{matrix.PACKAGE_NAME}}_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
+  test_packages:
+    needs: package
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
+        UNITS_IMPLEMENTATION: [0, 1]
+        VALUE_MATRIX_IMPLEMENTATION: [1]
+    env:
+      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test_packages
+      BUILD_TYPE: Debug
+      CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
+      PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package
+      SOURCE_DIR: ${{github.workspace}}/tests
+      UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
+      VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+    steps:
+      - name: Prepare Repository
+        uses: actions/checkout@v2
+      - name: Download Package wuzp from Cache
+        uses: actions/cache@v2
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: wuzp_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/wuzp
+      - name: Download Package wuzp_boost from Cache
+        uses: actions/cache@v2
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: wuzp_boost_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/wuzp_boost
+      - name: Download Package wuzp_eigen from Cache
+        uses: actions/cache@v2
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: wuzp_eigen_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/wuzp_eigen
+      - name: Upgrade
+        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
+      - name: Install Dependencies
+        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      - name: Install Packages
+        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGES_DIR} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      - name: Create Build Environment
+        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON OFF OFF OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      - name: Build
+        run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+      - name: Test
+        run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
+  deliver:
+    needs: [check_format, test, test_packages]
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
+    env:
+      DRY_RUN: ${{github.ref_name!='master'}}
+      PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
+      PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
+    steps:
+      - name: Prepare Repository
+        uses: actions/checkout@v2
+      - name: Download Package from Cache
+        uses: actions/cache@v2
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: ${{matrix.PACKAGE_NAME}}_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
+      - name: Parse Package Version
+        run: | 
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
+          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+      - name: Upgrade
+        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
+      - name: Install Dependencies
+        run: sudo ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh
+      - name: Configure GPG Key
+        env:
+          GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
+          echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
+      - name: Deliver
+        env:
+          GNUPGHOME: ${{env.GH_GNUPGHOME}}
+          PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
+        run: ${REPO_DIR}/scripts/common_steps/deliver.sh ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION} ${DRY_RUN}
