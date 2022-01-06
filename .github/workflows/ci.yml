@@ -31,11 +31,11 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        CMAKE_C_CXX_COMPILER: ["gcc g++", "clang clang++"]
+        CMAKE_C_CXX_COMPILER: ["gcc_g++", "clang_clang++"]
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test
+      BUILDS_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
       SOURCE_DIR: ${{github.workspace}}/tests
@@ -50,7 +50,8 @@ jobs:
       run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Create Build Environment
       run: |
-        [ "${{matrix.CMAKE_C_CXX_COMPILER}}" = "clang clang++" ] && ENABLE_CODE_COVERAGE=1 || ENABLE_CODE_COVERAGE=0
+        [ "${CMAKE_C_CXX_COMPILER}" = "clang_clang++" ] && ENABLE_CODE_COVERAGE=1 || ENABLE_CODE_COVERAGE=0
+        CMAKE_C_CXX_COMPILER2=${CMAKE_C_CXX_COMPILER//_/ }
         ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ON ${ENABLE_CODE_COVERAGE} OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Build
       run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
@@ -58,7 +59,7 @@ jobs:
       run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Tidy
       run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
-    - if: matrix.CMAKE_C_CXX_COMPILER == 'clang clang++'
+    - if: matrix.CMAKE_C_CXX_COMPILER == 'clang_clang++'
       name: Upload Test to Cache
       uses: actions/cache@v2
       with:
