@@ -12,6 +12,7 @@ fi
 
 BUILDS_DIR=${1}
 CODE_COVERAGE_DIR=${2}
+mkdir -p ${CODE_COVERAGE_DIR}
 
 # Merge code coverage reports.
 CODE_COVERAGE_REPORTS="${BUILDS_DIR}/*/default.profraw"
