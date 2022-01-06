@@ -58,7 +58,8 @@ jobs:
       run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Tidy
       run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
-    - name: Upload Test to Cache
+    - if: matrix.CMAKE_C_CXX_COMPILER == "clang clang++"
+      name: Upload Test to Cache
       uses: actions/cache@v2
       with:
         # Note: It is not possible to reuse environment variables here.
@@ -89,6 +90,8 @@ jobs:
       run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
       run: sudo ${REPO_DIR}/scripts/merge_code_coverage/steps/install_dependencies.sh
+    - name: LS
+      run: sudo apt install tree && tree ${BUILDS_DIR}
     - name: Merge Code Coverage
       run: ${REPO_DIR}/scripts/common_steps/merge_code_coverage.sh ${BUILDS_DIR} ${CODE_COVERAGE_DIR}
     - name: Upload Code Coverage to Codecov.io  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
