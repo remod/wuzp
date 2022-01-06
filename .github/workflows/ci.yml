@@ -52,7 +52,7 @@ jobs:
       run: |
         [ "${CMAKE_C_CXX_COMPILER}" = "clang_clang++" ] && ENABLE_CODE_COVERAGE=1 || ENABLE_CODE_COVERAGE=0
         CMAKE_C_CXX_COMPILER2=${CMAKE_C_CXX_COMPILER//_/ }
-        ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER} ${BUILD_TYPE} ON ${ENABLE_CODE_COVERAGE} OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER2} ${BUILD_TYPE} ON ${ENABLE_CODE_COVERAGE} OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Build
       run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
