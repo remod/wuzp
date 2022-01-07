@@ -45,6 +45,7 @@ REPO_DIR=${SCRIPT_DIR}/..
 WORKSPACE_DIR=/root
 TMP_DIR=/tmp/wuzp
 CHECK_FORMAT_DIR=${TMP_DIR}/check_format
+CHECK_PACKAGE_VERSIONS_DIR=${TMP_DIR}/check_package_versions
 TESTS_DIR=${TMP_DIR}/test
 CODE_COVERAGE_DIR=${TMP_DIR}/code_coverage
 PACKAGES_DIR=${TMP_DIR}/package
@@ -67,14 +68,23 @@ if [[ ${SKIP_CHECK_FORMAT} = false ]]; then
   CHECK_FORMAT_REPO_DIR=${CHECK_FORMAT_DIR}/git
   rm -rf ${CHECK_FORMAT_REPO_DIR}
   cp -r ${REPO_DIR} ${CHECK_FORMAT_REPO_DIR}
-  docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${CHECK_FORMAT_DIR}:${CHECK_FORMAT_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${CHECK_FORMAT_REPO_DIR} ${CHECK_FORMAT_DIR}/check_format
+  docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${CHECK_FORMAT_DIR}:${CHECK_FORMAT_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_format/run_job.sh ${WORKSPACE_DIR} ${CHECK_FORMAT_REPO_DIR} ${CHECK_FORMAT_DIR}/check_format
 fi
+
+# Check package versions.
+echo "Checking package versions ..."
+for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
+  CHECK_PACKAGE_VERSION_DIR=${CHECK_PACKAGE_VERSIONS_DIR}/${PACKAGE_NAME}
+  rm -rf ${CHECK_PACKAGE_VERSION_DIR}
+  mkdir -p ${CHECK_PACKAGE_VERSION_DIR}
+  cp -r ${REPO_DIR} ${CHECK_PACKAGE_VERSION_DIR}
+  docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${CHECK_PACKAGE_VERSION_DIR}:${CHECK_PACKAGE_VERSION_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_package_version/run_job.sh ${WORKSPACE_DIR} ${CHECK_PACKAGE_VERSION_DIR} ${PACKAGE_NAME}
+done
 
 # Test.
 for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
     for VALUE_MATRIX_IMPLEMENTATION in 1; do
-      # Run job.
       echo "Testing with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
       TEST_DIR=${TESTS_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${TEST_DIR}
@@ -97,7 +107,6 @@ docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${T
 
 # Package.
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
-  # Run job.
   echo "Packaging ${PACKAGE_NAME} ..."
   PACKAGE_DIR=${PACKAGES_DIR}/${PACKAGE_NAME}
   rm -rf ${PACKAGE_DIR}
@@ -109,7 +118,6 @@ done
 for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
     for VALUE_MATRIX_IMPLEMENTATION in 1; do
-      # Run job.
       echo "Testing packages with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} ..."
       TEST_PACKAGE_DIR=${TEST_PACKAGES_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${TEST_PACKAGE_DIR}
@@ -121,7 +129,6 @@ done
 
 # Deliver.
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
-  # Run job.
   echo "Delivering package ${PACKAGE_NAME} ..."
   PACKAGE_DIR=${PACKAGES_DIR}/${PACKAGE_NAME}
   docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} true
