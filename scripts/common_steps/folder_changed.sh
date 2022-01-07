@@ -14,7 +14,7 @@ fi
 
 # Check if the folder changed.
 git -C ${1} remote update
-git -C ${1} pull --no-rebase origin/master
+git -C ${1} pull --no-rebase origin master
 (git -C ${1} diff --exit-code origin/master -- ${2})
 export FOLDER_CHANGED=$?
 

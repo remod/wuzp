@@ -17,6 +17,6 @@ BRANCH=${2}
 git -C ${REPO_DIR} remote update
 git -C ${REPO_DIR} reset --hard
 git -C ${REPO_DIR} checkout ${BRANCH}
-git -C ${REPO_DIR} pull ${BRANCH}
+git -C ${REPO_DIR} pull origin ${BRANCH}
 
 exit 0
