@@ -39,6 +39,18 @@ jobs:
     steps:
       - name: Prepare Repository
         uses: actions/checkout@v2
+      - name: perform merge
+        run: |
+          git config --global user.email "${GITHUB_ACTOR}"
+          git config --global user.name "${GITHUB_ACTOR}@users.noreply.github.com"
+          git status
+          git pull
+          git checkout "$DEFAULT_BRANCH"
+          git status
+          git checkout "$GITHUB_HEAD_REF"
+          git merge "$DEFAULT_BRANCH" --no-edit
+          git push
+          git status
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
