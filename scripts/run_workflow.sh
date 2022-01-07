@@ -45,7 +45,6 @@ REPO_DIR=${SCRIPT_DIR}/..
 WORKSPACE_DIR=/root
 TMP_DIR=/tmp/wuzp
 CHECK_FORMAT_DIR=${TMP_DIR}/check_format
-CHECK_PACKAGE_VERSIONS_DIR=${TMP_DIR}/check_package_versions
 TESTS_DIR=${TMP_DIR}/test
 CODE_COVERAGE_DIR=${TMP_DIR}/code_coverage
 PACKAGES_DIR=${TMP_DIR}/package
@@ -74,11 +73,7 @@ fi
 # Check package versions.
 echo "Checking package versions ..."
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
-  CHECK_PACKAGE_VERSION_DIR=${CHECK_PACKAGE_VERSIONS_DIR}/${PACKAGE_NAME}
-  rm -rf ${CHECK_PACKAGE_VERSION_DIR}
-  mkdir -p ${CHECK_PACKAGE_VERSION_DIR}
-  cp -r ${REPO_DIR} ${CHECK_PACKAGE_VERSION_DIR}
-  docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${CHECK_PACKAGE_VERSION_DIR}:${CHECK_PACKAGE_VERSION_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_package_version/run_job.sh ${WORKSPACE_DIR} ${CHECK_PACKAGE_VERSION_DIR} ${PACKAGE_NAME}
+  docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_package_version/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_NAME}
 done
 
 # Test.

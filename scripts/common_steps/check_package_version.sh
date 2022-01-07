@@ -4,11 +4,14 @@
 set -e
 
 # Check arguments.
-if [ $# != 0 ]; then
+if [ $# != 2 ]; then
   echo "Number of arguments is incorrect: $*"
-  echo "Usage: ./check_package_version.sh"
+  echo "Usage: ./check_package_version.sh PACKAGE_VERSION_BRANCH PACKAGE_VERSION_MASTER"
   exit 1
 fi
+
+PACKAGE_VERSION_BRANCH=${1}
+PACKAGE_VERSION_MASTER=${2}
 
 # Check package version.
 if [[ "${PACKAGE_VERSION_MASTER}" == "${PACKAGE_VERSION_BRANCH}" ]]; then
