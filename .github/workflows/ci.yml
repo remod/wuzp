@@ -44,19 +44,22 @@ jobs:
       WRITABLE_REPO_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions
       WRITABLE_SOURCE_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions/${{matrix.PACKAGE_NAME}}
     steps:
-      - name: Prepare Repository
-        uses: actions/checkout@v2
+#      - name: Prepare Repository
+#        uses: actions/checkout@v2
       - name: perform merge
         run: |
           git status
           git fetch origin
+          git merge ${GITHUB_REF#refs/heads/}
           git status
-          git pull --rebase origin master || true
-          git status
-          git pull --no-rebase origin master || true
-          git status
-          git pull --ff-only origin master || true
-          git status
+#          git fetch origin
+#          git status
+#          git pull --rebase origin master || true
+#          git status
+#          git pull --no-rebase origin master || true
+#          git status
+#          git pull --ff-only origin master || true
+#          git status
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
@@ -68,6 +71,9 @@ jobs:
       - if: ${{env.GH_FOLDER_CHANGED}}
         name: Copy Repository
         run: ${REPO_DIR}/scripts/common_steps/copy_folder.sh ${REPO_DIR} ${WRITABLE_REPO_DIR}
+      - if: ${{env.GH_FOLDER_CHANGED}}
+        name: Checkout Master
+        run: ${REPO_DIR}/scripts/common_steps/checkout_branch.sh ${WRITABLE_REPO_DIR}
       - if: ${{env.GH_FOLDER_CHANGED}}
         name: Parse Branch Package Version
         run: |
