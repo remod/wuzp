@@ -2,9 +2,9 @@
 
 # This script locally runs the same steps as the Github workflow.
 # There are some differences:
+# - The workflow merges master into the branch before running the jobs, the script does not.
 # - The workflow runs jobs in parallel, the script in sequence.
-# - The root directory for building and packaging is different.
-# - The script does not upload the code coverage results.
+# - The workflow uploads the code coverage results, the script does not.
 
 # Exit immediately if a command fails.
 set -e
