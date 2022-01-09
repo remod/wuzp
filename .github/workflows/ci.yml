@@ -20,7 +20,7 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/check_format
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: "clang_clang++"
-      SOURCE_DIR: ${{github.workspace}}/tests
+      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: 0
       VALUE_MATRIX_IMPLEMENTATION: 0
     steps:
@@ -46,7 +46,7 @@ jobs:
       matrix:
         PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
     env:
-      SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
       WRITABLE_REPO_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions
       WRITABLE_SOURCE_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions/${{matrix.PACKAGE_NAME}}
     steps:
@@ -99,7 +99,7 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
-      SOURCE_DIR: ${{github.workspace}}/tests
+      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     steps:
@@ -181,7 +181,7 @@ jobs:
     env:
       PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
-      SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
@@ -231,7 +231,7 @@ jobs:
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
       PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package
-      SOURCE_DIR: ${{github.workspace}}/tests
+      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     steps:
@@ -283,7 +283,7 @@ jobs:
       DRY_RUN: ${{github.ref_name!='master'}}
       PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
-      SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
