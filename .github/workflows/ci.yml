@@ -5,7 +5,7 @@ on: [push]
 env:  # Note: Nested environment variables are not supported.
   DEBIAN_FRONTEND: noninteractive
   REPO_DIR: ${{github.workspace}}
-  TARGET_BRANCH: ${{github.event.pull_request.base.ref}}
+  TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
 
 jobs:
   check_format:
