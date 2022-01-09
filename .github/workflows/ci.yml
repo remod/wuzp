@@ -28,6 +28,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          path: wuzp
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
@@ -53,6 +54,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          path: wuzp
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
@@ -103,6 +105,12 @@ jobs:
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        path: wuzp
+    - if: github.event_name == 'pull_request'
+      name: Merge Target Branch
+      run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
     - name: Upgrade
       run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
@@ -133,6 +141,12 @@ jobs:
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        path: wuzp
+    - if: github.event_name == 'pull_request'
+      name: Merge Target Branch
+      run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
     - name: Download Test 0 1 from Cache
       uses: actions/cache@v2
       with:
@@ -173,6 +187,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          path: wuzp
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
@@ -224,6 +239,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          path: wuzp
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
@@ -273,6 +289,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          path: wuzp
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
