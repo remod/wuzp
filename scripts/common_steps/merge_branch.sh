@@ -14,6 +14,6 @@ REPO_DIR=${1}
 BRANCH=${2}
 
 # Merge branch.
-git -C ${REPO_DIR} --allow-unrelated-histories ${BRANCH}
+git -C ${REPO_DIR} ${BRANCH}
 
 exit 0
