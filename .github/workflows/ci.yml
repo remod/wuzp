@@ -191,10 +191,6 @@ jobs:
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
-      - name: Parse Package Version
-        run: |
-          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
-          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
@@ -205,6 +201,10 @@ jobs:
         run: |
           source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
           echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
+      - name: Parse Package Version
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
+          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Package
         env:
           GNUPGHOME: ${{env.GH_GNUPGHOME}}
@@ -299,10 +299,6 @@ jobs:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
-      - name: Parse Package Version
-        run: | 
-          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
-          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
@@ -313,6 +309,10 @@ jobs:
         run: |
           source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
           echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
+      - name: Parse Package Version
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
+          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Deliver
         env:
           GNUPGHOME: ${{env.GH_GNUPGHOME}}
