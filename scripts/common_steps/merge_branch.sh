@@ -14,6 +14,6 @@ REPO_DIR=${1}
 BRANCH=${2}
 
 # Merge branch.
-git -C ${REPO_DIR} merge ${BRANCH}
+git -C ${REPO_DIR} merge origin/${BRANCH}
 
 exit 0
