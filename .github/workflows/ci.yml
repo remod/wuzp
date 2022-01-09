@@ -70,9 +70,6 @@ jobs:
         name: Copy Repository
         run: ${REPO_DIR}/scripts/common_steps/copy_folder.sh ${REPO_DIR} ${WRITABLE_REPO_DIR}
       - if: ${{env.GH_FOLDER_CHANGED}}
-        name: Checkout Master
-        run: ${REPO_DIR}/scripts/common_steps/checkout_branch.sh ${WRITABLE_REPO_DIR}
-      - if: ${{env.GH_FOLDER_CHANGED}}
         name: Parse Branch Package Version
         run: |
           source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${WRITABLE_SOURCE_DIR}
