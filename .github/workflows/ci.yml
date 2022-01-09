@@ -24,7 +24,7 @@ jobs:
           git status
           git fetch origin
           git status
-          git merge master
+          git merge origin/master || true
           git status
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
@@ -51,7 +51,11 @@ jobs:
           git status
           git fetch origin
           git status
-          git pull origin master
+          git pull --rebase origin master || true
+          git status
+          git pull --no-rebase origin master || true
+          git status
+          git pull --ff-only origin master || true
           git status
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
