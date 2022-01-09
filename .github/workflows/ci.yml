@@ -44,15 +44,17 @@ jobs:
       WRITABLE_REPO_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions
       WRITABLE_SOURCE_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions/${{matrix.PACKAGE_NAME}}
     steps:
-#      - name: Prepare Repository
-#        uses: actions/checkout@v2
+      - name: Prepare Repository
+        uses: actions/checkout@v2
       - name: perform merge
         run: |
+#          git status
+#          git fetch origin
+#          git merge ${GITHUB_REF#refs/heads/}
           git status
           git fetch origin
-          git merge ${GITHUB_REF#refs/heads/}
+          git pull --no-rebase origin master
           git status
-#          git fetch origin
 #          git status
 #          git pull --rebase origin master || true
 #          git status
