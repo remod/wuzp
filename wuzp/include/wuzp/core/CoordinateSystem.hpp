@@ -8,7 +8,7 @@ namespace wuzp {
 template <typename Name>
 struct CoordinateSystem {};
 
-// TODO(remod): Use this for now, is there a better solution?f
+// TODO(remod): Use this for now, is there a better solution?
 struct NoCoordinateSystemName {};
 using NoCoordinateSystem = CoordinateSystem<NoCoordinateSystemName>;
 
