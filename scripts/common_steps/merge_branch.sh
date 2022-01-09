@@ -15,6 +15,6 @@ BRANCH=${2}
 
 # Merge branch.
 git -C ${REPO_DIR} fetch origin
-git -C ${REPO_DIR} merge origin/${BRANCH}
+git -C ${REPO_DIR} merge --allow-unrelated-histories origin/${BRANCH}
 
 exit 0
