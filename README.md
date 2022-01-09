@@ -72,6 +72,11 @@ make tidy
 
 ## Roadmap
 
+**TODOs before release**
+
+* Restrict deploy tokens to master branch.
+* Enable merge queue or at strict PR checks.
+
 **Features**
 
 Value matrix:

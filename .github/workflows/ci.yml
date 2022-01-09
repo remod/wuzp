@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
@@ -49,6 +51,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
@@ -167,6 +171,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
@@ -216,6 +222,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
@@ -263,6 +271,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
