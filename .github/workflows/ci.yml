@@ -48,9 +48,6 @@ jobs:
         uses: actions/checkout@v2
       - name: perform merge
         run: |
-#          git status
-#          git fetch origin
-#          git merge ${GITHUB_REF#refs/heads/}
           git status
           git fetch origin
           git pull --no-rebase origin master
