@@ -1,11 +1,11 @@
 name: Continuous Integration
 
-on: [push]
+on: [push, pull_request]
 
 env:  # Note: Nested environment variables are not supported.
   DEBIAN_FRONTEND: noninteractive
   REPO_DIR: ${{github.workspace}}
-  TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+  TARGET_BRANCH: ${{github.event.pull_request.base.ref}}
 
 jobs:
   check_format:
@@ -20,7 +20,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
-      - name: Merge Target Branch
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
@@ -42,7 +43,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
-      - name: Merge Target Branch
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
@@ -159,7 +161,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
-      - name: Merge Target Branch
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Parse Package Version
         run: |
@@ -207,7 +210,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
-      - name: Merge Target Branch
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package wuzp from Cache
         uses: actions/cache@v2
@@ -253,7 +257,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
-      - name: Merge Target Branch
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package from Cache
         uses: actions/cache@v2
