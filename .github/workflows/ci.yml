@@ -66,23 +66,23 @@ jobs:
         run: |
           source ${REPO_DIR}/scripts/common_steps/folder_changed.sh ${REPO_DIR} ${SOURCE_DIR}
           echo "GH_FOLDER_CHANGED=${FOLDER_CHANGED}" >> $GITHUB_ENV
-      - if: ${{env.GH_FOLDER_CHANGED}}
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
         name: Copy Repository
         run: ${REPO_DIR}/scripts/common_steps/copy_folder.sh ${REPO_DIR} ${WRITABLE_REPO_DIR}
-      - if: ${{env.GH_FOLDER_CHANGED}}
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
         name: Parse Branch Package Version
         run: |
           source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${WRITABLE_SOURCE_DIR}
           echo "GH_BRANCH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
-      - if: ${{env.GH_FOLDER_CHANGED}}
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
         name: Checkout Master
         run: ${REPO_DIR}/scripts/common_steps/checkout_branch.sh ${WRITABLE_REPO_DIR} master
-      - if: ${{env.GH_FOLDER_CHANGED}}
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
         name: Parse Master Package Version
         run: |
           source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${WRITABLE_SOURCE_DIR}
           echo "GH_MASTER_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
-      - if: ${{env.GH_FOLDER_CHANGED}}
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
         name: Check Package Version
         run: ${REPO_DIR}/scripts/common_steps/check_package_version.sh ${{env.GH_MASTER_PACKAGE_VERSION}} ${{env.GH_BRANCH_PACKAGE_VERSION}}
   test:
