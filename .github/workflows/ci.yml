@@ -10,7 +10,7 @@ on:
 
 env:  # Note: Nested environment variables are not supported.
   DEBIAN_FRONTEND: noninteractive
-  REPO_DIR: ${{github.workspace}}
+  REPO_DIR: ${{github.workspace}}/wuzp
   TARGET_BRANCH: ${{github.event.pull_request.base.ref}}
 
 jobs:
