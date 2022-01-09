@@ -17,7 +17,7 @@ BRANCH=${2}
 git config --global user.name "Remo Diethelm"
 git config --global user.email "rdiethelm@gmail.com"
 git -C ${REPO_DIR} fetch origin
-git -C ${REPO_DIR} merge --allow-unrelated-histories origin/${BRANCH}
+git -C ${REPO_DIR} merge --allow-unrelated-histories origin/${BRANCH} ||
 git -C ${REPO_DIR} diff
 
-exit 0
+exit 1
