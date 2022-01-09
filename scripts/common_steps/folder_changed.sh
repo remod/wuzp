@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit immediately if a command fails.
-#set -e
+set -e
 
 # Check arguments.
 if [ $# != 2 ]; then
@@ -13,7 +13,7 @@ fi
 # Do not set variables as this script is sourced.
 
 # Check if the folder changed.
-(git -C ${1} diff --exit-code origin/master -- ${2})
+(set +e && git -C ${1} diff --exit-code origin/master -- ${2} && set -e)
 export FOLDER_CHANGED=$?
 
 return 0

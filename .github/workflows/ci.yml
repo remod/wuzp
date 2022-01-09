@@ -20,7 +20,7 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/check_format
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: "clang_clang++"
-      SOURCE_DIR: ${{github.workspace}}/wuzp/wuzp/tests
+      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: 0
       VALUE_MATRIX_IMPLEMENTATION: 0
     steps:
