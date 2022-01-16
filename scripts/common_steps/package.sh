@@ -17,7 +17,7 @@ PACKAGE_VERSION=${4}
 PACKAGE_WORKSPACE_DIR=${PACKAGE_DIR}/${PACKAGE_NAME//_/-}-${PACKAGE_VERSION}
 
 # Package.
-# Configure the debuild.
+# Configure debuild.
 export DEBFULLNAME="Remo Diethelm"
 export DEBEMAIL="rdiethelm@gmail.com"
 # Allow signing without interactively entering passphrase.
