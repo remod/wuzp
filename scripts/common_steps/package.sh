@@ -30,7 +30,7 @@ mkdir -p ${PACKAGE_DIR}
 cp -r ${SOURCE_DIR} ${PACKAGE_WORKSPACE_DIR}
 # Package.
 cd ${PACKAGE_WORKSPACE_DIR}
-debuild -S -sa
+debuild -b -sa
 cd -
 
 exit 0
