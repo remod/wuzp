@@ -1,10 +1,17 @@
 name: Continuous Integration
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 env:  # Note: Nested environment variables are not supported.
   DEBIAN_FRONTEND: noninteractive
-  REPO_DIR: ${{github.workspace}}
+  REPO_DIR: ${{github.workspace}}/wuzp
+  TARGET_BRANCH: ${{github.event.pull_request.base.ref}}
 
 jobs:
   check_format:
@@ -13,12 +20,18 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/check_format
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: "clang_clang++"
-      SOURCE_DIR: ${{github.workspace}}/tests
+      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: 0
       VALUE_MATRIX_IMPLEMENTATION: 0
     steps:
-      - name: Prepare Repository
+      - name: Checkout Branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          path: wuzp
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
+        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
@@ -27,6 +40,51 @@ jobs:
         run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
       - name: Check Format
         run: ${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
+  check_package_versions:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
+    env:
+      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
+      WRITABLE_REPO_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions
+      WRITABLE_SOURCE_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions/${{matrix.PACKAGE_NAME}}
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          path: wuzp
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
+        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
+      - name: Upgrade
+        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
+      - name: Install Dependencies
+        run: sudo ${REPO_DIR}/scripts/check_package_version/steps/install_dependencies.sh
+      - name: Check If Package Changed
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/folder_changed.sh ${REPO_DIR} ${SOURCE_DIR}
+          echo "GH_FOLDER_CHANGED=${FOLDER_CHANGED}" >> $GITHUB_ENV
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
+        name: Copy Repository
+        run: ${REPO_DIR}/scripts/common_steps/copy_folder.sh ${REPO_DIR} ${WRITABLE_REPO_DIR}
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
+        name: Parse Branch Package Version
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${WRITABLE_SOURCE_DIR}
+          echo "GH_BRANCH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
+        name: Checkout Master
+        run: ${REPO_DIR}/scripts/common_steps/checkout_branch.sh ${WRITABLE_REPO_DIR} master
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
+        name: Parse Master Package Version
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${WRITABLE_SOURCE_DIR}
+          echo "GH_MASTER_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+      - if: env.env.GH_FOLDER_CHANGED == 'true'
+        name: Check Package Version
+        run: ${REPO_DIR}/scripts/common_steps/check_package_version.sh ${{env.GH_MASTER_PACKAGE_VERSION}} ${{env.GH_BRANCH_PACKAGE_VERSION}}
   test:
     runs-on: ubuntu-20.04
     strategy:
@@ -38,12 +96,18 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
-      SOURCE_DIR: ${{github.workspace}}/tests
+      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        path: wuzp
+    - if: github.event_name == 'pull_request'
+      name: Merge Target Branch
+      run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
     - name: Upgrade
       run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
@@ -74,6 +138,12 @@ jobs:
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        path: wuzp
+    - if: github.event_name == 'pull_request'
+      name: Merge Target Branch
+      run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
     - name: Download Test 0 1 from Cache
       uses: actions/cache@v2
       with:
@@ -108,14 +178,16 @@ jobs:
     env:
       PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
-      SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
-      - name: Prepare Repository
+      - name: Checkout Branch
         uses: actions/checkout@v2
-      - name: Parse Package Version
-        run: |
-          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
-          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+        with:
+          fetch-depth: 0
+          path: wuzp
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
+        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
@@ -126,6 +198,10 @@ jobs:
         run: |
           source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
           echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
+      - name: Parse Package Version
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
+          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Package
         env:
           GNUPGHOME: ${{env.GH_GNUPGHOME}}
@@ -152,12 +228,18 @@ jobs:
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
       PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package
-      SOURCE_DIR: ${{github.workspace}}/tests
+      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
     steps:
-      - name: Prepare Repository
+      - name: Checkout Branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          path: wuzp
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
+        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package wuzp from Cache
         uses: actions/cache@v2
         with:
@@ -189,7 +271,7 @@ jobs:
       - name: Test
         run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
   deliver:
-    needs: [check_format, test, test_packages]
+    needs: [check_format, check_package_versions, test, test_packages]
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -198,20 +280,22 @@ jobs:
       DRY_RUN: ${{github.ref_name!='master'}}
       PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
-      SOURCE_DIR: ${{github.workspace}}/${{matrix.PACKAGE_NAME}}
+      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
-      - name: Prepare Repository
+      - name: Checkout Branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          path: wuzp
+      - if: github.event_name == 'pull_request'
+        name: Merge Target Branch
+        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package from Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
-      - name: Parse Package Version
-        run: | 
-          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
-          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
@@ -222,6 +306,10 @@ jobs:
         run: |
           source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
           echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
+      - name: Parse Package Version
+        run: |
+          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
+          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Deliver
         env:
           GNUPGHOME: ${{env.GH_GNUPGHOME}}

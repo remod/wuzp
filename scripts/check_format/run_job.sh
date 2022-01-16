@@ -1,14 +1,15 @@
 #!/bin/bash
 
 # Check arguments.
-if [ $# != 2 ]; then
+if [ $# != 3 ]; then
   echo "Number of arguments is incorrect: $*"
-  echo "Usage: ./run_job.sh REPO_DIR BUILD_DIR"
+  echo "Usage: ./run_job.sh REPO_DIR WRITABLE_REPO_DIR BUILD_DIR"
   exit 1
 fi
 
 REPO_DIR=${1}
-BUILD_DIR=${2}
+WRITABLE_REPO_DIR=${2}
+BUILD_DIR=${3}
 
 # These variables do not influence formatting.
 CMAKE_C_COMPILER=gcc
@@ -16,13 +17,13 @@ CMAKE_CXX_COMPILER=g++
 BUILD_TYPE=Debug
 UNITS_IMPLEMENTATION=0
 VALUE_MATRIX_IMPLEMENTATION=0
-SOURCE_DIR=${REPO_DIR}/tests
+SOURCE_DIR=${WRITABLE_REPO_DIR}/tests
 
 # Run all steps.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh &&
 ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
-${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
+${REPO_DIR}/scripts/common_steps/check_format.sh ${WRITABLE_REPO_DIR} ${BUILD_DIR}
 RETURN_CODE=$?
 
 # Make the host user the owner of the build directory.
