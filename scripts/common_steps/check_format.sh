@@ -16,6 +16,9 @@ BUILD_DIR=${2}
 # Format.
 make -C ${BUILD_DIR} format
 # Return if format introduced changes.
-git -C ${REPO_DIR} diff --exit-code
+if ! git -C ${REPO_DIR} diff --exit-code; then
+  echo "ERROR: The code is not formatted correctly."
+  exit 1
+fi
 
 exit 0

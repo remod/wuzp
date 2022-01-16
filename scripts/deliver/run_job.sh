@@ -14,10 +14,10 @@ DRY_RUN=${4}
 SOURCE_DIR=${REPO_DIR}/${PACKAGE_NAME}
 
 # Run all steps.
-source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR} &&
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh &&
 source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh &&
+source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR} &&
 ${REPO_DIR}/scripts/common_steps/deliver.sh ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION} ${DRY_RUN}
 RETURN_CODE=$?
 

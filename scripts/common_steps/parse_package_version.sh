@@ -10,10 +10,10 @@ if [ $# != 1 ]; then
   return 1
 fi
 
-SOURCE_DIR=${1}
+# Do not set variables as this script is sourced.
 
 # Parse package version.
-cd ${SOURCE_DIR}
+cd ${1}
 PACKAGE_VERSION_TMP=$(dpkg-parsechangelog -SVersion)
 cd -
 export PACKAGE_VERSION=${PACKAGE_VERSION_TMP}
