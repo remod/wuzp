@@ -109,8 +109,6 @@ class Tensor {
   explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(T0&& t0, Ts&&... ts)
       : Tensor(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
-  ~Tensor() = default;
-
   static This zero() { return This(CoordinateMatrixT::zero()); }
   static This random() { return This(CoordinateMatrixT::random()); }
 
@@ -190,12 +188,12 @@ class Tensor {
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix_, typename... Ts>
 struct GetTag<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix_>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
-  using type = typename Choose<
+  using type = typename IfThenElse<
       sizeof...(Ts) == 1,
-      typename Choose<IsSpecializationInts<first, Tensor>::value, FromTensor,
-                      typename Choose<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix,
+      typename IfThenElse<IsSpecializationInts<first, Tensor>::value, FromTensor,
+                      typename IfThenElse<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix,
                                       FromCoordinateMatrixArgs>::type>::type,
-      typename Choose<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix, FromCoordinateMatrixArgs>::type>::type;
+      typename IfThenElse<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix, FromCoordinateMatrixArgs>::type>::type;
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>

@@ -78,6 +78,7 @@ if (${ENABLE_TESTS})
     add_executable(tests
         src/CompilationError.cpp
         src/helpers.cpp
+        src/traits.cpp
         src/Rational.cpp
         src/Integer.cpp
         src/Unit.cpp
@@ -85,6 +86,7 @@ if (${ENABLE_TESTS})
         src/CoordinateSystem.cpp
         src/UnitMatrix.cpp
         src/Quantity.cpp
+        src/Coordinate.cpp
         src/ValueMatrix.cpp
         src/QuantityMatrix.cpp
         src/CoordinateMatrix.cpp

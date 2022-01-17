@@ -6,18 +6,23 @@ namespace wuzp {
 
 // Some operations (sums, differences, products, divisions) require the corresponding trait to be defined for an arbitrary number of
 // arguments.
-#define DEFINE_RECURSIVE_TRAIT(Name)                                      \
-  template <typename... Ts>                                               \
-  struct Name;                                                            \
-  template <typename T0>                                                  \
-  struct Name<T0> {                                                       \
-    using type = T0;                                                      \
-  };                                                                      \
-  template <typename T0, typename T1, typename... Ts>                     \
-  struct Name<T0, T1, Ts...> {                                            \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                      \
-    using type = typename Name<typename Name<T0, T1>::type, Ts...>::type; \
+#define DEFINE_RECURSIVE_TRAIT_IMPL(Name, NameStr)                                                                  \
+  template <typename... Ts>                                                                                         \
+  struct Name;                                                                                                      \
+  template <typename T0>                                                                                            \
+  struct Name<T0> {                                                                                                 \
+    using type = T0;                                                                                                \
+  };                                                                                                                \
+  template <typename T0, typename T1>                                                                               \
+  struct Name<T0, T1> {                                                                                             \
+    static_assert(FailOnInstantiation<Name<T0, T1>>::value, "'" NameStr "' trait not specialized for given type."); \
+  };                                                                                                                \
+  template <typename T0, typename T1, typename T2, typename... Ts>                                                  \
+  struct Name<T0, T1, T2, Ts...> {                                                                                  \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                                                                \
+    using type = typename Name<typename Name<T0, T1>::type, T2, Ts...>::type;                                       \
   };
+#define DEFINE_RECURSIVE_TRAIT(Name) DEFINE_RECURSIVE_TRAIT_IMPL(Name, #Name)
 
 template <typename Label>
 struct Tag {};
@@ -29,6 +34,8 @@ using FromTensor = Tag<FromTensorLabel>;
 struct FromCoordinateMatrixLabel {};
 using FromCoordinateMatrix = Tag<FromCoordinateMatrixLabel>;
 struct FromQuantityMatrixLabel {};
+struct FromCoordinatesLabel {};
+using FromCoordinates = Tag<FromCoordinatesLabel>;
 using FromQuantityMatrix = Tag<FromQuantityMatrixLabel>;
 struct FromQuantitiesLabel {};
 using FromQuantities = Tag<FromQuantitiesLabel>;

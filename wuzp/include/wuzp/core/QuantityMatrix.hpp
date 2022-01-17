@@ -31,8 +31,6 @@ class QuantityMatrix {
   explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromQuantityMatrix>) QuantityMatrix(T0&& t0, Ts&&... ts)
       : QuantityMatrix(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
-  ~QuantityMatrix() = default;
-
   static This zero() { return This(ValueMatrixT::zero()); }
   static This random() { return This(ValueMatrixT::random()); }
 
@@ -106,7 +104,7 @@ class QuantityMatrix {
    * @param quantities Quantities.
    */
   template <typename... Units>
-  QuantityMatrix(FromQuantities /*tag*/, const Quantity<typename Scalar<ValueMatrixT>::type, Units>&... quantities)
+  explicit QuantityMatrix(FromQuantities /*tag*/, const Quantity<typename Scalar<ValueMatrixT>::type, Units>&... quantities)
       : QuantityMatrix(FromValueMatrixArgs(), quantities.getValue()...) {
     static_assert(std::is_same<std::tuple<Units...>, typename GetTypes<UnitMatrixT>::type>::value, "Units do not match.");
   }
@@ -117,15 +115,15 @@ class QuantityMatrix {
    * @param quantities Quantities.
    */
   template <typename... Units>
-  QuantityMatrix(FromQuantities /*tag*/, Quantity<typename Scalar<ValueMatrixT>::type, Units>&&... quantities)
+  explicit QuantityMatrix(FromQuantities /*tag*/, Quantity<typename Scalar<ValueMatrixT>::type, Units>&&... quantities)
       : QuantityMatrix(FromValueMatrixArgs(), quantities.getValue()...) {
     static_assert(std::is_same<std::tuple<Units...>, typename GetTypes<UnitMatrixT>::type>::value, "Units do not match.");
   }
 
   template <typename... Ts>
-  QuantityMatrix(FromValueMatrixArgs /*tag*/, const Ts&... ts) : valueMatrix_(ValueMatrixT(ts...)) {}
+  explicit QuantityMatrix(FromValueMatrixArgs /*tag*/, const Ts&... ts) : valueMatrix_(ValueMatrixT(ts...)) {}
   template <typename... Ts>
-  QuantityMatrix(FromValueMatrixArgs /*tag*/, Ts&&... ts) : valueMatrix_(ValueMatrixT(std::forward<Ts>(ts)...)) {}
+  explicit QuantityMatrix(FromValueMatrixArgs /*tag*/, Ts&&... ts) : valueMatrix_(ValueMatrixT(std::forward<Ts>(ts)...)) {}
 
   ValueMatrixT valueMatrix_;
 };
@@ -140,11 +138,11 @@ struct GetTag<QuantityMatrix<ValueMatrix_, UnitMatrix_>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
 
  public:
-  using type = typename Choose<
+  using type = typename IfThenElse<
       sizeof...(Ts) == 1,
-      typename Choose<IsSpecialization<first, QuantityMatrix>::value, FromQuantityMatrix,
-                      typename Choose<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type,
-      typename Choose<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type;
+      typename IfThenElse<IsSpecialization<first, QuantityMatrix>::value, FromQuantityMatrix,
+                      typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type,
+      typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type;
 };
 
 template <typename ValueMatrix, typename UnitMatrix>
@@ -279,7 +277,7 @@ auto operator*(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const Q
 template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueRhs>
 auto operator/(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const ValueRhs rhs) {
   using Dimensionless = typename Identity<typename Element<UnitMatrixLhs, 0, 0>::type>::type;
-  return lhs / QuantityT_<ValueRhs, Dimensionless>(rhs);
+  return lhs / Quantity<ValueRhs, Dimensionless>(rhs);
 }
 template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueRhs, typename UnitRhs>
 auto operator/(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {

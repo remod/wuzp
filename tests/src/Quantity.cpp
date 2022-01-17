@@ -12,8 +12,11 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
+#include "test_compilation_error.hpp"
+
 using namespace wuzp;  // NOLINT
 
+using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
 using TimeQuantity = Quantity<double, Time>;
 using DimensionlessQuantity = Quantity<double, Dimensionless>;
 using FrequencyQuantity = Quantity<double, Frequency>;
@@ -55,12 +58,61 @@ TEST(TestQuantity, Product) {  // NOLINT
   EXPECT_EQ(TimeQuantity(2.0) * FrequencyQuantity(3.0), DimensionlessQuantity(6.0));
 }
 
+TEST(TestQuantity, AbsoluteProduct) {  // NOLINT
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Quantity.hpp"
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
+
+using namespace wuzp;  // NOLINT
+
+using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
+using FrequencyQuantity = Quantity<double, Frequency>;
+
+int main() {
+  [[maybe_unused]] const auto invalid = AbsoluteTimeQuantity(2.0) * FrequencyQuantity(3.0);
+  return 0;
+}
+)",
+                                               "An absolute unit cannot appear in a multiplication.");
+}
+
 TEST(TestQuantity, Chain) {  // NOLINT
   EXPECT_EQ(TimeQuantity(1.0) + TimeQuantity(2.0) * DimensionlessQuantity(3.0), TimeQuantity(7.0));
 }
 
 TEST(TestQuantity, Inverse) {  // NOLINT
   EXPECT_EQ(TimeQuantity(2.0).inverse(), FrequencyQuantity(0.5));
+}
+
+TEST(TestQuantity, AbsoluteInverse) {  // NOLINT
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Quantity.hpp"
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
+
+using namespace wuzp;  // NOLINT
+
+using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
+
+int main() {
+  [[maybe_unused]] const auto invalid = AbsoluteTimeQuantity(2.0).inverse();
+  return 0;
+}
+)",
+                                        "An absolute unit cannot be powered.");
 }
 
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
