@@ -59,6 +59,7 @@ TEST(TestQuantity, Product) {  // NOLINT
 }
 
 TEST(TestQuantity, AbsoluteProduct) {  // NOLINT
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Quantity.hpp"
@@ -80,7 +81,12 @@ int main() {
   return 0;
 }
 )",
-                                               "An absolute unit cannot appear in a multiplication.");
+                                               "An absolute unit cannot appear in a multiplication.")
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+  using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
+  using FrequencyQuantity = Quantity<double, Frequency>;
+  [[maybe_unused]] const auto valid = AbsoluteTimeQuantity(2.0) * FrequencyQuantity(3.0);
+#endif
 }
 
 TEST(TestQuantity, Chain) {  // NOLINT
@@ -92,7 +98,7 @@ TEST(TestQuantity, Inverse) {  // NOLINT
 }
 
 TEST(TestQuantity, AbsoluteInverse) {  // NOLINT
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+  const std::string code = R"(
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
@@ -111,8 +117,12 @@ int main() {
   [[maybe_unused]] const auto invalid = AbsoluteTimeQuantity(2.0).inverse();
   return 0;
 }
-)",
-                                               "An absolute unit cannot be powered.");
+)";
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "An absolute unit cannot be powered.")
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, "implicit instantiation of undefined template")
+#endif
 }
 
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT

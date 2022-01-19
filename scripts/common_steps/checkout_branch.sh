@@ -14,8 +14,6 @@ REPO_DIR=${1}
 BRANCH=${2}
 
 # Checkout branch.
-git -C ${REPO_DIR} reset --hard
-git -C ${REPO_DIR} fetch origin
-git -C ${REPO_DIR} checkout ${BRANCH}
+git -C ${REPO_DIR} checkout --force ${BRANCH}
 
 exit 0
