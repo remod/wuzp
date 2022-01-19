@@ -72,8 +72,9 @@ TEST(TestCoordinateMatrix2, GetTag) {  // NOLINT
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyCoordinateMatrix>::type, FromCoordinateMatrix>);
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, const MyCoordinateMatrix&>::type, FromCoordinateMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, Coordinate<Quantity<double, Length>, CoordinateSystemA>>::type, FromCoordinates>);
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyCoordinateMatrix&&>::type, FromCoordinateMatrix>);
-  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyQuantityMatrix>::type, FromQuantityMatrix>);
+  static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyQuantityMatrix>::type, FromQuantityMatrixArgs>);
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, Quantity<double, Length>>::type, FromQuantityMatrixArgs>);
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, MyValueMatrix>::type, FromQuantityMatrixArgs>);
   static_assert(std::is_same_v<GetTag<MyCoordinateMatrix, double>::type, FromQuantityMatrixArgs>);
@@ -99,6 +100,19 @@ TEST(TestCoordinateMatrix2, ConstructImplicitlyFromCoordinateMatrix) {  // NOLIN
   const auto coordinateMatrix3 = coordinateMatrix1 + coordinateMatrix2;
   const MyCoordinateMatrix coordinateMatrix = coordinateMatrix3;
   EXPECT_EQ(coordinateMatrix, coordinateMatrix3);
+}
+
+TEST(TestCoordinateMatrix2, ConstructExplicitlyFromCoordinates) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = TypeMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyCoordinateSystemMatrix = TypeMatrix<2, 3, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
+  using MyCoordinate = Coordinate<Quantity<int, Length>, CoordinateSystemA>;
+  const MyCoordinateMatrix coordinateMatrix(MyCoordinate(1), MyCoordinate(2), MyCoordinate(3), MyCoordinate(4), MyCoordinate(5),
+                                            MyCoordinate(6));
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
+  EXPECT_EQ(coordinateMatrix.getValueMatrix(), valueMatrix);
 }
 
 TEST(TestCoordinateMatrix2, ConstructImplicitlyFromQuantityMatrix) {  // NOLINT
@@ -151,6 +165,18 @@ TEST(TestCoordinateMatrix2, ConstructExplicitlyFromQuantityMatrix) {  // NOLINT
   const MyQuantityMatrix quantityMatrix(1, 2, 3, 4, 5, 6);
   const MyCoordinateMatrix coordinateMatrix(quantityMatrix);
   EXPECT_EQ(coordinateMatrix.getQuantityMatrix(), quantityMatrix);
+}
+
+TEST(TestCoordinateMatrix2, ConstructExplicitlyFromQuantities) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = TypeMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyCoordinateSystemMatrix = TypeMatrix<2, 3, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
+  using MyQuantity = Quantity<int, Length>;
+  const MyCoordinateMatrix coordinateMatrix(MyQuantity(1), MyQuantity(2), MyQuantity(3), MyQuantity(4), MyQuantity(5), MyQuantity(6));
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
+  EXPECT_EQ(coordinateMatrix.getValueMatrix(), valueMatrix);
 }
 
 TEST(TestCoordinateMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
@@ -286,6 +312,26 @@ TEST(TestCoordinateMatrix2, ProductCoordinateMatrix) {  // NOLINT
   //  EXPECT_EQ(coordinateMatrix * coordinateMatrix, MyQuantityMatrixResult(valueMatrix * valueMatrix));
 }
 
+TEST(TestCoordinateMatrix2, ProductCoordinate) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyCoordinateSystemMatrix = TypeMatrix<2, 2, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
+  using MyValue = int;
+  using MyQuantity = Quantity<MyValue, Length>;
+  using MyCoordinate = Coordinate<MyQuantity, CoordinateSystemA>;
+  using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
+  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
+  using MyCoordinateMatrixResult = CoordinateMatrix<MyQuantityMatrixResult, MyCoordinateSystemMatrix>;
+  const MyValue value{2};
+  const MyCoordinate coordinate(value);
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyCoordinateMatrix coordinateMatrix(valueMatrix);
+  EXPECT_EQ(coordinateMatrix * coordinate, MyCoordinateMatrixResult(valueMatrix * value));
+  EXPECT_EQ(coordinate * coordinateMatrix, MyCoordinateMatrixResult(valueMatrix * value));
+}
+
 TEST(TestCoordinateMatrix2, ProductQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
@@ -305,6 +351,20 @@ TEST(TestCoordinateMatrix2, ProductQuantity) {  // NOLINT
   EXPECT_EQ(quantity * coordinateMatrix, MyCoordinateMatrixResult(valueMatrix * value));
 }
 
+TEST(TestCoordinateMatrix2, ProductValue) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyCoordinateSystemMatrix = TypeMatrix<2, 2, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
+  using MyValue = int;
+  const MyValue value{2};
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyCoordinateMatrix coordinateMatrix(valueMatrix);
+  EXPECT_EQ(coordinateMatrix * value, MyCoordinateMatrix(valueMatrix * value));
+  EXPECT_EQ(value * coordinateMatrix, MyCoordinateMatrix(valueMatrix * value));
+}
+
 TEST(TestCoordinateMatrix2, DivisionQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
@@ -321,6 +381,19 @@ TEST(TestCoordinateMatrix2, DivisionQuantity) {  // NOLINT
   const MyValueMatrix valueMatrix(1, 2, 3, 4);
   const MyCoordinateMatrix coordinateMatrix(valueMatrix);
   EXPECT_EQ(coordinateMatrix / quantity, MyCoordinateMatrixResult(valueMatrix / value));
+}
+
+TEST(TestCoordinateMatrix2, DivisionValue) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyCoordinateSystemMatrix = TypeMatrix<2, 2, CoordinateSystemA>;
+  using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
+  using MyValue = int;
+  const MyValue value{2};
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyCoordinateMatrix coordinateMatrix(valueMatrix);
+  EXPECT_EQ(coordinateMatrix / value, MyCoordinateMatrix(valueMatrix / value));
 }
 
 TEST(TestCoordinateMatrix2, Dot) {  // NOLINT

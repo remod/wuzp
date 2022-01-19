@@ -109,6 +109,16 @@ int main() {
                                         "(no viable )?conversion from");
 }
 
+TEST(TestQuantityMatrix2, ConstructExplicitlyFromQuantities) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyUnitMatrix = TypeMatrix<2, 3, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantity = Quantity<int, Length>;
+  const MyQuantityMatrix quantityMatrix(MyQuantity(1), MyQuantity(2), MyQuantity(3), MyQuantity(4), MyQuantity(5), MyQuantity(6));
+  const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
+  EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
+}
+
 TEST(TestQuantityMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
@@ -326,6 +336,18 @@ TEST(TestQuantityMatrix2, ProductQuantity) {  // NOLINT
   EXPECT_EQ(quantity * quantityMatrix, MyQuantityMatrixResult(valueMatrix * value));
 }
 
+TEST(TestQuantityMatrix2, ProductValue) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyValue = int;
+  const MyValue value{2};
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyQuantityMatrix quantityMatrix(valueMatrix);
+  EXPECT_EQ(quantityMatrix * value, MyQuantityMatrix(valueMatrix * value));
+  EXPECT_EQ(value * quantityMatrix, MyQuantityMatrix(valueMatrix * value));
+}
+
 TEST(TestQuantityMatrix2, DivisionQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
@@ -339,6 +361,17 @@ TEST(TestQuantityMatrix2, DivisionQuantity) {  // NOLINT
   const MyValueMatrix valueMatrix(1, 2, 3, 4);
   const MyQuantityMatrix quantityMatrix(valueMatrix);
   EXPECT_EQ(quantityMatrix / quantity, MyQuantityMatrixResult(valueMatrix / value));
+}
+
+TEST(TestQuantityMatrix2, DivisionValue) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyValue = int;
+  const MyValue value{2};
+  const MyValueMatrix valueMatrix(1, 2, 3, 4);
+  const MyQuantityMatrix quantityMatrix(valueMatrix);
+  EXPECT_EQ(quantityMatrix / value, MyQuantityMatrix(valueMatrix / value));
 }
 
 TEST(TestQuantityMatrix2, Dot) {  // NOLINT
