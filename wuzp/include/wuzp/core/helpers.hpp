@@ -38,13 +38,13 @@ struct SelectIf<false> {
 };
 
 template <bool ChooseTypeA, typename TypeA, typename TypeB>
-struct Choose;
+struct IfThenElse;
 template <typename TypeA, typename TypeB>
-struct Choose<true, TypeA, TypeB> {
+struct IfThenElse<true, TypeA, TypeB> {
   using type = TypeA;
 };
 template <typename TypeA, typename TypeB>
-struct Choose<false, TypeA, TypeB> {
+struct IfThenElse<false, TypeA, TypeB> {
   using type = TypeB;
 };
 

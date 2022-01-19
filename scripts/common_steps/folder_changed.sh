@@ -13,7 +13,9 @@ fi
 # Do not set variables as this script is sourced.
 
 # Check if the folder changed.
-(set +e && git -C ${1} diff --exit-code origin/master -- ${2} && set -e)
+set +e
+git -C ${1} diff --quiet --exit-code origin/master -- ${2}
 export FOLDER_CHANGED=$?
+set -e
 
 return 0

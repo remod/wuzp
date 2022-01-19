@@ -131,9 +131,9 @@ struct GetTag<wuzp_eigen::GenericValueMatrix<Xs...>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
 
  public:
-  using type = typename Choose<
+  using type = typename IfThenElse<
       sizeof...(Ts) == 1,
-      typename Choose<IsSpecialization<first, wuzp_eigen::GenericValueMatrix>::value, FromValueMatrix, FromValueMatrixArgs>::type,
+      typename IfThenElse<IsSpecialization<first, wuzp_eigen::GenericValueMatrix>::value, FromValueMatrix, FromValueMatrixArgs>::type,
       FromValueMatrixArgs>::type;
 };
 
