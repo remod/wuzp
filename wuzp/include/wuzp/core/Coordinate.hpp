@@ -3,7 +3,6 @@
 #include <ostream>
 
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/Unit.hpp"
 
@@ -27,8 +26,8 @@ class Coordinate {
   explicit Coordinate(const QuantityT& quantity) : quantity_(quantity) {}
   explicit Coordinate(const ValueT& value) : quantity_(value) {}
 
-  ThisT& setQuantity(const QuantityT & quantity) {
-    quantity_ =quantity;
+  ThisT& setQuantity(const QuantityT& quantity) {
+    quantity_ = quantity;
     return *this;
   }
   QuantityT getQuantity() const { return quantity_; }
@@ -47,15 +46,13 @@ class Coordinate {
 
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityRhs, typename CoordinateSystemRhs>
 struct Sum<Coordinate<QuantityLhs, CoordinateSystemLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>> {
-  using type = Coordinate<typename Sum<QuantityLhs, QuantityRhs>::type,
-                                typename Sum<CoordinateSystemLhs, CoordinateSystemRhs>::type>;
+  using type = Coordinate<typename Sum<QuantityLhs, QuantityRhs>::type, typename Sum<CoordinateSystemLhs, CoordinateSystemRhs>::type>;
 };
 
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityRhs, typename CoordinateSystemRhs>
-struct Difference<Coordinate<QuantityLhs, CoordinateSystemLhs>,
-                  Coordinate<QuantityRhs, CoordinateSystemRhs>> {
-  using type = Coordinate<typename Difference<QuantityLhs, QuantityRhs>::type,
-                                typename Difference<CoordinateSystemLhs, CoordinateSystemRhs>::type>;
+struct Difference<Coordinate<QuantityLhs, CoordinateSystemLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>> {
+  using type =
+      Coordinate<typename Difference<QuantityLhs, QuantityRhs>::type, typename Difference<CoordinateSystemLhs, CoordinateSystemRhs>::type>;
 };
 
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename ValueRhs, typename UnitRhs>
@@ -67,10 +64,9 @@ struct Product<Quantity<ValueLhs, UnitLhs>, Coordinate<QuantityRhs, CoordinateSy
   using type = typename Product<Coordinate<QuantityRhs, CoordinateSystemRhs>, Quantity<ValueLhs, UnitLhs>>::type;
 };
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityRhs, typename CoordinateSystemRhs>
-struct Product<Coordinate<QuantityLhs, CoordinateSystemLhs>,
-               Coordinate<QuantityRhs, CoordinateSystemRhs>> {
-  using type = Coordinate<typename Product<QuantityLhs, QuantityRhs>::type,
-                                typename Product<CoordinateSystemLhs, CoordinateSystemRhs>::type>;
+struct Product<Coordinate<QuantityLhs, CoordinateSystemLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>> {
+  using type =
+      Coordinate<typename Product<QuantityLhs, QuantityRhs>::type, typename Product<CoordinateSystemLhs, CoordinateSystemRhs>::type>;
 };
 
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename ValueRhs, typename UnitRhs>
@@ -118,11 +114,9 @@ auto operator+(const Coordinate<Quantity, CoordinateSystem>& Coordinate) {
   return Coordinate;
 }
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityRhs, typename CoordinateSystemRhs>
-auto operator+(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs,
-               const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
-  return
-      typename Sum<Coordinate<QuantityLhs, CoordinateSystemLhs>,
-                   Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(lhs.getQuantity() + rhs.getQuantity());
+auto operator+(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
+  return typename Sum<Coordinate<QuantityLhs, CoordinateSystemLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(lhs.getQuantity() +
+                                                                                                                        rhs.getQuantity());
 }
 
 template <typename Quantity, typename CoordinateSystem>
@@ -130,11 +124,9 @@ auto operator-(const Coordinate<Quantity, CoordinateSystem>& coordinate) {
   return Coordinate<Quantity, CoordinateSystem>(-coordinate.getQuantity());
 }
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityRhs, typename CoordinateSystemRhs>
-auto operator-(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs,
-               const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
-  return typename Difference<Coordinate<QuantityLhs, CoordinateSystemLhs>,
-                             Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(lhs.getQuantity() -
-                                                                                                   rhs.getQuantity());
+auto operator-(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
+  return typename Difference<Coordinate<QuantityLhs, CoordinateSystemLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(
+      lhs.getQuantity() - rhs.getQuantity());
 }
 
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename ValueRhs>
@@ -148,19 +140,16 @@ auto operator*(const ValueLhs lhs, const Coordinate<QuantityRhs, CoordinateSyste
 }
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename ValueRhs, typename UnitRhs>
 auto operator*(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Product<Coordinate<QuantityLhs, CoordinateSystemLhs>, Quantity<ValueRhs, UnitRhs>>::type(
-      lhs.getQuantity() * rhs);
+  return typename Product<Coordinate<QuantityLhs, CoordinateSystemLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getQuantity() * rhs);
 }
 template <typename ValueLhs, typename UnitLhs, typename QuantityRhs, typename CoordinateSystemRhs>
 auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
   return rhs * lhs;
 }
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityRhs, typename CoordinateSystemRhs>
-auto operator*(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs,
-               const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
-  return typename Product<Coordinate<QuantityLhs, CoordinateSystemLhs>,
-                          Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(lhs.getQuantity() *
-                                                                                                rhs.getQuantity());
+auto operator*(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
+  return typename Product<Coordinate<QuantityLhs, CoordinateSystemLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(
+      lhs.getQuantity() * rhs.getQuantity());
 }
 
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename ValueRhs>
@@ -170,20 +159,17 @@ auto operator/(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const Va
 }
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename ValueRhs, typename UnitRhs>
 auto operator/(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Division<Coordinate<QuantityLhs, CoordinateSystemLhs>, Quantity<ValueRhs, UnitRhs>>::type(
-      lhs.getQuantity() / rhs);
+  return typename Division<Coordinate<QuantityLhs, CoordinateSystemLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getQuantity() / rhs);
 }
 
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityRhs, typename CoordinateSystemRhs>
-bool operator==(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs,
-                const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
+bool operator==(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
   static_assert(std::is_same<CoordinateSystemLhs, CoordinateSystemRhs>::value, "Coordinate systems do not match.");
   return lhs.getQuantity() == rhs.getQuantity();
 }
 
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityRhs, typename CoordinateSystemRhs>
-bool operator!=(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs,
-                const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
+bool operator!=(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
   return !(lhs == rhs);
 }
 

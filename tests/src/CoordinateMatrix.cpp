@@ -109,7 +109,8 @@ TEST(TestCoordinateMatrix2, ConstructExplicitlyFromCoordinates) {  // NOLINT
   using MyCoordinateSystemMatrix = TypeMatrix<2, 3, CoordinateSystemA>;
   using MyCoordinateMatrix = CoordinateMatrix<MyQuantityMatrix, MyCoordinateSystemMatrix>;
   using MyCoordinate = Coordinate<Quantity<int, Length>, CoordinateSystemA>;
-  const MyCoordinateMatrix coordinateMatrix(MyCoordinate(1), MyCoordinate(2), MyCoordinate(3), MyCoordinate(4), MyCoordinate(5), MyCoordinate(6));
+  const MyCoordinateMatrix coordinateMatrix(MyCoordinate(1), MyCoordinate(2), MyCoordinate(3), MyCoordinate(4), MyCoordinate(5),
+                                            MyCoordinate(6));
   const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   EXPECT_EQ(coordinateMatrix.getValueMatrix(), valueMatrix);
 }

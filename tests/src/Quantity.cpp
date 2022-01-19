@@ -112,7 +112,7 @@ int main() {
   return 0;
 }
 )",
-                                        "An absolute unit cannot be powered.");
+                                               "An absolute unit cannot be powered.");
 }
 
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT

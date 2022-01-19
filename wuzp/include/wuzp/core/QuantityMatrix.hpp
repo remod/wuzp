@@ -140,8 +140,9 @@ struct GetTag<QuantityMatrix<ValueMatrix_, UnitMatrix_>, Ts...> {
  public:
   using type = typename IfThenElse<
       sizeof...(Ts) == 1,
-      typename IfThenElse<IsSpecialization<first, QuantityMatrix>::value, FromQuantityMatrix,
-                      typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type,
+      typename IfThenElse<
+          IsSpecialization<first, QuantityMatrix>::value, FromQuantityMatrix,
+          typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type,
       typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type;
 };
 

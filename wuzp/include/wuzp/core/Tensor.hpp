@@ -188,12 +188,12 @@ class Tensor {
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix_, typename... Ts>
 struct GetTag<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix_>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
-  using type = typename IfThenElse<
-      sizeof...(Ts) == 1,
-      typename IfThenElse<IsSpecializationInts<first, Tensor>::value, FromTensor,
-                      typename IfThenElse<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix,
-                                      FromCoordinateMatrixArgs>::type>::type,
-      typename IfThenElse<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix, FromCoordinateMatrixArgs>::type>::type;
+  using type = typename IfThenElse<sizeof...(Ts) == 1,
+                                   typename IfThenElse<IsSpecializationInts<first, Tensor>::value, FromTensor,
+                                                       typename IfThenElse<(IsSpecialization<Ts, CoordinateMatrix>::value && ...),
+                                                                           FromCoordinateMatrix, FromCoordinateMatrixArgs>::type>::type,
+                                   typename IfThenElse<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix,
+                                                       FromCoordinateMatrixArgs>::type>::type;
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>

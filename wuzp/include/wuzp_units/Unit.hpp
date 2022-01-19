@@ -48,7 +48,7 @@ struct Sum<Unit<wuzp_units::UnitImpl<IsAbsoluteLhs, ExponentsLhs...>>, Unit<wuzp
   static_assert(((ExponentsLhs == ExponentsRhs) && ...), "Units do not match.");
   static_assert(!IsAbsoluteLhs || !IsAbsoluteRhs, "Two absolute units cannot be summed.");
   using type = typename IfThenElse<IsAbsoluteLhs, Unit<wuzp_units::UnitImpl<IsAbsoluteLhs, ExponentsLhs...>>,
-                               Unit<wuzp_units::UnitImpl<IsAbsoluteRhs, ExponentsRhs...>>>::type;
+                                   Unit<wuzp_units::UnitImpl<IsAbsoluteRhs, ExponentsRhs...>>>::type;
 };
 
 template <bool IsAbsoluteLhs, int... ExponentsLhs, bool IsAbsoluteRhs, int... ExponentsRhs>
@@ -56,9 +56,9 @@ struct Difference<Unit<wuzp_units::UnitImpl<IsAbsoluteLhs, ExponentsLhs...>>, Un
   static_assert(((ExponentsLhs == ExponentsRhs) && ...), "Units do not match.");
   static_assert(!(!IsAbsoluteLhs && IsAbsoluteRhs), "An absolute unit cannot be subtracted from a relative unit.");
   using type = typename IfThenElse<IsAbsoluteLhs,
-                               typename IfThenElse<IsAbsoluteRhs, Unit<wuzp_units::UnitImpl<false, ExponentsLhs...>>,
-                                               Unit<wuzp_units::UnitImpl<true, ExponentsLhs...>>>::type,
-                               Unit<wuzp_units::UnitImpl<false, ExponentsRhs...>>>::type;
+                                   typename IfThenElse<IsAbsoluteRhs, Unit<wuzp_units::UnitImpl<false, ExponentsLhs...>>,
+                                                       Unit<wuzp_units::UnitImpl<true, ExponentsLhs...>>>::type,
+                                   Unit<wuzp_units::UnitImpl<false, ExponentsRhs...>>>::type;
 };
 
 template <bool IsAbsoluteLhs, int... ExponentsLhs, bool IsAbsoluteRhs, int... ExponentsRhs>

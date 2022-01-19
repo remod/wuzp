@@ -13,5 +13,6 @@ using type = Product<double, int>::type;
 int main() {
   return 0;
 }
-)", "'Product' trait not specialized for given type.")
+)",
+                                               "'Product' trait not specialized for given type.")
 }

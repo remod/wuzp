@@ -3,11 +3,11 @@
 #include <ostream>
 #include <utility>
 
+#include "wuzp/core/Coordinate.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/UnitMatrix.hpp"
-#include "wuzp/core/Coordinate.hpp"
 
 namespace wuzp {
 
@@ -101,25 +101,29 @@ class CoordinateMatrix {
   /**
    * Construct a coordinate matrix from coordinates.
    * @tparam Quantities Quantities of the coordinates, order and types must correspond to the quantities of the coordinate matrix.
-   * @tparam CoordinateSystems Coordinate systems of the coordinates, order and types must correspond to the coordinate systems of the coordinate matrix.
+   * @tparam CoordinateSystems Coordinate systems of the coordinates, order and types must correspond to the coordinate systems of the
+   * coordinate matrix.
    * @param coordinates Coordinates.
    */
   template <typename... Quantities, typename... CoordinateSystems>
   explicit CoordinateMatrix(FromCoordinates /*tag*/, const Coordinate<Quantities, CoordinateSystems>&... coordinates)
       : CoordinateMatrix(FromQuantityMatrixArgs(), coordinates.getQuantities()...) {
-    static_assert(std::is_same<std::tuple<CoordinateSystems...>, typename GetTypes<CoordinateSystemMatrixT>::type>::value, "Coordinate systems do not match.");
+    static_assert(std::is_same<std::tuple<CoordinateSystems...>, typename GetTypes<CoordinateSystemMatrixT>::type>::value,
+                  "Coordinate systems do not match.");
   }
 
   /**
    * Construct a coordinate matrix from coordinates.
    * @tparam Quantities Quantities of the coordinates, order and types must correspond to the quantities of the coordinate matrix.
-   * @tparam CoordinateSystems Coordinate systems of the coordinates, order and types must correspond to the coordinate systems of the coordinate matrix.
+   * @tparam CoordinateSystems Coordinate systems of the coordinates, order and types must correspond to the coordinate systems of the
+   * coordinate matrix.
    * @param coordinates Coordinates.
    */
   template <typename... Quantities, typename... CoordinateSystems>
   explicit CoordinateMatrix(FromCoordinates /*tag*/, Coordinate<Quantities, CoordinateSystems>&&... coordinates)
       : CoordinateMatrix(FromQuantityMatrixArgs(), coordinates.getQuantity()...) {
-    static_assert(std::is_same<std::tuple<CoordinateSystems...>, typename GetTypes<CoordinateSystemMatrixT>::type>::value, "Coordinate systems do not match.");
+    static_assert(std::is_same<std::tuple<CoordinateSystems...>, typename GetTypes<CoordinateSystemMatrixT>::type>::value,
+                  "Coordinate systems do not match.");
   }
 
   template <typename... Ts>
@@ -135,7 +139,8 @@ struct GetTag<CoordinateMatrix<Xs...>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
   using type = typename IfThenElse<
       sizeof...(Ts) == 1,
-      typename IfThenElse<IsSpecialization<first, CoordinateMatrix>::value, FromCoordinateMatrix,
+      typename IfThenElse<
+          IsSpecialization<first, CoordinateMatrix>::value, FromCoordinateMatrix,
           typename IfThenElse<(IsSpecialization<Ts, Coordinate>::value && ...), FromCoordinates, FromQuantityMatrixArgs>::type>::type,
       typename IfThenElse<(IsSpecialization<Ts, Coordinate>::value && ...), FromCoordinates, FromQuantityMatrixArgs>::type>::type;
 };
@@ -178,11 +183,13 @@ struct Product<Quantity<ValueLhs, UnitLhs>, CoordinateMatrix<QuantityMatrixRhs, 
 };
 template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityRhs, typename CoordinateSystemRhs>
 struct Product<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>> {
-  using type = CoordinateMatrix<typename Product<QuantityMatrixLhs, QuantityRhs>::type, typename Product<CoordinateSystemMatrixLhs, CoordinateSystemRhs>::type>;
+  using type = CoordinateMatrix<typename Product<QuantityMatrixLhs, QuantityRhs>::type,
+                                typename Product<CoordinateSystemMatrixLhs, CoordinateSystemRhs>::type>;
 };
 template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
 struct Product<Coordinate<QuantityLhs, CoordinateSystemLhs>, CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>> {
-  using type = typename Product<CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>, Coordinate<QuantityLhs, CoordinateSystemLhs>>::type;
+  using type =
+      typename Product<CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>, Coordinate<QuantityLhs, CoordinateSystemLhs>>::type;
 };
 // Use case: Rotate a vector.
 template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
@@ -304,9 +311,11 @@ auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const CoordinateMatrix<Qu
   return rhs * lhs;
 }
 template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityRhs, typename CoordinateSystemRhs>
-auto operator*(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
-  return typename Product<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(
-      lhs.getQuantityMatrix() * rhs.getQuantity());
+auto operator*(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
+               const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
+  return
+      typename Product<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(
+          lhs.getQuantityMatrix() * rhs.getQuantity());
 }
 template <typename ValueLhs, typename UnitLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>
 auto operator*(const Coordinate<ValueLhs, UnitLhs>& lhs, const CoordinateMatrix<QuantityMatrixRhs, CoordinateSystemMatrixRhs>& rhs) {
@@ -331,9 +340,11 @@ auto operator/(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixL
       lhs.getQuantityMatrix() / rhs);
 }
 template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityRhs, typename CoordinateSystemRhs>
-auto operator/(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs, const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
-  return typename Division<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(
-      lhs.getQuantityMatrix() / rhs.getQuantity());
+auto operator/(const CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>& lhs,
+               const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
+  return
+      typename Division<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>, Coordinate<QuantityRhs, CoordinateSystemRhs>>::type(
+          lhs.getQuantityMatrix() / rhs.getQuantity());
 }
 
 template <typename QuantityMatrixLhs, typename CoordinateSystemMatrixLhs, typename QuantityMatrixRhs, typename CoordinateSystemMatrixRhs>

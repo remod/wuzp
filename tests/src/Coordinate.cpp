@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "wuzp/core/traits.hpp"
 #include "wuzp/core/Coordinate.hpp"
+#include "wuzp/core/traits.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Quantity.hpp"
@@ -24,7 +24,7 @@ using Epoch = CoordinateSystem<EpochName>;
 using TimeSinceEpoch = Coordinate<AbsoluteTimeQuantity, Epoch>;
 using DurationInEpoch = Coordinate<TimeQuantity, Epoch>;
 using FrequencyInEpoch = Coordinate<FrequencyQuantity, Epoch>;
-using DimensionlessInEpoch = Coordinate<DimensionlessQuantity , Epoch>;
+using DimensionlessInEpoch = Coordinate<DimensionlessQuantity, Epoch>;
 
 // TODO(remod): Add use case with different ratios (s vs ms) --> duration != duration.
 
@@ -67,13 +67,13 @@ TEST(TestCoordinate, InEqualityOperator) {  // NOLINT
 }
 
 TEST(TestCoordinate, Product) {  // NOLINT
-  EXPECT_EQ(DurationInEpoch (2.0) * FrequencyInEpoch (3.0), DimensionlessInEpoch(6.0));
+  EXPECT_EQ(DurationInEpoch(2.0) * FrequencyInEpoch(3.0), DimensionlessInEpoch(6.0));
 }
 
 TEST(TestCoordinate, Chain) {  // NOLINT
-  EXPECT_EQ(TimeSinceEpoch(1.0) + DurationInEpoch(2.0) * DimensionlessInEpoch (3.0), TimeSinceEpoch(7.0));
+  EXPECT_EQ(TimeSinceEpoch(1.0) + DurationInEpoch(2.0) * DimensionlessInEpoch(3.0), TimeSinceEpoch(7.0));
 }
 
 TEST(TestCoordinate, Inverse) {  // NOLINT
-  EXPECT_EQ(DurationInEpoch(2.0).inverse(), FrequencyInEpoch (0.5));
+  EXPECT_EQ(DurationInEpoch(2.0).inverse(), FrequencyInEpoch(0.5));
 }
