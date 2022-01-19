@@ -14,7 +14,7 @@ namespace wuzp {
 /**
  * Class representing a coordinate matrix.
  * A coordinate matrix is a matrix of quantities and coordinate systems.
- * A coordinate matrix does _not_ include any information about how it is transformed - for ThisT, have a look at the Tensor class.
+ * A coordinate matrix does _not_ include any information about how it is transformed - for this, have a look at the Tensor class.
  * @tparam QuantityMatrix_         Type of the underlying quantity matrix.
  * @tparam CoordinateSystemMatrix_ Matrix of coordinate systems.
  */
