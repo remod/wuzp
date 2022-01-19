@@ -121,7 +121,7 @@ int main() {
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "An absolute unit cannot be powered.")
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, "implicit instantiation of undefined template")
+  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, "implicit instantiation of undefined template|invalid use of incomplete type")
 #endif
 }
 
