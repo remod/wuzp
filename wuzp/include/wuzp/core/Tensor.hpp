@@ -178,9 +178,9 @@ class Tensor {
       : coordinateMatrix_(std::move(coordinateMatrix)) {}
 
   template <typename... Ts>
-  Tensor(FromCoordinateMatrixArgs /*tag*/, const Ts&... ts) : coordinateMatrix_(ts...) {}
+  explicit Tensor(FromCoordinateMatrixArgs /*tag*/, const Ts&... ts) : coordinateMatrix_(ts...) {}
   template <typename... Ts>
-  Tensor(FromCoordinateMatrixArgs /*tag*/, Ts&&... ts) : coordinateMatrix_(std::forward<Ts>(ts)...) {}
+  explicit Tensor(FromCoordinateMatrixArgs /*tag*/, Ts&&... ts) : coordinateMatrix_(std::forward<Ts>(ts)...) {}
 
   CoordinateMatrixT coordinateMatrix_;
 };
@@ -366,24 +366,24 @@ template <int Dimension, template <typename, int, int> typename ValueMatrix, typ
 using PositionPoint =
     HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::AbsoluteLength, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using PositionPoint2D = PositionPoint<2, ValueMatrix, Scalar, CoordinateSystem>;
+using PositionPoint2 = PositionPoint<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using PositionPoint3D = PositionPoint<3, ValueMatrix, Scalar, CoordinateSystem>;
+using PositionPoint3 = PositionPoint<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using PositionVector =
     HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Length, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using PositionVector2D = PositionVector<2, ValueMatrix, Scalar, CoordinateSystem>;
+using PositionVector2 = PositionVector<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using PositionVector3D = PositionVector<3, ValueMatrix, Scalar, CoordinateSystem>;
+using PositionVector3 = PositionVector<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using VelocityVector =
     HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Velocity, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using VelocityVector2D = VelocityVector<2, ValueMatrix, Scalar, CoordinateSystem>;
+using VelocityVector2 = VelocityVector<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using VelocityVector3D = VelocityVector<3, ValueMatrix, Scalar, CoordinateSystem>;
+using VelocityVector3 = VelocityVector<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 }  // namespace wuzp

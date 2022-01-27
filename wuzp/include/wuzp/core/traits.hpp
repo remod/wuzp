@@ -152,6 +152,11 @@ auto makeAbsolute(T t) {
   return MakeAbsolute<T>::make(t);
 }
 
+template <typename T>
+struct GetCoordinateSystem {
+  static_assert(FailOnInstantiation<GetCoordinateSystem<T>>::value, "'GetCoordinateSystem' trait not specialized for given type.");
+};
+
 template <typename T, typename NewCoordinateSystem>
 struct CastCoordinateSystem {
   static_assert(FailOnInstantiation<CastCoordinateSystem<T, NewCoordinateSystem>>::value,

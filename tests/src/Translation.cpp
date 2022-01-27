@@ -8,11 +8,9 @@
 using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
@@ -24,13 +22,13 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
 
 TEST(TestTranslation, TransformPositionVector) {  // NOLINT
-  struct FromCoordinateSystemName {};
-  struct ToCoordinateSystemName {};
-  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
-  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
-  using Object = PositionVector3D<ValueMatrix, double, FromCoordinateSystem>;
-  using Transformation = SpatialTranslation3D<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
-  using TransformedObject = PositionVector3D<ValueMatrix, double, ToCoordinateSystem>;
+  struct CoordinateSystemAName {};
+  struct CoordinateSystemBName {};
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = SpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemB>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0);
   const Transformation transformation(4.0, 2.0, 1.0);
@@ -38,15 +36,37 @@ TEST(TestTranslation, TransformPositionVector) {  // NOLINT
 }
 
 TEST(TestTranslation, TransformPositionPoint) {  // NOLINT
-  struct FromCoordinateSystemName {};
-  struct ToCoordinateSystemName {};
-  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
-  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
-  using Object = PositionPoint3D<ValueMatrix, double, FromCoordinateSystem>;
-  using Transformation = SpatialTranslation3D<ValueMatrix, double, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem>;
-  using TransformedObject = PositionPoint3D<ValueMatrix, double, ToCoordinateSystem>;
+  struct CoordinateSystemAName {};
+  struct CoordinateSystemBName {};
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using Object = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = SpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemB>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(5.0, 4.0, 4.0);
   const Transformation transformation(4.0, 2.0, 1.0);
   EXPECT_EQ(transformation.transform(object), transformedObject);
+}
+
+TEST(TestTranslation, TransformTranslation) {  // NOLINT
+  struct CoordinateSystemAName {};
+  struct CoordinateSystemBName {};
+  struct CoordinateSystemCName {};
+  struct CoordinateSystemDName {};
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+  using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
+  using Object = SpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
+  using Transformation = SpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
+  using TransformedObject = SpatialTranslation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;
+  const Object object(1.0, 2.0, 3.0);
+  const TransformedObject transformedObject(1.0, 2.0, 3.0);
+  const Transformation transformation(4.0, 2.0, 1.0);
+  EXPECT_EQ(transformation.transform(object), transformedObject);
+}
+
+TEST(TestTranslation, TransformRotation) {  // NOLINT
+  // TODO(remod).
 }

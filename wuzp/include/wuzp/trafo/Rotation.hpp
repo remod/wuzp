@@ -9,9 +9,9 @@ template <template <typename, int, int> typename ValueMatrix, typename Scalar, t
 using Rotation = LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
                                       typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using Rotation2D = Rotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 2>;
+using Rotation2 = Rotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 2>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using Rotation3D = Rotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 3>;
+using Rotation3 = Rotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 3>;
 
 // template <typename Derived, typename From, typename To, typename DimensionlessQuantity>
 // class QuaternionBase : public PassiveTransformation<Derived, From, To> {

@@ -11,7 +11,7 @@ namespace wuzp {
 // TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
 template <typename CoordinateSystem, typename From, typename To, typename Rotation_, typename Translation_>
 class ProperRigidTransformationTemplate
-    : public PassiveTransformation<ProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation_, Translation_>, From, To> {
+    : public PassiveTransformation<ProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation_, Translation_>, CoordinateSystem, From, To> {
  public:
   using Rotation = Rotation_;
   using Translation = Translation_;
@@ -46,9 +46,9 @@ using ProperRigidTransformation = ProperRigidTransformationTemplate<
     CoordinateSystem, From, To, Rotation<ValueMatrix, Scalar, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
     SpatialTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, internal::Intermediate<From, To>, To>>;
 template <template <typename, int, int> typename ValueMatrix, typename CoordinateSystem, typename From, typename To, typename Scalar>
-using ProperRigidTransformation2D = ProperRigidTransformation<ValueMatrix, 2, CoordinateSystem, From, To, Scalar>;
+using ProperRigidTransformation2 = ProperRigidTransformation<ValueMatrix, 2, CoordinateSystem, From, To, Scalar>;
 template <template <typename, int, int> typename ValueMatrix, typename CoordinateSystem, typename From, typename To, typename Scalar>
-using ProperRigidTransformation3D = ProperRigidTransformation<ValueMatrix, 3, CoordinateSystem, From, To, Scalar>;
+using ProperRigidTransformation3 = ProperRigidTransformation<ValueMatrix, 3, CoordinateSystem, From, To, Scalar>;
 
 template <typename CoordinateSystem, typename From, typename To, typename Rotation, typename Translation, typename Object>
 struct TransformationTraits<ProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>, Object> {

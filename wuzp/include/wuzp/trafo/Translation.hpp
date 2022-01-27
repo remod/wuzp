@@ -8,7 +8,7 @@ namespace wuzp {
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
           typename To, typename... Units>
 class Translation
-    : public PassiveTransformation<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, From, To> {
+    : public PassiveTransformation<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>, CoordinateSystem, From, To> {
  public:
   using ValueMatrixT = ValueMatrix<Scalar, Dimension, 1>;
   using UnitMatrixT = TypeMatrix<Dimension, 1, Units...>;
@@ -27,6 +27,12 @@ class Translation
 
  private:
   TensorT tensor_;
+};
+
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
+          typename To, typename... Units>
+struct GetCoordinateSystem<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>> {
+  using type = CoordinateSystem;
 };
 
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
@@ -56,12 +62,50 @@ struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, Coordina
 };
 
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
+          typename To, typename... Units, template <typename, int, int> typename ValueMatrixOther, int DimensionOther, typename ScalarOther, typename CoordinateSystemOther, typename FromOther,
+          typename ToOther, typename... UnitsOther>
+struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>,
+                            Translation<ValueMatrixOther, DimensionOther, ScalarOther, CoordinateSystemOther, FromOther, ToOther, UnitsOther...>> {
+  static auto transform(const Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>& transformation,
+                        const Translation<ValueMatrixOther, DimensionOther, ScalarOther, CoordinateSystemOther, FromOther, ToOther, UnitsOther...>& object) {
+    return Translation<ValueMatrixOther, DimensionOther, ScalarOther, To, FromOther, ToOther, UnitsOther...>(transformation.transform(object.getTensor()));
+  }
+};
+
+template <template <typename, int, int> typename ValueMatrixLhs, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs, typename FromLhs,
+          typename ToLhs, typename... UnitsLhs, template <typename, int, int> typename ValueMatrixRhs, int DimensionRhs, typename ScalarRhs, typename CoordinateSystemRhs, typename FromRhs,
+          typename ToRhs, typename... UnitsRhs>
+bool operator==(const Translation<ValueMatrixLhs, DimensionLhs, ScalarLhs, CoordinateSystemLhs, FromLhs, ToLhs, UnitsLhs...>& lhs, const Translation<ValueMatrixRhs, DimensionRhs, ScalarRhs, CoordinateSystemRhs, FromRhs, ToRhs, UnitsRhs...>& rhs) {
+  static_assert(std::is_same<FromLhs, FromRhs>::value, "From coordinates frames do not match.");
+  static_assert(std::is_same<ToLhs, ToRhs>::value, "To coordinates frames do not match.");
+  return lhs.getTensor() == rhs.getTensor();
+}
+
+template <template <typename, int, int> typename ValueMatrixLhs, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs, typename FromLhs,
+          typename ToLhs, typename... UnitsLhs, template <typename, int, int> typename ValueMatrixRhs, int DimensionRhs, typename ScalarRhs, typename CoordinateSystemRhs, typename FromRhs,
+          typename ToRhs, typename... UnitsRhs>
+bool operator!=(const Translation<ValueMatrixLhs, DimensionLhs, ScalarLhs, CoordinateSystemLhs, FromLhs, ToLhs, UnitsLhs...>& lhs, const Translation<ValueMatrixRhs, DimensionRhs, ScalarRhs, CoordinateSystemRhs, FromRhs, ToRhs, UnitsRhs...>& rhs) {
+  return !(lhs == rhs);
+}
+
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
+          typename To, typename... Units>
+std::ostream& operator<<(std::ostream& stream, const Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>& translation) {
+  stream << translation.getTensor();
+  return stream;
+}
+
+template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
           typename To>
 using SpatialTranslation =
     Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, typename AccessUnits<SpecializationDummy<Scalar>>::Length>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using SpatialTranslation2D = SpatialTranslation<ValueMatrix, 2, Scalar, CoordinateSystem, From, To>;
+using SpatialTranslation2 = SpatialTranslation<ValueMatrix, 2, Scalar, CoordinateSystem, From, To>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using SpatialTranslation3D = SpatialTranslation<ValueMatrix, 3, Scalar, CoordinateSystem, From, To>;
+using SpatialTranslation3 = SpatialTranslation<ValueMatrix, 3, Scalar, CoordinateSystem, From, To>;
+
+// v == 0 -> Translation
+// a == 0 -> Uniform motion
+// da/dt == 0 -> Motion with constant acceleration.
 
 }  // namespace wuzp

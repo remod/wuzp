@@ -9,13 +9,16 @@ struct TransformationTraits {
   static_assert(FailOnInstantiation<TransformationTraits<Transformation, Object>>::value, "'TransformationTraits' trait not specialized.");
 };
 
-class Transformation {};
+class Transformation {
+ protected:
+  virtual ~Transformation() = default;
+};
 
 // Translation, Rotation, Reflection, Dilation.
 
 class ActiveTransformation : public Transformation {};
 
-template <typename Derived, typename From, typename To>
+template <typename Derived, typename CoordinateSystem, typename From, typename To>
 class PassiveTransformation : public Transformation {
  public:
   // TODO(remod): Add test to make sure From and To are actually frames.
@@ -25,6 +28,8 @@ class PassiveTransformation : public Transformation {
     static_assert(std::is_same<typename GetCoordinateSystem<Object>::type, From>::value, "Coordinate systems do not match.");
     return TransformationTraits<Derived, Object>::transform(derived(), object);
   }
+
+  // TODO(remod): Add inverse() function.
 
  private:
   const Derived& derived() const { return static_cast<const Derived&>(*this); }  // TODO(remod): Use CRTP class template from web.

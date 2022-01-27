@@ -10,7 +10,7 @@ template <template <typename, int, int> typename ValueMatrix, typename Scalar, t
           int DimensionFrom, int DimensionTo, typename... Units>
 class LinearTransformation
     : public PassiveTransformation<
-          LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>, From, To> {
+          LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>, CoordinateSystem, From, To> {
  public:
   using ValueMatrixT = ValueMatrix<Scalar, DimensionTo, DimensionFrom>;
   using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
@@ -46,8 +46,7 @@ struct TransformationTraits<LinearTransformation<ValueMatrix, Scalar, Coordinate
       const LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<0, 2, CoordinateMatrix>& object) {
     const auto fromResult = transformation.getTensor().inverse().transpose() * object * transformation.getTensor().inverse();
-    return typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(
-        fromResult.getTensor().getCoordinateMatrix().getQuantityMatrix());
+    return evaluate(castCoordinateSystem<To>(fromResult.getTensor()));
   }
 };
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,

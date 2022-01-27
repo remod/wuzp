@@ -45,7 +45,7 @@ using PointQuantityMatrix = QuantityMatrix<PointValueMatrix, PointUnitMatrix>;
 using DirectionQuantityMatrix = QuantityMatrix<PointValueMatrix, DirectionUnitMatrix>;
 using VelocityQuantityMatrix = QuantityMatrix<PointValueMatrix, VelocityUnitMatrix>;
 using PointCoordinateSystemMatrix = TypeMatrix<2, 1, CartesianCoordinateSystem>;
-using PointVector = CoordinateMatrix<PointQuantityMatrix, PointCoordinateSystemMatrix>;
+using PositionPoint = CoordinateMatrix<PointQuantityMatrix, PointCoordinateSystemMatrix>;
 using DirectionVector = CoordinateMatrix<DirectionQuantityMatrix, PointCoordinateSystemMatrix>;
 using VelocityVector = CoordinateMatrix<VelocityQuantityMatrix, PointCoordinateSystemMatrix>;
 
@@ -83,13 +83,13 @@ using MassMatrix = CoordinateMatrix<MassMatrixQuantities, MassMatrixSystemMatrix
 //  TensorT tensor_;
 //};
 
-std::pair<PointVector, PointVector> minimalToCartesian(const MinimalCoordinates& minimalCoordinates, const RadiusQuantity& radius) {
+std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordinates& minimalCoordinates, const RadiusQuantity& radius) {
   // TODO(remod): Introduce CoordinateMatrix::getQuantity()?
   // TODO(remod): Temporarily cast to relative? Or define sin/cos for absolute quantities
   const auto relativeAngle = makeRelative(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
   const auto positionVector = radius * DirectionVector(cos(relativeAngle), sin(relativeAngle));
-  const PointVector position1 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) + positionVector;
-  const PointVector position2 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) - positionVector;
+  const PositionPoint position1 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) + positionVector;
+  const PositionPoint position2 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) - positionVector;
   return std::make_pair(position1, position2);
 }
 
