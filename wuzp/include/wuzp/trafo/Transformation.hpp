@@ -30,4 +30,10 @@ class PassiveTransformation : public Transformation {
   const Derived& derived() const { return static_cast<const Derived&>(*this); }  // TODO(remod): Use CRTP class template from web.
 };
 
+// Static frames
+// Rotation:    B_r = A_BA * A_r
+//              B_v = A_BA * A_v
+//              B_a = A_BA * A_a
+// Translation: r_0B = r_AB + r_0A
+
 }  // namespace wuzp

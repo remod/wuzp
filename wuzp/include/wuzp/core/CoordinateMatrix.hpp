@@ -68,6 +68,7 @@ class CoordinateMatrix {
     return quantityMatrix_.isApprox(other.getQuantityMatrix());
   }
 
+  // TODO(remod): Add head() and tail() functions to all classes.
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
     return typename Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type(

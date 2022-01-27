@@ -12,7 +12,7 @@ void setQuantityValue(QuantityT& quantity, const ValueT& value);
 template <typename ValueT, typename QuantityT>
 ValueT getQuantityValue(const QuantityT& quantity);
 
-// TODO(remod): Introduce scaling factor (Ratio).
+// TODO(remod): Just typedef QuantityMatrix<1,1> instead.
 template <typename ValueT_, typename UnitT_>
 class Quantity {
  public:
