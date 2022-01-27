@@ -559,8 +559,9 @@ std::pair<PointVector, PointVector> minimalToCartesian(const MinimalCoordinates&
   return std::make_pair(position1, position2);
 }
 
-std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordinates& minimalCoordinates, const MinimalCoordinatesDt& minimalCoordinatesDt,
-                        const RadiusQuantity& radius) {
+std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordinates& minimalCoordinates,
+                                                             const MinimalCoordinatesDt& minimalCoordinatesDt,
+                                                             const RadiusQuantity& radius) {
   const auto relativeAngle = makeRelative(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
   const auto velocityVector = radius * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>() *
                               DirectionVector(-sin(relativeAngle), cos(relativeAngle))
@@ -568,8 +569,10 @@ std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordi
                               / Quantity<double, Angle>(1.0)
 #endif
       ;
-  const VelocityVector velocity1 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinatesDt.block<0, 0, 2, 1>()) + velocityVector;
-  const VelocityVector velocity2 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinatesDt.block<0, 0, 2, 1>()) - velocityVector;
+  const VelocityVector velocity1 =
+      castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinatesDt.block<0, 0, 2, 1>()) + velocityVector;
+  const VelocityVector velocity2 =
+      castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinatesDt.block<0, 0, 2, 1>()) - velocityVector;
   return std::make_pair(velocity1, velocity2);
 }
 
@@ -584,25 +587,27 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const auto cartesianCoordinatesDt = minimalToCartesian(minimalCoordinates, minimalCoordinatesDt, radius);
 
   // TODO(remod): Introduce norm() and squaredNorm() for vectors (and matrices?).
-  const EnergyQuantity energyCartesianCoordinates = 0.5 * (mass1 * cartesianCoordinatesDt.first.dot(cartesianCoordinatesDt.first) + mass2 * cartesianCoordinatesDt.second.dot(cartesianCoordinatesDt.second));
+  const EnergyQuantity energyCartesianCoordinates = 0.5 * (mass1 * cartesianCoordinatesDt.first.dot(cartesianCoordinatesDt.first) +
+                                                           mass2 * cartesianCoordinatesDt.second.dot(cartesianCoordinatesDt.second));
 
   const AngleQuantity relativeAngle = makeRelative(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
 
   const MassQuantity massSum = mass1 + mass2;
   const MassQuantity massDifference = mass1 - mass2;
-  const EnergyQuantity energyMinimalCoordinates1 = 0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()) +
-                                                pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>()) +
-                                                pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
+  const EnergyQuantity energyMinimalCoordinates1 =
+      0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()) +
+                        pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>()) +
+                        pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                                                                        / Quantity<double, Angle>(1.0)
+                                                / Quantity<double, Angle>(1.0)
 #endif
-                                                                            )) +
-                                        2.0 * radius * massDifference * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
+                                                    )) +
+             2.0 * radius * massDifference * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                                            / Quantity<double, Angle>(1.0)
+                 / Quantity<double, Angle>(1.0)
 #endif
-                                            * (cos(relativeAngle) * minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>() -
-                                               sin(relativeAngle) * minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()));
+                 * (cos(relativeAngle) * minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>() -
+                    sin(relativeAngle) * minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()));
 
   auto massMatrix00 = massSum;
   auto massMatrix01 = MassQuantity(0.0);
