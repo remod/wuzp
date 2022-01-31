@@ -29,7 +29,7 @@ TEST(TestRotation, TransformPositionVector) {  // NOLINT
   using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
   using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
-  using Transformation = Rotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemB>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, -2.0, -3.0);
@@ -43,7 +43,7 @@ TEST(TestRotation, TransformPositionPoint) {  // NOLINT
   using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
   using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
   using Object = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
-  using Transformation = Rotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemB>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, -2.0, -3.0);
@@ -59,7 +59,7 @@ TEST(TestRotation, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
   using Object = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, TypeMatrix<3, 2, CoordinateSystemA>>>;
-  using Transformation = Rotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, TypeMatrix<3, 2, CoordinateSystemB>>>;
   const MyValueMatrix valueMatrixObject(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const Object object(valueMatrixObject);

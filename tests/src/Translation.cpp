@@ -3,6 +3,7 @@
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
+#include "wuzp/trafo/Rotation.hpp"
 #include "wuzp/trafo/Translation.hpp"
 
 using namespace wuzp;  // NOLINT
@@ -68,5 +69,19 @@ TEST(TestTranslation, TransformTranslation) {  // NOLINT
 }
 
 TEST(TestTranslation, TransformRotation) {  // NOLINT
-  // TODO(remod).
+  struct CoordinateSystemAName {};
+  struct CoordinateSystemBName {};
+  struct CoordinateSystemCName {};
+  struct CoordinateSystemDName {};
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+  using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
+  using Object = SpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
+  using Transformation = SpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
+  using TransformedObject = SpatialRotation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;
+  const Object object(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+  const TransformedObject transformedObject(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+  const Transformation transformation(4.0, 2.0, 1.0);
+  EXPECT_EQ(transformation.transform(object), transformedObject);
 }

@@ -14,7 +14,7 @@ class Transformation {
   virtual ~Transformation() = default;
 };
 
-// Translation, Rotation, Reflection, Dilation.
+// Translation, SpatialRotation, Reflection, Dilation.
 
 class ActiveTransformation : public Transformation {};
 
@@ -36,7 +36,7 @@ class PassiveTransformation : public Transformation {
 };
 
 // Static frames
-// Rotation:    B_r = A_BA * A_r
+// SpatialRotation:    B_r = A_BA * A_r
 //              B_v = A_BA * A_v
 //              B_a = A_BA * A_a
 // Translation: r_0B = r_AB + r_0A
