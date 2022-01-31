@@ -29,6 +29,12 @@ class PassiveTransformation : public Transformation {
     return TransformationTraits<Derived, Object>::transform(derived(), object);
   }
 
+  template <typename Other>
+  bool isApprox(const Other& other) {
+    static_assert(std::is_same<typename GetCoordinateSystem<Other>::type, CoordinateSystem>::value, "Coordinate systems do not match.");
+    return derived().getTensor().isApprox(other.getTensor());
+  }
+
   // TODO(remod): Add inverse() function.
 
  private:

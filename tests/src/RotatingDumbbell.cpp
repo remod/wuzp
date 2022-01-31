@@ -2,6 +2,7 @@
 
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/CoordinateSystemMatrix.hpp"
 #include "wuzp/core/traits.hpp"
 
 using namespace wuzp;  // NOLINT

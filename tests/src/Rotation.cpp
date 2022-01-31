@@ -6,6 +6,7 @@
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/Rotation.hpp"
+#include "wuzp/trafo/Translation.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -65,14 +66,45 @@ TEST(TestRotation, TransformPointCloud) {  // NOLINT
   const Object object(valueMatrixObject);
   const MyValueMatrix valueMatrixTransformedObject(1.0, 4.0, -2.0, -5.0, -3.0, -6.0);
   const TransformedObject transformedObject(valueMatrixTransformedObject);
+  // TODO(remod): Get rid of eigen dependency here. Test creating value matrix from implementation.
   const Transformation transformation(Eigen::Quaternion<double>(0.0, 1.0, 0.0, 0.0).toRotationMatrix());
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
 TEST(TestRotation, TransformTranslation) {  // NOLINT
-  // TODO(remod).
+  struct CoordinateSystemAName {};
+  struct CoordinateSystemBName {};
+  struct CoordinateSystemCName {};
+  struct CoordinateSystemDName {};
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+  using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
+  using Object = SpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
+  using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
+  using TransformedObject = SpatialTranslation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;
+  const Object object(1.0, 2.0, 3.0);
+  const TransformedObject transformedObject(1.0, -2.0, -3.0);
+  const Transformation transformation(1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0);
+  EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
 TEST(TestRotation, TransformRotation) {  // NOLINT
-  // TODO(remod).
+  struct CoordinateSystemAName {};
+  struct CoordinateSystemBName {};
+  struct CoordinateSystemCName {};
+  struct CoordinateSystemDName {};
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+  using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
+  using Object = SpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
+  using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
+  using TransformedObject = SpatialRotation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;
+  const double sqrt2_2 = 0.5 * std::sqrt(2.0);
+  const Object object(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+  const TransformedObject transformedObject(0.0, sqrt2_2, sqrt2_2, sqrt2_2, 0.5, -0.5, sqrt2_2, -0.5, 0.5);
+  const Transformation transformation(1.0, 0.0, 0.0, 0.0, sqrt2_2, -sqrt2_2, 0.0, sqrt2_2, sqrt2_2);
+  EXPECT_TRUE(transformation.transform(object).isApprox(transformedObject));
+  // TODO(remod): Test converting an object with original and transformed transformation, and check whether they match.
 }

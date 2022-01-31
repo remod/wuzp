@@ -41,6 +41,12 @@ struct CastCoordinateSystem<Translation<ValueMatrix, Dimension, Scalar, Coordina
   using type = Translation<ValueMatrix, Dimension, Scalar, NewCoordinateSystem, From, To, Units...>;
 };
 
+}  // namespace wuzp
+
+#include "wuzp/trafo/LinearTransformation.hpp"
+
+namespace wuzp {
+
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
           typename To, typename... Units, typename CoordinateMatrix>
 struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>,
@@ -60,12 +66,6 @@ struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, Coordina
     }
   }
 };
-
-}  // namespace wuzp
-
-#include "wuzp/trafo/Rotation.hpp"
-
-namespace wuzp {
 
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
           typename To, typename... Units, template <typename, int, int> typename ValueMatrixOther, int DimensionOther, typename ScalarOther,
@@ -91,6 +91,7 @@ struct TransformationTraits<Translation<ValueMatrix, Dimension, Scalar, Coordina
   static auto transform(const Translation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>& /*transformation*/,
                         const LinearTransformation<ValueMatrixOther, ScalarOther, CoordinateSystemOther, FromOther, ToOther,
                                                    DimensionFromOther, DimensionToOther, UnitsOther...>& object) {
+    // TODO(remod): We could use castCoordinateSystem instead, but we need to specialize it.
     return LinearTransformation<ValueMatrixOther, ScalarOther, To, FromOther, ToOther, DimensionFromOther, DimensionToOther, UnitsOther...>(
         object.getTensor().getValueMatrix());
   }

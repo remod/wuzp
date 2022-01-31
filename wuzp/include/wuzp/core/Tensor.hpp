@@ -260,6 +260,12 @@ struct DotProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, Coordinat
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
+struct Inverse<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
+  // TODO(remod): Is this correct?
+  using type = Tensor<-ContravariantIndices, -CovariantIndices, typename Inverse<CoordinateMatrix>::type>;
+};
+
+template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
 struct GetCoordinateSystem<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
   using type = typename GetCoordinateSystem<CoordinateMatrix>::type;
 };

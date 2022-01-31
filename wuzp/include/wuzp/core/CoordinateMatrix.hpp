@@ -232,6 +232,11 @@ struct DotProduct<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>
   using assert_frames_match = typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type;
 };
 
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct Inverse<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  using type = CoordinateMatrix<typename Inverse<QuantityMatrix>::type, typename Inverse<CoordinateSystemMatrix>::type>;
+};
+
 template <typename QuantityMatrix, typename CoordinateSystemMatrix, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   using type = CoordinateMatrix<typename Block<QuantityMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
