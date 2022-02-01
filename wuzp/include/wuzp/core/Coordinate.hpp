@@ -8,6 +8,7 @@
 
 namespace wuzp {
 
+// TODO(remod): Just typedef CoordinateMatrix<1,1> instead.
 /**
  * Class representing a coordinate.
  * A coordinate is a quantity expressed in a coordinate system.

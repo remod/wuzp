@@ -95,6 +95,7 @@ if (${ENABLE_TESTS})
         src/Rotation.cpp
         src/Jacobian.cpp
         src/ProperRigidTransformation.cpp
+        src/RotatingDumbbell.cpp
     )
     target_compile_definitions(tests PRIVATE REPO_DIR=${REPO_DIR})
     target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)
