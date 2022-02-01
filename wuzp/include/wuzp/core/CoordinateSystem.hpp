@@ -12,9 +12,6 @@ struct CoordinateSystem {};
 struct NoCoordinateSystemName {};
 using NoCoordinateSystem = CoordinateSystem<NoCoordinateSystemName>;
 
-template <typename Object>
-struct GetCoordinateSystem;
-
 template <typename Lhs, typename Rhs>
 struct Sum<CoordinateSystem<Lhs>, CoordinateSystem<Rhs>> {
   static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");

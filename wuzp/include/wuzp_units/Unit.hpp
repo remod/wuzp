@@ -5,6 +5,7 @@
 
 namespace wuzp_units {
 
+// TODO(remod): Introduce scaling factor (Ratio).
 template <bool IsAbsolute, int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance,
           int LuminousIntensity>
 struct UnitImpl;

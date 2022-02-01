@@ -125,19 +125,36 @@ struct Evaluate {
   static_assert(FailOnInstantiation<Evaluate<T>>::value, "'Evaluate' trait not specialized for given type.");
 };
 template <typename T>
-static auto evaluate(T t);
+auto evaluate(T t) {
+  return typename Evaluate<T>::type(t);
+}
 
 template <typename T>
 struct IsAbsolute {
   static_assert(FailOnInstantiation<IsAbsolute<T>>::value, "'IsAbsolute' trait not specialized for given type.");
 };
+
 template <typename T>
 struct MakeRelative {
   static_assert(FailOnInstantiation<MakeRelative<T>>::value, "'MakeRelative' trait not specialized for given type.");
 };
 template <typename T>
+auto makeRelative(T t) {
+  return MakeRelative<T>::make(t);
+}
+
+template <typename T>
 struct MakeAbsolute {
   static_assert(FailOnInstantiation<MakeAbsolute<T>>::value, "'MakeAbsolute' trait not specialized for given type.");
+};
+template <typename T>
+auto makeAbsolute(T t) {
+  return MakeAbsolute<T>::make(t);
+}
+
+template <typename T>
+struct GetCoordinateSystem {
+  static_assert(FailOnInstantiation<GetCoordinateSystem<T>>::value, "'GetCoordinateSystem' trait not specialized for given type.");
 };
 
 template <typename T, typename NewCoordinateSystem>
@@ -145,6 +162,10 @@ struct CastCoordinateSystem {
   static_assert(FailOnInstantiation<CastCoordinateSystem<T, NewCoordinateSystem>>::value,
                 "'CastCoordinateSystem' trait not specialized for given types.");
 };
+template <typename To, typename T>
+auto castCoordinateSystem(T t) {
+  return typename CastCoordinateSystem<T, To>::type(t.getValueMatrix());
+}
 
 template <typename UnitT>
 struct AccessUnits {
@@ -157,24 +178,5 @@ struct GetQuantityImplementation {
   static_assert(FailOnInstantiation<GetQuantityImplementation<ValueT, UnitT>>::value,
                 "'GetQuantityImplementation' trait not specialized for given types.");
 };
-
-// TODO(remod): Cleanup - remove traits and only use these methods?
-
-template <typename T>
-auto makeRelative(T t) {
-  return MakeRelative<T>::make(t);
-}
-template <typename T>
-auto makeAbsolute(T t) {
-  return MakeAbsolute<T>::make(t);
-}
-template <typename To, typename T>
-auto castCoordinateSystem(T t) {
-  return typename CastCoordinateSystem<T, To>::type(t.getCoordinateMatrix().getQuantityMatrix());
-}
-template <typename T>
-auto evaluate(T t) {
-  return typename Evaluate<T>::type(t);
-}
 
 }  // namespace wuzp

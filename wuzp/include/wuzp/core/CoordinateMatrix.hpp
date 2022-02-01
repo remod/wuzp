@@ -68,6 +68,7 @@ class CoordinateMatrix {
     return quantityMatrix_.isApprox(other.getQuantityMatrix());
   }
 
+  // TODO(remod): Add head() and tail() functions to all classes.
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
     return typename Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
@@ -229,6 +230,11 @@ struct DotProduct<CoordinateMatrix<QuantityMatrixLhs, CoordinateSystemMatrixLhs>
 
  private:
   using assert_frames_match = typename DotProduct<CoordinateSystemMatrixLhs, CoordinateSystemMatrixRhs>::type;
+};
+
+template <typename QuantityMatrix, typename CoordinateSystemMatrix>
+struct Inverse<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
+  using type = CoordinateMatrix<typename Inverse<QuantityMatrix>::type, typename Inverse<CoordinateSystemMatrix>::type>;
 };
 
 template <typename QuantityMatrix, typename CoordinateSystemMatrix, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
