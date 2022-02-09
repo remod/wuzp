@@ -74,13 +74,13 @@ struct IsSpecialization<Template1<Args...>, Template2> {
   }
   static constexpr bool value = calculate();
 };
-// TODO(remod): This corner case could be avoided by using std::integral_constant instead of ints for the Tensor class and providing a
+// TODO(remod): ThisT corner case could be avoided by using std::integral_constant instead of ints for the Tensor class and providing a
 // simplified alias.
 template <typename T, template <int, int, typename...> typename Template>
 struct IsSpecializationInts : std::false_type {};
 template <template <int, int, typename...> typename Template, int Int0, int Int1, typename... Args>
 struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true_type {};
-// TODO(remod): This is a special case for the quantity matrix.
+// TODO(remod): ThisT is a special case for the quantity matrix.
 template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantityMatrix>
 struct IsSpecializationQuantityMatrix : std::false_type {};
 template <template <typename, typename, template <typename, typename> typename> typename QuantityMatrix, typename ValueMatrixT_,

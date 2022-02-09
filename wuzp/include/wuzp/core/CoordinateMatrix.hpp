@@ -6,11 +6,14 @@
 #include "wuzp/core/Coordinate.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
+#include "wuzp/core/Integer.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/UnitMatrix.hpp"
 
 namespace wuzp {
 
+// TODO(remod): A coordinate matrix should only have a single coordinate system (at least a single coordinate system per vector):
+//  https://en.wikipedia.org/wiki/Basis_(linear_algebra)#Coordinates
 /**
  * Class representing a coordinate matrix.
  * A coordinate matrix is a matrix of quantities and coordinate systems.
@@ -23,7 +26,9 @@ class CoordinateMatrix {
  public:
   using QuantityMatrixT = QuantityMatrix_;
   using CoordinateSystemMatrixT = CoordinateSystemMatrix_;
+  using UnitMatrixT = typename QuantityMatrixT::UnitMatrixT;
   using ValueMatrixT = typename QuantityMatrixT::ValueMatrixT;
+  using ScalarT = typename QuantityMatrixT::ScalarT;
   using ThisT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
 
   static_assert(Rows<QuantityMatrixT>::value == Rows<CoordinateSystemMatrixT>::value, "Number of rows do not match.");
@@ -48,6 +53,8 @@ class CoordinateMatrix {
 
   static ThisT zero() { return ThisT(QuantityMatrixT::zero()); }
   static ThisT random() { return ThisT(QuantityMatrixT::random()); }
+
+  // TODO(remod): Introduce getCoordinate()/setCoordinate()? Use quantity as type, as a single coordinate does not make sense?
 
   template <typename ValueMatrixOther, typename UnitMatrixOther>
   void setQuantityMatrix(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& quantityMatrix) {
@@ -84,6 +91,15 @@ class CoordinateMatrix {
   }
 
   auto inverse() const { return typename Inverse<ThisT>::type(quantityMatrix_.inverse()); }
+
+  template <bool IsHomogeneousV = IsHomogeneous<CoordinateSystemMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
+  auto norm() const {
+    return quantityMatrix_.norm();
+  }
+  template <bool IsHomogeneousV = IsHomogeneous<CoordinateSystemMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
+  auto squaredNorm() const {
+    return quantityMatrix_.squaredNorm();
+  }
 
  private:
   template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
@@ -245,19 +261,20 @@ struct Block<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>, BlockRowI
 
 template <typename QuantityMatrix, typename CoordinateSystemMatrix>
 struct GetCoordinateSystem<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
-  static_assert(IsHomogeneous<CoordinateSystemMatrix>::value, "Coordinate systems are heterogeneous.");
-  using type = typename std::tuple_element<0, typename GetTypes<CoordinateSystemMatrix>::type>::type;
+  using type = typename GetType<CoordinateSystemMatrix>::type;
 };
 
 template <typename QuantityMatrix, typename CoordinateSystemMatrix>
 struct IsAbsolute<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
   static constexpr bool value = IsAbsolute<QuantityMatrix>::value;
 };
+
 template <typename QuantityMatrix, typename CoordinateSystemMatrix>
 struct MakeRelative<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
   using type = CoordinateMatrix<typename MakeRelative<QuantityMatrix>::type, CoordinateSystemMatrix>;
   static type make(const CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>& object) { return type(object.getValueMatrix()); }
 };
+
 template <typename QuantityMatrix, typename CoordinateSystemMatrix>
 struct MakeAbsolute<CoordinateMatrix<QuantityMatrix, CoordinateSystemMatrix>> {
   using type = CoordinateMatrix<typename MakeAbsolute<QuantityMatrix>::type, CoordinateSystemMatrix>;

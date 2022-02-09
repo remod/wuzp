@@ -33,46 +33,55 @@ typename CollapseCommas<Lhs, Rhs, Tail...>::type&& spliceCommas(Lhs&& lhs, Rhs&&
 // TODO: How can we enforce the same interface for all value matrices?
 /**
  * Wrapper for all eigen matrices, used to standardize the interface amongst all value matrix implementations.
- * @tparam Implementation_ Implementation of the value matrix.
+ * @tparam Implementation_ ImplementationT of the value matrix.
  */
 template <typename Implementation_>
 class GenericValueMatrix {
  public:
-  using Implementation = Implementation_;
-  using This = GenericValueMatrix<Implementation>;
+  using ImplementationT = Implementation_;
+  using ThisT = GenericValueMatrix<ImplementationT>;
   // TODO(remod): Use member types instead of traits for scalar, dim, rows, cols, in all classes?
-  using Scalar = typename wuzp::Scalar<This>::type;
+  using ScalarT = typename wuzp::Scalar<ThisT>::type;
 
-  explicit GenericValueMatrix(const Implementation& implementation) : implementation_(implementation) {}
-  explicit GenericValueMatrix(Implementation&& implementation) : implementation_(std::move(implementation)) {}
+  explicit GenericValueMatrix(const ImplementationT& implementation) : implementation_(implementation) {}
+  explicit GenericValueMatrix(ImplementationT&& implementation) : implementation_(std::move(implementation)) {}
 
   GenericValueMatrix() = default;
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!wuzp::IsSpecialization<T0, wuzp::Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename wuzp::GetTag<This, T0, Ts...>::type, wuzp::FromValueMatrix>)
+  explicit(!std::is_same_v<typename wuzp::GetTag<ThisT, T0, Ts...>::type, wuzp::FromValueMatrix>)
       GenericValueMatrix(const T0& t0, const Ts&... ts)
-      : GenericValueMatrix(typename wuzp::GetTag<This, T0, Ts...>::type(), t0, ts...) {}
+      : GenericValueMatrix(typename wuzp::GetTag<ThisT, T0, Ts...>::type(), t0, ts...) {}
   template <typename T0, typename... Ts, typename = std::enable_if_t<!wuzp::IsSpecialization<T0, wuzp::Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename wuzp::GetTag<This, T0, Ts...>::type, wuzp::FromValueMatrix>) GenericValueMatrix(T0&& t0, Ts&&... ts)
-      : GenericValueMatrix(typename wuzp::GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
+  explicit(!std::is_same_v<typename wuzp::GetTag<ThisT, T0, Ts...>::type, wuzp::FromValueMatrix>) GenericValueMatrix(T0&& t0, Ts&&... ts)
+      : GenericValueMatrix(typename wuzp::GetTag<ThisT, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
-  static This zero() { return wuzp::Zero<This>::value(); }
-  static This random() { return wuzp::Random<This>::value(); }
+  static ThisT zero() { return wuzp::Zero<ThisT>::value(); }
+  static ThisT random() { return wuzp::Random<ThisT>::value(); }
 
   template <int RowId, int ColId, typename ValueT>
-  This& setValue(ValueT value) {
+  ThisT& setValue(ValueT value) {
     implementation_(RowId, ColId) = value;
     return *this;
   }
+
   template <int RowId, int ColId>
   auto getValue() const {
     return implementation_(RowId, ColId);
   }
 
-  template <int Dimension = wuzp::Dimension<This>::value, typename = std::enable_if_t<Dimension == 0>>
-  operator typename wuzp::Scalar<This>::type() const {
+  template <typename ValueT>
+  ThisT& setValue(int rowId, int colId, ValueT value) {
+    implementation_(rowId, colId) = value;
+    return *this;
+  }
+
+  auto getValue(int rowId, int colId) const { return implementation_(rowId, colId); }
+
+  template <int Dimension = wuzp::Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
+  operator typename wuzp::Scalar<ThisT>::type() const {
     return implementation_(0, 0);
   }
 
@@ -83,20 +92,23 @@ class GenericValueMatrix {
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto getBlock() const {
-    return typename wuzp::Block<This, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
+    return typename wuzp::Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
         implementation_.template block<BlockRows, BlockCols>(BlockRowId, BlockColId));
   }
 
-  auto transpose() const { return typename wuzp::Transpose<This>::type(implementation_.transpose()); }
+  auto transpose() const { return typename wuzp::Transpose<ThisT>::type(implementation_.transpose()); }
 
   template <typename ImplementationOther_>
   auto dot(const GenericValueMatrix<ImplementationOther_>& other) const {
-    return typename wuzp::DotProduct<This, GenericValueMatrix<ImplementationOther_>>::type(implementation_.dot(other.getImplementation()));
+    return typename wuzp::DotProduct<ThisT, GenericValueMatrix<ImplementationOther_>>::type(implementation_.dot(other.getImplementation()));
   }
 
-  auto inverse() const { return typename wuzp::Inverse<This>::type(implementation_.inverse()); }
+  auto norm() const { return implementation_.norm(); }
+  auto squaredNorm() const { return implementation_.squaredNorm(); }
 
-  const Implementation& getImplementation() const { return implementation_; }
+  auto inverse() const { return typename wuzp::Inverse<ThisT>::type(implementation_.inverse()); }
+
+  const ImplementationT& getImplementation() const { return implementation_; }
 
  private:
   template <typename ImplementationOther_>
@@ -115,7 +127,7 @@ class GenericValueMatrix {
     internal::spliceCommas((implementation_ << std::forward<T0>(t0)), std::forward<Ts>(ts)...);
   }
 
-  Implementation implementation_;
+  ImplementationT implementation_;
 };
 
 template <typename ValueT, int Rows, int Cols>

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cmath>
 #include <ostream>
 
 #include "wuzp/core/Quantity.hpp"
@@ -190,23 +189,5 @@ template <typename ValueT, typename UnitT>
 ValueT getQuantityValue(const Quantity<ValueT, UnitT>& quantity) {
   return quantity.getImplementation().getValue();
 }
-
-// Exponent first, as value and unit can be derived automatically.
-template <int Exponent, typename Value, typename Unit>
-auto pow(const Quantity<Value, Unit>& quantity) {
-  return Quantity<Value, typename Power<Unit, Exponent>::type>(std::pow(quantity.getValue(), Exponent));
-}
-
-template <typename Value>
-auto sin(const Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>& angle) {
-  return Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Dimensionless>(std::sin(angle.getValue()));
-}
-
-template <typename Value>
-auto cos(const Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>& angle) {
-  return Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Dimensionless>(std::cos(angle.getValue()));
-}
-
-// TODO(remod): add more math functions.
 
 }  // namespace wuzp

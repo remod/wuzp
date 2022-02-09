@@ -139,22 +139,4 @@ ValueT getQuantityValue(const Quantity<ValueT, UnitT>& quantity) {
   return quantity.getImplementation().value();
 }
 
-// Exponent first, as value and unit can be derived automatically.
-template <int Exponent, typename Value, typename Unit>
-auto pow(const Quantity<Value, Unit>& quantity) {
-  return Quantity<Value, typename Power<Unit, Exponent>::type>(std::pow(quantity.getValue(), Exponent));
-}
-
-template <typename Value>
-auto sin(const Quantity<Value, wuzp_boost::Angle>& angle) {
-  return Quantity<Value, wuzp_boost::Dimensionless>(std::sin(angle.getValue()));
-}
-
-template <typename Value>
-auto cos(const Quantity<Value, wuzp_boost::Angle>& angle) {
-  return Quantity<Value, wuzp_boost::Dimensionless>(std::cos(angle.getValue()));
-}
-
-// TODO(remod): add more math functions.
-
 }  // namespace wuzp

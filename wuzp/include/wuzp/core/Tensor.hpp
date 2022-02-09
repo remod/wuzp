@@ -4,6 +4,7 @@
 
 #include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/helpers.hpp"
@@ -14,12 +15,12 @@ namespace wuzp {
 // Tensor (3+) - Hypermatrix
 // Tensor (2)  - Matrix
 // Tensor (1)  - Vector
-// Tensor (0)  - Scalar
+// Tensor (0)  - ScalarT
 
 // template <int ContravariantIndices, int CovariantIndices>
 // class Tensor;
 //
-// using Scalar = Tensor<0, 0>;
+// using ScalarT = Tensor<0, 0>;
 // using EuclideanVector = Tensor<1, 0>;       // A * v
 // using LinearTransformation = Tensor<1, 1>;  // M' = A^-1 * M * A
 // using RotationMatrix = Tensor<1, 1>;        // M' = A^-1 * M * A
@@ -91,11 +92,13 @@ class Tensor {
  public:
   using CoordinateMatrixT = CoordinateMatrix_;
   using QuantityMatrixT = typename CoordinateMatrixT::QuantityMatrixT;
-  using UnitMatrixT = typename QuantityMatrixT::UnitMatrixT;
-  using ValueMatrixT = typename QuantityMatrixT::ValueMatrixT;
+  using UnitMatrixT = typename CoordinateMatrixT::UnitMatrixT;
+  using ValueMatrixT = typename CoordinateMatrixT::ValueMatrixT;
+  // TODO(remod): Use ValueT instead of ScalarT.
+  using ScalarT = typename CoordinateMatrixT::ScalarT;
   using This = Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrixT>;
 
-  // TODO(remod): This is disabled to support batch processing of vectors, e.g. for point clouds. Remove it at one point.
+  // TODO(remod): ThisT is disabled to support batch processing of vectors, e.g. for point clouds. Remove it at one point.
   //  static_assert(ContravariantIndices + CovariantIndices == Dimension<CoordinateMatrix>::value, "Dimension does not match.");
 
   Tensor() = default;
@@ -153,6 +156,15 @@ class Tensor {
   }
 
   auto inverse() const { return typename Inverse<This>::type(coordinateMatrix_.inverse()); }
+
+  template <bool IsHomogeneousV = IsHomogeneous<UnitMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
+  auto norm() const {
+    return coordinateMatrix_.norm();
+  }
+  template <bool IsHomogeneousV = IsHomogeneous<UnitMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
+  auto squaredNorm() const {
+    return coordinateMatrix_.squaredNorm();
+  }
 
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
@@ -391,5 +403,22 @@ template <template <typename, int, int> typename ValueMatrix, typename Scalar, t
 using VelocityVector2 = VelocityVector<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using VelocityVector3 = VelocityVector<3, ValueMatrix, Scalar, CoordinateSystem>;
+
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using SpacetimePoint = PositionPoint<Dimension, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using SpacetimePoint2 = SpacetimePoint<2, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using SpacetimePoint3 = SpacetimePoint<3, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using SpacetimePoint4 = SpacetimePoint<4, ValueMatrix, Scalar, CoordinateSystem>;
+template <int DimensionV, template <typename, int, int> typename ValueMatrixT, typename ScalarT, typename CoordinateSystemT>
+using SpacetimeVector = PositionVector<DimensionV, ValueMatrixT, ScalarT, CoordinateSystemT>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using SpacetimeVector2 = SpacetimeVector<2, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using SpacetimeVector3 = SpacetimeVector<3, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrixT, typename ScalarT, typename CoordinateSystemT>
+using SpacetimeVector4 = SpacetimeVector<4, ValueMatrixT, ScalarT, CoordinateSystemT>;
 
 }  // namespace wuzp

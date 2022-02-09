@@ -108,11 +108,15 @@ struct CreateTypeMatrix<Rows, Cols, Type> {
   using type = TypeMatrixImpl<Rows, Cols, HomogeneousTuple<Rows * Cols, Type>>;
 };
 
-template <typename T>
-struct GetTypes;
 template <int Rows, int Cols, typename Types>
 struct GetTypes<TypeMatrixImpl<Rows, Cols, Types>> {
   using type = Types;
+};
+
+template <int Rows, int Cols, typename Types>
+struct GetType<TypeMatrixImpl<Rows, Cols, Types>> {
+  static_assert(IsHomogeneous<TypeMatrixImpl<Rows, Cols, Types>>::value, "Types are heterogeneous.");
+  using type = typename std::tuple_element<0, typename GetTypes<TypeMatrixImpl<Rows, Cols, Types>>::type>::type;
 };
 
 template <typename Types>

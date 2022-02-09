@@ -6,6 +6,16 @@
 
 using namespace wuzp;  // NOLINT
 
+TEST(TestRational, AccessMembers) {  // NOLINT
+  static_assert(Rational<3, 12>::Dividend == 1);
+  static_assert(Rational<3, 12>::Divisor == 4);
+}
+
+TEST(TestRational, Value) {  // NOLINT
+  EXPECT_EQ((Rational<3, 12>::value<double>()), 0.75);
+  EXPECT_EQ((Rational<3, 12>::value<int>()), 1);
+}
+
 TEST(TestRational, Infinity){// NOLINT
                              ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(
                                  R"(

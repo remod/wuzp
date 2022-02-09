@@ -53,6 +53,7 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>..
 
 template <int Rows, int Cols, typename... Units>
 struct IsAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {
+  static_assert(IsHomogeneous<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>>::value, "Unit matrix is inhomogeneous.");
   static constexpr bool value = (IsAbsolute<Unit<Units>>::value && ...);
 };
 template <int Rows, int Cols, typename... Units>

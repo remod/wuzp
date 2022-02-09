@@ -48,10 +48,20 @@ using FromValueMatrix = Tag<FromValueMatrixLabel>;
 struct FromValueMatrixArgsLabel {};
 using FromValueMatrixArgs = Tag<FromValueMatrixArgsLabel>;
 
+template <typename T>
+struct GetTypes {
+  static_assert(FailOnInstantiation<GetTypes<T>>::value, "'GetTypes' trait not specialized for given type.");
+};
+
+template <typename T>
+struct GetType {
+  static_assert(FailOnInstantiation<GetType<T>>::value, "'GetType' trait not specialized for given type.");
+};
+
 // TODO(remod): Rename to GetValue.
 template <typename T>
 struct Scalar {
-  static_assert(FailOnInstantiation<Scalar<T>>::value, "'Scalar' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Scalar<T>>::value, "'ScalarT' trait not specialized for given type.");
 };
 
 template <typename T>
@@ -74,9 +84,9 @@ DEFINE_RECURSIVE_TRAIT(Difference)
 DEFINE_RECURSIVE_TRAIT(Product)
 DEFINE_RECURSIVE_TRAIT(Division)
 
-template <typename T, int Exponent>
+template <typename T, typename ExponentT>
 struct Power {
-  static_assert(FailOnInstantiation<Power<T, Exponent>>::value, "'Power' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Power<T, ExponentT>>::value, "'Power' trait not specialized for given type.");
 };
 
 template <typename T>
