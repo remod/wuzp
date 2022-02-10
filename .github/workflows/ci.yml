@@ -234,7 +234,7 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test_packages
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
-      PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package
+      PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package/test
       SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
