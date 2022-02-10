@@ -66,9 +66,10 @@ struct Division<Unit<ImplementationLhs>, Unit<ImplementationRhs>> {
   using type = Unit<typename boost::units::divide_typeof_helper<ImplementationLhs, ImplementationRhs>::type>;
 };
 
-template <typename Implementation, int Exponent>
+template <typename Implementation, typename Exponent>
 struct Power<Unit<Implementation>, Exponent> {
-  using type = Unit<typename boost::units::power_typeof_helper<Implementation, boost::units::static_rational<Exponent>>::type>;
+  using type = Unit<typename boost::units::power_typeof_helper<Implementation,
+                                                               boost::units::static_rational<Exponent::Dividend, Exponent::Divisor>>::type>;
 };
 
 template <typename Dim, typename System>

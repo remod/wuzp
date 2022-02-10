@@ -3,6 +3,7 @@
 #include <ostream>
 #include <type_traits>
 
+#include "wuzp/core/Integer.hpp"
 #include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/UnitMatrix.hpp"
@@ -15,6 +16,7 @@ class QuantityMatrix {
  public:
   using ValueMatrixT = ValueMatrix_;
   using UnitMatrixT = UnitMatrix_;
+  using ScalarT = typename ValueMatrixT::ScalarT;
   using This = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
 
   static_assert(Rows<ValueMatrixT>::value == Rows<UnitMatrixT>::value, "Number of rows do not match.");
@@ -39,11 +41,21 @@ class QuantityMatrix {
     static_assert(std::is_same<typename Element<UnitMatrixT, RowId, ColId>::type, typename Quantity::UnitT>::value, "Units do not match.");
     valueMatrix_.template setValue<RowId, ColId>(quantity.getValue());
   }
+
   template <int RowId, int ColId>
   auto getQuantity() const {
     return Quantity<typename Scalar<ValueMatrixT>::type, typename Element<UnitMatrixT, RowId, ColId>::type>(
         valueMatrix_.template getValue<RowId, ColId>());
   }
+
+  template <typename Quantity>
+  void setQuantity(const int rowId, const int colId, const Quantity quantity) {
+    static_assert(IsHomogeneous<This>::value && std::is_same<typename Element<UnitMatrixT, 0, 0>::type, typename Quantity::UnitT>::value,
+                  "Units do not match.");
+    valueMatrix_.setValue(rowId, colId, quantity.getValue());
+  }
+
+  auto getQuantity(const int rowId, const int colId) const { return typename GetType<This>::type(valueMatrix_.getValue(rowId, colId)); }
 
   /**
    * Set the values of the quantity matrix.
@@ -63,10 +75,11 @@ class QuantityMatrix {
   const ValueMatrixT& getValueMatrix() const { return valueMatrix_; }
 
   template <typename ValueMatrixOtherT, typename UnitMatrixOtherT>
-  bool isApprox(const QuantityMatrix<ValueMatrixOtherT, UnitMatrixOtherT>& other) const {
+  bool isApprox(const QuantityMatrix<ValueMatrixOtherT, UnitMatrixOtherT>& other,
+                const ScalarT precision = Precision<ScalarT>::value()) const {
     // Note: Allow other value types to support lazy evaluation.
     static_assert(std::is_same<UnitMatrixT, UnitMatrixOtherT>::value, "Units do not match.");
-    return valueMatrix_.isApprox(other.getValueMatrix());
+    return valueMatrix_.isApprox(other.getValueMatrix(), precision);
   }
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
@@ -83,6 +96,18 @@ class QuantityMatrix {
   }
 
   auto inverse() const { return typename Inverse<This>::type(valueMatrix_.inverse()); }
+
+  //  template <bool IsHomogeneousV = IsHomogeneous<UnitMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
+  auto norm() const {
+    static_assert(!IsAbsolute<This>::value, "Quantity matrix is not relative.");
+    return typename GetType<This>::type(valueMatrix_.norm());
+  }
+
+  //  template <bool IsHomogeneousV = IsHomogeneous<UnitMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
+  auto squaredNorm() const {
+    static_assert(!IsAbsolute<This>::value, "Quantity matrix is not relative.");
+    return typename Power<typename GetType<This>::type, Integer<2>>::type(valueMatrix_.squaredNorm());
+  }
 
  private:
   template <typename ValueMatrixOther, typename UnitMatrixOther>
@@ -144,6 +169,11 @@ struct GetTag<QuantityMatrix<ValueMatrix_, UnitMatrix_>, Ts...> {
           IsSpecialization<first, QuantityMatrix>::value, FromQuantityMatrix,
           typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type,
       typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantities, FromValueMatrixArgs>::type>::type;
+};
+
+template <typename ValueMatrix, typename UnitMatrix>
+struct GetType<QuantityMatrix<ValueMatrix, UnitMatrix>> {
+  using type = Quantity<typename QuantityMatrix<ValueMatrix, UnitMatrix>::ScalarT, typename GetType<UnitMatrix>::type>;
 };
 
 template <typename ValueMatrix, typename UnitMatrix>

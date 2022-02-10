@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "wuzp/core/Integer.hpp"
 #include "wuzp/core/traits.hpp"
 
 #include "test_compilation_error.hpp"
@@ -87,7 +88,7 @@ TEST(TestUnit, Division) {  // NOLINT
 }
 
 TEST(TestUnit, Power) {  // NOLINT
-  static_assert(std::is_same<Power<Length, 3>::type, Volume>::value);
+  static_assert(std::is_same<Power<Length, Integer<3>>::type, Volume>::value);
 }
 
 TEST(TestUnit, Inverse) {  // NOLINT

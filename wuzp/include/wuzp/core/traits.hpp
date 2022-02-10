@@ -48,6 +48,16 @@ using FromValueMatrix = Tag<FromValueMatrixLabel>;
 struct FromValueMatrixArgsLabel {};
 using FromValueMatrixArgs = Tag<FromValueMatrixArgsLabel>;
 
+template <typename T>
+struct GetTypes {
+  static_assert(FailOnInstantiation<GetTypes<T>>::value, "'GetTypes' trait not specialized for given type.");
+};
+
+template <typename T>
+struct GetType {
+  static_assert(FailOnInstantiation<GetType<T>>::value, "'GetType' trait not specialized for given type.");
+};
+
 // TODO(remod): Rename to GetValue.
 template <typename T>
 struct Scalar {
@@ -71,12 +81,18 @@ struct Dimension {
 
 DEFINE_RECURSIVE_TRAIT(Sum)
 DEFINE_RECURSIVE_TRAIT(Difference)
+
+template <typename T>
+struct Negate {
+  static_assert(FailOnInstantiation<Negate<T>>::value, "'Negate' trait not specialized for given type.");
+};
+
 DEFINE_RECURSIVE_TRAIT(Product)
 DEFINE_RECURSIVE_TRAIT(Division)
 
-template <typename T, int Exponent>
+template <typename T, typename ExponentT>
 struct Power {
-  static_assert(FailOnInstantiation<Power<T, Exponent>>::value, "'Power' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Power<T, ExponentT>>::value, "'Power' trait not specialized for given type.");
 };
 
 template <typename T>
@@ -179,4 +195,24 @@ struct GetQuantityImplementation {
                 "'GetQuantityImplementation' trait not specialized for given types.");
 };
 
-}  // namespace wuzp
+template <typename ScalarT>
+struct Precision {
+  static_assert(FailOnInstantiation<Precision<ScalarT>>::value, "'Precision' trait not specialized for given types.");
+};
+
+template <>
+struct Precision<int> {
+  static constexpr int value() { return 0; }
+};
+
+template <>
+struct Precision<float> {
+  static constexpr float value() { return 1e-5f; }
+};
+
+template <>
+struct Precision<double> {
+  static constexpr double value() { return 1e-12; }
+};
+
+};  // namespace wuzp
