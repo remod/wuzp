@@ -11,6 +11,6 @@ if [ $# != 0 ]; then
 fi
 
 # Install dependencies.
-apt install -y git
+apt install -y dpkg-dev git
 
 exit 0
