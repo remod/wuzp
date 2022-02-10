@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wuzp/core/CoordinateSystemTemplate.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
 
 namespace wuzp {
 

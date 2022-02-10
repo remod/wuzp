@@ -3,7 +3,7 @@
 #include <ostream>
 
 #include "wuzp/core/CoordinateMatrix.hpp"
-#include "wuzp/core/CoordinateSystemTemplate.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/TypeMatrix.hpp"

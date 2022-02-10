@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/CoordinateMatrix.hpp"
-#include "wuzp/core/CoordinateSystemTemplate.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 
@@ -31,12 +31,12 @@ struct CoordinateSystemCName {};
 struct CoordinateSystemDName {};
 struct CoordinateSystemEName {};
 struct CoordinateSystemFName {};
-using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
-using CoordinateSystemC = CoordinateSystemTemplate<CoordinateSystemCName>;
-using CoordinateSystemD = CoordinateSystemTemplate<CoordinateSystemDName>;
-using CoordinateSystemE = CoordinateSystemTemplate<CoordinateSystemEName>;
-using CoordinateSystemF = CoordinateSystemTemplate<CoordinateSystemFName>;
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
+using CoordinateSystemE = CoordinateSystem<CoordinateSystemEName>;
+using CoordinateSystemF = CoordinateSystem<CoordinateSystemFName>;
 
 template <int Rows, int Cols>
 using TestValueMatrix = ValueMatrix<double, Rows, Cols>;
@@ -131,7 +131,7 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
 using namespace wuzp;  // NOLINT
 
 struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
@@ -184,7 +184,7 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
 using namespace wuzp;  // NOLINT
 
 struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
@@ -237,7 +237,7 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
 using namespace wuzp;  // NOLINT
 
 struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
@@ -403,7 +403,7 @@ TEST_F(TestTensorF, Transpose) {  // NOLINT
 // TEST(TestTensor2, RotatingDumbbell) {  // NOLINT
 //  // From https://en.wikipedia.org/wiki/Mass_matrix#Rotating_dumbbell
 //  struct CartesianCoordinateSystemName {};
-//  using CartesianCoordinateSystem = CoordinateSystemTemplate<CartesianCoordinateSystemName>;
+//  using CartesianCoordinateSystem = CoordinateSystem<CartesianCoordinateSystemName>;
 //
 //  using MinimalCoordinatesValueMatrix = ValueMatrix<double, 3, 1>;
 //  using MinimalCoordinatesUnitMatrix = TypeMatrix<3, 1, Absolute<Length>, Absolute<Length>, Angle>;

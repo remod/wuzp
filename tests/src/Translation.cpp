@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "wuzp/core/CoordinateSystemTemplate.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/Rotation.hpp"
@@ -25,8 +25,8 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 TEST(TestTranslation, TransformPositionVector) {  // NOLINT
   struct CoordinateSystemAName {};
   struct CoordinateSystemBName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = SpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemB>;
@@ -39,8 +39,8 @@ TEST(TestTranslation, TransformPositionVector) {  // NOLINT
 TEST(TestTranslation, TransformPositionPoint) {  // NOLINT
   struct CoordinateSystemAName {};
   struct CoordinateSystemBName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
   using Object = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = SpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemB>;
@@ -55,10 +55,10 @@ TEST(TestTranslation, TransformTranslation) {  // NOLINT
   struct CoordinateSystemBName {};
   struct CoordinateSystemCName {};
   struct CoordinateSystemDName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
-  using CoordinateSystemC = CoordinateSystemTemplate<CoordinateSystemCName>;
-  using CoordinateSystemD = CoordinateSystemTemplate<CoordinateSystemDName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+  using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
   using Object = SpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
   using Transformation = SpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
   using TransformedObject = SpatialTranslation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;
@@ -73,10 +73,10 @@ TEST(TestTranslation, TransformRotation) {  // NOLINT
   struct CoordinateSystemBName {};
   struct CoordinateSystemCName {};
   struct CoordinateSystemDName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
-  using CoordinateSystemC = CoordinateSystemTemplate<CoordinateSystemCName>;
-  using CoordinateSystemD = CoordinateSystemTemplate<CoordinateSystemDName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+  using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
   using Object = SpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
   using Transformation = SpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
   using TransformedObject = SpatialRotation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;

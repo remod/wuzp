@@ -4,8 +4,8 @@
 #include <utility>
 
 #include "wuzp/core/Coordinate.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
-#include "wuzp/core/CoordinateSystemTemplate.hpp"
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/UnitMatrix.hpp"

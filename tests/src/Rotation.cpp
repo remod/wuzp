@@ -3,7 +3,7 @@
 #include <Eigen/Geometry>
 
 #include "wuzp/core/CoordinateMatrix.hpp"
-#include "wuzp/core/CoordinateSystemTemplate.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/Rotation.hpp"
 #include "wuzp/trafo/Translation.hpp"
@@ -27,8 +27,8 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 TEST(TestRotation, TransformPositionVector) {  // NOLINT
   struct CoordinateSystemAName {};
   struct CoordinateSystemBName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemB>;
@@ -41,8 +41,8 @@ TEST(TestRotation, TransformPositionVector) {  // NOLINT
 TEST(TestRotation, TransformPositionPoint) {  // NOLINT
   struct CoordinateSystemAName {};
   struct CoordinateSystemBName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
   using Object = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemB>;
@@ -55,8 +55,8 @@ TEST(TestRotation, TransformPositionPoint) {  // NOLINT
 TEST(TestRotation, TransformPointCloud) {  // NOLINT
   struct CoordinateSystemAName {};
   struct CoordinateSystemBName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
   using Object = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, TypeMatrix<3, 2, CoordinateSystemA>>>;
@@ -76,10 +76,10 @@ TEST(TestRotation, TransformTranslation) {  // NOLINT
   struct CoordinateSystemBName {};
   struct CoordinateSystemCName {};
   struct CoordinateSystemDName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
-  using CoordinateSystemC = CoordinateSystemTemplate<CoordinateSystemCName>;
-  using CoordinateSystemD = CoordinateSystemTemplate<CoordinateSystemDName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+  using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
   using Object = SpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
   using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
   using TransformedObject = SpatialTranslation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;
@@ -94,10 +94,10 @@ TEST(TestRotation, TransformRotation) {  // NOLINT
   struct CoordinateSystemBName {};
   struct CoordinateSystemCName {};
   struct CoordinateSystemDName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
-  using CoordinateSystemC = CoordinateSystemTemplate<CoordinateSystemCName>;
-  using CoordinateSystemD = CoordinateSystemTemplate<CoordinateSystemDName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
+  using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
   using Object = SpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
   using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
   using TransformedObject = SpatialRotation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;

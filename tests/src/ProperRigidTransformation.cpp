@@ -3,7 +3,7 @@
 #include <Eigen/Geometry>
 
 #include "wuzp/core/CoordinateMatrix.hpp"
-#include "wuzp/core/CoordinateSystemTemplate.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/ProperRigidTransformation.hpp"
 
@@ -28,8 +28,8 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 TEST(TestProperRigidTransformation2, TransformPosition) {  // NOLINT
   //  struct FromCoordinateSystemName {};
   //  struct ToCoordinateSystemName {};
-  //  using FromCoordinateSystem = CoordinateSystemTemplate<FromCoordinateSystemName>;
-  //  using ToCoordinateSystem = CoordinateSystemTemplate<ToCoordinateSystemName>;
+  //  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
+  //  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
   //  const Position2<double, FromCoordinateSystem> object(1.0, 2.0);
   //  const Eigen::Quaterniond rotation{1.0, 0.0, 0.0, 0.0};
   //  const Translation2<double, ToCoordinateSystem> translation(1.0, 2.0);
@@ -40,8 +40,8 @@ TEST(TestProperRigidTransformation2, TransformPosition) {  // NOLINT
 TEST(TestProperRigidTransformation3, TransformVector) {  // NOLINT
   struct FromCoordinateSystemName {};
   struct ToCoordinateSystemName {};
-  using FromCoordinateSystem = CoordinateSystemTemplate<FromCoordinateSystemName>;
-  using ToCoordinateSystem = CoordinateSystemTemplate<ToCoordinateSystemName>;
+  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
+  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
   using Object = PositionVector3<ValueMatrix, double, FromCoordinateSystem>;
   using Transformation = ProperRigidTransformation3<ValueMatrix, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, double>;
   using TransformedObject = PositionVector3<ValueMatrix, double, ToCoordinateSystem>;
@@ -56,8 +56,8 @@ TEST(TestProperRigidTransformation3, TransformVector) {  // NOLINT
 TEST(TestProperRigidTransformation3, TransformPosition) {  // NOLINT
   struct FromCoordinateSystemName {};
   struct ToCoordinateSystemName {};
-  using FromCoordinateSystem = CoordinateSystemTemplate<FromCoordinateSystemName>;
-  using ToCoordinateSystem = CoordinateSystemTemplate<ToCoordinateSystemName>;
+  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
+  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
   using Object = PositionPoint3<ValueMatrix, double, FromCoordinateSystem>;
   using Transformation = ProperRigidTransformation3<ValueMatrix, FromCoordinateSystem, FromCoordinateSystem, ToCoordinateSystem, double>;
   using TransformedObject = PositionPoint3<ValueMatrix, double, ToCoordinateSystem>;

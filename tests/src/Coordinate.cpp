@@ -20,7 +20,7 @@ using TimeQuantity = Quantity<double, Time>;
 using FrequencyQuantity = Quantity<double, Frequency>;
 using DimensionlessQuantity = Quantity<double, Dimensionless>;
 struct EpochName {};
-using Epoch = CoordinateSystemTemplate<EpochName>;
+using Epoch = CoordinateSystem<EpochName>;
 using TimeSinceEpoch = Coordinate<AbsoluteTimeQuantity, Epoch>;
 using DurationInEpoch = Coordinate<TimeQuantity, Epoch>;
 using FrequencyInEpoch = Coordinate<FrequencyQuantity, Epoch>;

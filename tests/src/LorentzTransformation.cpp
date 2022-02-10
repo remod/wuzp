@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "wuzp/core/CoordinateSystemTemplate.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/LorentzTransformation.hpp"
@@ -26,8 +26,8 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 TEST(TestLorentzTransformation, TransformSpacetimePoint) {  // NOLINT
   struct CoordinateSystemAName {};
   struct CoordinateSystemBName {};
-  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
+  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
   using Object = SpacetimeVector4<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = LorentzTransformation4<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = SpacetimeVector4<ValueMatrix, double, CoordinateSystemB>;

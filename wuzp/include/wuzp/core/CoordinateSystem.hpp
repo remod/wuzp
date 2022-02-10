@@ -6,28 +6,28 @@
 namespace wuzp {
 
 template <typename Name>
-struct CoordinateSystemTemplate {};
+struct CoordinateSystem {};
 
 // TODO(remod): Use this for now, is there a better solution?
 struct NoCoordinateSystemName {};
-using NoCoordinateSystem = CoordinateSystemTemplate<NoCoordinateSystemName>;
+using NoCoordinateSystem = CoordinateSystem<NoCoordinateSystemName>;
 
 template <typename Lhs, typename Rhs>
-struct Sum<CoordinateSystemTemplate<Lhs>, CoordinateSystemTemplate<Rhs>> {
+struct Sum<CoordinateSystem<Lhs>, CoordinateSystem<Rhs>> {
   static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
-  using type = CoordinateSystemTemplate<Lhs>;
+  using type = CoordinateSystem<Lhs>;
 };
 
 template <typename Lhs, typename Rhs>
-struct Difference<CoordinateSystemTemplate<Lhs>, CoordinateSystemTemplate<Rhs>> {
+struct Difference<CoordinateSystem<Lhs>, CoordinateSystem<Rhs>> {
   static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
-  using type = CoordinateSystemTemplate<Lhs>;
+  using type = CoordinateSystem<Lhs>;
 };
 
 template <typename Lhs, typename Rhs>
-struct Product<CoordinateSystemTemplate<Lhs>, CoordinateSystemTemplate<Rhs>> {
+struct Product<CoordinateSystem<Lhs>, CoordinateSystem<Rhs>> {
   static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
-  using type = CoordinateSystemTemplate<Lhs>;
+  using type = CoordinateSystem<Lhs>;
 };
 
 }  // namespace wuzp

@@ -83,7 +83,7 @@ if (${ENABLE_TESTS})
         src/Integer.cpp
         src/Unit.cpp
         src/TypeMatrix.cpp
-        src/CoordinateSystemTemplate.cpp
+            src/CoordinateSystem.cpp
         src/UnitMatrix.cpp
         src/Quantity.cpp
         src/Coordinate.cpp
