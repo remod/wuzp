@@ -176,7 +176,8 @@ jobs:
       matrix:
         PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
     env:
-      PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
+      PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
+      PACKAGE_SHIP_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
       SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
@@ -208,13 +209,19 @@ jobs:
           GPG_SIGNING_KEYGRIP: ${{secrets.GPG_SIGNING_KEYGRIP}}
           GPG_SIGNING_KEY_PASSPHRASE: ${{secrets.GPG_SIGNING_KEY_PASSPHRASE}}
           PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
-        run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
-      - name: Upload Package to Cache
+        run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
+      - name: Upload Test Package to Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
-          key: ${{matrix.PACKAGE_NAME}}_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
+          key: ${{matrix.PACKAGE_NAME}}_test_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
+      - name: Upload Ship Package to Cache
+        uses: actions/cache@v2
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
   test_packages:
     needs: package
     runs-on: ubuntu-20.04
@@ -245,19 +252,19 @@ jobs:
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/wuzp
+          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
       - name: Download Package wuzp_boost from Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_boost_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/wuzp_boost
+          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_boost
       - name: Download Package wuzp_eigen from Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_eigen_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/wuzp_eigen
+          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_eigen
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
@@ -278,7 +285,7 @@ jobs:
         PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
     env:
       DRY_RUN: ${{github.ref_name!='master'}}
-      PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
+      PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
       SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
@@ -295,7 +302,7 @@ jobs:
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/${{matrix.PACKAGE_NAME}}
+          path: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies

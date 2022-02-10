@@ -11,6 +11,6 @@ if [ $# != 0 ]; then
 fi
 
 # Install dependencies.
-apt install -y clang-format git
+apt install -y clang-format cmake g++ gcc git
 
 exit 0

@@ -47,7 +47,8 @@ TMP_DIR=/tmp/wuzp
 CHECK_FORMAT_DIR=${TMP_DIR}/check_format
 TESTS_DIR=${TMP_DIR}/test
 CODE_COVERAGE_DIR=${TMP_DIR}/code_coverage
-PACKAGES_DIR=${TMP_DIR}/package
+PACKAGES_TEST_DIR=${TMP_DIR}/package/test
+PACKAGES_SHIP_DIR=${TMP_DIR}/package/ship
 TEST_PACKAGES_DIR=${TMP_DIR}/test_packages
 # Define other variables.
 BUILD_TYPE=Debug
@@ -103,10 +104,13 @@ docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${T
 # Package.
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   echo "Packaging ${PACKAGE_NAME} ..."
-  PACKAGE_DIR=${PACKAGES_DIR}/${PACKAGE_NAME}
-  rm -rf ${PACKAGE_DIR}
-  mkdir -p ${PACKAGE_DIR}
-  docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/package/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME}
+  PACKAGE_TEST_DIR=${PACKAGES_TEST_DIR}/${PACKAGE_NAME}
+  rm -rf ${PACKAGE_TEST_DIR}
+  mkdir -p ${PACKAGE_TEST_DIR}
+  PACKAGE_SHIP_DIR=${PACKAGES_SHIP_DIR}/${PACKAGE_NAME}
+  rm -rf ${PACKAGE_SHIP_DIR}
+  mkdir -p ${PACKAGE_SHIP_DIR}
+  docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/package/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME}
 done
 
 # Test packages.
@@ -117,7 +121,7 @@ for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
       TEST_PACKAGE_DIR=${TEST_PACKAGES_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUE_MATRIX_IMPLEMENTATION}
       rm -rf ${TEST_PACKAGE_DIR}
       mkdir -p ${TEST_PACKAGE_DIR}
-      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_DIR}:${PACKAGES_DIR}:ro -v ${TEST_PACKAGE_DIR}:${TEST_PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_DIR} ${TEST_PACKAGE_DIR} ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGES_TEST_DIR}:${PACKAGES_TEST_DIR}:ro -v ${TEST_PACKAGE_DIR}:${TEST_PACKAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/test_packages/run_job.sh ${WORKSPACE_DIR} ${PACKAGES_TEST_DIR} ${TEST_PACKAGE_DIR} ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     done
   done
 done
@@ -125,7 +129,7 @@ done
 # Deliver.
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   echo "Delivering package ${PACKAGE_NAME} ..."
-  PACKAGE_DIR=${PACKAGES_DIR}/${PACKAGE_NAME}
+  PACKAGE_DIR=${PACKAGES_SHIP_DIR}/${PACKAGE_NAME}
   docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} true
 done
 
