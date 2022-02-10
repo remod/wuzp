@@ -59,7 +59,7 @@ class QuantityMatrix {
 
   /**
    * Set the values of the quantity matrix.
-   * WARNING: ThisT method circumvents quantity type safety.
+   * WARNING: This method circumvents quantity type safety.
    * @param valueMatrix Value matrix.
    */
   template <typename ValueMatrixOther>
@@ -69,7 +69,7 @@ class QuantityMatrix {
 
   /**
    * Get the values of the quantity matrix.
-   * WARNING: ThisT method circumvents quantity type safety.
+   * WARNING: This method circumvents quantity type safety.
    * @return ValueMatrix of the quantity matrix.
    */
   const ValueMatrixT& getValueMatrix() const { return valueMatrix_; }

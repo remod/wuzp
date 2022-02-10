@@ -98,7 +98,7 @@ class Tensor {
   using ScalarT = typename CoordinateMatrixT::ScalarT;
   using This = Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrixT>;
 
-  // TODO(remod): ThisT is disabled to support batch processing of vectors, e.g. for point clouds. Remove it at one point.
+  // TODO(remod): This is disabled to support batch processing of vectors, e.g. for point clouds. Remove it at one point.
   //  static_assert(ContravariantIndices + CovariantIndices == Dimension<CoordinateMatrix>::value, "Dimension does not match.");
 
   Tensor() = default;
