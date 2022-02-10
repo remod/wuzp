@@ -74,6 +74,11 @@ struct Difference<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::
   using type = Rational<DividendLhs * DivisorRhs - DividendRhs * DivisorLhs, DivisorLhs * DivisorRhs>;
 };
 
+template <int Dividend, int Divisor>
+struct Negate<internal::ReducedRational<Dividend, Divisor>> {
+  using type = Rational<-Dividend, Divisor>;
+};
+
 template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
 struct Product<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
   using type = Rational<DividendLhs * DividendRhs, DivisorLhs * DivisorRhs>;

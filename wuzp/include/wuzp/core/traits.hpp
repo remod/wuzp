@@ -81,6 +81,12 @@ struct Dimension {
 
 DEFINE_RECURSIVE_TRAIT(Sum)
 DEFINE_RECURSIVE_TRAIT(Difference)
+
+template <typename T>
+struct Negate {
+  static_assert(FailOnInstantiation<Negate<T>>::value, "'Negate' trait not specialized for given type.");
+};
+
 DEFINE_RECURSIVE_TRAIT(Product)
 DEFINE_RECURSIVE_TRAIT(Division)
 

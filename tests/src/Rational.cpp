@@ -99,6 +99,10 @@ TEST(TestRational, Difference) {  // NOLINT
   static_assert(std::is_same<typename Difference<Rational<-3, 12>, Rational<5, 12>>::type, Rational<-2, 3>>::value);
 }
 
+TEST(TestRational, Negate) {  // NOLINT
+  static_assert(std::is_same<typename Negate<Rational<-3, 12>>::type, Rational<3, 12>>::value);
+}
+
 TEST(TestRational, Product) {  // NOLINT
   static_assert(std::is_same<typename Product<Rational<-3, 12>, Rational<5, 12>>::type, Rational<-15, 144>>::value);
 }
