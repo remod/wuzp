@@ -1,60 +1,67 @@
 #pragma once
 
+#include "wuzp/core/Integer.hpp"
+#include "wuzp/core/Rational.hpp"
 #include "wuzp/core/Unit.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp_units {
 
-// TODO(remod): Introduce scaling factor (Ratio).
-template <bool IsAbsolute, int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance,
-          int LuminousIntensity>
+template <bool IsAbsolute, typename Time, typename Length, typename Mass, typename ElectricCurrent, typename ThermodynamicTemperature,
+          typename AmountOfSubstance, typename LuminousIntensity>
 struct UnitImpl;
 
-using Acceleration = wuzp::Unit<UnitImpl<false, -2, 1, 0, 0, 0, 0, 0>>;
-using Angle = wuzp::Unit<UnitImpl<false, 0, 0, 0, 0, 0, 0, 0>>;
-using AngularAcceleration = wuzp::Unit<UnitImpl<false, -2, 0, 0, 0, 0, 0, 0>>;
-using AngularVelocity = wuzp::Unit<UnitImpl<false, -1, 0, 0, 0, 0, 0, 0>>;
-using Area = wuzp::Unit<UnitImpl<false, 0, 2, 0, 0, 0, 0, 0>>;
-using Dimensionless = wuzp::Unit<UnitImpl<false, 0, 0, 0, 0, 0, 0, 0>>;
-using Energy = wuzp::Unit<UnitImpl<false, -2, 2, 1, 0, 0, 0, 0>>;
-using Force = wuzp::Unit<UnitImpl<false, -2, 1, 1, 0, 0, 0, 0>>;
-using Frequency = wuzp::Unit<UnitImpl<false, -1, 0, 0, 0, 0, 0, 0>>;
-using Length = wuzp::Unit<UnitImpl<false, 0, 1, 0, 0, 0, 0, 0>>;
-using Mass = wuzp::Unit<UnitImpl<false, 0, 0, 1, 0, 0, 0, 0>>;
-using Time = wuzp::Unit<UnitImpl<false, 1, 0, 0, 0, 0, 0, 0>>;
-using Velocity = wuzp::Unit<UnitImpl<false, -1, 1, 0, 0, 0, 0, 0>>;
-using Volume = wuzp::Unit<UnitImpl<false, 0, 3, 0, 0, 0, 0, 0>>;
+template <bool IsAbsolute, int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance,
+          int LuminousIntensity>
+using CreateIntegerUnitImpl =
+    UnitImpl<IsAbsolute, wuzp::Integer<Time>, wuzp::Integer<Length>, wuzp::Integer<Mass>, wuzp::Integer<ElectricCurrent>,
+             wuzp::Integer<ThermodynamicTemperature>, wuzp::Integer<AmountOfSubstance>, wuzp::Integer<LuminousIntensity>>;
 
-using AbsoluteAcceleration = wuzp::Unit<UnitImpl<true, -2, 1, 0, 0, 0, 0, 0>>;
-using AbsoluteAngle = wuzp::Unit<UnitImpl<true, 0, 0, 0, 0, 0, 0, 0>>;
-using AbsoluteAngularAcceleration = wuzp::Unit<UnitImpl<true, -2, 0, 0, 0, 0, 0, 0>>;
-using AbsoluteAngularVelocity = wuzp::Unit<UnitImpl<true, -1, 0, 0, 0, 0, 0, 0>>;
-using AbsoluteArea = wuzp::Unit<UnitImpl<true, 0, 2, 0, 0, 0, 0, 0>>;
-using AbsoluteDimensionless = wuzp::Unit<UnitImpl<true, 0, 0, 0, 0, 0, 0, 0>>;
-using AbsoluteEnergy = wuzp::Unit<UnitImpl<true, -2, 2, 1, 0, 0, 0, 0>>;
-using AbsoluteForce = wuzp::Unit<UnitImpl<true, -2, 1, 1, 0, 0, 0, 0>>;
-using AbsoluteFrequency = wuzp::Unit<UnitImpl<true, -1, 0, 0, 0, 0, 0, 0>>;
-using AbsoluteLength = wuzp::Unit<UnitImpl<true, 0, 1, 0, 0, 0, 0, 0>>;
-using AbsoluteMass = wuzp::Unit<UnitImpl<true, 0, 0, 1, 0, 0, 0, 0>>;
-using AbsoluteTime = wuzp::Unit<UnitImpl<true, 1, 0, 0, 0, 0, 0, 0>>;
-using AbsoluteVelocity = wuzp::Unit<UnitImpl<true, -1, 1, 0, 0, 0, 0, 0>>;
-using AbsoluteVolume = wuzp::Unit<UnitImpl<true, 0, 3, 0, 0, 0, 0, 0>>;
+using Acceleration = wuzp::Unit<CreateIntegerUnitImpl<false, -2, 1, 0, 0, 0, 0, 0>>;
+using Angle = wuzp::Unit<CreateIntegerUnitImpl<false, 0, 0, 0, 0, 0, 0, 0>>;
+using AngularAcceleration = wuzp::Unit<CreateIntegerUnitImpl<false, -2, 0, 0, 0, 0, 0, 0>>;
+using AngularVelocity = wuzp::Unit<CreateIntegerUnitImpl<false, -1, 0, 0, 0, 0, 0, 0>>;
+using Area = wuzp::Unit<CreateIntegerUnitImpl<false, 0, 2, 0, 0, 0, 0, 0>>;
+using Dimensionless = wuzp::Unit<CreateIntegerUnitImpl<false, 0, 0, 0, 0, 0, 0, 0>>;
+using Energy = wuzp::Unit<CreateIntegerUnitImpl<false, -2, 2, 1, 0, 0, 0, 0>>;
+using Force = wuzp::Unit<CreateIntegerUnitImpl<false, -2, 1, 1, 0, 0, 0, 0>>;
+using Frequency = wuzp::Unit<CreateIntegerUnitImpl<false, -1, 0, 0, 0, 0, 0, 0>>;
+using Length = wuzp::Unit<CreateIntegerUnitImpl<false, 0, 1, 0, 0, 0, 0, 0>>;
+using Mass = wuzp::Unit<CreateIntegerUnitImpl<false, 0, 0, 1, 0, 0, 0, 0>>;
+using Time = wuzp::Unit<CreateIntegerUnitImpl<false, 1, 0, 0, 0, 0, 0, 0>>;
+using Velocity = wuzp::Unit<CreateIntegerUnitImpl<false, -1, 1, 0, 0, 0, 0, 0>>;
+using Volume = wuzp::Unit<CreateIntegerUnitImpl<false, 0, 3, 0, 0, 0, 0, 0>>;
+
+using AbsoluteAcceleration = wuzp::Unit<CreateIntegerUnitImpl<true, -2, 1, 0, 0, 0, 0, 0>>;
+using AbsoluteAngle = wuzp::Unit<CreateIntegerUnitImpl<true, 0, 0, 0, 0, 0, 0, 0>>;
+using AbsoluteAngularAcceleration = wuzp::Unit<CreateIntegerUnitImpl<true, -2, 0, 0, 0, 0, 0, 0>>;
+using AbsoluteAngularVelocity = wuzp::Unit<CreateIntegerUnitImpl<true, -1, 0, 0, 0, 0, 0, 0>>;
+using AbsoluteArea = wuzp::Unit<CreateIntegerUnitImpl<true, 0, 2, 0, 0, 0, 0, 0>>;
+using AbsoluteDimensionless = wuzp::Unit<CreateIntegerUnitImpl<true, 0, 0, 0, 0, 0, 0, 0>>;
+using AbsoluteEnergy = wuzp::Unit<CreateIntegerUnitImpl<true, -2, 2, 1, 0, 0, 0, 0>>;
+using AbsoluteForce = wuzp::Unit<CreateIntegerUnitImpl<true, -2, 1, 1, 0, 0, 0, 0>>;
+using AbsoluteFrequency = wuzp::Unit<CreateIntegerUnitImpl<true, -1, 0, 0, 0, 0, 0, 0>>;
+using AbsoluteLength = wuzp::Unit<CreateIntegerUnitImpl<true, 0, 1, 0, 0, 0, 0, 0>>;
+using AbsoluteMass = wuzp::Unit<CreateIntegerUnitImpl<true, 0, 0, 1, 0, 0, 0, 0>>;
+using AbsoluteTime = wuzp::Unit<CreateIntegerUnitImpl<true, 1, 0, 0, 0, 0, 0, 0>>;
+using AbsoluteVelocity = wuzp::Unit<CreateIntegerUnitImpl<true, -1, 1, 0, 0, 0, 0, 0>>;
+using AbsoluteVolume = wuzp::Unit<CreateIntegerUnitImpl<true, 0, 3, 0, 0, 0, 0, 0>>;
 
 }  // namespace wuzp_units
 
 namespace wuzp {
 
-template <bool IsAbsoluteLhs, int... ExponentsLhs, bool IsAbsoluteRhs, int... ExponentsRhs>
+template <bool IsAbsoluteLhs, typename... ExponentsLhs, bool IsAbsoluteRhs, typename... ExponentsRhs>
 struct Sum<Unit<wuzp_units::UnitImpl<IsAbsoluteLhs, ExponentsLhs...>>, Unit<wuzp_units::UnitImpl<IsAbsoluteRhs, ExponentsRhs...>>> {
-  static_assert(((ExponentsLhs == ExponentsRhs) && ...), "Units do not match.");
+  static_assert(std::is_same_v<std::tuple<ExponentsLhs...>, std::tuple<ExponentsRhs...>>, "Units do not match.");
   static_assert(!IsAbsoluteLhs || !IsAbsoluteRhs, "Two absolute units cannot be summed.");
   using type = typename IfThenElse<IsAbsoluteLhs, Unit<wuzp_units::UnitImpl<IsAbsoluteLhs, ExponentsLhs...>>,
                                    Unit<wuzp_units::UnitImpl<IsAbsoluteRhs, ExponentsRhs...>>>::type;
 };
 
-template <bool IsAbsoluteLhs, int... ExponentsLhs, bool IsAbsoluteRhs, int... ExponentsRhs>
+template <bool IsAbsoluteLhs, typename... ExponentsLhs, bool IsAbsoluteRhs, typename... ExponentsRhs>
 struct Difference<Unit<wuzp_units::UnitImpl<IsAbsoluteLhs, ExponentsLhs...>>, Unit<wuzp_units::UnitImpl<IsAbsoluteRhs, ExponentsRhs...>>> {
-  static_assert(((ExponentsLhs == ExponentsRhs) && ...), "Units do not match.");
+  static_assert(std::is_same_v<std::tuple<ExponentsLhs...>, std::tuple<ExponentsRhs...>>, "Units do not match.");
   static_assert(!(!IsAbsoluteLhs && IsAbsoluteRhs), "An absolute unit cannot be subtracted from a relative unit.");
   using type = typename IfThenElse<IsAbsoluteLhs,
                                    typename IfThenElse<IsAbsoluteRhs, Unit<wuzp_units::UnitImpl<false, ExponentsLhs...>>,
@@ -62,46 +69,46 @@ struct Difference<Unit<wuzp_units::UnitImpl<IsAbsoluteLhs, ExponentsLhs...>>, Un
                                    Unit<wuzp_units::UnitImpl<false, ExponentsRhs...>>>::type;
 };
 
-template <bool IsAbsoluteLhs, int... ExponentsLhs, bool IsAbsoluteRhs, int... ExponentsRhs>
+template <bool IsAbsoluteLhs, typename... ExponentsLhs, bool IsAbsoluteRhs, typename... ExponentsRhs>
 struct Product<Unit<wuzp_units::UnitImpl<IsAbsoluteLhs, ExponentsLhs...>>, Unit<wuzp_units::UnitImpl<IsAbsoluteRhs, ExponentsRhs...>>> {
   static_assert(!IsAbsoluteLhs && !IsAbsoluteRhs, "An absolute unit cannot appear in a multiplication.");
-  using type = Unit<wuzp_units::UnitImpl<false, (ExponentsLhs + ExponentsRhs)...>>;
+  using type = Unit<wuzp_units::UnitImpl<false, typename Sum<ExponentsLhs, ExponentsRhs>::type...>>;
 };
 
-template <bool IsAbsoluteLhs, int... ExponentsLhs, bool IsAbsoluteRhs, int... ExponentsRhs>
+template <bool IsAbsoluteLhs, typename... ExponentsLhs, bool IsAbsoluteRhs, typename... ExponentsRhs>
 struct Division<Unit<wuzp_units::UnitImpl<IsAbsoluteLhs, ExponentsLhs...>>, Unit<wuzp_units::UnitImpl<IsAbsoluteRhs, ExponentsRhs...>>> {
   static_assert(!IsAbsoluteLhs && !IsAbsoluteRhs, "An absolute unit cannot appear in a division.");
-  using type = Unit<wuzp_units::UnitImpl<false, (ExponentsLhs - ExponentsRhs)...>>;
+  using type = Unit<wuzp_units::UnitImpl<false, typename Difference<ExponentsLhs, ExponentsRhs>::type...>>;
 };
 
-template <bool IsAbsolute, int... Exponents, int Exponent>
-struct Power<Unit<wuzp_units::UnitImpl<IsAbsolute, Exponents...>>, Exponent> {
+template <bool IsAbsolute, typename... ExponentsT, typename ExponentT>
+struct Power<Unit<wuzp_units::UnitImpl<IsAbsolute, ExponentsT...>>, ExponentT> {
   static_assert(!IsAbsolute, "An absolute unit cannot be powered.");
-  using type = Unit<wuzp_units::UnitImpl<false, (Exponent * Exponents)...>>;
+  using type = Unit<wuzp_units::UnitImpl<false, typename Product<ExponentT, ExponentsT>::type...>>;
 };
 
-template <bool IsAbsolute, int... Exponents>
+template <bool IsAbsolute, typename... Exponents>
 struct Identity<Unit<wuzp_units::UnitImpl<IsAbsolute, Exponents...>>> {
-  using type = Unit<wuzp_units::UnitImpl<false, 0, 0, 0, 0, 0, 0, 0>>;
+  using type = Unit<wuzp_units::CreateIntegerUnitImpl<false, 0, 0, 0, 0, 0, 0, 0>>;
 };
 
-template <bool IsAbsolute, int... Exponents>
+template <bool IsAbsolute, typename... Exponents>
 struct Inverse<Unit<wuzp_units::UnitImpl<IsAbsolute, Exponents...>>> {
-  using type = Unit<wuzp_units::UnitImpl<false, (-Exponents)...>>;
+  using type = Unit<wuzp_units::UnitImpl<false, typename Negate<Exponents>::type...>>;
 };
 
-template <bool IsAbsoluteV, int... ExponentsV>
-struct IsAbsolute<Unit<wuzp_units::UnitImpl<IsAbsoluteV, ExponentsV...>>> {
+template <bool IsAbsoluteV, typename... ExponentsT>
+struct IsAbsolute<Unit<wuzp_units::UnitImpl<IsAbsoluteV, ExponentsT...>>> {
   static constexpr bool value = IsAbsoluteV;
 };
 
-template <bool IsAbsolute, int... Exponents>
+template <bool IsAbsolute, typename... Exponents>
 struct MakeRelative<Unit<wuzp_units::UnitImpl<IsAbsolute, Exponents...>>> {
   static_assert(IsAbsolute, "Unit is already relative.");
   using type = Unit<wuzp_units::UnitImpl<false, Exponents...>>;
 };
 
-template <bool IsAbsolute, int... Exponents>
+template <bool IsAbsolute, typename... Exponents>
 struct MakeAbsolute<Unit<wuzp_units::UnitImpl<IsAbsolute, Exponents...>>> {
   static_assert(!IsAbsolute, "Unit is already absolute.");
   using type = Unit<wuzp_units::UnitImpl<true, Exponents...>>;

@@ -32,12 +32,3 @@ TEST(TestUnitMatrix, Product) {  // NOLINT
 TEST(TestUnitMatrix, Inverse) {  // NOLINT
   static_assert(std::is_same<Inverse<TypeMatrix<2, 2, Time>>::type, TypeMatrix<2, 2, Frequency>>::value);
 }
-
-// TEST(TestUnitMatrix, Test) {  // NOLINT
-//  using boost::units::quantity;
-//  quantity<units::plane_angle> x;
-//  x = 3.*units::radian;
-//  x = 3.*units::si_dimensionless;
-//  x = 3.*units::radian;
-////  quantity<units::plane_angle> y = 3.*units::kilogram;
-//}

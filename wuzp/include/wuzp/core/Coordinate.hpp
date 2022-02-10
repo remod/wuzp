@@ -75,6 +75,11 @@ struct Division<Coordinate<QuantityLhs, CoordinateSystemLhs>, Quantity<ValueRhs,
   using type = Coordinate<typename Division<QuantityLhs, Quantity<ValueRhs, UnitRhs>>::type, CoordinateSystemLhs>;
 };
 
+// template <typename Quantity, typename CoordinateSystem, typename ExponentT>
+// struct Power<Coordinate<Quantity, CoordinateSystem>, ExponentT> {
+//  using type = Coordinate<typename Power<Quantity, ExponentT>::type, CoordinateSystem>;
+//};
+
 template <typename Quantity, typename CoordinateSystem>
 struct Identity<Coordinate<Quantity, CoordinateSystem>> {
   static const Coordinate<typename Identity<Quantity>::type, typename Identity<CoordinateSystem>::type> value_{Identity<Quantity>::value_};
@@ -173,6 +178,37 @@ template <typename QuantityLhs, typename CoordinateSystemLhs, typename QuantityR
 bool operator!=(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const Coordinate<QuantityRhs, CoordinateSystemRhs>& rhs) {
   return !(lhs == rhs);
 }
+
+// TODO(remod): Are those valid for coordinates or only for quantities?
+//// Exponent first, as value and unit can be derived automatically.
+// template <typename ExponentT, typename Quantity, typename CoordinateSystem>
+// auto pow(const Coordinate<Quantity, CoordinateSystem>& coordinate) {
+//  return typename Power<Coordinate<Quantity, CoordinateSystem>, ExponentT>::type(pow<ExponentT>(coordinate.getQuantity()));
+//}
+//
+//// Convenience definition, so one can write pow<2>() to get pow<Integer<2>>().
+// template <int ExponentV, typename Quantity, typename CoordinateSystem>
+// auto pow(const Coordinate<Quantity, CoordinateSystem>& coordinate) {
+//  return pow<Integer<ExponentV>>(coordinate);
+//}
+//
+//// Convenience definition, so one can write pow<1, 2>() to get pow<Rational<1, 2>>().
+// template <int ExponentDividendV, int ExponentDivisorV, typename Quantity, typename CoordinateSystem>
+// auto pow(const Coordinate<Quantity, CoordinateSystem>& coordinate) {
+//  return pow<Rational<ExponentDividendV, ExponentDivisorV>>(coordinate);
+//}
+
+// template <typename Value, typename CoordinateSystem>
+// auto sin(const Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>, CoordinateSystem>& angle) {
+//  return Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>,
+//  CoordinateSystem>(sin(angle.getQuantity()));
+//}
+//
+// template <typename Value, typename CoordinateSystem>
+// auto cos(const Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>, CoordinateSystem>& angle) {
+//  return Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>,
+//  CoordinateSystem>(cos(angle.getQuantity()));
+//}
 
 template <typename Quantity, typename CoordinateSystem>
 std::ostream& operator<<(std::ostream& stream, const Coordinate<Quantity, CoordinateSystem>& coordinate) {

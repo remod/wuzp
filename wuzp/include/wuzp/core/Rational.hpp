@@ -6,8 +6,15 @@
 namespace wuzp {
 namespace internal {
 
-template <int Dividend, int Divisor>
-struct ReducedRational {};
+template <int DividendV, int DivisorV>
+struct ReducedRational {
+  static constexpr int Dividend = DividendV;
+  static constexpr int Divisor = DivisorV;
+  template <typename ValueT>
+  static ValueT value() {
+    return static_cast<ValueT>(Dividend) / static_cast<ValueT>(Divisor);
+  }
+};
 
 template <int Dividend, int Divisor, int Reduction, int DividendRemainder, int DivisorRemainder>
 struct ReduceRationalImpl {
@@ -65,6 +72,11 @@ struct Sum<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::Reduced
 template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>
 struct Difference<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::ReducedRational<DividendRhs, DivisorRhs>> {
   using type = Rational<DividendLhs * DivisorRhs - DividendRhs * DivisorLhs, DivisorLhs * DivisorRhs>;
+};
+
+template <int Dividend, int Divisor>
+struct Negate<internal::ReducedRational<Dividend, Divisor>> {
+  using type = Rational<-Dividend, Divisor>;
 };
 
 template <int DividendLhs, int DivisorLhs, int DividendRhs, int DivisorRhs>

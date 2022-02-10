@@ -25,14 +25,14 @@ using SpatialRotation3 = SpatialRotation<ValueMatrix, Scalar, CoordinateSystem, 
 //};
 //
 //// TODO(remod): Do we still need to support quaternions? Or just conversion methods?
-// template <typename Scalar, typename From, typename To>
-// class Quaternion : public QuaternionBase<Quaternion<Scalar, From, To>, From, To, Quantity<Dimensionless, Scalar>> {
+// template <typename ScalarT, typename From, typename To>
+// class Quaternion : public QuaternionBase<Quaternion<ScalarT, From, To>, From, To, Quantity<Dimensionless, ScalarT>> {
 //  // TODO(remod): Using friend is non-extendable. Change this.
-//  friend TransformationTraits<Quaternion<Scalar, From, To>, PositionVector<3, Scalar, From>>;
-//  friend TransformationTraits<Quaternion<Scalar, From, To>, PositionPoint<3, Scalar, From>>;
+//  friend TransformationTraits<Quaternion<ScalarT, From, To>, PositionVector<3, ScalarT, From>>;
+//  friend TransformationTraits<Quaternion<ScalarT, From, To>, PositionPoint<3, ScalarT, From>>;
 //
 // public:
-//  using DimensionlessQuantity = Quantity<Dimensionless, Scalar>;
+//  using DimensionlessQuantity = Quantity<Dimensionless, ScalarT>;
 //
 //  template <typename... Ts>
 //  explicit Quaternion(Ts... args) : impl_(args...) {}
@@ -41,20 +41,20 @@ using SpatialRotation3 = SpatialRotation<ValueMatrix, Scalar, CoordinateSystem, 
 //  DimensionlessQuantity wDerived() const { return impl_.w(); }
 //
 // private:
-//  Eigen::Quaternion<Scalar> impl_;
+//  Eigen::Quaternion<ScalarT> impl_;
 //};
 //
-// template <typename From, typename To, typename Scalar>
-// struct TransformationTraits<Quaternion<Scalar, From, To>, PositionVector<3, Scalar, From>> {
-//  static auto transform(const Quaternion<Scalar, From, To>& transformation, const PositionVector<3, Scalar, From>& object) {
-//    return PositionVector<3, Scalar, To>(transformation.impl_ * object.getValueMatrix());
+// template <typename From, typename To, typename ScalarT>
+// struct TransformationTraits<Quaternion<ScalarT, From, To>, PositionVector<3, ScalarT, From>> {
+//  static auto transform(const Quaternion<ScalarT, From, To>& transformation, const PositionVector<3, ScalarT, From>& object) {
+//    return PositionVector<3, ScalarT, To>(transformation.impl_ * object.getValueMatrix());
 //  }
 //};
 //
-// template <typename From, typename To, typename Scalar>
-// struct TransformationTraits<Quaternion<Scalar, From, To>, PositionPoint<3, Scalar, From>> {
-//  static auto transform(const Quaternion<Scalar, From, To>& transformation, const PositionPoint<3, Scalar, From>& object) {
-//    return PositionPoint<3, Scalar, To>(transformation.impl_ * object.getValueMatrix());
+// template <typename From, typename To, typename ScalarT>
+// struct TransformationTraits<Quaternion<ScalarT, From, To>, PositionPoint<3, ScalarT, From>> {
+//  static auto transform(const Quaternion<ScalarT, From, To>& transformation, const PositionPoint<3, ScalarT, From>& object) {
+//    return PositionPoint<3, ScalarT, To>(transformation.impl_ * object.getValueMatrix());
 //  }
 //};
 

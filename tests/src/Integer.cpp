@@ -18,6 +18,10 @@ TEST(TestInteger, Sum) {  // NOLINT
   static_assert(std::is_same<typename Sum<Integer<-3>, Integer<5>>::type, Integer<2>>::value);
 }
 
+TEST(TestInteger, Negate) {  // NOLINT
+  static_assert(std::is_same<typename Negate<Integer<-3>>::type, Integer<3>>::value);
+}
+
 TEST(TestInteger, Difference) {  // NOLINT
   static_assert(std::is_same<typename Difference<Integer<-3>, Integer<5>>::type, Integer<-8>>::value);
 }
