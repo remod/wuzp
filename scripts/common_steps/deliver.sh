@@ -21,6 +21,6 @@ if [ ${DRY_RUN} = true ]; then
   # See http://manpages.ubuntu.com/manpages/trusty/man1/dput.1.html for more info.
   OPTIONS="--simulate --simulate"
 fi
-dput ${OPTIONS} ppa:remod/wuzp ${PACKAGE_DIR}/${PACKAGE_NAME//_/-}_${PACKAGE_VERSION}_amd64.changes
+dput ${OPTIONS} ppa:remod/wuzp ${PACKAGE_DIR}/${PACKAGE_NAME//_/-}_${PACKAGE_VERSION}_source.changes
 
 exit 0

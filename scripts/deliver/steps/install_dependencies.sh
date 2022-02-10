@@ -11,6 +11,6 @@ if [ $# != 0 ]; then
 fi
 
 # Install dependencies.
-apt install -y dput
+apt install -y dpkg-dev dput
 
 exit 0
