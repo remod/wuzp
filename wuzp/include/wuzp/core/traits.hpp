@@ -61,7 +61,7 @@ struct GetType {
 // TODO(remod): Rename to GetValue.
 template <typename T>
 struct Scalar {
-  static_assert(FailOnInstantiation<Scalar<T>>::value, "'ScalarT' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Scalar<T>>::value, "'Scalar' trait not specialized for given type.");
 };
 
 template <typename T>

@@ -15,7 +15,7 @@ namespace wuzp {
 // Tensor (3+) - Hypermatrix
 // Tensor (2)  - Matrix
 // Tensor (1)  - Vector
-// Tensor (0)  - ScalarT
+// Tensor (0)  - Scalar
 
 // template <int ContravariantIndices, int CovariantIndices>
 // class Tensor;
