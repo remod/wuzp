@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/CoordinateSystemTemplate.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/LorentzTransformation.hpp"
@@ -23,29 +23,21 @@ template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
 
-struct CoordinateSystemAName {};
-template <int DimensionV, typename ScalarT, typename CoordinateSystemT>
-auto getInvariant2(const SpacetimeVector<DimensionV, ValueMatrix, ScalarT, CoordinateSystemT>& vector) {
-  const auto quantityMatrix = vector.getQuantityMatrix();
-  return pow<2>(quantityMatrix.template getQuantity<0, 0>()) - quantityMatrix.template block<1, 0, DimensionV - 1, 1>().squaredNorm();
-};
-
 TEST(TestLorentzTransformation, TransformSpacetimePoint) {  // NOLINT
+  struct CoordinateSystemAName {};
   struct CoordinateSystemBName {};
-  using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-  using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+  using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
+  using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
   using Object = SpacetimeVector4<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = LorentzTransformation4<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = SpacetimeVector4<ValueMatrix, double, CoordinateSystemB>;
-  const Object object(0.5 * getSpeedOfLight<double>() * Quantity<double, Time>(0.0), Quantity<double, Length>(0.0),
-                      Quantity<double, Length>(0.0), Quantity<double, Length>(0.0));
-  const TransformedObject transformedObject(0.0, 1.0, 2.0, 3.0);
+  const Object object(0.5 * getSpeedOfLight<double>() * Quantity<double, Time>(0.0), Quantity<double, Length>(1.0e1),
+                      Quantity<double, Length>(1.0e2), Quantity<double, Length>(1.0e3));
+  const TransformedObject transformedObject(-346.143, 27.9594, 135.919, 1053.88);
   using Velocity3 = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
-  const Transformation transformation =
-      createBoostMatrix<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, 4>(Velocity3(0.1 * getSpeedOfLight<double>(), 0.2 * getSpeedOfLight<double>(), 0.3* getSpeedOfLight<double>()));
-  std::cerr << transformation << std::endl;
-  EXPECT_EQ(transformation.transform(object), transformedObject);
-  const auto x = getInvariant<4, ValueMatrix, double, CoordinateSystemA>(object);
-  const auto y = getInvariant2(object);
-//  EXPECT_EQ(getInvariant(object), getInvariant(transformation.transform(object)));
+  const Transformation transformation = createBoostMatrix<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, 4>(
+      Velocity3(0.1 * getSpeedOfLight<double>(), 0.2 * getSpeedOfLight<double>(), 0.3 * getSpeedOfLight<double>()));
+  EXPECT_TRUE(transformation.transform(object).isApprox(transformedObject, 1e-3));
+  EXPECT_DOUBLE_EQ((getInvariant<4, ValueMatrix, double, CoordinateSystemA>(object).getValue()),
+                   (getInvariant<4, ValueMatrix, double, CoordinateSystemB>(transformation.transform(object))).getValue());
 }

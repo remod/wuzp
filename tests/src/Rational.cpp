@@ -12,8 +12,8 @@ TEST(TestRational, AccessMembers) {  // NOLINT
 }
 
 TEST(TestRational, Value) {  // NOLINT
-  EXPECT_EQ((Rational<3, 12>::value<double>()), 0.75);
-  EXPECT_EQ((Rational<3, 12>::value<int>()), 1);
+  EXPECT_EQ((Rational<3, 12>::value<double>()), 0.25);
+  EXPECT_EQ((Rational<3, 12>::value<int>()), 0);
 }
 
 TEST(TestRational, Infinity){// NOLINT

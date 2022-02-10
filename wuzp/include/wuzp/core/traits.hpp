@@ -189,4 +189,24 @@ struct GetQuantityImplementation {
                 "'GetQuantityImplementation' trait not specialized for given types.");
 };
 
-}  // namespace wuzp
+template <typename ScalarT>
+struct Precision {
+  static_assert(FailOnInstantiation<Precision<ScalarT>>::value, "'Precision' trait not specialized for given types.");
+};
+
+template <>
+struct Precision<int> {
+  static constexpr int value() { return 0; }
+};
+
+template <>
+struct Precision<float> {
+  static constexpr float value() { return 1e-5f; }
+};
+
+template <>
+struct Precision<double> {
+  static constexpr double value() { return 1e-12; }
+};
+
+};  // namespace wuzp

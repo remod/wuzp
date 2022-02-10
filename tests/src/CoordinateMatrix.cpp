@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/CoordinateMatrix.hpp"
-#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/CoordinateSystemTemplate.hpp"
 #include "wuzp/core/traits.hpp"
 
 #include "test_compilation_error.hpp"
@@ -30,12 +30,12 @@ struct CoordinateSystemCName {};
 struct CoordinateSystemDName {};
 struct CoordinateSystemEName {};
 struct CoordinateSystemFName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
-using CoordinateSystemC = CoordinateSystem<CoordinateSystemCName>;
-using CoordinateSystemD = CoordinateSystem<CoordinateSystemDName>;
-using CoordinateSystemE = CoordinateSystem<CoordinateSystemEName>;
-using CoordinateSystemF = CoordinateSystem<CoordinateSystemFName>;
+using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
+using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
+using CoordinateSystemC = CoordinateSystemTemplate<CoordinateSystemCName>;
+using CoordinateSystemD = CoordinateSystemTemplate<CoordinateSystemDName>;
+using CoordinateSystemE = CoordinateSystemTemplate<CoordinateSystemEName>;
+using CoordinateSystemF = CoordinateSystemTemplate<CoordinateSystemFName>;
 
 template <int Rows, int Cols>
 using TestValueMatrix = ValueMatrix<double, Rows, Cols>;
@@ -140,7 +140,7 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
 using namespace wuzp;  // NOLINT
 
 struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
@@ -202,7 +202,7 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
 using namespace wuzp;  // NOLINT
 
 struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
@@ -430,8 +430,8 @@ using namespace wuzp;  // NOLINT
 
 struct CoordinateSystemAName {};
 struct CoordinateSystemBName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
+using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
 using MyValueMatrix = ValueMatrix<int, 4, 1>;
 using MyUnitMatrix = TypeMatrix<4, 1, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
@@ -472,8 +472,8 @@ using namespace wuzp;  // NOLINT
 
 struct CoordinateSystemAName {};
 struct CoordinateSystemBName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
+using CoordinateSystemA = CoordinateSystemTemplate<CoordinateSystemAName>;
+using CoordinateSystemB = CoordinateSystemTemplate<CoordinateSystemBName>;
 using MyValueMatrix = ValueMatrix<int, 4, 1>;
 using MyUnitMatrix = TypeMatrix<4, 1, Length>;
 using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;

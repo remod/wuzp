@@ -55,9 +55,7 @@ class QuantityMatrix {
     valueMatrix_.setValue(rowId, colId, quantity.getValue());
   }
 
-  auto getQuantity(const int rowId, const int colId) const {
-    return typename GetType<This>::type(valueMatrix_.getValue(rowId, colId));
-  }
+  auto getQuantity(const int rowId, const int colId) const { return typename GetType<This>::type(valueMatrix_.getValue(rowId, colId)); }
 
   /**
    * Set the values of the quantity matrix.
@@ -77,10 +75,11 @@ class QuantityMatrix {
   const ValueMatrixT& getValueMatrix() const { return valueMatrix_; }
 
   template <typename ValueMatrixOtherT, typename UnitMatrixOtherT>
-  bool isApprox(const QuantityMatrix<ValueMatrixOtherT, UnitMatrixOtherT>& other) const {
+  bool isApprox(const QuantityMatrix<ValueMatrixOtherT, UnitMatrixOtherT>& other,
+                const ScalarT precision = Precision<ScalarT>::value()) const {
     // Note: Allow other value types to support lazy evaluation.
     static_assert(std::is_same<UnitMatrixT, UnitMatrixOtherT>::value, "Units do not match.");
-    return valueMatrix_.isApprox(other.getValueMatrix());
+    return valueMatrix_.isApprox(other.getValueMatrix(), precision);
   }
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>

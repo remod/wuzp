@@ -3,7 +3,7 @@
 #include <ostream>
 
 #include "wuzp/core/CoordinateMatrix.hpp"
-#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/CoordinateSystemTemplate.hpp"
 #include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
@@ -134,11 +134,12 @@ class Tensor {
   const ValueMatrixT& getValueMatrix() const { return coordinateMatrix_.getValueMatrix(); }
 
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
-  bool isApprox(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other) const {
+  bool isApprox(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other,
+                const ScalarT precision = Precision<ScalarT>::value()) const {
     // Note: Allow other value types to support lazy evaluation.
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
-    return coordinateMatrix_.isApprox(other.getCoordinateMatrix());
+    return coordinateMatrix_.isApprox(other.getCoordinateMatrix(), precision);
   }
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
@@ -332,9 +333,9 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Coordin
           int CovariantIndicesRhs, typename CoordinateMatrixRhs>
 auto operator-(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>& lhs,
                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>& rhs) {
-  return typename Sum<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
-                      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>>::type(lhs.getCoordinateMatrix() -
-                                                                                                       rhs.getCoordinateMatrix());
+  return typename Difference<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
+                             Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>>::type(lhs.getCoordinateMatrix() -
+                                                                                                              rhs.getCoordinateMatrix());
 }
 
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,

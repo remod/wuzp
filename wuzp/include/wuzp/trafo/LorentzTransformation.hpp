@@ -22,6 +22,7 @@ auto getSpeedOfLight() {
   return Quantity<ValueT_, typename AccessUnits<SpecializationDummy<ValueT_>>::Velocity>(static_cast<ValueT_>(299792458));
 }
 
+// TODO(remod): Why do we need to explicitly specialize the template arguments when using this function?
 template <int DimensionV, template <typename, int, int> typename ValueMatrixT, typename ScalarT, typename CoordinateSystemT>
 auto getInvariant(const SpacetimeVector<DimensionV, ValueMatrixT, ScalarT, CoordinateSystemT>& vector) {
   const auto quantityMatrix = vector.getQuantityMatrix();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/CoordinateSystemTemplate.hpp"
 #include "wuzp/trafo/Rotation.hpp"
 #include "wuzp/trafo/Transformation.hpp"
 #include "wuzp/trafo/Translation.hpp"
@@ -37,7 +37,7 @@ namespace internal {
 template <typename From, typename To>
 struct IntermediateName;
 template <typename From, typename To>
-using Intermediate = CoordinateSystem<IntermediateName<From, To>>;
+using Intermediate = CoordinateSystemTemplate<IntermediateName<From, To>>;
 
 }  // namespace internal
 

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/CoordinateMatrix.hpp"
-#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/CoordinateSystemTemplate.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/Jacobian.hpp"
@@ -28,8 +28,8 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   struct FromCoordinateSystemName {};
   struct ToCoordinateSystemName {};
-  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
-  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
+  using FromCoordinateSystem = CoordinateSystemTemplate<FromCoordinateSystemName>;
+  using ToCoordinateSystem = CoordinateSystemTemplate<ToCoordinateSystemName>;
   constexpr int FromDimension = 3;
   constexpr int ToDimension = 2;
   using Object = Vector<CoordinateMatrix<
@@ -55,8 +55,8 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
 TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   struct FromCoordinateSystemName {};
   struct ToCoordinateSystemName {};
-  using FromCoordinateSystem = CoordinateSystem<FromCoordinateSystemName>;
-  using ToCoordinateSystem = CoordinateSystem<ToCoordinateSystemName>;
+  using FromCoordinateSystem = CoordinateSystemTemplate<FromCoordinateSystemName>;
+  using ToCoordinateSystem = CoordinateSystemTemplate<ToCoordinateSystemName>;
   constexpr int FromDimension = 3;
   constexpr int ToDimension = 2;
   using Object = Tensor<

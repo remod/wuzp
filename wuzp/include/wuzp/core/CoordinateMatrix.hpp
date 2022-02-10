@@ -4,8 +4,8 @@
 #include <utility>
 
 #include "wuzp/core/Coordinate.hpp"
-#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
+#include "wuzp/core/CoordinateSystemTemplate.hpp"
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/UnitMatrix.hpp"
@@ -69,10 +69,11 @@ class CoordinateMatrix {
   const ValueMatrixT& getValueMatrix() const { return quantityMatrix_.getValueMatrix(); }
 
   template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
-  bool isApprox(const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& other) const {
+  bool isApprox(const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& other,
+                const ScalarT precision = Precision<ScalarT>::value()) const {
     // Note: Allow other value types to support lazy evaluation.
     static_assert(std::is_same<CoordinateSystemMatrixT, CoordinateSystemMatrixOther>::value, "Coordinate systems do not match.");
-    return quantityMatrix_.isApprox(other.getQuantityMatrix());
+    return quantityMatrix_.isApprox(other.getQuantityMatrix(), precision);
   }
 
   // TODO(remod): Add head() and tail() functions to all classes.

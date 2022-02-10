@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/CoordinateMatrix.hpp"
-#include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/CoordinateSystemMatrix.hpp"
+#include "wuzp/core/CoordinateSystemTemplate.hpp"
 #include "wuzp/core/traits.hpp"
 
 using namespace wuzp;  // NOLINT
@@ -25,9 +25,9 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 
 // From https://en.wikipedia.org/wiki/Mass_matrix#Rotating_dumbbell
 struct CartesianCoordinateSystemName {};
-using CartesianCoordinateSystem = CoordinateSystem<CartesianCoordinateSystemName>;
+using CartesianCoordinateSystem = CoordinateSystemTemplate<CartesianCoordinateSystemName>;
 struct MinimalCoordinateSystemName {};
-using MinimalCoordinateSystem = CoordinateSystem<MinimalCoordinateSystemName>;
+using MinimalCoordinateSystem = CoordinateSystemTemplate<MinimalCoordinateSystemName>;
 
 using MinimalCoordinatesValueMatrix = ValueMatrix<double, 3, 1>;
 using MinimalCoordinatesUnitMatrix = TypeMatrix<3, 1, AbsoluteLength, AbsoluteLength, AbsoluteAngle>;
@@ -71,7 +71,7 @@ using MassMatrix = CoordinateMatrix<MassMatrixQuantities, MassMatrixSystemMatrix
 //  using ValueMatrixT = ValueMatrix<double, DimensionTo, DimensionFrom>;
 //  using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
 //  using QuantityMatrixT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
-//  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
+//  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystemTemplate>;
 //  using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
 //  using TensorT = Tensor<1, 1, CoordinateMatrixT>;
 //

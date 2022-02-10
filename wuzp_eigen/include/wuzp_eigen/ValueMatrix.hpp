@@ -86,8 +86,8 @@ class GenericValueMatrix {
   }
 
   template <typename ImplementationOther_>
-  bool isApprox(const GenericValueMatrix<ImplementationOther_>& other) const {
-    return implementation_.isApprox(other.getImplementation());
+  bool isApprox(const GenericValueMatrix<ImplementationOther_>& other, const ScalarT precision = wuzp::Precision<ScalarT>::value()) const {
+    return implementation_.isApprox(other.getImplementation(), precision);
   }
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>

@@ -2,7 +2,7 @@
 
 #include <ostream>
 
-#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/CoordinateSystemTemplate.hpp"
 #include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/Unit.hpp"
 
@@ -75,9 +75,9 @@ struct Division<Coordinate<QuantityLhs, CoordinateSystemLhs>, Quantity<ValueRhs,
   using type = Coordinate<typename Division<QuantityLhs, Quantity<ValueRhs, UnitRhs>>::type, CoordinateSystemLhs>;
 };
 
-// template <typename Quantity, typename CoordinateSystem, typename ExponentT>
-// struct Power<Coordinate<Quantity, CoordinateSystem>, ExponentT> {
-//  using type = Coordinate<typename Power<Quantity, ExponentT>::type, CoordinateSystem>;
+// template <typename Quantity, typename CoordinateSystemTemplate, typename ExponentT>
+// struct Power<Coordinate<Quantity, CoordinateSystemTemplate>, ExponentT> {
+//  using type = Coordinate<typename Power<Quantity, ExponentT>::type, CoordinateSystemTemplate>;
 //};
 
 template <typename Quantity, typename CoordinateSystem>
@@ -181,31 +181,33 @@ bool operator!=(const Coordinate<QuantityLhs, CoordinateSystemLhs>& lhs, const C
 
 // TODO(remod): Are those valid for coordinates or only for quantities?
 //// Exponent first, as value and unit can be derived automatically.
-// template <typename ExponentT, typename Quantity, typename CoordinateSystem>
-// auto pow(const Coordinate<Quantity, CoordinateSystem>& coordinate) {
-//  return typename Power<Coordinate<Quantity, CoordinateSystem>, ExponentT>::type(pow<ExponentT>(coordinate.getQuantity()));
+// template <typename ExponentT, typename Quantity, typename CoordinateSystemTemplate>
+// auto pow(const Coordinate<Quantity, CoordinateSystemTemplate>& coordinate) {
+//  return typename Power<Coordinate<Quantity, CoordinateSystemTemplate>, ExponentT>::type(pow<ExponentT>(coordinate.getQuantity()));
 //}
 //
 //// Convenience definition, so one can write pow<2>() to get pow<Integer<2>>().
-// template <int ExponentV, typename Quantity, typename CoordinateSystem>
-// auto pow(const Coordinate<Quantity, CoordinateSystem>& coordinate) {
+// template <int ExponentV, typename Quantity, typename CoordinateSystemTemplate>
+// auto pow(const Coordinate<Quantity, CoordinateSystemTemplate>& coordinate) {
 //  return pow<Integer<ExponentV>>(coordinate);
 //}
 //
 //// Convenience definition, so one can write pow<1, 2>() to get pow<Rational<1, 2>>().
-// template <int ExponentDividendV, int ExponentDivisorV, typename Quantity, typename CoordinateSystem>
-// auto pow(const Coordinate<Quantity, CoordinateSystem>& coordinate) {
+// template <int ExponentDividendV, int ExponentDivisorV, typename Quantity, typename CoordinateSystemTemplate>
+// auto pow(const Coordinate<Quantity, CoordinateSystemTemplate>& coordinate) {
 //  return pow<Rational<ExponentDividendV, ExponentDivisorV>>(coordinate);
 //}
 
-// template <typename Value, typename CoordinateSystem>
-// auto sin(const Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>, CoordinateSystem>& angle) {
-//  return Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>, CoordinateSystem>(sin(angle.getQuantity()));
+// template <typename Value, typename CoordinateSystemTemplate>
+// auto sin(const Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>, CoordinateSystemTemplate>& angle) {
+//  return Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>,
+//  CoordinateSystemTemplate>(sin(angle.getQuantity()));
 //}
 //
-// template <typename Value, typename CoordinateSystem>
-// auto cos(const Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>, CoordinateSystem>& angle) {
-//  return Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>, CoordinateSystem>(cos(angle.getQuantity()));
+// template <typename Value, typename CoordinateSystemTemplate>
+// auto cos(const Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>, CoordinateSystemTemplate>& angle) {
+//  return Coordinate<Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>,
+//  CoordinateSystemTemplate>(cos(angle.getQuantity()));
 //}
 
 template <typename Quantity, typename CoordinateSystem>
