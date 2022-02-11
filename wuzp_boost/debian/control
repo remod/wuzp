@@ -10,6 +10,7 @@ Homepage: https://github.com/remod/wuzp
 
 Package: wuzp-boost
 Architecture: any
+Build-Depends: wuzp, libboost-dev
 Depends: ${shlibs:Depends}, ${misc:Depends}, wuzp, libboost-dev
 Description: Wrong Unit? Zero Points!
  Boost extension for wuzp.
