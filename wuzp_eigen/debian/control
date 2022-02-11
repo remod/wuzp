@@ -10,6 +10,7 @@ Homepage: https://github.com/remod/wuzp
 
 Package: wuzp-eigen
 Architecture: any
+Build-Depends: wuzp, libeigen3-dev
 Depends: ${shlibs:Depends}, ${misc:Depends}, wuzp, libeigen3-dev
 Description: Wrong Unit? Zero Points!
  Eigen extension for wuzp.
