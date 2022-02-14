@@ -4,7 +4,7 @@
 
 namespace wuzp {
 
-// TODO(remod): When instantiating a spacial rotation, test.hpp for determinant == 1.
+// TODO(remod): When instantiating a spacial rotation, test for determinant == 1.
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
           int Dimension>
 using SpatialRotation = LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension,

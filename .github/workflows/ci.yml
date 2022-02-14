@@ -93,7 +93,7 @@ jobs:
         UNITS_IMPLEMENTATION: [0, 1]
         VALUE_MATRIX_IMPLEMENTATION: [1]
     env:
-      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test.hpp/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
       SOURCE_DIR: ${{github.workspace}}/wuzp/tests
@@ -111,7 +111,7 @@ jobs:
     - name: Upgrade
       run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
-      run: sudo ${REPO_DIR}/scripts/test.hpp/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
     - name: Create Build Environment
       run: |
         [ "${CMAKE_C_CXX_COMPILER}" = "clang_clang++" ] && ENABLE_CODE_COVERAGE=1 || ENABLE_CODE_COVERAGE=0
@@ -119,7 +119,7 @@ jobs:
     - name: Build
       run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
-      run: ${REPO_DIR}/scripts/common_steps/test.hpp.sh ${BUILD_DIR} ${BUILD_TYPE}
+      run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Tidy
       run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
     - if: matrix.CMAKE_C_CXX_COMPILER == 'clang_clang++'
@@ -128,12 +128,12 @@ jobs:
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test.hpp/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+        path: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
   merge_code_coverage:
-    needs: test.hpp
+    needs: test
     runs-on: ubuntu-20.04
     env:
-      BUILDS_DIR: ${{github.workspace}}/tmp/wuzp/test.hpp
+      BUILDS_DIR: ${{github.workspace}}/tmp/wuzp/test
       CODE_COVERAGE_DIR: ${{github.workspace}}/tmp/wuzp/code_coverage
     steps:
     - name: Prepare Repository
@@ -149,13 +149,13 @@ jobs:
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_0_1_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test.hpp/clang_clang++_0_1
+        path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_0_1
     - name: Download Test 1 1 from Cache
       uses: actions/cache@v2
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_1_1_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test.hpp/clang_clang++_1_1
+        path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_1_1
     - name: Upgrade
       run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
@@ -176,7 +176,7 @@ jobs:
       matrix:
         PACKAGE_NAME: ["wuzp"]
     env:
-      PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test.hpp/${{matrix.PACKAGE_NAME}}
+      PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
       PACKAGE_SHIP_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
       PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
       SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
@@ -215,7 +215,7 @@ jobs:
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test.hpp/${{matrix.PACKAGE_NAME}}
+          path: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
       - name: Upload Ship Package to Cache
         uses: actions/cache@v2
         with:
@@ -294,7 +294,7 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test_packages
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
-      PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package/test.hpp
+      PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package/test
       SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
       VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
@@ -312,19 +312,19 @@ jobs:
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test.hpp/wuzp
+          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
       - name: Download Package wuzp_boost from Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_boost_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test.hpp/wuzp_boost
+          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_boost
       - name: Download Package wuzp_eigen from Cache
         uses: actions/cache@v2
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_eigen_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test.hpp/wuzp_eigen
+          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_eigen
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
@@ -336,9 +336,9 @@ jobs:
       - name: Build
         run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
       - name: Test
-        run: ${REPO_DIR}/scripts/common_steps/test.hpp.sh ${BUILD_DIR} ${BUILD_TYPE}
+        run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
   deliver:
-    needs: [check_format, check_package_versions, test.hpp, test_packages]
+    needs: [check_format, check_package_versions, test, test_packages]
     runs-on: ubuntu-20.04
     strategy:
       matrix:
