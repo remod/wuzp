@@ -243,6 +243,12 @@ jobs:
       - if: github.event_name == 'pull_request'
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
+      - name: Download Package wuzp from Cache
+        uses: actions/cache@v2
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: wuzp_test_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
