@@ -2,7 +2,7 @@ Source: wuzp-boost
 Section: devel
 Priority: optional
 Maintainer: Remo Diethelm <rdiethelm@gmail.com>
-Build-Depends: cmake, debhelper-compat (= 12)
+Build-Depends: cmake, debhelper-compat (= 12), wuzp, libboost-dev
 Standards-Version: 4.4.1
 Homepage: https://github.com/remod/wuzp
 #Vcs-Browser: https://salsa.debian.org/debian/wuzp
@@ -10,7 +10,6 @@ Homepage: https://github.com/remod/wuzp
 
 Package: wuzp-boost
 Architecture: any
-Build-Depends: wuzp, libboost-dev
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Wrong Unit? Zero Points!
  Boost extension for wuzp.
