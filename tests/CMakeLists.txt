@@ -83,9 +83,9 @@ if (${ENABLE_TESTS})
         src/Integer.cpp
         src/Unit.cpp
         src/TypeMatrix.cpp
-            src/UnitMatrix.cpp
+        src/UnitMatrix.cpp
         src/Quantity.cpp
-            src/ValueMatrix.cpp
+        src/ValueMatrix.cpp
         src/QuantityMatrix.cpp
         src/Tensor.cpp
         src/Translation.cpp
