@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Check arguments.
-if [ $# != 4 ]; then
+if [ $# -lt 4 ] || [ $# -gt 5 ]; then
   echo "Number of arguments is incorrect: $*"
-  echo "Usage: ./run_job.sh REPO_DIR PACKAGE_TEST_DIR PACKAGE_SHIP_DIR PACKAGE_NAME"
+  echo "Usage: ./run_job.sh REPO_DIR PACKAGE_TEST_DIR PACKAGE_SHIP_DIR PACKAGE_NAME [WUZP_PACKAGE_TEST_DIR]"
   exit 1
 fi
 
@@ -11,12 +11,15 @@ REPO_DIR=${1}
 PACKAGE_TEST_DIR=${2}
 PACKAGE_SHIP_DIR=${3}
 PACKAGE_NAME=${4}
+if [ $# -ge 5 ]; then
+  WUZP_PACKAGE_TEST_DIR=${5}
+fi
 SOURCE_DIR=${REPO_DIR}/${PACKAGE_NAME}
 
 # Run all steps.
 # TODO(remod): When making this repo public, use GitHub environment to restrict deployment secrets to master.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
-${REPO_DIR}/scripts/package/steps/install_dependencies.sh &&
+${REPO_DIR}/scripts/package/steps/install_dependencies.sh ${WUZP_PACKAGE_TEST_DIR} &&
 source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh &&
 source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR} &&
 ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}

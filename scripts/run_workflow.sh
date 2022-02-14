@@ -10,7 +10,7 @@
 set -e
 
 # Check arguments.
-if [ $# -lt 3 ] || [ $# -gt 5 ]; then
+if [ $# -lt 4 ] || [ $# -gt 5 ]; then
   echo "Number of arguments is incorrect: $*"
   echo "Usage: ./run_workflow.sh GPG_SIGNING_KEY_FILE GPG_SIGNING_KEYGRIP GPG_SIGNING_KEY_PASSPHRASE [SKIP_CHECK_FORMAT=false] [DOCKER_IMAGE=ubuntu:20.04]"
   exit 1
@@ -101,8 +101,19 @@ rm -rf ${CODE_COVERAGE_DIR}
 mkdir -p ${CODE_COVERAGE_DIR}
 docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TESTS_DIR}:${TESTS_DIR}:ro -v ${CODE_COVERAGE_DIR}:${CODE_COVERAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/merge_code_coverage/run_job.sh ${WORKSPACE_DIR} ${TESTS_DIR} ${CODE_COVERAGE_DIR}
 
-# Package.
-for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
+# Package wuzp.
+echo "Packaging wuzp ..."
+PACKAGE_TEST_DIR=${PACKAGES_TEST_DIR}/wuzp
+rm -rf ${PACKAGE_TEST_DIR}
+mkdir -p ${PACKAGE_TEST_DIR}
+PACKAGE_SHIP_DIR=${PACKAGES_SHIP_DIR}/wuzp
+rm -rf ${PACKAGE_SHIP_DIR}
+mkdir -p ${PACKAGE_SHIP_DIR}
+docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_TEST_DIR}:${PACKAGE_TEST_DIR}:rw -v ${PACKAGE_SHIP_DIR}:${PACKAGE_SHIP_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/package/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} wuzp
+
+# Package extensions.
+WUZP_PACKAGE_TEST_DIR=${PACKAGE_TEST_DIR}
+for PACKAGE_NAME in "wuzp_boost" "wuzp_eigen"; do
   echo "Packaging ${PACKAGE_NAME} ..."
   PACKAGE_TEST_DIR=${PACKAGES_TEST_DIR}/${PACKAGE_NAME}
   rm -rf ${PACKAGE_TEST_DIR}
@@ -110,7 +121,7 @@ for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   PACKAGE_SHIP_DIR=${PACKAGES_SHIP_DIR}/${PACKAGE_NAME}
   rm -rf ${PACKAGE_SHIP_DIR}
   mkdir -p ${PACKAGE_SHIP_DIR}
-  docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_TEST_DIR}:${PACKAGE_TEST_DIR}:rw -v ${PACKAGE_SHIP_DIR}:${PACKAGE_SHIP_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/package/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME}
+  docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP -e GPG_SIGNING_KEY_PASSPHRASE -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${WUZP_PACKAGE_TEST_DIR}:${WUZP_PACKAGE_TEST_DIR}:ro -v ${PACKAGE_TEST_DIR}:${PACKAGE_TEST_DIR}:rw -v ${PACKAGE_SHIP_DIR}:${PACKAGE_SHIP_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/package/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME} ${WUZP_PACKAGE_TEST_DIR}
 done
 
 # Test packages.
