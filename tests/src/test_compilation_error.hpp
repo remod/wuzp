@@ -32,7 +32,7 @@ inline std::string getCMakeListsContent() {
          "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_eigen wuzp_eigen_build)\n"
 #endif
          "\n"
-         "add_executable(tests test.cpp)\n"
+         "add_executable(tests test.hpp.cpp)\n"
          "target_link_libraries(tests PRIVATE wuzp)\n"
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
          "target_link_libraries(tests PRIVATE wuzp_boost)\n"
@@ -78,7 +78,7 @@ inline std::pair<bool, std::string> compile(const std::string& code) {
   const std::string directory = std::string{"test_compilation_"} + std::to_string(std::hash<std::string>()(code));
   std::filesystem::create_directories(directory);
   createFile(directory + "/CMakeLists.txt", getCMakeListsContent());
-  createFile(directory + "/test.cpp", code);
+  createFile(directory + "/test.hpp.cpp", code);
   const auto result = exec((std::string{"cd "} + directory +
                             " && cmake -D CMAKE_C_COMPILER=" TO_STRING(CMAKE_C_COMPILER) " -D CMAKE_CXX_COMPILER=" TO_STRING(
                                 CMAKE_CXX_COMPILER) " . && make 2>&1")

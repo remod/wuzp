@@ -20,7 +20,7 @@ if [[ ${ENABLE_CODE_COVERAGE} = false ]]; then
   exit 0;
 fi
 
-# Generate JSON report for this test configuration. If less than one line is covered, it is likely a configuration error.
+# Generate JSON report for this test.hpp configuration. If less than one line is covered, it is likely a configuration error.
 #gcovr --root ${REPO_DIR} --exclude ${REPO_DIR}/tests --verbose --json --output ${CODE_COVERAGE_DIR}/report.json ${BUILD_DIR}
 
 exit 0

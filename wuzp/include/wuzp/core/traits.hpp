@@ -31,16 +31,12 @@ struct GetTag;
 
 struct FromTensorLabel {};
 using FromTensor = Tag<FromTensorLabel>;
-struct FromCoordinateMatrixLabel {};
-using FromCoordinateMatrix = Tag<FromCoordinateMatrixLabel>;
 struct FromQuantityMatrixLabel {};
 struct FromCoordinatesLabel {};
 using FromCoordinates = Tag<FromCoordinatesLabel>;
 using FromQuantityMatrix = Tag<FromQuantityMatrixLabel>;
 struct FromQuantitiesLabel {};
 using FromQuantities = Tag<FromQuantitiesLabel>;
-struct FromCoordinateMatrixArgsLabel {};
-using FromCoordinateMatrixArgs = Tag<FromCoordinateMatrixArgsLabel>;
 struct FromQuantityMatrixArgsLabel {};
 using FromQuantityMatrixArgs = Tag<FromQuantityMatrixArgsLabel>;
 struct FromValueMatrixLabel {};

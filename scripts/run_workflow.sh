@@ -29,6 +29,7 @@ if [ $# -ge 5 ]; then
 else
   DOCKER_IMAGE="ubuntu:20.04"
 fi
+docker pull ${DOCKER_IMAGE}
 
 # Check GPG signing key file.
 if [ ! -f ${GPG_SIGNING_KEY_FILE} ]; then

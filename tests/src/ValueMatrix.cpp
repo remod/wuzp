@@ -50,4 +50,4 @@ TEST(TestValueMatrix, LazyProduct) {  // NOLINT
   static_assert(!std::is_same<Product<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
-// TODO(remod): Compile-time check number of constructor arguments and test it.
+// TODO(remod): Compile-time check number of constructor arguments and test.hpp it.

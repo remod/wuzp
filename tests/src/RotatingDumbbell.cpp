@@ -1,67 +1,56 @@
 #include <gtest/gtest.h>
 
-#include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/CoordinateSystemMatrix.hpp"
+#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
-
-using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
+namespace units = wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
 #include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
+namespace units = wuzp_boost;  // NOLINT
 #endif
 
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+namespace vm = wuzp_eigen;
 #endif
 
 // From https://en.wikipedia.org/wiki/Mass_matrix#Rotating_dumbbell
 struct CartesianCoordinateSystemName {};
-using CartesianCoordinateSystem = CoordinateSystem<CartesianCoordinateSystemName>;
+using CartesianCoordinateSystem = wuzp::CoordinateSystem<CartesianCoordinateSystemName>;
 struct MinimalCoordinateSystemName {};
-using MinimalCoordinateSystem = CoordinateSystem<MinimalCoordinateSystemName>;
+using MinimalCoordinateSystem = wuzp::CoordinateSystem<MinimalCoordinateSystemName>;
 
-using MinimalCoordinatesValueMatrix = ValueMatrix<double, 3, 1>;
-using MinimalCoordinatesUnitMatrix = TypeMatrix<3, 1, AbsoluteLength, AbsoluteLength, AbsoluteAngle>;
-using MinimalCoordinatesQuantityMatrix = QuantityMatrix<MinimalCoordinatesValueMatrix, MinimalCoordinatesUnitMatrix>;
-using MinimalCoordinatesDtUnitMatrix = TypeMatrix<3, 1, Velocity, Velocity, AngularVelocity>;
-using MinimalCoordinatesDtQuantityMatrix = QuantityMatrix<MinimalCoordinatesValueMatrix, MinimalCoordinatesDtUnitMatrix>;
-using MinimalCoordinatesCoordinateSystemMatrix = TypeMatrix<3, 1, MinimalCoordinateSystem>;
-using MinimalCoordinates = CoordinateMatrix<MinimalCoordinatesQuantityMatrix, MinimalCoordinatesCoordinateSystemMatrix>;
-using MinimalCoordinatesDt = CoordinateMatrix<MinimalCoordinatesDtQuantityMatrix, MinimalCoordinatesCoordinateSystemMatrix>;
+using MinimalCoordinatesValueVector = vm::ValueMatrix<double, 3, 1>;
+using MinimalCoordinatesUnitVector = wuzp::TypeMatrix<3, 1, units::AbsoluteLength, units::AbsoluteLength, units::AbsoluteAngle>;
+using MinimalCoordinatesQuantityVector = wuzp::QuantityMatrix<MinimalCoordinatesValueVector, MinimalCoordinatesUnitVector>;
+using MinimalCoordinatesDtUnitVector = wuzp::TypeMatrix<3, 1, units::Velocity, units::Velocity, units::AngularVelocity>;
+using MinimalCoordinatesDtQuantityVector = wuzp::QuantityMatrix<MinimalCoordinatesValueVector, MinimalCoordinatesDtUnitVector>;
+using MinimalCoordinates = wuzp::Vector<MinimalCoordinatesQuantityVector, MinimalCoordinateSystem>;
+using MinimalCoordinatesDt = wuzp::Vector<MinimalCoordinatesDtQuantityVector, MinimalCoordinateSystem>;
 
-using PointValueMatrix = ValueMatrix<double, 2, 1>;
-using PointUnitMatrix = TypeMatrix<2, 1, AbsoluteLength>;
-using DirectionUnitMatrix = TypeMatrix<2, 1, Dimensionless>;
-using VelocityUnitMatrix = TypeMatrix<2, 1, Velocity>;
-using PointQuantityMatrix = QuantityMatrix<PointValueMatrix, PointUnitMatrix>;
-using DirectionQuantityMatrix = QuantityMatrix<PointValueMatrix, DirectionUnitMatrix>;
-using VelocityQuantityMatrix = QuantityMatrix<PointValueMatrix, VelocityUnitMatrix>;
-using PointCoordinateSystemMatrix = TypeMatrix<2, 1, CartesianCoordinateSystem>;
-using PositionPoint = CoordinateMatrix<PointQuantityMatrix, PointCoordinateSystemMatrix>;
-using DirectionVector = CoordinateMatrix<DirectionQuantityMatrix, PointCoordinateSystemMatrix>;
-using VelocityVector = CoordinateMatrix<VelocityQuantityMatrix, PointCoordinateSystemMatrix>;
+using PositionPoint = wuzp::PositionPoint2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
+using DirectionVector = wuzp::DirectionVector2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
+using VelocityVector = wuzp::VelocityVector2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
 
-using RadiusQuantity = Quantity<double, Length>;
-using MassQuantity = Quantity<double, Mass>;
-using EnergyQuantity = Quantity<double, Energy>;
-using AngleQuantity = Quantity<double, Angle>;
+using RadiusQuantity = wuzp::Quantity<double, units::Length>;
+using MassQuantity = wuzp::Quantity<double, units::Mass>;
+using EnergyQuantity = wuzp::Quantity<double, units::Energy>;
+using AngleQuantity = wuzp::Quantity<double, units::Angle>;
 
-using MassMatrixValues = ValueMatrix<double, 3, 3>;
-using MassLength = Product<Mass, Division<Length, Angle>::type>::type;
-using MassLength2 = Product<MassLength, Division<Length, Angle>::type>::type;
-using MassMatrixUnits = TypeMatrix<3, 3, Mass, Mass, MassLength, Mass, Mass, MassLength, MassLength, MassLength, MassLength2>;
-using MassMatrixQuantities = QuantityMatrix<MassMatrixValues, MassMatrixUnits>;
-using MassMatrixSystemMatrix = TypeMatrix<3, 3, MinimalCoordinateSystem>;
-using MassMatrix = CoordinateMatrix<MassMatrixQuantities, MassMatrixSystemMatrix>;
+using MassMatrixValues = vm::ValueMatrix<double, 3, 3>;
+using MassLength = wuzp::Product<units::Mass, wuzp::Division<units::Length, units::Angle>::type>::type;
+using MassLength2 = wuzp::Product<MassLength, wuzp::Division<units::Length, units::Angle>::type>::type;
+using MassMatrixUnits =
+    wuzp::TypeMatrix<3, 3, units::Mass, units::Mass, MassLength, units::Mass, units::Mass, MassLength, MassLength, MassLength, MassLength2>;
+using MassMatrixQuantities = wuzp::QuantityMatrix<MassMatrixValues, MassMatrixUnits>;
+using MassMatrixSystemMatrix = wuzp::TypeMatrix<3, 3, MinimalCoordinateSystem>;
+using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatrix>;
 
 // class MinimalToCartesianTransformation
 //    : public wuzp::PassiveTransformation<MinimalToCartesianTransformation, MinimalCoordinateSystem, CartesianCoordinateSystem> {
