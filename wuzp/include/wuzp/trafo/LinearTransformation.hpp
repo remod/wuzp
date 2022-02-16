@@ -6,19 +6,18 @@
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystemT_, typename From, typename To,
           int DimensionFrom, int DimensionTo, typename... Units>
 class LinearTransformation
     : public PassiveTransformation<
-          LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>, CoordinateSystem,
+          LinearTransformation<ValueMatrix, Scalar, CoordinateSystemT_, From, To, DimensionFrom, DimensionTo, Units...>, CoordinateSystemT_,
           From, To> {
  public:
   using ValueMatrixT = ValueMatrix<Scalar, DimensionTo, DimensionFrom>;
   using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
   using QuantityMatrixT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
-  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
-  using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
-  using TensorT = Tensor<1, 1, CoordinateMatrixT>;
+  using CoordinateSystemT = CoordinateSystemT_;
+  using TensorT = Tensor<1, 1, QuantityMatrixT, CoordinateSystemT>;
 
   template <typename... Args>
   explicit LinearTransformation(Args... args) : tensor_(args...) {}
@@ -49,37 +48,37 @@ struct CastCoordinateSystem<LinearTransformation<ValueMatrix, Scalar, Coordinate
 };
 
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
-          int DimensionFrom, int DimensionTo, typename... Units, typename CoordinateMatrix>
+          int DimensionFrom, int DimensionTo, typename... Units, typename QuantityMatrixT_, typename CoordinateSystemT_>
 struct TransformationTraits<LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<0, 1, CoordinateMatrix>> {
+                            Tensor<0, 1, QuantityMatrixT_, CoordinateSystemT_>> {
   static auto transform(
       const LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<0, 1, CoordinateMatrix>& object) {
+      const Tensor<0, 1, QuantityMatrixT_, CoordinateSystemT_>& object) {
     //    return transformation.getTensor() * object;
   }
 };
 
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
-          int DimensionFrom, int DimensionTo, typename... Units, typename CoordinateMatrix>
+          int DimensionFrom, int DimensionTo, typename... Units, typename QuantityMatrixT_, typename CoordinateSystemT_>
 struct TransformationTraits<LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<0, 2, CoordinateMatrix>> {
+                            Tensor<0, 2, QuantityMatrixT_, CoordinateSystemT_>> {
   static auto transform(
       const LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<0, 2, CoordinateMatrix>& object) {
+      const Tensor<0, 2, QuantityMatrixT_, CoordinateSystemT_>& object) {
     const auto fromResult = transformation.getTensor().inverse().transpose() * object * transformation.getTensor().inverse();
     return evaluate(castCoordinateSystem<To>(fromResult.getTensor()));
   }
 };
 
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
-          int DimensionFrom, int DimensionTo, typename... Units, typename CoordinateMatrix>
+          int DimensionFrom, int DimensionTo, typename... Units, typename QuantityMatrixT_, typename CoordinateSystemT_>
 struct TransformationTraits<LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<1, 0, CoordinateMatrix>> {
+                            Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>> {
   static auto transform(
       const LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<1, 0, CoordinateMatrix>& object) {
+      const Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>& object) {
     // If the object is absolute (point), make it relative (vector), transform it, and make it absolute again.
-    if constexpr (IsAbsolute<Tensor<1, 0, CoordinateMatrix>>::value) {
+    if constexpr (IsAbsolute<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value) {
       return evaluate(castCoordinateSystem<To>(makeAbsolute(transformation.getTensor() * makeRelative(object))));
     } else {
       return evaluate(castCoordinateSystem<To>(transformation.getTensor() * object));
@@ -88,23 +87,23 @@ struct TransformationTraits<LinearTransformation<ValueMatrix, Scalar, Coordinate
 };
 
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
-          int DimensionFrom, int DimensionTo, typename... Units, typename CoordinateMatrix>
+          int DimensionFrom, int DimensionTo, typename... Units, typename QuantityMatrixT_, typename CoordinateSystemT_>
 struct TransformationTraits<LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<1, 1, CoordinateMatrix>> {
+                            Tensor<1, 1, QuantityMatrixT_, CoordinateSystemT_>> {
   static auto transform(
       const LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<1, 1, CoordinateMatrix>& object) {
+      const Tensor<1, 1, QuantityMatrixT_, CoordinateSystemT_>& object) {
     return castCoordinateSystem<To>(transformation.getTensor() * object * transformation.getTensor().inverse());
   }
 };
 
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
-          int DimensionFrom, int DimensionTo, typename... Units, typename CoordinateMatrix>
+          int DimensionFrom, int DimensionTo, typename... Units, typename QuantityMatrixT_, typename CoordinateSystemT_>
 struct TransformationTraits<LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<2, 0, CoordinateMatrix>> {
+                            Tensor<2, 0, QuantityMatrixT_, CoordinateSystemT_>> {
   static auto transform(
       const LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<2, 0, CoordinateMatrix>& object) {
+      const Tensor<2, 0, QuantityMatrixT_, CoordinateSystemT_>& object) {
     //    return transformation.getTensor() * object;
   }
 };
