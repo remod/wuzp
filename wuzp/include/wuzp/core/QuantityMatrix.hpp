@@ -36,26 +36,25 @@ class QuantityMatrix {
   static This zero() { return This(ValueMatrixT::zero()); }
   static This random() { return This(ValueMatrixT::random()); }
 
+  template <int RowId, int ColId>
+  auto getQuantity() const {
+    return typename Element<This, RowId, ColId>::type(valueMatrix_.template getValue<RowId, ColId>());
+  }
+
+  auto getQuantity(const int rowId, const int colId) const { return typename GetType<This>::type(valueMatrix_.getValue(rowId, colId)); }
+
   template <int RowId, int ColId, typename Quantity>
-  void setQuantity(const Quantity quantity) {
+  void setQuantity(const Quantity& quantity) {
     static_assert(std::is_same<typename Element<UnitMatrixT, RowId, ColId>::type, typename Quantity::UnitT>::value, "Units do not match.");
     valueMatrix_.template setValue<RowId, ColId>(quantity.getValue());
   }
 
-  template <int RowId, int ColId>
-  auto getQuantity() const {
-    return Quantity<typename Scalar<ValueMatrixT>::type, typename Element<UnitMatrixT, RowId, ColId>::type>(
-        valueMatrix_.template getValue<RowId, ColId>());
-  }
-
   template <typename Quantity>
-  void setQuantity(const int rowId, const int colId, const Quantity quantity) {
+  void setQuantity(const int rowId, const int colId, const Quantity& quantity) {
     static_assert(IsHomogeneous<This>::value && std::is_same<typename Element<UnitMatrixT, 0, 0>::type, typename Quantity::UnitT>::value,
                   "Units do not match.");
     valueMatrix_.setValue(rowId, colId, quantity.getValue());
   }
-
-  auto getQuantity(const int rowId, const int colId) const { return typename GetType<This>::type(valueMatrix_.getValue(rowId, colId)); }
 
   /**
    * Set the values of the quantity matrix.
@@ -228,6 +227,11 @@ struct Transpose<QuantityMatrix<ValueMatrix, UnitMatrix>> {
 template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
 struct DotProduct<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
   using type = Quantity<typename DotProduct<ValueMatrixLhs, ValueMatrixRhs>::type, typename DotProduct<UnitMatrixLhs, UnitMatrixRhs>::type>;
+};
+
+template <typename ValueMatrix, typename UnitMatrix, int ElementRowId, int ElementColId>
+struct Element<QuantityMatrix<ValueMatrix, UnitMatrix>, ElementRowId, ElementColId> {
+  using type = Quantity<typename Scalar<ValueMatrix>::type, typename Element<UnitMatrix, ElementRowId, ElementColId>::type>;
 };
 
 template <typename ValueMatrix, typename UnitMatrix>

@@ -73,10 +73,10 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 //  TensorT tensor_;
 //};
 
+// TODO(remod): Create a custom transformation class for this?
 std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordinates& minimalCoordinates, const RadiusQuantity& radius) {
-  // TODO(remod): Introduce CoordinateMatrix::getQuantity()?
   // TODO(remod): Temporarily cast to relative? Or define sin/cos for absolute quantities
-  const auto relativeAngle = makeRelative(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
+  const auto relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
   const auto positionVector = radius * DirectionVector(cos(relativeAngle), sin(relativeAngle));
   const PositionPoint position1 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) + positionVector;
   const PositionPoint position2 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) - positionVector;
@@ -86,9 +86,8 @@ std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordina
 std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordinates& minimalCoordinates,
                                                              const MinimalCoordinatesDt& minimalCoordinatesDt,
                                                              const RadiusQuantity& radius) {
-  const auto relativeAngle = makeRelative(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
-  const auto velocityVector = radius * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>() *
-                              DirectionVector(-sin(relativeAngle), cos(relativeAngle))
+  const auto relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
+  const auto velocityVector = radius * minimalCoordinatesDt.getQuantity<2, 0>() * DirectionVector(-sin(relativeAngle), cos(relativeAngle))
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
                               / AngleQuantity(1.0)
 #endif
@@ -110,28 +109,26 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const auto cartesianCoordinates = minimalToCartesian(minimalCoordinates, radius);
   const auto cartesianCoordinatesDt = minimalToCartesian(minimalCoordinates, minimalCoordinatesDt, radius);
 
-  // TODO(remod): Introduce norm() and squaredNorm() for vectors (and matrices?).
-  const EnergyQuantity energyCartesianCoordinates = 0.5 * (mass1 * cartesianCoordinatesDt.first.dot(cartesianCoordinatesDt.first) +
-                                                           mass2 * cartesianCoordinatesDt.second.dot(cartesianCoordinatesDt.second));
+  const EnergyQuantity energyCartesianCoordinates =
+      0.5 * (mass1 * cartesianCoordinatesDt.first.squaredNorm() + mass2 * cartesianCoordinatesDt.second.squaredNorm());
 
-  const AngleQuantity relativeAngle = makeRelative(minimalCoordinates.getQuantityMatrix().getQuantity<2, 0>());
+  const AngleQuantity relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
 
   const MassQuantity massSum = mass1 + mass2;
   const MassQuantity massDifference = mass1 - mass2;
   const EnergyQuantity energyMinimalCoordinates1 =
-      0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()) +
-                        pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>()) +
-                        pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
+      0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantity<0, 0>()) + pow<2>(minimalCoordinatesDt.getQuantity<1, 0>()) +
+                        pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantity<2, 0>()
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
                                                 / AngleQuantity(1.0)
 #endif
                                                     )) +
-             2.0 * radius * massDifference * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
+             2.0 * radius * massDifference * minimalCoordinatesDt.getQuantity<2, 0>()
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
                  / AngleQuantity(1.0)
 #endif
-                 * (cos(relativeAngle) * minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>() -
-                    sin(relativeAngle) * minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()));
+                 * (cos(relativeAngle) * minimalCoordinatesDt.getQuantity<1, 0>() -
+                    sin(relativeAngle) * minimalCoordinatesDt.getQuantity<0, 0>()));
 
   auto massMatrix00 = massSum;
   auto massMatrix01 = MassQuantity(0.0);
@@ -155,7 +152,7 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
 
   // TODO(remod): Enable implicit conversion from 1x1 quantity matrix to quantity. Only required if we don't just use 1x1 matrices as impl.
   const EnergyQuantity energyMinimalCoordinates2 =
-      0.5 * (minimalCoordinatesDt.transpose() * massMatrix * minimalCoordinatesDt).getQuantityMatrix().getQuantity<0, 0>();
+      0.5 * (minimalCoordinatesDt.transpose() * massMatrix * minimalCoordinatesDt).getQuantity<0, 0>();
 
   // TODO(remod): Use isApprox() after switching to 1x1 matrices.
   EXPECT_NEAR(energyCartesianCoordinates.getValue(), energyMinimalCoordinates1.getValue(), 1e-5);
