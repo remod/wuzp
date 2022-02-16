@@ -196,17 +196,42 @@ class TestTensorF : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
+  using MyHomogeneousUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyHomogeneousQuantityMatrix = QuantityMatrix<MyValueMatrix, MyHomogeneousUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
+  using MyHomogeneousTensor = Tensor<1, 0, MyHomogeneousQuantityMatrix, CoordinateSystemA>;
 
-  const MyTensor& getTensor() const { return tensor_; }
+  MyTensor& getTensor() { return tensor_; }
+  MyHomogeneousTensor& getHomogeneousTensor() { return homogeneousTensor_; }
 
  private:
   MyTensor tensor_{1, 2, 3, 4, 5, 6};
+  MyHomogeneousTensor homogeneousTensor_{1, 2, 3, 4, 5, 6};
 };
 
 TEST_F(TestTensorF, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getTensor(), getTensor());
+}
+
+TEST_F(TestTensorF, GetQuantityCompileTime) {  // NOLINT
+  EXPECT_EQ(getHomogeneousTensor().getQuantity(0, 0), (Quantity<int, Length>(1.0)));
+  EXPECT_EQ(getHomogeneousTensor().getQuantity(1, 0), (Quantity<int, Length>(4.0)));
+}
+
+TEST_F(TestTensorF, GetQuantityRunTime) {  // NOLINT
+  EXPECT_EQ((getTensor().getQuantity<0, 0>()), (Quantity<int, Length>(1.0)));
+  EXPECT_EQ((getTensor().getQuantity<1, 0>()), (Quantity<int, Mass>(4.0)));
+}
+
+TEST_F(TestTensorF, SetQuantityCompileTime) {  // NOLINT
+  getHomogeneousTensor().setQuantity(1, 0, Quantity<int, Length>(1.0));
+  EXPECT_EQ(getHomogeneousTensor().getQuantity(1, 0), (Quantity<int, Length>(1.0)));
+}
+
+TEST_F(TestTensorF, SetQuantityRunTime) {  // NOLINT
+  getTensor().setQuantity<1, 0>(Quantity<int, Mass>(1.0));
+  EXPECT_EQ((getTensor().getQuantity<1, 0>()), (Quantity<int, Mass>(1.0)));
 }
 
 TEST_F(TestTensorF, Block) {  // NOLINT

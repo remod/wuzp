@@ -134,6 +134,24 @@ class Tensor {
     return quantityMatrix_.isApprox(other.getQuantityMatrix(), precision);
   }
 
+  // TODO(remod): Remove 'get' from all getters?
+  template <int RowId, int ColId>
+  auto getQuantity() const {
+    return quantityMatrix_.template getQuantity<RowId, ColId>();
+  }
+
+  auto getQuantity(const int rowId, const int colId) const { return quantityMatrix_.getQuantity(rowId, colId); }
+
+  template <int RowId, int ColId, typename QuantityT_>
+  void setQuantity(const QuantityT_& quantity) {
+    return quantityMatrix_.template setQuantity<RowId, ColId>(quantity);
+  }
+
+  template <typename Quantity>
+  void setQuantity(const int rowId, const int colId, const Quantity& quantity) {
+    quantityMatrix_.setQuantity(rowId, colId, quantity);
+  }
+
   // TODO(remod): Rename to "slice"?
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
