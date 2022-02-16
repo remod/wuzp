@@ -2,7 +2,6 @@
 
 #include <ostream>
 
-#include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/QuantityMatrix.hpp"
@@ -87,19 +86,17 @@ namespace wuzp {
 
 // Orthogonal matrix / transformation: A^-1 == A^T
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix_>
+// TODO(remod): Are two indices sufficient or do we need a boolean per dimension?
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
 class Tensor {
  public:
-  using CoordinateMatrixT = CoordinateMatrix_;
-  using QuantityMatrixT = typename CoordinateMatrixT::QuantityMatrixT;
-  using UnitMatrixT = typename CoordinateMatrixT::UnitMatrixT;
-  using ValueMatrixT = typename CoordinateMatrixT::ValueMatrixT;
+  using QuantityMatrixT = QuantityMatrixT_;
+  using CoordinateSystemT = CoordinateSystemT_;
+  using UnitMatrixT = typename QuantityMatrixT::UnitMatrixT;
+  using ValueMatrixT = typename QuantityMatrixT::ValueMatrixT;
   // TODO(remod): Use ValueT instead of ScalarT.
-  using ScalarT = typename CoordinateMatrixT::ScalarT;
-  using This = Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrixT>;
-
-  // TODO(remod): This is disabled to support batch processing of vectors, e.g. for point clouds. Remove it at one point.
-  //  static_assert(ContravariantIndices + CovariantIndices == Dimension<CoordinateMatrix>::value, "Dimension does not match.");
+  using ScalarT = typename QuantityMatrixT::ScalarT;
+  using This = Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT, CoordinateSystemT>;
 
   Tensor() = default;
 
@@ -112,274 +109,345 @@ class Tensor {
   explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(T0&& t0, Ts&&... ts)
       : Tensor(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
-  static This zero() { return This(CoordinateMatrixT::zero()); }
-  static This random() { return This(CoordinateMatrixT::random()); }
-
-  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
-  void setCoordinateMatrix(const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& coordinateMatrix) {
-    coordinateMatrix_ = coordinateMatrix;
-  }
-  const CoordinateMatrixT& getCoordinateMatrix() const { return coordinateMatrix_; }
+  static This zero() { return This(QuantityMatrixT::zero()); }
+  static This random() { return This(QuantityMatrixT::random()); }
 
   template <typename ValueMatrixOther, typename UnitMatrixOther>
-  void setQuantityMatrix(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& quantityMatrix) {
-    coordinateMatrix_.setQuantityMatrix(quantityMatrix);
+  void setQuantityMatrix(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& component) {
+    quantityMatrix_ = component;
   }
-  const QuantityMatrixT& getQuantityMatrix() const { return coordinateMatrix_.getQuantityMatrix(); }
+  const QuantityMatrixT& getQuantityMatrix() const { return quantityMatrix_; }
 
   template <typename ValueMatrixOther>
   void setValueMatrix(const ValueMatrixOther& valueMatrix) {
-    coordinateMatrix_.setValueMatrix(valueMatrix);
+    quantityMatrix_.setValueMatrix(valueMatrix);
   }
-  const ValueMatrixT& getValueMatrix() const { return coordinateMatrix_.getValueMatrix(); }
+  const ValueMatrixT& getValueMatrix() const { return quantityMatrix_.getValueMatrix(); }
 
-  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
-  bool isApprox(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other,
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantityMatrixOther, typename CoordinateSystemOther>
+  bool isApprox(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantityMatrixOther, CoordinateSystemOther>& other,
                 const ScalarT precision = Precision<ScalarT>::value()) const {
-    // Note: Allow other value types to support lazy evaluation.
+    // Note: Allow other tensor types to support lazy evaluation.
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
-    static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
-    return coordinateMatrix_.isApprox(other.getCoordinateMatrix(), precision);
+    static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
+    static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
+    return quantityMatrix_.isApprox(other.getQuantityMatrix(), precision);
   }
 
+  // TODO(remod): Rename to "slice"?
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
     return typename Block<This, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
-        coordinateMatrix_.template block<BlockRowId, BlockColId, BlockRows, BlockCols>());
+        quantityMatrix_.template block<BlockRowId, BlockColId, BlockRows, BlockCols>());
   }
 
-  auto transpose() const { return typename Transpose<This>::type(coordinateMatrix_.transpose()); }
+  auto transpose() const { return typename Transpose<This>::type(quantityMatrix_.transpose()); }
 
-  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
-  auto dot(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other) const {
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantityMatrixOther, typename CoordinateSystemOther>
+  auto dot(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantityMatrixOther, CoordinateSystemOther>& other) const {
     // TODO(remod): Check indices.
-    return coordinateMatrix_.dot(other.getCoordinateMatrix());
+    static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
+    return quantityMatrix_.dot(other.getQuantityMatrix());
   }
 
-  auto inverse() const { return typename Inverse<This>::type(coordinateMatrix_.inverse()); }
+  auto inverse() const { return typename Inverse<This>::type(quantityMatrix_.inverse()); }
 
   template <bool IsHomogeneousV = IsHomogeneous<UnitMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
   auto norm() const {
-    return coordinateMatrix_.norm();
+    return quantityMatrix_.norm();
   }
+
   template <bool IsHomogeneousV = IsHomogeneous<UnitMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
   auto squaredNorm() const {
-    return coordinateMatrix_.squaredNorm();
+    return quantityMatrix_.squaredNorm();
   }
 
  private:
-  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
-  // Allow other coordinate matrix types to support lazy evaluation.
-  Tensor(FromTensor /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>& other)
-      : coordinateMatrix_(other.getCoordinateMatrix()) {
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantityMatrixOther, typename CoordinateSystemOther>
+  // Allow other tensor types to support lazy evaluation.
+  Tensor(FromTensor /*tag*/,
+         const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantityMatrixOther, CoordinateSystemOther>& other)
+      : quantityMatrix_(other.getQuantityMatrix()) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
+    static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
   }
-  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename CoordinateMatrixOther>
-  // Allow other coordinate matrix types to support lazy evaluation.
-  Tensor(FromTensor /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, CoordinateMatrixOther>&& other)
-      : coordinateMatrix_(std::move(other.getCoordinateMatrix())) {
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantityMatrixOther, typename CoordinateSystemOther>
+  // Allow other tensor types to support lazy evaluation.
+  Tensor(FromTensor /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantityMatrixOther, CoordinateSystemOther>&& other)
+      : quantityMatrix_(std::move(other.getQuantityMatrix())) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
+    static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
   }
 
-  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
-  Tensor(FromCoordinateMatrix /*tag*/, const CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>& coordinateMatrix)
-      : coordinateMatrix_(coordinateMatrix) {}
-  template <typename QuantityMatrixOther, typename CoordinateSystemMatrixOther>
-  Tensor(FromCoordinateMatrix /*tag*/, CoordinateMatrix<QuantityMatrixOther, CoordinateSystemMatrixOther>&& coordinateMatrix)
-      : coordinateMatrix_(std::move(coordinateMatrix)) {}
+  template <typename ValueMatrixOther, typename UnitMatrixOther>
+  Tensor(FromQuantityMatrix /*tag*/, const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& quantityMatrix)
+      : quantityMatrix_(quantityMatrix) {}
+  template <typename ValueMatrixOther, typename UnitMatrixOther>
+  Tensor(FromQuantityMatrix /*tag*/, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>&& quantityMatrix)
+      : quantityMatrix_(std::move(quantityMatrix)) {}
 
   template <typename... Ts>
-  explicit Tensor(FromCoordinateMatrixArgs /*tag*/, const Ts&... ts) : coordinateMatrix_(ts...) {}
+  explicit Tensor(FromQuantityMatrixArgs /*tag*/, const Ts&... ts) : quantityMatrix_(ts...) {}
   template <typename... Ts>
-  explicit Tensor(FromCoordinateMatrixArgs /*tag*/, Ts&&... ts) : coordinateMatrix_(std::forward<Ts>(ts)...) {}
+  explicit Tensor(FromQuantityMatrixArgs /*tag*/, Ts&&... ts) : quantityMatrix_(std::forward<Ts>(ts)...) {}
 
-  CoordinateMatrixT coordinateMatrix_;
+  QuantityMatrixT quantityMatrix_;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix_, typename... Ts>
-struct GetTag<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix_>, Ts...> {
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_, typename... Ts>
+struct GetTag<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
-  using type = typename IfThenElse<sizeof...(Ts) == 1,
-                                   typename IfThenElse<IsSpecializationInts<first, Tensor>::value, FromTensor,
-                                                       typename IfThenElse<(IsSpecialization<Ts, CoordinateMatrix>::value && ...),
-                                                                           FromCoordinateMatrix, FromCoordinateMatrixArgs>::type>::type,
-                                   typename IfThenElse<(IsSpecialization<Ts, CoordinateMatrix>::value && ...), FromCoordinateMatrix,
-                                                       FromCoordinateMatrixArgs>::type>::type;
+  using type = typename IfThenElse<
+      sizeof...(Ts) == 1,
+      typename IfThenElse<IsSpecializationInts<first, Tensor>::value, FromTensor,
+                          typename IfThenElse<(IsSpecialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix,
+                                              FromQuantityMatrixArgs>::type>::type,
+      typename IfThenElse<(IsSpecialization<Ts, QuantityMatrix>::value && ...), FromQuantityMatrix, FromQuantityMatrixArgs>::type>::type;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct Dimension<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
-  static constexpr int value = Dimension<CoordinateMatrix>::value;
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct Dimension<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
+  static constexpr int value = Dimension<QuantityMatrixT_>::value;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct Rows<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
-  static constexpr int value = Rows<CoordinateMatrix>::value;
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct Rows<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
+  static constexpr int value = Rows<QuantityMatrixT_>::value;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct Cols<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
-  static constexpr int value = Cols<CoordinateMatrix>::value;
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct Cols<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
+  static constexpr int value = Cols<QuantityMatrixT_>::value;
 };
 
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
-          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-struct Sum<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
-           Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>> {
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+struct Sum<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+           Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>> {
   static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
   static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
-  using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, typename Sum<CoordinateMatrixLhs, CoordinateMatrixRhs>::type>;
+  using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, typename Sum<QuantityMatrixLhsT_, QuantityMatrixRhsT_>::type,
+                      typename Sum<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type>;
 };
 
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
-          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-struct Difference<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
-                  Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>> {
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+struct Difference<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+                  Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>> {
   static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
   static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
-  using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, typename Difference<CoordinateMatrixLhs, CoordinateMatrixRhs>::type>;
+  using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, typename Difference<QuantityMatrixLhsT_, QuantityMatrixRhsT_>::type,
+                      typename Difference<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type>;
 };
 
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
-          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-struct Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
-               Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>> {
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+struct Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+               Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>> {
   // TODO(remod): Do we need indices checks?
   using type = Tensor<ContravariantIndicesLhs - CovariantIndicesRhs, CovariantIndicesLhs - ContravariantIndicesRhs,
-                      typename Product<CoordinateMatrixLhs, CoordinateMatrixRhs>::type>;
+                      typename Product<QuantityMatrixLhsT_, QuantityMatrixRhsT_>::type,
+                      typename Product<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type>;
+};
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          typename ValueRhs, typename UnitRhs>
+struct Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+               Quantity<ValueRhs, UnitRhs>> {
+  using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs,
+                      typename Product<QuantityMatrixLhsT_, Quantity<ValueRhs, UnitRhs>>::type, CoordinateSystemLhsT_>;
+};
+template <typename ValueLhs, typename UnitLhs, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_,
+          typename CoordinateSystemRhsT_>
+struct Product<Quantity<ValueLhs, UnitLhs>,
+               Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>> {
+  using type = typename Product<Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>,
+                                Quantity<ValueLhs, UnitLhs>>::type;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct Transpose<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
-  using type = Tensor<CovariantIndices, ContravariantIndices, typename Transpose<CoordinateMatrix>::type>;
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          typename ValueRhs, typename UnitRhs>
+struct Division<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+                Quantity<ValueRhs, UnitRhs>> {
+  using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs,
+                      typename Division<QuantityMatrixLhsT_, Quantity<ValueRhs, UnitRhs>>::type, CoordinateSystemLhsT_>;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix, int BlockRowId, int BlockColId, int BlockRows,
-          int BlockCols>
-struct Block<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type =
-      Tensor<ContravariantIndices, CovariantIndices, typename Block<CoordinateMatrix, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct Transpose<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
+  using type = Tensor<CovariantIndices, ContravariantIndices, typename Transpose<QuantityMatrixT_>::type, CoordinateSystemT_>;
 };
 
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
-          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-struct DotProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
-                  Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>> {
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_, int BlockRowId,
+          int BlockColId, int BlockRows, int BlockCols>
+struct Block<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>, BlockRowId, BlockColId, BlockRows,
+             BlockCols> {
+  using type = Tensor<ContravariantIndices, CovariantIndices,
+                      typename Block<QuantityMatrixT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type, CoordinateSystemT_>;
+};
+
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+struct DotProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+                  Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>> {
   static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
   static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
-  using type = typename DotProduct<CoordinateMatrixLhs, CoordinateMatrixRhs>::type;
+  static_assert(std::is_same_v<CoordinateSystemLhsT_, CoordinateSystemRhsT_>, "Coordinate systems do not match.");
+  using type = typename DotProduct<QuantityMatrixLhsT_, QuantityMatrixRhsT_>::type;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct Inverse<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct Inverse<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
   // TODO(remod): Is this correct?
-  using type = Tensor<-ContravariantIndices, -CovariantIndices, typename Inverse<CoordinateMatrix>::type>;
+  using type = Tensor<-ContravariantIndices, -CovariantIndices, typename Inverse<QuantityMatrixT_>::type, CoordinateSystemT_>;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct GetCoordinateSystem<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
-  using type = typename GetCoordinateSystem<CoordinateMatrix>::type;
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct GetCoordinateSystem<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
+  using type = CoordinateSystemT_;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct IsAbsolute<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
-  static constexpr bool value = IsAbsolute<CoordinateMatrix>::value;
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct IsAbsolute<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
+  static constexpr bool value = IsAbsolute<QuantityMatrixT_>::value;
 };
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct MakeRelative<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
-  using type = Tensor<ContravariantIndices, CovariantIndices, typename MakeRelative<CoordinateMatrix>::type>;
-  static type make(const Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>& object) {
-    return type(MakeRelative<CoordinateMatrix>::make(object.getCoordinateMatrix()));
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct MakeRelative<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
+  using type = Tensor<ContravariantIndices, CovariantIndices, typename MakeRelative<QuantityMatrixT_>::type, CoordinateSystemT_>;
+  static type make(const Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>& object) {
+    return type(makeRelative(object.getQuantityMatrix()));
   }
 };
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct MakeAbsolute<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
-  using type = Tensor<ContravariantIndices, CovariantIndices, typename MakeAbsolute<CoordinateMatrix>::type>;
-  static type make(const Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>& object) {
-    return type(MakeAbsolute<CoordinateMatrix>::make(object.getCoordinateMatrix()));
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct MakeAbsolute<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
+  using type = Tensor<ContravariantIndices, CovariantIndices, typename MakeAbsolute<QuantityMatrixT_>::type, CoordinateSystemT_>;
+  static type make(const Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>& object) {
+    return type(makeAbsolute(object.getQuantityMatrix()));
   }
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix, typename NewCoordinateSystem>
-struct CastCoordinateSystem<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>, NewCoordinateSystem> {
-  using type = Tensor<ContravariantIndices, CovariantIndices, typename CastCoordinateSystem<CoordinateMatrix, NewCoordinateSystem>::type>;
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_,
+          typename NewCoordinateSystemT_>
+struct CastCoordinateSystem<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>, NewCoordinateSystemT_> {
+  using type = Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, NewCoordinateSystemT_>;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-struct Evaluate<Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>> {
-  using type = Tensor<ContravariantIndices, CovariantIndices, typename Evaluate<CoordinateMatrix>::type>;
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+struct Evaluate<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
+  using type = Tensor<ContravariantIndices, CovariantIndices, typename Evaluate<QuantityMatrixT_>::type, CoordinateSystemT_>;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-auto operator+(const Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>& tensor) {
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+auto operator+(const Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>& tensor) {
   return tensor;
 }
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
-          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-auto operator+(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>& lhs,
-               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>& rhs) {
-  return typename Sum<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
-                      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>>::type(lhs.getCoordinateMatrix() +
-                                                                                                       rhs.getCoordinateMatrix());
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+auto operator+(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>& lhs,
+               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>& rhs) {
+  return typename Sum<
+      Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>>::type(lhs.getQuantityMatrix() +
+                                                                                                              rhs.getQuantityMatrix());
 }
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-auto operator-(const Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>& tensor) {
-  return Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>(-tensor.getCoordinateMatrix());
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+auto operator-(const Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>& tensor) {
+  return Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>(-tensor.getQuantityMatrix());
 }
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
-          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-auto operator-(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>& lhs,
-               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>& rhs) {
-  return typename Difference<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
-                             Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>>::type(lhs.getCoordinateMatrix() -
-                                                                                                              rhs.getCoordinateMatrix());
-}
-
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
-          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>& lhs,
-               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>& rhs) {
-  return typename Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>,
-                          Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>>::type(lhs.getCoordinateMatrix() *
-                                                                                                           rhs.getCoordinateMatrix());
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+auto operator-(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>& lhs,
+               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>& rhs) {
+  return typename Difference<
+      Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>>::type(lhs.getQuantityMatrix() -
+                                                                                                              rhs.getQuantityMatrix());
 }
 
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
-          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-bool operator==(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>& lhs,
-                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>& rhs) {
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          typename ValueRhs>
+auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>& lhs,
+               const ValueRhs rhs) {
+  return lhs * Quantity<ValueRhs, typename AccessUnits<SpecializationDummy<ValueRhs>>::Dimensionless>(rhs);
+}
+template <typename ValueLhs, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_,
+          typename CoordinateSystemRhsT_>
+auto operator*(const ValueLhs lhs,
+               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>& rhs) {
+  return rhs * lhs;
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          typename ValueRhs, typename UnitRhs>
+auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>& lhs,
+               const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+                          Quantity<ValueRhs, UnitRhs>>::type(lhs.getQuantityMatrix() * rhs);
+}
+template <typename ValueLhs, typename UnitLhs, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_,
+          typename CoordinateSystemRhsT_>
+auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs,
+               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>& rhs) {
+  return rhs * lhs;
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>& lhs,
+               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>& rhs) {
+  return typename Product<
+      Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>>::type(lhs.getQuantityMatrix() *
+                                                                                                              rhs.getQuantityMatrix());
+}
+
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          typename ValueRhs>
+auto operator/(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>& lhs,
+               const ValueRhs rhs) {
+  return lhs / Quantity<ValueRhs, typename AccessUnits<SpecializationDummy<ValueRhs>>::Dimensionless>(rhs);
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          typename ValueRhs, typename UnitRhs>
+auto operator/(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>& lhs,
+               const Quantity<ValueRhs, UnitRhs>& rhs) {
+  return typename Division<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+                           Quantity<ValueRhs, UnitRhs>>::type(lhs.getValueMatrix() / rhs.getValue());
+}
+
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+bool operator==(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>& lhs,
+                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>& rhs) {
   static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
   static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
-  return lhs.getCoordinateMatrix() == rhs.getCoordinateMatrix();
+  static_assert(std::is_same_v<CoordinateSystemLhsT_, CoordinateSystemRhsT_>, "Coordinate systems do not match.");
+  return lhs.getQuantityMatrix() == rhs.getQuantityMatrix();
 }
 
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename CoordinateMatrixLhs, int ContravariantIndicesRhs,
-          int CovariantIndicesRhs, typename CoordinateMatrixRhs>
-bool operator!=(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, CoordinateMatrixLhs>& lhs,
-                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, CoordinateMatrixRhs>& rhs) {
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+bool operator!=(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>& lhs,
+                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>& rhs) {
   return !(lhs == rhs);
 }
 
-template <int ContravariantIndices, int CovariantIndices, typename CoordinateMatrix>
-std::ostream& operator<<(std::ostream& stream, const Tensor<ContravariantIndices, CovariantIndices, CoordinateMatrix>& tensor) {
-  stream << tensor.getCoordinateMatrix();
+template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
+std::ostream& operator<<(std::ostream& stream,
+                         const Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>& tensor) {
+  stream << tensor.getQuantityMatrix();
   return stream;
 }
 
-template <typename CoordinateMatrix>
-using Vector = Tensor<1, 0, CoordinateMatrix>;
-template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename Unit, typename CoordinateSystem>
-using HomogeneousVector = Vector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>,
-                                                  TypeMatrix<Dimension, 1, CoordinateSystem>>>;
+template <typename QuantityVectorT_, typename CoordinateSystemT_>
+using Vector = Tensor<1, 0, QuantityVectorT_, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename Unit, typename CoordinateSystemT_>
+using HomogeneousVector = Vector<QuantityMatrix<ValueMatrix<Scalar, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>, CoordinateSystemT_>;
 
-template <typename CoordinateMatrix>
-using Covector = Tensor<0, 1, CoordinateMatrix>;
-template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename Unit, typename CoordinateSystem>
-using HomogeneousCovector = Covector<CoordinateMatrix<QuantityMatrix<ValueMatrix<Scalar, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>,
-                                                      TypeMatrix<1, Dimension, CoordinateSystem>>>;
+template <typename QuantityVectorT_, typename CoordinateSystemT_>
+using Covector = Tensor<0, 1, QuantityVectorT_, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename Unit, typename CoordinateSystemT_>
+using HomogeneousCovector = Covector<QuantityMatrix<ValueMatrix<Scalar, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>, CoordinateSystemT_>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using PositionPoint =
@@ -388,6 +456,14 @@ template <template <typename, int, int> typename ValueMatrix, typename Scalar, t
 using PositionPoint2 = PositionPoint<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using PositionPoint3 = PositionPoint<3, ValueMatrix, Scalar, CoordinateSystem>;
+
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using DirectionVector =
+    HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using DirectionVector2 = DirectionVector<2, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using DirectionVector3 = DirectionVector<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using PositionVector =

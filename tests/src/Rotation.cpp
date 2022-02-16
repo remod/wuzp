@@ -2,7 +2,6 @@
 
 #include <Eigen/Geometry>
 
-#include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/Rotation.hpp"
@@ -59,9 +58,9 @@ TEST(TestRotation, TransformPointCloud) {  // NOLINT
   using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
-  using Object = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, TypeMatrix<3, 2, CoordinateSystemA>>>;
+  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using Transformation = SpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
-  using TransformedObject = Tensor<1, 0, CoordinateMatrix<MyQuantityMatrix, TypeMatrix<3, 2, CoordinateSystemB>>>;
+  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemB>;
   const MyValueMatrix valueMatrixObject(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const Object object(valueMatrixObject);
   const MyValueMatrix valueMatrixTransformedObject(1.0, 4.0, -2.0, -5.0, -3.0, -6.0);

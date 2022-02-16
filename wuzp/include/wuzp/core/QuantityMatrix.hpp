@@ -283,8 +283,7 @@ auto operator-(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const Q
 
 template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueRhs>
 auto operator*(const QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>& lhs, const ValueRhs rhs) {
-  using Dimensionless = typename Identity<typename Element<UnitMatrixLhs, 0, 0>::type>::type;
-  return lhs * Quantity<ValueRhs, Dimensionless>(rhs);
+  return lhs * Quantity<ValueRhs, typename AccessUnits<SpecializationDummy<ValueRhs>>::Dimensionless>(rhs);
 }
 template <typename ValueLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
 auto operator*(const ValueLhs lhs, const QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>& rhs) {

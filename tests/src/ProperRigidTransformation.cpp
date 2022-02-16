@@ -2,7 +2,6 @@
 
 #include <Eigen/Geometry>
 
-#include "wuzp/core/CoordinateMatrix.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/ProperRigidTransformation.hpp"
