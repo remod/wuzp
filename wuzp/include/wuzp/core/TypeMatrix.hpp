@@ -109,6 +109,11 @@ struct CreateTypeMatrix<Rows, Cols, Type> {
 };
 
 template <int Rows, int Cols, typename Types>
+struct IsHomogeneous<TypeMatrixImpl<Rows, Cols, Types>> {
+  static constexpr bool value = IsHomogeneous<Types>::value;
+};
+
+template <int Rows, int Cols, typename Types>
 struct GetTypes<TypeMatrixImpl<Rows, Cols, Types>> {
   using type = Types;
 };

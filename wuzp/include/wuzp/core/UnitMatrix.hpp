@@ -51,18 +51,19 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>..
   */
 };
 
-template <int Rows, int Cols, typename... Units>
-struct IsAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {
-  static_assert(IsHomogeneous<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>>::value, "Unit matrix is inhomogeneous.");
-  static constexpr bool value = (IsAbsolute<Unit<Units>>::value && ...);
+template <int Rows, int Cols, typename... UnitImplementations>
+struct IsAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
+  static_assert(IsHomogeneous<std::integral_constant<bool, IsAbsolute<Unit<UnitImplementations>>::value>...>::value,
+                "Unit matrix is mixed absolute/relative.");
+  static constexpr bool value = (IsAbsolute<Unit<UnitImplementations>>::value && ...);
 };
-template <int Rows, int Cols, typename... Units>
-struct MakeRelative<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {
-  using type = TypeMatrix<Rows, Cols, typename MakeRelative<Unit<Units>>::type...>;
+template <int Rows, int Cols, typename... UnitImplementations>
+struct MakeRelative<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
+  using type = TypeMatrix<Rows, Cols, typename MakeRelative<Unit<UnitImplementations>>::type...>;
 };
-template <int Rows, int Cols, typename... Units>
-struct MakeAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<Units>...>>> {
-  using type = TypeMatrix<Rows, Cols, typename MakeAbsolute<Unit<Units>>::type...>;
+template <int Rows, int Cols, typename... UnitImplementations>
+struct MakeAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
+  using type = TypeMatrix<Rows, Cols, typename MakeAbsolute<Unit<UnitImplementations>>::type...>;
 };
 
 }  // namespace wuzp
