@@ -90,7 +90,7 @@ std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordi
   const auto velocityVector = radius * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>() *
                               DirectionVector(-sin(relativeAngle), cos(relativeAngle))
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                              / Quantity<double, Angle>(1.0)
+                              / AngleQuantity(1.0)
 #endif
       ;
   const VelocityVector velocity1 =
@@ -123,12 +123,12 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
                         pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>()) +
                         pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                                                / Quantity<double, Angle>(1.0)
+                                                / AngleQuantity(1.0)
 #endif
                                                     )) +
              2.0 * radius * massDifference * minimalCoordinatesDt.getQuantityMatrix().getQuantity<2, 0>()
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                 / Quantity<double, Angle>(1.0)
+                 / AngleQuantity(1.0)
 #endif
                  * (cos(relativeAngle) * minimalCoordinatesDt.getQuantityMatrix().getQuantity<1, 0>() -
                     sin(relativeAngle) * minimalCoordinatesDt.getQuantityMatrix().getQuantity<0, 0>()));
@@ -137,17 +137,17 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   auto massMatrix01 = MassQuantity(0.0);
   auto massMatrix02 = -radius * massDifference * sin(relativeAngle)
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                      / Quantity<double, Angle>(1.0)
+                      / AngleQuantity(1.0)
 #endif
       ;
   auto massMatrix12 = radius * massDifference * cos(relativeAngle)
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                      / Quantity<double, Angle>(1.0)
+                      / AngleQuantity(1.0)
 #endif
       ;
   auto massMatrix22 = pow<2>(radius) * massSum
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                      / Quantity<double, Angle>(1.0) / Quantity<double, Angle>(1.0)
+                      / pow<2>(AngleQuantity(1.0))
 #endif
       ;
   const MassMatrix massMatrix(massMatrix00, massMatrix01, massMatrix02, massMatrix01, massMatrix00, massMatrix12, massMatrix02,
