@@ -76,6 +76,7 @@ if (${ENABLE_TESTS})
     find_package(GTest REQUIRED)
     # The tests are ordered by complexity, basic tests come first.
     add_executable(tests
+        src/test_compilation_error.cpp
         src/CompilationError.cpp
         src/helpers.cpp
         src/traits.cpp

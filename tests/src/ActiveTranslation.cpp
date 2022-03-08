@@ -10,9 +10,11 @@
 using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
@@ -22,6 +24,8 @@ using namespace wuzp_boost;  // NOLINT
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
+
+using AngleQuantity = wuzp::Quantity<double, Angle>;
 
 TEST(TestActiveTranslation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
@@ -53,7 +57,12 @@ TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
   const Transformation transformation(4.0, 2.0, 1.0);
   const RotationalVelocity rotationalVelocity(1.0, 2.0, 3.0);
   // TODO(remod): Is this correct?
-  EXPECT_EQ(object + rotationalVelocity.crossProduct(transformation), transformedObject);
+  EXPECT_EQ(object + rotationalVelocity.crossProduct(transformation)
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+                         / AngleQuantity(1.0)
+#endif
+                ,
+            transformedObject);
 }
 
 TEST(TestActiveTranslation, TransformActiveTranslation) {  // NOLINT
