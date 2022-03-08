@@ -90,8 +90,15 @@ class QuantityMatrix {
   auto transpose() const { return typename Transpose<This>::type(valueMatrix_.transpose()); }
 
   template <typename ValueMatrixOther, typename UnitMatrixOther>
-  auto dot(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& other) const {
-    return typename DotProduct<This, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>>::type(valueMatrix_.dot(other.getValueMatrix()));
+  auto dotProduct(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& other) const {
+    return
+        typename DotProduct<This, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>>::type(valueMatrix_.dotProduct(other.getValueMatrix()));
+  }
+
+  template <typename ValueMatrixOther, typename UnitMatrixOther>
+  auto crossProduct(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& other) const {
+    return typename CrossProduct<This, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>>::type(
+        valueMatrix_.crossProduct(other.getValueMatrix()));
   }
 
   auto inverse() const { return typename Inverse<This>::type(valueMatrix_.inverse()); }
@@ -227,6 +234,12 @@ struct Transpose<QuantityMatrix<ValueMatrix, UnitMatrix>> {
 template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
 struct DotProduct<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
   using type = Quantity<typename DotProduct<ValueMatrixLhs, ValueMatrixRhs>::type, typename DotProduct<UnitMatrixLhs, UnitMatrixRhs>::type>;
+};
+
+template <typename ValueMatrixLhs, typename UnitMatrixLhs, typename ValueMatrixRhs, typename UnitMatrixRhs>
+struct CrossProduct<QuantityMatrix<ValueMatrixLhs, UnitMatrixLhs>, QuantityMatrix<ValueMatrixRhs, UnitMatrixRhs>> {
+  using type = QuantityMatrix<typename CrossProduct<ValueMatrixLhs, ValueMatrixRhs>::type,
+                              typename CrossProduct<UnitMatrixLhs, UnitMatrixRhs>::type>;
 };
 
 template <typename ValueMatrix, typename UnitMatrix, int ElementRowId, int ElementColId>

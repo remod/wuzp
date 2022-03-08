@@ -1,18 +1,18 @@
 #pragma once
 
-#include "wuzp/trafo/LinearTransformation.hpp"
+#include "wuzp/trafo/PassiveLinearTransformation.hpp"
 
 namespace wuzp {
 
 // TODO(remod): When instantiating a spacial rotation, test for determinant == 1.
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
           int Dimension>
-using SpatialRotation = LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
-                                             typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
+using PassiveSpatialRotation = PassiveLinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
+                                                           typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using SpatialRotation2 = SpatialRotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 2>;
+using PassiveSpatialRotation2 = PassiveSpatialRotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 2>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using SpatialRotation3 = SpatialRotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 3>;
+using PassiveSpatialRotation3 = PassiveSpatialRotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 3>;
 
 // template <typename Derived, typename From, typename To, typename DimensionlessQuantity>
 // class QuaternionBase : public PassiveTransformation<Derived, From, To> {

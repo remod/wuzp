@@ -381,7 +381,7 @@ TEST(TestQuantityMatrix2, Dot) {  // NOLINT
   using MyQuantityResult = Quantity<int, Area>;
   const MyValueMatrix valueMatrix1(1, 2, 3, 4);
   const MyValueMatrix valueMatrix2(0, 3, -1, 2);
-  EXPECT_EQ(MyQuantityMatrix(valueMatrix1).dot(MyQuantityMatrix(valueMatrix2)), MyQuantityResult(11));
+  EXPECT_EQ(MyQuantityMatrix(valueMatrix1).dotProduct(MyQuantityMatrix(valueMatrix2)), MyQuantityResult(11));
 }
 
 TEST(TestQuantityMatrix2, Chain) {  // NOLINT

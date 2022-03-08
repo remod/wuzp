@@ -135,6 +135,13 @@ TEST(TestTypeMatrix, DotProduct) {  // NOLINT
   static_assert(std::is_same<DotProduct<A, B>::type, C>::value);
 }
 
+TEST(TestTypeMatrix, CrossProduct) {  // NOLINT
+  using A = TypeMatrix<3, 1, Integer<1>, Integer<2>, Integer<3>>;
+  using B = TypeMatrix<3, 1, Integer<-1>, Integer<3>, Integer<4>>;
+  using C = TypeMatrix<3, 1, Integer<-1>, Integer<-7>, Integer<5>>;
+  static_assert(std::is_same<CrossProduct<A, B>::type, C>::value);
+}
+
 TEST(TestTypeMatrix, Transpose) {  // NOLINT
   using A = TypeMatrix<2, 3, Integer<0>, Integer<1>, Integer<2>, Integer<3>, Integer<4>, Integer<5>>;
   using B = TypeMatrix<3, 2, Integer<0>, Integer<3>, Integer<1>, Integer<4>, Integer<2>, Integer<5>>;

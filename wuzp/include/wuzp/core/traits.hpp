@@ -101,6 +101,11 @@ struct DotProduct {
   static_assert(FailOnInstantiation<DotProduct<Lhs, Rhs>>::value, "'DotProduct' trait not specialized for given type.");
 };
 
+template <typename Lhs, typename Rhs>
+struct CrossProduct {
+  static_assert(FailOnInstantiation<CrossProduct<Lhs, Rhs>>::value, "'CrossProduct' trait not specialized for given type.");
+};
+
 template <typename Object, int ElementRowId, int ElementColId>
 struct Element {
   static_assert(FailOnInstantiation<Element<Object, ElementRowId, ElementColId>>::value, "'Element' trait not specialized for given type.");

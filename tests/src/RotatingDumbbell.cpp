@@ -65,7 +65,7 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 //  using TensorT = Tensor<1, 1, CoordinateMatrixT>;
 //
 //  template <typename... Args>
-//  explicit LinearTransformation(Args... args) : tensor_(args...) {}
+//  explicit PassiveLinearTransformation(Args... args) : tensor_(args...) {}
 //
 //  const TensorT& getTensor() const { return tensor_; }
 //

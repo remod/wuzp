@@ -5,6 +5,7 @@
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 
+#include "coordinate_systems.hpp"
 #include "test_compilation_error.hpp"
 
 using namespace wuzp;  // NOLINT
@@ -24,9 +25,6 @@ using namespace wuzp_boost;  // NOLINT
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
-
-struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 
 template <int Rows, int Cols>
 using TestValueMatrix = ValueMatrix<double, Rows, Cols>;
@@ -318,7 +316,7 @@ TEST(TestTensor2, Dot) {  // NOLINT
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using MyQuantityResult = Quantity<int, Area>;
-  EXPECT_EQ(MyTensor(1, 2, 3, 4).dot(MyTensor(0, 3, -1, 2)), MyQuantityResult(11));
+  EXPECT_EQ(MyTensor(1, 2, 3, 4).dotProduct(MyTensor(0, 3, -1, 2)), MyQuantityResult(11));
 }
 
 TEST(TestTensor2, DotBadFrames) {  // NOLINT
@@ -354,7 +352,7 @@ using MyTensorLhs = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
 using MyTensorRhs = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemB>;
 
 int main() {
-  MyTensorLhs(1, 2, 3, 4).dot(MyTensorRhs(0, 3, -1, 2));
+  MyTensorLhs(1, 2, 3, 4).dotProduct(MyTensorRhs(0, 3, -1, 2));
   return 0;
 }
 )",
