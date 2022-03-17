@@ -52,7 +52,13 @@ struct TransformationTraits<ActiveTranslation<ValueMatrix, Dimension, Scalar, Co
   static auto transform(const ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>& transformation,
                         const Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>& object) {
     if constexpr (IsAbsolute<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value) {
-      const auto result = transformation.getTensor() + object;
+      auto result = object;
+      // TODO(remod): Improve efficiency by performing this addition at compile time.
+      for (int row = 0; row < Rows<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value; ++row) {
+        for (int col = 0; col < Cols<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value; ++col) {
+          result.template setQuantity(row, col, result.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
+        }
+      }
       return evaluate(result);
     } else {
       const auto result = object;

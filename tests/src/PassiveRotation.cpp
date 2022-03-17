@@ -9,9 +9,11 @@
 using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
@@ -42,21 +44,29 @@ TEST(TestPassiveRotation, TransformPositionPoint) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+TEST(TestPassiveRotation, TransformVelocityVector) {  // NOLINT
+  using Object = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using TransformedObject = VelocityVector3<ValueMatrix, double, CoordinateSystemB>;
+  const Object object(1.0, 2.0, 3.0);
+  const TransformedObject transformedObject(1.0, 3.0, -2.0);
+  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0);  // Passive rotation of pi/2 around x.
+  EXPECT_EQ(transformation.transform(object), transformedObject);
+}
+
 TEST(TestPassiveRotation, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
   using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using Transformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemB>;
-  const MyValueMatrix valueMatrixObject(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
-  const Object object(valueMatrixObject);
-  const MyValueMatrix valueMatrixTransformedObject(1.0, 4.0, 3.0, 6.0, -2.0, -5.0);
-  const TransformedObject transformedObject(valueMatrixTransformedObject);
+  const Object object(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
+  const TransformedObject transformedObject(1.0, 4.0, 3.0, 6.0, -2.0, -5.0);
   const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0);  // Passive rotation of pi/2 around x.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
-TEST(TestPassiveRotation, TransformTranslation) {  // NOLINT
+TEST(TestPassiveRotation, TransformPassiveTranslation) {  // NOLINT
   using Object = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
   using Transformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
   using TransformedObject = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;
@@ -66,7 +76,7 @@ TEST(TestPassiveRotation, TransformTranslation) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
-// TEST(TestPassiveRotation, TransformRotation) {  // NOLINT
+// TEST(TestPassiveRotation, TransformPassiveRotation) {  // NOLINT
 //  using Object = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
 //  using Transformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
 //  using TransformedObject = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;

@@ -93,7 +93,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValueMatrix, Scalar, Coor
   static auto transform(
       const ActiveLinearTransformation<ValueMatrix, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<1, 1, QuantityMatrixT_, CoordinateSystemT_>& object) {
-    return transformation.getTensor() * object * transformation.getTensor().inverse();
+    return transformation.getTensor() * (object * transformation.getTensor().inverse());
   }
 };
 

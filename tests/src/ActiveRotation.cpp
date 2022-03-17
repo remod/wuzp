@@ -9,9 +9,11 @@
 using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
@@ -28,7 +30,7 @@ TEST(TestActiveRotation, TransformPositionVector) {  // NOLINT
   using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, -3.0, 2.0);
-  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around z.
+  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
@@ -38,7 +40,17 @@ TEST(TestActiveRotation, TransformPositionPoint) {  // NOLINT
   using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, -3.0, 2.0);
-  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around z.
+  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.
+  EXPECT_EQ(transformation.transform(object), transformedObject);
+}
+
+TEST(TestActiveRotation, TransformVelocityVector) {  // NOLINT
+  using Object = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+  using TransformedObject = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  const Object object(1.0, 2.0, 3.0);
+  const TransformedObject transformedObject(1.0, -3.0, 2.0);
+  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
@@ -48,11 +60,9 @@ TEST(TestActiveRotation, TransformPointCloud) {  // NOLINT
   using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
   using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
-  const MyValueMatrix valueMatrixObject(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
-  const Object object(valueMatrixObject);
-  const MyValueMatrix valueMatrixTransformedObject(1.0, 4.0, -3.0, -6.0, 2.0, 5.0);
-  const TransformedObject transformedObject(valueMatrixTransformedObject);
-  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around z.
+  const Object object(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
+  const TransformedObject transformedObject(1.0, 4.0, -3.0, -6.0, 2.0, 5.0);
+  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
@@ -62,11 +72,11 @@ TEST(TestActiveRotation, TransformActiveTranslation) {  // NOLINT
   using TransformedObject = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, -3.0, 2.0);
-  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around z.
+  const Transformation transformation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
-// TEST(TestActiveRotation, TransformRotation) {  // NOLINT
+// TEST(TestActiveRotation, TransformActiveRotation) {  // NOLINT
 //  using Object = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
 //  using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
 //  using TransformedObject = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;

@@ -33,7 +33,7 @@ TEST(TestActiveTranslation, TransformPositionVector) {  // NOLINT
   using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0);
-  const Transformation transformation(4.0, 2.0, 1.0);
+  const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
@@ -42,21 +42,21 @@ TEST(TestActiveTranslation, TransformPositionPoint) {  // NOLINT
   using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
-  const TransformedObject transformedObject(5.0, 4.0, 4.0);
-  const Transformation transformation(4.0, 2.0, 1.0);
+  const TransformedObject transformedObject(1.0, 2.0, 4.0);
+  const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
 TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
   using Object = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  //  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   using RotationalVelocity = AngularVelocityVector3<ValueMatrix, double, CoordinateSystemA>;  // Against inertial system.
   using TransformedObject = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
-  const TransformedObject transformedObject(-3.0, 13.0, -3.0);
-  const Transformation transformation(4.0, 2.0, 1.0);
-  const RotationalVelocity rotationalVelocity(1.0, 2.0, 3.0);
-  // TODO(remod): Is this correct?
+  const TransformedObject transformedObject(2.0, -2.0, 3.0);
+  const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
+  const RotationalVelocity rotationalVelocity(4.0, 1.0, 2.0);
   EXPECT_EQ(object + rotationalVelocity.crossProduct(transformation)
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
                          / AngleQuantity(1.0)
@@ -65,13 +65,25 @@ TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
             transformedObject);
 }
 
+TEST(TestActiveTranslation, TransformPointCloud) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
+  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
+  const Object object(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
+  const TransformedObject transformedObject(1.0, 4.0, 2.0, 5.0, 4.0, 7.0);
+  const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
+  EXPECT_EQ(transformation.transform(object), transformedObject);
+}
+
 TEST(TestActiveTranslation, TransformActiveTranslation) {  // NOLINT
   using Object = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   using TransformedObject = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0);
-  const Transformation transformation(4.0, 2.0, 1.0);
+  const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
@@ -81,6 +93,6 @@ TEST(TestActiveTranslation, TransformActiveRotation) {  // NOLINT
   using TransformedObject = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
   const TransformedObject transformedObject(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-  const Transformation transformation(4.0, 2.0, 1.0);
+  const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }

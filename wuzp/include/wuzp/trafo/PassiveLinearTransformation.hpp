@@ -99,7 +99,7 @@ struct TransformationTraits<
   static auto transform(const PassiveLinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo,
                                                           Units...>& transformation,
                         const Tensor<1, 1, QuantityMatrixT_, CoordinateSystemT_>& object) {
-    return castCoordinateSystem<To>(transformation.getTensor() * object * transformation.getTensor().inverse());
+    return castCoordinateSystem<To>(transformation.getTensor() * (object * transformation.getTensor().inverse()));
   }
 };
 

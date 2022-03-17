@@ -98,6 +98,9 @@ class Tensor {
   using ScalarT = typename QuantityMatrixT::ScalarT;
   using This = Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT, CoordinateSystemT>;
 
+  static_assert(CovariantIndices >= 0, "Covariant index must not be negative.");
+  static_assert(ContravariantIndices >= 0, "Contravariant index must not be negative.");
+
   Tensor() = default;
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
@@ -300,7 +303,7 @@ struct Division<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMat
 
 template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
 struct Transpose<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
-  using type = Tensor<CovariantIndices, ContravariantIndices, typename Transpose<QuantityMatrixT_>::type, CoordinateSystemT_>;
+  using type = Tensor<ContravariantIndices, CovariantIndices, typename Transpose<QuantityMatrixT_>::type, CoordinateSystemT_>;
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_, int BlockRowId,

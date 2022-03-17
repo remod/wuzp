@@ -245,7 +245,7 @@ TEST_F(TestTensorF, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = TypeMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantityMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitMatrixT>;
-  using MyTensorT = Tensor<0, 1, MyQuantityMatrixT, CoordinateSystemA>;
+  using MyTensorT = Tensor<1, 0, MyQuantityMatrixT, CoordinateSystemA>;
   const MyTensorT tensorT(1, 4, 2, 5, 3, 6);
   EXPECT_EQ(getTensor().transpose(), tensorT);
 }

@@ -54,7 +54,13 @@ struct TransformationTraits<PassiveTranslation<ValueMatrix, Dimension, Scalar, C
   static auto transform(const PassiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, From, To, Units...>& transformation,
                         const Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>& object) {
     if constexpr (IsAbsolute<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value) {
-      const auto fromResult = transformation.getTensor() + object;
+      auto fromResult = object;
+      // TODO(remod): Improve efficiency by performing this addition at compile time.
+      for (int row = 0; row < Rows<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value; ++row) {
+        for (int col = 0; col < Cols<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value; ++col) {
+          fromResult.template setQuantity(row, col, fromResult.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
+        }
+      }
       const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(fromResult.getQuantityMatrix());
       return evaluate(toResult);
     } else {
@@ -130,8 +136,12 @@ using PassiveSpatialTranslation2 = PassiveSpatialTranslation<ValueMatrix, 2, Sca
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
 using PassiveSpatialTranslation3 = PassiveSpatialTranslation<ValueMatrix, 3, Scalar, CoordinateSystem, From, To>;
 
-// v == 0 -> PassiveTranslation
+// v == 0 -> Translation
 // a == 0 -> Uniform motion
 // da/dt == 0 -> Motion with constant acceleration.
+
+// omega == 0 -> Rotation
+// phi == 0 -> Uniform circular motion
+// phi/dt == 0 -> Circular motion with constant acceleration.
 
 }  // namespace wuzp

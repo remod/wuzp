@@ -14,7 +14,7 @@ class Transformation {
   virtual ~Transformation() = default;
 };
 
-// PassiveTranslation, PassiveSpatialRotation, Reflection, Dilation.
+// Translation, Rotation, Reflection, Dilation.
 
 template <typename Derived>
 class ActiveTransformation : public Transformation {
@@ -58,9 +58,9 @@ class PassiveTransformation : public Transformation {
 };
 
 // Static frames
-// PassiveSpatialRotation:    B_r = A_BA * A_r
+// Rotation:    B_r = A_BA * A_r
 //              B_v = A_BA * A_v
 //              B_a = A_BA * A_a
-// PassiveTranslation: r_0B = r_AB + r_0A
+// Translation: r_0B = r_AB + r_0A
 
 }  // namespace wuzp
