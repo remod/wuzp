@@ -31,15 +31,6 @@ class ActiveProperRigidTransformationTemplate
   Translation translation_;
 };
 
-namespace internal {
-
-template <typename From, typename To>
-struct IntermediateName;
-template <typename From, typename To>
-using Intermediate = CoordinateSystem<IntermediateName<From, To>>;
-
-}  // namespace internal
-
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename CoordinateSystem, typename Scalar>
 using ActiveProperRigidTransformation =
     ActiveProperRigidTransformationTemplate<CoordinateSystem, ActiveSpatialRotation<ValueMatrix, Scalar, CoordinateSystem, Dimension>,

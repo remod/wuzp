@@ -4,6 +4,7 @@
 #include "wuzp/trafo/PassiveRotation.hpp"
 #include "wuzp/trafo/PassiveTranslation.hpp"
 #include "wuzp/trafo/Transformation.hpp"
+#include "wuzp/trafo/internal/intermediate_coordinate_system.hpp"
 
 namespace wuzp {
 
@@ -31,15 +32,6 @@ class PassiveProperRigidTransformationTemplate
   Rotation rotation_;
   Translation translation_;
 };
-
-namespace internal {
-
-template <typename From, typename To>
-struct IntermediateName;
-template <typename From, typename To>
-using Intermediate = CoordinateSystem<IntermediateName<From, To>>;
-
-}  // namespace internal
 
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename CoordinateSystem, typename From, typename To,
           typename Scalar>

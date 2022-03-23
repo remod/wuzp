@@ -7,7 +7,7 @@
 #include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/UnitMatrix.hpp"
-#include "wuzp/core/ValueMatrix.hpp"
+#include "wuzp/core/ValueMatrixWrapper.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {

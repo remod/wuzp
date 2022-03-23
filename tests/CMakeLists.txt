@@ -86,7 +86,7 @@ if (${ENABLE_TESTS})
         src/TypeMatrix.cpp
         src/UnitMatrix.cpp
         src/Quantity.cpp
-        src/ValueMatrix.cpp
+            src/ValueMatrixWrapper.cpp
         src/QuantityMatrix.cpp
         src/Tensor.cpp
         src/ActiveTranslation.cpp
@@ -130,7 +130,7 @@ endif()
 
 if (${ENABLE_FORMAT} OR ${ENABLE_TIDY})
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
-        // A /*/ matches one or more level of directories.
+        # A /*/ matches one or more level of directories.
         ${REPO_DIR}/wuzp/include/*/*.hpp
         ${REPO_DIR}/wuzp_boost/include/*/*.hpp
         ${REPO_DIR}/wuzp_eigen/include/*/*.hpp
