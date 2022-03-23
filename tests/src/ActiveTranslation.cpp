@@ -25,8 +25,6 @@ template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 #endif
 
-using AngleQuantity = wuzp::Quantity<double, Angle>;
-
 TEST(TestActiveTranslation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
@@ -49,20 +47,12 @@ TEST(TestActiveTranslation, TransformPositionPoint) {  // NOLINT
 
 TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
   using Object = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
-  //  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using Transformation = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
-  using RotationalVelocity = AngularVelocityVector3<ValueMatrix, double, CoordinateSystemA>;  // Against inertial system.
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   using TransformedObject = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
-  const TransformedObject transformedObject(2.0, -2.0, 3.0);
+  const TransformedObject transformedObject(1.0, 2.0, 3.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
-  const RotationalVelocity rotationalVelocity(4.0, 1.0, 2.0);
-  EXPECT_EQ(object + rotationalVelocity.crossProduct(transformation)
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                         / AngleQuantity(1.0)
-#endif
-                ,
-            transformedObject);
+  EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
 TEST(TestActiveTranslation, TransformPointCloud) {  // NOLINT
