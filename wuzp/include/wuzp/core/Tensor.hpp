@@ -519,12 +519,29 @@ template <template <typename, int, int> typename ValueMatrix, typename Scalar, t
 using VelocityVector3 = VelocityVector<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using AccelerationVector =
+    HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Acceleration, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using AccelerationVector2 = AccelerationVector<2, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using AccelerationVector3 = AccelerationVector<3, ValueMatrix, Scalar, CoordinateSystem>;
+
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using AngularVelocityVector =
     HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::AngularVelocity, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using AngularVelocityVector2 = AngularVelocityVector<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using AngularVelocityVector3 = AngularVelocityVector<3, ValueMatrix, Scalar, CoordinateSystem>;
+
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using AngularAccelerationVector =
+    HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::AngularAcceleration,
+                      CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using AngularAccelerationVector2 = AngularAccelerationVector<2, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using AngularAccelerationVector3 = AngularAccelerationVector<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using SpacetimePoint = PositionPoint<Dimension, ValueMatrix, Scalar, CoordinateSystem>;
