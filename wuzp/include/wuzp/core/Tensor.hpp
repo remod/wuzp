@@ -21,7 +21,7 @@ namespace wuzp {
 //
 // using ScalarT = Tensor<0, 0>;
 // using EuclideanVector = Tensor<1, 0>;       // A * v
-// using LinearTransformation = Tensor<1, 1>;  // M' = A^-1 * M * A
+// using PassiveLinearTransformation = Tensor<1, 1>;  // M' = A^-1 * M * A
 // using RotationMatrix = Tensor<1, 1>;        // M' = A^-1 * M * A
 // using InertiaTensor = Tensor<0, 2>;         // M' = A^T * M * A
 
@@ -98,6 +98,9 @@ class Tensor {
   using ScalarT = typename QuantityMatrixT::ScalarT;
   using This = Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT, CoordinateSystemT>;
 
+  static_assert(CovariantIndices >= 0, "Covariant index must not be negative.");
+  static_assert(ContravariantIndices >= 0, "Contravariant index must not be negative.");
+
   Tensor() = default;
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
@@ -162,10 +165,16 @@ class Tensor {
   auto transpose() const { return typename Transpose<This>::type(quantityMatrix_.transpose()); }
 
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantityMatrixOther, typename CoordinateSystemOther>
-  auto dot(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantityMatrixOther, CoordinateSystemOther>& other) const {
-    // TODO(remod): Check indices.
-    static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
-    return quantityMatrix_.dot(other.getQuantityMatrix());
+  auto dotProduct(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantityMatrixOther, CoordinateSystemOther>& other) const {
+    return typename DotProduct<This, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantityMatrixOther,
+                                            CoordinateSystemOther>>::type(quantityMatrix_.dotProduct(other.getQuantityMatrix()));
+  }
+
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantityMatrixOther, typename CoordinateSystemOther>
+  auto crossProduct(
+      const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantityMatrixOther, CoordinateSystemOther>& other) const {
+    return typename CrossProduct<This, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantityMatrixOther,
+                                              CoordinateSystemOther>>::type(quantityMatrix_.crossProduct(other.getQuantityMatrix()));
   }
 
   auto inverse() const { return typename Inverse<This>::type(quantityMatrix_.inverse()); }
@@ -264,7 +273,7 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Quantit
           int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
 struct Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
                Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>> {
-  // TODO(remod): Do we need indices checks?
+  // TODO(remod): Do we need to add indices checks?
   using type = Tensor<ContravariantIndicesLhs - CovariantIndicesRhs, CovariantIndicesLhs - ContravariantIndicesRhs,
                       typename Product<QuantityMatrixLhsT_, QuantityMatrixRhsT_>::type,
                       typename Product<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type>;
@@ -294,7 +303,7 @@ struct Division<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMat
 
 template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
 struct Transpose<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
-  using type = Tensor<CovariantIndices, ContravariantIndices, typename Transpose<QuantityMatrixT_>::type, CoordinateSystemT_>;
+  using type = Tensor<ContravariantIndices, CovariantIndices, typename Transpose<QuantityMatrixT_>::type, CoordinateSystemT_>;
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_, int BlockRowId,
@@ -315,10 +324,20 @@ struct DotProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityM
   using type = typename DotProduct<QuantityMatrixLhsT_, QuantityMatrixRhsT_>::type;
 };
 
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantityMatrixLhsT_, typename CoordinateSystemLhsT_,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantityMatrixRhsT_, typename CoordinateSystemRhsT_>
+struct CrossProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantityMatrixLhsT_, CoordinateSystemLhsT_>,
+                    Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantityMatrixRhsT_, CoordinateSystemRhsT_>> {
+  static_assert(ContravariantIndicesLhs == 1 && CovariantIndicesLhs == 0, "Cross product is only defined for vectors.");
+  static_assert(ContravariantIndicesRhs == 1 && CovariantIndicesRhs == 0, "Cross product is only defined for vectors.");
+  static_assert(std::is_same_v<CoordinateSystemLhsT_, CoordinateSystemRhsT_>, "Coordinate systems do not match.");
+  using type = Tensor<1, 0, typename CrossProduct<QuantityMatrixLhsT_, QuantityMatrixRhsT_>::type, CoordinateSystemLhsT_>;
+};
+
 template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
 struct Inverse<Tensor<ContravariantIndices, CovariantIndices, QuantityMatrixT_, CoordinateSystemT_>> {
   // TODO(remod): Is this correct?
-  using type = Tensor<-ContravariantIndices, -CovariantIndices, typename Inverse<QuantityMatrixT_>::type, CoordinateSystemT_>;
+  using type = Tensor<CovariantIndices, ContravariantIndices, typename Inverse<QuantityMatrixT_>::type, CoordinateSystemT_>;
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename QuantityMatrixT_, typename CoordinateSystemT_>
@@ -498,6 +517,14 @@ template <template <typename, int, int> typename ValueMatrix, typename Scalar, t
 using VelocityVector2 = VelocityVector<2, ValueMatrix, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using VelocityVector3 = VelocityVector<3, ValueMatrix, Scalar, CoordinateSystem>;
+
+template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using AngularVelocityVector =
+    HomogeneousVector<Dimension, ValueMatrix, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::AngularVelocity, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using AngularVelocityVector2 = AngularVelocityVector<2, ValueMatrix, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
+using AngularVelocityVector3 = AngularVelocityVector<3, ValueMatrix, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
 using SpacetimePoint = PositionPoint<Dimension, ValueMatrix, Scalar, CoordinateSystem>;

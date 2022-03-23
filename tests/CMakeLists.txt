@@ -76,6 +76,7 @@ if (${ENABLE_TESTS})
     find_package(GTest REQUIRED)
     # The tests are ordered by complexity, basic tests come first.
     add_executable(tests
+        src/test_compilation_error.cpp
         src/CompilationError.cpp
         src/helpers.cpp
         src/traits.cpp
@@ -88,10 +89,13 @@ if (${ENABLE_TESTS})
         src/ValueMatrix.cpp
         src/QuantityMatrix.cpp
         src/Tensor.cpp
-        src/Translation.cpp
-        src/Rotation.cpp
+        src/ActiveTranslation.cpp
+        src/PassiveTranslation.cpp
+        src/ActiveRotation.cpp
+        src/PassiveRotation.cpp
         src/Jacobian.cpp
-        src/ProperRigidTransformation.cpp
+        src/ActiveProperRigidTransformation.cpp
+        src/PassiveProperRigidTransformation.cpp
         src/LorentzTransformation.cpp
         src/RotatingDumbbell.cpp
     )

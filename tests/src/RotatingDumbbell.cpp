@@ -65,7 +65,7 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 //  using TensorT = Tensor<1, 1, CoordinateMatrixT>;
 //
 //  template <typename... Args>
-//  explicit LinearTransformation(Args... args) : tensor_(args...) {}
+//  explicit PassiveLinearTransformation(Args... args) : tensor_(args...) {}
 //
 //  const TensorT& getTensor() const { return tensor_; }
 //
@@ -152,7 +152,7 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
 
   // TODO(remod): Enable implicit conversion from 1x1 quantity matrix to quantity. Only required if we don't just use 1x1 matrices as impl.
   const EnergyQuantity energyMinimalCoordinates2 =
-      0.5 * (minimalCoordinatesDt.transpose() * massMatrix * minimalCoordinatesDt).getQuantity<0, 0>();
+      0.5 * (minimalCoordinatesDt.transpose() * (massMatrix * minimalCoordinatesDt)).getQuantity<0, 0>();
 
   // TODO(remod): Use isApprox() after switching to 1x1 matrices.
   EXPECT_NEAR(energyCartesianCoordinates.getValue(), energyMinimalCoordinates1.getValue(), 1e-5);

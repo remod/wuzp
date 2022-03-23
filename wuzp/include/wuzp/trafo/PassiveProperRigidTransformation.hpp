@@ -1,24 +1,24 @@
 #pragma once
 
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/trafo/Rotation.hpp"
+#include "wuzp/trafo/PassiveRotation.hpp"
+#include "wuzp/trafo/PassiveTranslation.hpp"
 #include "wuzp/trafo/Transformation.hpp"
-#include "wuzp/trafo/Translation.hpp"
 
 namespace wuzp {
 
 // First rotate, then translate.
 // TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
 template <typename CoordinateSystem, typename From, typename To, typename Rotation_, typename Translation_>
-class ProperRigidTransformationTemplate
-    : public PassiveTransformation<ProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation_, Translation_>, CoordinateSystem,
-                                   From, To> {
+class PassiveProperRigidTransformationTemplate
+    : public PassiveTransformation<PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation_, Translation_>, From,
+                                   To> {
  public:
   using Rotation = Rotation_;
   using Translation = Translation_;
 
-  ProperRigidTransformationTemplate() = default;
-  ProperRigidTransformationTemplate(Rotation rotation, Translation translation)
+  PassiveProperRigidTransformationTemplate() = default;
+  PassiveProperRigidTransformationTemplate(Rotation rotation, Translation translation)
       : rotation_(std::move(rotation)), translation_(std::move(translation)) {}
 
   void setRotation(const Rotation& rotation) { rotation_ = rotation; }
@@ -43,17 +43,18 @@ using Intermediate = CoordinateSystem<IntermediateName<From, To>>;
 
 template <template <typename, int, int> typename ValueMatrix, int Dimension, typename CoordinateSystem, typename From, typename To,
           typename Scalar>
-using ProperRigidTransformation = ProperRigidTransformationTemplate<
-    CoordinateSystem, From, To, SpatialRotation<ValueMatrix, Scalar, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
-    SpatialTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, internal::Intermediate<From, To>, To>>;
+using PassiveProperRigidTransformation = PassiveProperRigidTransformationTemplate<
+    CoordinateSystem, From, To,
+    PassiveSpatialRotation<ValueMatrix, Scalar, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
+    PassiveSpatialTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, internal::Intermediate<From, To>, To>>;
 template <template <typename, int, int> typename ValueMatrix, typename CoordinateSystem, typename From, typename To, typename Scalar>
-using ProperRigidTransformation2 = ProperRigidTransformation<ValueMatrix, 2, CoordinateSystem, From, To, Scalar>;
+using PassiveProperRigidTransformation2 = PassiveProperRigidTransformation<ValueMatrix, 2, CoordinateSystem, From, To, Scalar>;
 template <template <typename, int, int> typename ValueMatrix, typename CoordinateSystem, typename From, typename To, typename Scalar>
-using ProperRigidTransformation3 = ProperRigidTransformation<ValueMatrix, 3, CoordinateSystem, From, To, Scalar>;
+using PassiveProperRigidTransformation3 = PassiveProperRigidTransformation<ValueMatrix, 3, CoordinateSystem, From, To, Scalar>;
 
 template <typename CoordinateSystem, typename From, typename To, typename Rotation, typename Translation, typename Object>
-struct TransformationTraits<ProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>, Object> {
-  static auto transform(const ProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>& transformation,
+struct TransformationTraits<PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>, Object> {
+  static auto transform(const PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>& transformation,
                         const Object& object) {
     const auto translationCoordinateFrame = transformation.getTranslation();
     const auto translationIntermediate =

@@ -4,6 +4,7 @@
 #include <utility>
 
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <Eigen/LU>
 
 namespace wuzp_eigen {
@@ -44,6 +45,7 @@ class GenericValueMatrix {
   using ScalarT = typename wuzp::Scalar<ThisT>::type;
 
   explicit GenericValueMatrix(const ImplementationT& implementation) : implementation_(implementation) {}
+  // TODO(remod): Is move here correct? Check all constructors.
   explicit GenericValueMatrix(ImplementationT&& implementation) : implementation_(std::move(implementation)) {}
 
   GenericValueMatrix() = default;
@@ -99,8 +101,14 @@ class GenericValueMatrix {
   auto transpose() const { return typename wuzp::Transpose<ThisT>::type(implementation_.transpose()); }
 
   template <typename ImplementationOther_>
-  auto dot(const GenericValueMatrix<ImplementationOther_>& other) const {
+  auto dotProduct(const GenericValueMatrix<ImplementationOther_>& other) const {
     return typename wuzp::DotProduct<ThisT, GenericValueMatrix<ImplementationOther_>>::type(implementation_.dot(other.getImplementation()));
+  }
+
+  template <typename ImplementationOther_>
+  auto crossProduct(const GenericValueMatrix<ImplementationOther_>& other) const {
+    return typename wuzp::CrossProduct<ThisT, GenericValueMatrix<ImplementationOther_>>::type(
+        implementation_.cross(other.getImplementation()));
   }
 
   auto norm() const { return implementation_.norm(); }
@@ -208,6 +216,12 @@ template <typename ImplementationLhs_, typename ImplementationRhs_>
 struct DotProduct<wuzp_eigen::GenericValueMatrix<ImplementationLhs_>, wuzp_eigen::GenericValueMatrix<ImplementationRhs_>> {
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(std::declval<ImplementationLhs_>().dot(std::declval<ImplementationRhs_>()));
+};
+
+template <typename ImplementationLhs_, typename ImplementationRhs_>
+struct CrossProduct<wuzp_eigen::GenericValueMatrix<ImplementationLhs_>, wuzp_eigen::GenericValueMatrix<ImplementationRhs_>> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = wuzp_eigen::GenericValueMatrix<decltype(std::declval<ImplementationLhs_>().cross(std::declval<ImplementationRhs_>()))>;
 };
 
 template <typename Implementation_>
