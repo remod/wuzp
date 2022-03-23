@@ -14,11 +14,28 @@ class Transformation {
   virtual ~Transformation() = default;
 };
 
-// Translation, SpatialRotation, Reflection, Dilation.
+// Translation, Rotation, Reflection, Dilation.
 
-class ActiveTransformation : public Transformation {};
+template <typename Derived>
+class ActiveTransformation : public Transformation {
+ public:
+  template <typename Object>
+  auto transform(const Object& object) const {
+    return TransformationTraits<Derived, Object>::transform(derived(), object);
+  }
 
-template <typename Derived, typename CoordinateSystem, typename From, typename To>
+  template <typename Other>
+  bool isApprox(const Other& other) {
+    return derived().getTensor().isApprox(other.getTensor());
+  }
+
+  // TODO(remod): Add inverse() function.
+
+ private:
+  const Derived& derived() const { return static_cast<const Derived&>(*this); }  // TODO(remod): Use CRTP class template from web.
+};
+
+template <typename Derived, typename From, typename To>
 class PassiveTransformation : public Transformation {
  public:
   // TODO(remod): Add test to make sure From and To are actually frames.
@@ -31,7 +48,6 @@ class PassiveTransformation : public Transformation {
 
   template <typename Other>
   bool isApprox(const Other& other) {
-    static_assert(std::is_same<typename GetCoordinateSystem<Other>::type, CoordinateSystem>::value, "Coordinate systems do not match.");
     return derived().getTensor().isApprox(other.getTensor());
   }
 
@@ -42,7 +58,7 @@ class PassiveTransformation : public Transformation {
 };
 
 // Static frames
-// SpatialRotation:    B_r = A_BA * A_r
+// Rotation:    B_r = A_BA * A_r
 //              B_v = A_BA * A_v
 //              B_a = A_BA * A_a
 // Translation: r_0B = r_AB + r_0A

@@ -2,14 +2,14 @@
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/trafo/LinearTransformation.hpp"
+#include "wuzp/trafo/PassiveLinearTransformation.hpp"
 
 namespace wuzp {
 
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
           int Dimension>
-using LorentzTransformation = LinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
-                                                   typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
+using LorentzTransformation = PassiveLinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
+                                                          typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
 using LorentzTransformation2 = LorentzTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, 2>;
 template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>

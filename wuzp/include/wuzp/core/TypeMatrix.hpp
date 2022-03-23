@@ -230,6 +230,26 @@ struct DotProduct<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, Typ
                                 0, 0>::type;
 };
 
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
+struct CrossProduct<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
+  static_assert(RowsLhs == 3 && RowsRhs == 3 && ColsLhs == 1 && ColsRhs == 1,
+                "Cross product is only defined for three-dimensional vectors.");
+  using type =
+      TypeMatrixImpl<RowsLhs, ColsLhs,
+                     std::tuple<typename Difference<typename Product<std::tuple_element_t<1, std::tuple<TypesLhs...>>,
+                                                                     std::tuple_element_t<2, std::tuple<TypesRhs...>>>::type,
+                                                    typename Product<std::tuple_element_t<2, std::tuple<TypesLhs...>>,
+                                                                     std::tuple_element_t<1, std::tuple<TypesRhs...>>>::type>::type,
+                                typename Difference<typename Product<std::tuple_element_t<2, std::tuple<TypesLhs...>>,
+                                                                     std::tuple_element_t<0, std::tuple<TypesRhs...>>>::type,
+                                                    typename Product<std::tuple_element_t<0, std::tuple<TypesLhs...>>,
+                                                                     std::tuple_element_t<2, std::tuple<TypesRhs...>>>::type>::type,
+                                typename Difference<typename Product<std::tuple_element_t<0, std::tuple<TypesLhs...>>,
+                                                                     std::tuple_element_t<1, std::tuple<TypesRhs...>>>::type,
+                                                    typename Product<std::tuple_element_t<1, std::tuple<TypesLhs...>>,
+                                                                     std::tuple_element_t<0, std::tuple<TypesRhs...>>>::type>::type>>;
+};
+
 template <int Size, typename ZeroType, typename OneType, typename IndexSequence>
 struct DiagonalTypeMatrixImpl;
 template <int Size, typename ZeroType, typename OneType, size_t... Is>
