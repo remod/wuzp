@@ -130,10 +130,10 @@ endif()
 
 if (${ENABLE_FORMAT} OR ${ENABLE_TIDY})
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
-        ${REPO_DIR}/wuzp/include/wuzp/*.hpp
-        ${REPO_DIR}/wuzp/include/wuzp_units/*.hpp
-        ${REPO_DIR}/wuzp_boost/include/wuzp_boost/*.hpp
-        ${REPO_DIR}/wuzp_eigen/include/wuzp_eigen/*.hpp
+        // A /*/ matches one or more level of directories.
+        ${REPO_DIR}/wuzp/include/*/*.hpp
+        ${REPO_DIR}/wuzp_boost/include/*/*.hpp
+        ${REPO_DIR}/wuzp_eigen/include/*/*.hpp
         ${REPO_DIR}/tests/src/*.[ch]pp
     )
 endif()
