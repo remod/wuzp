@@ -70,7 +70,7 @@ TEST(TestPassiveProperRigidTransformation3, TransformVelocityVector) {  // NOLIN
 
 TEST(TestPassiveProperRigidTransformation3, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
   using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using Transformation = PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, double>;
   using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemB>;

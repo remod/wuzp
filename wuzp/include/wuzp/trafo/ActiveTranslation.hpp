@@ -9,11 +9,11 @@ template <template <typename, int, int> typename ValuesT_, int Dimension, typena
 class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystemT_, Units...>> {
  public:
   using ValuesT = ValuesT_<Scalar, Dimension, 1>;
-  using UnitMatrixT = TypeMatrix<Dimension, 1, Units...>;
-  using QuantityMatrixT = QuantityMatrix<ValuesT, UnitMatrixT>;
+  using UnitsT = TypeMatrix<Dimension, 1, Units...>;
+  using QuantitiesT = Quantities<ValuesT, UnitsT>;
   using CoordinateSystemT = CoordinateSystemT_;
-  using TensorT = Tensor<1, 0, QuantityMatrixT, CoordinateSystemT>;
-  static_assert(!IsAbsolute<UnitMatrixT>::value, "Units are not relative.");
+  using TensorT = Tensor<1, 0, QuantitiesT, CoordinateSystemT>;
+  static_assert(!IsAbsolute<UnitsT>::value, "Units are not relative.");
 
   template <typename... Args>
   explicit ActiveTranslation(Args... args) : tensor_(args...) {}
@@ -45,16 +45,16 @@ struct CastCoordinateSystem<ActiveTranslation<ValuesT_, Dimension, Scalar, Coord
 namespace wuzp {
 
 template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units,
-          typename QuantityMatrixT_, typename CoordinateSystemT_>
+          typename QuantitiesT_, typename CoordinateSystemT_>
 struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>,
-                            Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>> {
+                            Tensor<1, 0, QuantitiesT_, CoordinateSystemT_>> {
   static auto transform(const ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>& transformation,
-                        const Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>& object) {
-    if constexpr (IsAbsolute<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value) {
+                        const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_>& object) {
+    if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_>>::value) {
       auto result = object;
       // TODO(remod): Improve efficiency by performing this addition at compile time.
-      for (int row = 0; row < Rows<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value; ++row) {
-        for (int col = 0; col < Cols<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value; ++col) {
+      for (int row = 0; row < Rows<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_>>::value; ++row) {
+        for (int col = 0; col < Cols<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_>>::value; ++col) {
           result.template setQuantity(row, col, result.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
         }
       }

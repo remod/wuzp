@@ -7,7 +7,7 @@ namespace wuzp {
 
 // TODO(remod): Do we still need this?
 // template <int Rows, int Cols, typename... Implementations>
-// using UnitMatrix = TypeMatrix<Rows, Cols, Unit<Implementations>...>;
+// using Units = TypeMatrix<Rows, Cols, Unit<Implementations>...>;
 
 template <int Rows, int Cols, typename... UnitImplementations>
 struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {

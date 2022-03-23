@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 
@@ -30,7 +30,7 @@ using TestValueMatrix = ValueMatrix<double, Rows, Cols>;
 template <int Rows, int Cols>
 using TestUnitMatrix = TypeMatrix<Rows, Cols, Length>;
 template <int Rows, int Cols>
-using TestQuantityMatrix = QuantityMatrix<TestValueMatrix<Rows, Cols>, TestUnitMatrix<Rows, Cols>>;
+using TestQuantityMatrix = Quantities<TestValueMatrix<Rows, Cols>, TestUnitMatrix<Rows, Cols>>;
 template <int Rows, int Cols>
 using TestTensor = Tensor<1, 0, TestQuantityMatrix<Rows, Cols>, CoordinateSystemA>;
 
@@ -52,21 +52,21 @@ TEST(TestTensor2, Cols) {  // NOLINT
 TEST(TestTensor2, GetTag) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   static_assert(std::is_same_v<GetTag<MyTensor, MyTensor>::type, FromTensor>);
   static_assert(std::is_same_v<GetTag<MyTensor, const MyTensor&>::type, FromTensor>);
   static_assert(std::is_same_v<GetTag<MyTensor, MyTensor&&>::type, FromTensor>);
-  static_assert(std::is_same_v<GetTag<MyTensor, MyQuantityMatrix>::type, FromQuantityMatrix>);
-  static_assert(std::is_same_v<GetTag<MyTensor, Quantity<double, Length>>::type, FromQuantityMatrixArgs>);
-  static_assert(std::is_same_v<GetTag<MyTensor, MyValueMatrix>::type, FromQuantityMatrixArgs>);
-  static_assert(std::is_same_v<GetTag<MyTensor, double>::type, FromQuantityMatrixArgs>);
+  static_assert(std::is_same_v<GetTag<MyTensor, MyQuantityMatrix>::type, FromQuantities>);
+  static_assert(std::is_same_v<GetTag<MyTensor, Quantity<double, Length>>::type, FromQuantitiesArgs>);
+  static_assert(std::is_same_v<GetTag<MyTensor, MyValueMatrix>::type, FromQuantitiesArgs>);
+  static_assert(std::is_same_v<GetTag<MyTensor, double>::type, FromQuantitiesArgs>);
 }
 
 TEST(TestTensor2, EmptyConstructor) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 1, MyQuantityMatrix, CoordinateSystemA>;
   [[maybe_unused]] const MyTensor tensor;
 }
@@ -74,7 +74,7 @@ TEST(TestTensor2, EmptyConstructor) {  // NOLINT
 TEST(TestTensor2, ConstructImplicitlyFromTensor) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   const MyTensor tensor1;
   const MyTensor tensor2;
@@ -85,7 +85,7 @@ TEST(TestTensor2, ConstructImplicitlyFromTensor) {  // NOLINT
 
 TEST(TestTensor2, ConstructImplicitlyFromQuantityMatrix) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
-#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 
@@ -109,7 +109,7 @@ struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
 using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
 
 int main() {
@@ -124,16 +124,16 @@ int main() {
 TEST(TestTensor2, ConstructExplicitlyFromQuantityMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   const MyQuantityMatrix quantityMatrix(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(quantityMatrix);
-  EXPECT_EQ(tensor.getQuantityMatrix(), quantityMatrix);
+  EXPECT_EQ(tensor.getQuantities(), quantityMatrix);
 }
 
 TEST(TestTensor2, ConstructImplicitlyFromValues) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
-#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 
@@ -157,7 +157,7 @@ struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
 using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
 
 int main() {
@@ -172,7 +172,7 @@ int main() {
 TEST(TestTensor2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(valueMatrix);
@@ -182,7 +182,7 @@ TEST(TestTensor2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
 TEST(TestTensor2, ConstructExplicitlyFromValues) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(1, 2, 3, 4, 5, 6);
@@ -194,8 +194,8 @@ class TestTensorF : public ::testing::Test {
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyHomogeneousUnitMatrix = TypeMatrix<2, 3, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
-  using MyHomogeneousQuantityMatrix = QuantityMatrix<MyValueMatrix, MyHomogeneousUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyHomogeneousQuantityMatrix = Quantities<MyValueMatrix, MyHomogeneousUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using MyHomogeneousTensor = Tensor<1, 0, MyHomogeneousQuantityMatrix, CoordinateSystemA>;
 
@@ -234,7 +234,7 @@ TEST_F(TestTensorF, SetQuantityRunTime) {  // NOLINT
 TEST_F(TestTensorF, Block) {  // NOLINT
   using MyValueMatrixB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = TypeMatrix<2, 2, Area, Volume, Force, Energy>;
-  using MyQuantityMatrixB = QuantityMatrix<MyValueMatrixB, MyUnitMatrixB>;
+  using MyQuantityMatrixB = Quantities<MyValueMatrixB, MyUnitMatrixB>;
   using MyTensorB = Tensor<1, 0, MyQuantityMatrixB, CoordinateSystemA>;
   MyTensorB tensorB(2, 3, 5, 6);
   EXPECT_EQ((getTensor().block<0, 1, 2, 2>()), tensorB);
@@ -243,7 +243,7 @@ TEST_F(TestTensorF, Block) {  // NOLINT
 TEST_F(TestTensorF, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = TypeMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
-  using MyQuantityMatrixT = QuantityMatrix<MyValueMatrixT, MyUnitMatrixT>;
+  using MyQuantityMatrixT = Quantities<MyValueMatrixT, MyUnitMatrixT>;
   using MyTensorT = Tensor<1, 0, MyQuantityMatrixT, CoordinateSystemA>;
   const MyTensorT tensorT(1, 4, 2, 5, 3, 6);
   EXPECT_EQ(getTensor().transpose(), tensorT);
@@ -252,12 +252,12 @@ TEST_F(TestTensorF, Transpose) {  // NOLINT
 TEST(TestTensor2, ProductQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
-  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
   using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA>;
   const MyValue value{2};
   const MyQuantity quantity(value);
@@ -270,7 +270,7 @@ TEST(TestTensor2, ProductQuantity) {  // NOLINT
 TEST(TestTensor2, ProductValue) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using MyValue = int;
   const MyValue value{2};
@@ -283,12 +283,12 @@ TEST(TestTensor2, ProductValue) {  // NOLINT
 TEST(TestTensor2, DivisionQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using MyValue = int;
   using MyQuantity = Quantity<MyValue, Length>;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Dimensionless>;
-  using MyQuantityMatrixResult = QuantityMatrix<MyValueMatrix, MyUnitMatrixResult>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
   using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA>;
   const MyValue value{2};
   const MyQuantity quantity(value);
@@ -300,7 +300,7 @@ TEST(TestTensor2, DivisionQuantity) {  // NOLINT
 TEST(TestTensor2, DivisionValue) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using MyValue = int;
   const MyValue value{2};
@@ -312,7 +312,7 @@ TEST(TestTensor2, DivisionValue) {  // NOLINT
 TEST(TestTensor2, Dot) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using MyQuantityResult = Quantity<int, Area>;
   EXPECT_EQ(MyTensor(1, 2, 3, 4).dotProduct(MyTensor(0, 3, -1, 2)), MyQuantityResult(11));
@@ -320,7 +320,7 @@ TEST(TestTensor2, Dot) {  // NOLINT
 
 TEST(TestTensor2, DotBadFrames) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 
@@ -346,7 +346,7 @@ using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
 using MyValueMatrix = ValueMatrix<int, 4, 1>;
 using MyUnitMatrix = TypeMatrix<4, 1, Length>;
-using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
+using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
 using MyTensorLhs = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
 using MyTensorRhs = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemB>;
 

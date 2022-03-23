@@ -84,10 +84,10 @@ if (${ENABLE_TESTS})
         src/Integer.cpp
         src/Unit.cpp
         src/TypeMatrix.cpp
-        src/UnitMatrix.cpp
+            src/Units.cpp
         src/Quantity.cpp
         src/ValuesWrapper.cpp
-        src/QuantityMatrix.cpp
+        src/Quantities.cpp
         src/Tensor.cpp
         src/ActiveTranslation.cpp
         src/PassiveTranslation.cpp

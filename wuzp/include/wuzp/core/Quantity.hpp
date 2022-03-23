@@ -16,7 +16,7 @@ void setQuantityValue(QuantityT& quantity, const ValueT& value);
 template <typename ValueT, typename QuantityT>
 ValueT getQuantityValue(const QuantityT& quantity);
 
-// TODO(remod): Just typedef QuantityMatrix<1,1> instead?
+// TODO(remod): Just typedef Quantities<1,1> instead?
 //  Contra:
 //  - We will not be able to use boost::Quantity anymore, but for matrices we already can't... (at least in the implementation, the
 //    interface does)

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/Jacobian.hpp"
@@ -26,7 +26,7 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   constexpr int FromDimension = 3;
   constexpr int ToDimension = 2;
   using Object =
-      Vector<QuantityMatrix<ValueMatrix<double, FromDimension, 1>, TypeMatrix<FromDimension, 1, Velocity, Velocity, AngularVelocity>>,
+      Vector<Quantities<ValueMatrix<double, FromDimension, 1>, TypeMatrix<FromDimension, 1, Velocity, Velocity, AngularVelocity>>,
              CoordinateSystemA>;
   // Note: With wuzp units angles are dimensionless, but with boost units not.
   using AngleOverLength = Division<Angle, Length>::type;
@@ -34,7 +34,7 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   using Transformation = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, FromDimension, ToDimension,
                                   AngleOverLength, AngleOverLength, Dimensionless, Dimensionless, Dimensionless, LengthOverAngle>;
   using TransformedObject =
-      Tensor<1, 0, QuantityMatrix<ValueMatrix<double, ToDimension, 1>, TypeMatrix<ToDimension, 1, AngularVelocity, Velocity>>,
+      Tensor<1, 0, Quantities<ValueMatrix<double, ToDimension, 1>, TypeMatrix<ToDimension, 1, AngularVelocity, Velocity>>,
              CoordinateSystemB>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(14.0, 32.0);
@@ -46,7 +46,7 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   constexpr int FromDimension = 3;
   constexpr int ToDimension = 2;
   using Object =
-      Tensor<0, 2, QuantityMatrix<ValueMatrix<double, FromDimension, FromDimension>, TypeMatrix<FromDimension, FromDimension, Mass>>,
+      Tensor<0, 2, Quantities<ValueMatrix<double, FromDimension, FromDimension>, TypeMatrix<FromDimension, FromDimension, Mass>>,
              CoordinateSystemA>;
   using LengthInv = Inverse<Length>::type;
   using Transformation = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, FromDimension, ToDimension,
@@ -54,7 +54,7 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   using MassLength = Product<Mass, Length>::type;
   using MassLength2 = Product<MassLength, Length>::type;
   using TransformedObject = Tensor<0, 2,
-                                   QuantityMatrix<ValueMatrix<double, ToDimension, ToDimension>,
+                                   Quantities<ValueMatrix<double, ToDimension, ToDimension>,
                                                   TypeMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>>,
                                    CoordinateSystemB>;
   const Object object(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);

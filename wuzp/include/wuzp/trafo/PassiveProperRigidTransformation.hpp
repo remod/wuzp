@@ -51,7 +51,7 @@ struct TransformationTraits<PassiveProperRigidTransformationTemplate<CoordinateS
     const auto translationCoordinateFrame = transformation.getTranslation();
     const auto translationIntermediate =
         typename CastCoordinateSystem<std::decay_t<decltype(translationCoordinateFrame)>, internal::Intermediate<From, To>>::type(
-            translationCoordinateFrame.getTensor().getQuantityMatrix());
+            translationCoordinateFrame.getTensor().getQuantities());
     return translationIntermediate.transform(transformation.getRotation().transform(object));
   }
 };

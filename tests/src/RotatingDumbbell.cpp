@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 
@@ -27,9 +27,9 @@ using MinimalCoordinateSystem = wuzp::CoordinateSystem<MinimalCoordinateSystemNa
 
 using MinimalCoordinatesValueVector = vm::ValueMatrix<double, 3, 1>;
 using MinimalCoordinatesUnitVector = wuzp::TypeMatrix<3, 1, units::AbsoluteLength, units::AbsoluteLength, units::AbsoluteAngle>;
-using MinimalCoordinatesQuantityVector = wuzp::QuantityMatrix<MinimalCoordinatesValueVector, MinimalCoordinatesUnitVector>;
+using MinimalCoordinatesQuantityVector = wuzp::Quantities<MinimalCoordinatesValueVector, MinimalCoordinatesUnitVector>;
 using MinimalCoordinatesDtUnitVector = wuzp::TypeMatrix<3, 1, units::Velocity, units::Velocity, units::AngularVelocity>;
-using MinimalCoordinatesDtQuantityVector = wuzp::QuantityMatrix<MinimalCoordinatesValueVector, MinimalCoordinatesDtUnitVector>;
+using MinimalCoordinatesDtQuantityVector = wuzp::Quantities<MinimalCoordinatesValueVector, MinimalCoordinatesDtUnitVector>;
 using MinimalCoordinates = wuzp::Vector<MinimalCoordinatesQuantityVector, MinimalCoordinateSystem>;
 using MinimalCoordinatesDt = wuzp::Vector<MinimalCoordinatesDtQuantityVector, MinimalCoordinateSystem>;
 
@@ -47,7 +47,7 @@ using MassLength = wuzp::Product<units::Mass, wuzp::Division<units::Length, unit
 using MassLength2 = wuzp::Product<MassLength, wuzp::Division<units::Length, units::Angle>::type>::type;
 using MassMatrixUnits =
     wuzp::TypeMatrix<3, 3, units::Mass, units::Mass, MassLength, units::Mass, units::Mass, MassLength, MassLength, MassLength, MassLength2>;
-using MassMatrixQuantities = wuzp::QuantityMatrix<MassMatrixValues, MassMatrixUnits>;
+using MassMatrixQuantities = wuzp::Quantities<MassMatrixValues, MassMatrixUnits>;
 using MassMatrixSystemMatrix = wuzp::TypeMatrix<3, 3, MinimalCoordinateSystem>;
 using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatrix>;
 
@@ -58,7 +58,7 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 //  static constexpr int DimensionFrom = 3;
 //  using ValuesT = ValueMatrix<double, DimensionTo, DimensionFrom>;
 //  using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
-//  using QuantityMatrixT = QuantityMatrix<ValuesT, UnitMatrixT>;
+//  using QuantityMatrixT = Quantities<ValuesT, UnitMatrixT>;
 //  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
 //  using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
 //  using TensorT = Tensor<1, 1, CoordinateMatrixT>;

@@ -56,7 +56,7 @@ TEST(TestPassiveTranslation, TransformVelocityVector) {  // NOLINT
 
 TEST(TestPassiveTranslation, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
   using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using Transformation = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemB>;
