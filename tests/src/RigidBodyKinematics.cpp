@@ -21,7 +21,6 @@ using namespace wuzp_boost;  // NOLINT
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
-#endif
 
 using AngleQuantity = wuzp::Quantity<double, Angle>;
 
@@ -64,3 +63,5 @@ TEST(TestRigidBodyKinematics, CalculateAcceleration) {  // NOLINT
       ;
   EXPECT_EQ(actualAcceleration, expectedAcceleration);
 }
+
+#endif

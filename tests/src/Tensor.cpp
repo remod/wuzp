@@ -24,7 +24,6 @@ using namespace wuzp_boost;  // NOLINT
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
-#endif
 
 template <int Rows, int Cols>
 using TestValueMatrix = ValueMatrix<double, Rows, Cols>;
@@ -358,3 +357,5 @@ int main() {
 )",
                                                "Coordinate systems do not match.");
 }
+
+#endif

@@ -18,7 +18,7 @@ class QuantityMatrix {
   using ValueMatrixT = ValueMatrix_;
   using UnitMatrixT = UnitMatrix_;
   using ScalarT = typename ValueMatrixT::ScalarT;
-  using This = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
+  using ThisT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
 
   static_assert(Rows<ValueMatrixT>::value == Rows<UnitMatrixT>::value, "Number of rows do not match.");
   static_assert(Cols<ValueMatrixT>::value == Cols<UnitMatrixT>::value, "Number of columns do not match.");
@@ -27,22 +27,22 @@ class QuantityMatrix {
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromQuantityMatrix>) QuantityMatrix(const T0& t0, const Ts&... ts)
-      : QuantityMatrix(typename GetTag<This, T0, Ts...>::type(), t0, ts...) {}
+  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromQuantityMatrix>) QuantityMatrix(const T0& t0, const Ts&... ts)
+      : QuantityMatrix(typename GetTag<ThisT, T0, Ts...>::type(), t0, ts...) {}
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromQuantityMatrix>) QuantityMatrix(T0&& t0, Ts&&... ts)
-      : QuantityMatrix(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
+  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromQuantityMatrix>) QuantityMatrix(T0&& t0, Ts&&... ts)
+      : QuantityMatrix(typename GetTag<ThisT, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
-  static This zero() { return This(ValueMatrixT::zero()); }
-  static This random() { return This(ValueMatrixT::random()); }
+  static ThisT zero() { return ThisT(ValueMatrixT::zero()); }
+  static ThisT random() { return ThisT(ValueMatrixT::random()); }
 
   template <int RowId, int ColId>
   auto getQuantity() const {
-    return typename Element<This, RowId, ColId>::type(valueMatrix_.template getValue<RowId, ColId>());
+    return typename Element<ThisT, RowId, ColId>::type(valueMatrix_.template getValue<RowId, ColId>());
   }
 
-  auto getQuantity(const int rowId, const int colId) const { return typename GetType<This>::type(valueMatrix_.getValue(rowId, colId)); }
+  auto getQuantity(const int rowId, const int colId) const { return typename GetType<ThisT>::type(valueMatrix_.getValue(rowId, colId)); }
 
   template <int RowId, int ColId, typename Quantity>
   void setQuantity(const Quantity& quantity) {
@@ -52,7 +52,7 @@ class QuantityMatrix {
 
   template <typename Quantity>
   void setQuantity(const int rowId, const int colId, const Quantity& quantity) {
-    static_assert(IsHomogeneous<This>::value && std::is_same<typename Element<UnitMatrixT, 0, 0>::type, typename Quantity::UnitT>::value,
+    static_assert(IsHomogeneous<ThisT>::value && std::is_same<typename Element<UnitMatrixT, 0, 0>::type, typename Quantity::UnitT>::value,
                   "Units do not match.");
     valueMatrix_.setValue(rowId, colId, quantity.getValue());
   }
@@ -84,36 +84,36 @@ class QuantityMatrix {
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
-    return typename Block<This, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
+    return typename Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
         valueMatrix_.template getBlock<BlockRowId, BlockColId, BlockRows, BlockCols>());
   }
 
-  auto transpose() const { return typename Transpose<This>::type(valueMatrix_.transpose()); }
+  auto transpose() const { return typename Transpose<ThisT>::type(valueMatrix_.transpose()); }
 
   template <typename ValueMatrixOther, typename UnitMatrixOther>
   auto dotProduct(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& other) const {
-    return
-        typename DotProduct<This, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>>::type(valueMatrix_.dotProduct(other.getValueMatrix()));
+    return typename DotProduct<ThisT, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>>::type(
+        valueMatrix_.dotProduct(other.getValueMatrix()));
   }
 
   template <typename ValueMatrixOther, typename UnitMatrixOther>
   auto crossProduct(const QuantityMatrix<ValueMatrixOther, UnitMatrixOther>& other) const {
-    return typename CrossProduct<This, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>>::type(
+    return typename CrossProduct<ThisT, QuantityMatrix<ValueMatrixOther, UnitMatrixOther>>::type(
         valueMatrix_.crossProduct(other.getValueMatrix()));
   }
 
-  auto inverse() const { return typename Inverse<This>::type(valueMatrix_.inverse()); }
+  auto inverse() const { return typename Inverse<ThisT>::type(valueMatrix_.inverse()); }
 
   //  template <bool IsHomogeneousV = IsHomogeneous<UnitMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
   auto norm() const {
-    static_assert(!IsAbsolute<This>::value, "Quantity matrix is not relative.");
-    return typename GetType<This>::type(valueMatrix_.norm());
+    static_assert(!IsAbsolute<ThisT>::value, "Quantity matrix is not relative.");
+    return typename GetType<ThisT>::type(valueMatrix_.norm());
   }
 
   //  template <bool IsHomogeneousV = IsHomogeneous<UnitMatrixT>::value, typename = std::enable_if_t<IsHomogeneousV>>
   auto squaredNorm() const {
-    static_assert(!IsAbsolute<This>::value, "Quantity matrix is not relative.");
-    return typename Power<typename GetType<This>::type, Integer<2>>::type(valueMatrix_.squaredNorm());
+    static_assert(!IsAbsolute<ThisT>::value, "Quantity matrix is not relative.");
+    return typename Power<typename GetType<ThisT>::type, Integer<2>>::type(valueMatrix_.squaredNorm());
   }
 
  private:

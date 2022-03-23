@@ -22,7 +22,6 @@ using namespace wuzp_boost;  // NOLINT
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
-#endif
 
 TEST(TestLorentzTransformation, TransformSpacetimePoint) {  // NOLINT
   using Object = SpacetimeVector4<ValueMatrix, double, CoordinateSystemA>;
@@ -38,3 +37,5 @@ TEST(TestLorentzTransformation, TransformSpacetimePoint) {  // NOLINT
   EXPECT_DOUBLE_EQ((getInvariant<4, ValueMatrix, double, CoordinateSystemA>(object).getValue()),
                    (getInvariant<4, ValueMatrix, double, CoordinateSystemB>(transformation.transform(object))).getValue());
 }
+
+#endif

@@ -8,7 +8,6 @@ using namespace wuzp;  // NOLINT
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
-#endif
 
 TEST(TestValueMatrix, Dimension) {  // NOLINT
   static_assert(Dimension<ValueMatrix<double, 1, 1>>::value == 0);
@@ -51,3 +50,5 @@ TEST(TestValueMatrix, LazyProduct) {  // NOLINT
 }
 
 // TODO(remod): Compile-time check number of constructor arguments and test it.
+
+#endif

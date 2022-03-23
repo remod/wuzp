@@ -23,7 +23,6 @@ using namespace wuzp_boost;  // NOLINT
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
-#endif
 
 TEST(TestPassiveProperRigidTransformation2, TransformPosition) {  // NOLINT
   //  const Position2<double, FromCoordinateSystem> object(1.0, 2.0);
@@ -106,3 +105,5 @@ TEST(TestPassiveProperRigidTransformation3, TransformPassiveRotation) {  // NOLI
   const Transformation transformation(rotation, translation);
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
+
+#endif

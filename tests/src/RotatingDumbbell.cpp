@@ -18,7 +18,6 @@ namespace units = wuzp_boost;  // NOLINT
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 namespace vm = wuzp_eigen;
-#endif
 
 // From https://en.wikipedia.org/wiki/Mass_matrix#Rotating_dumbbell
 struct CartesianCoordinateSystemName {};
@@ -158,3 +157,5 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   EXPECT_NEAR(energyCartesianCoordinates.getValue(), energyMinimalCoordinates1.getValue(), 1e-5);
   EXPECT_NEAR(energyMinimalCoordinates1.getValue(), energyMinimalCoordinates2.getValue(), 1e-5);
 }
+
+#endif

@@ -23,7 +23,6 @@ using namespace wuzp_boost;  // NOLINT
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
-#endif
 
 TEST(TestActiveTranslation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
@@ -86,3 +85,5 @@ TEST(TestActiveTranslation, TransformActiveRotation) {  // NOLINT
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
+
+#endif

@@ -19,7 +19,6 @@ using namespace wuzp_boost;  // NOLINT
 #if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 using namespace wuzp_eigen;  // NOLINT
-#endif
 
 using namespace wuzp;  // NOLINT
 
@@ -422,3 +421,5 @@ TEST_F(TestQuantityMatrixInvertible, Inverse) {  // NOLINT
   const MyQuantityMatrixInv quantityMatrixInv(valueMatrixInv);
   EXPECT_TRUE(getQuantityMatrix().inverse().isApprox(quantityMatrixInv));
 }
+
+#endif

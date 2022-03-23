@@ -22,7 +22,6 @@ using namespace wuzp_boost;  // NOLINT
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
-#endif
 
 TEST(TestActiveRotation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
@@ -87,3 +86,5 @@ TEST(TestActiveRotation, TransformActiveTranslation) {  // NOLINT
 //  EXPECT_TRUE(transformation.transform(object).isApprox(transformedObject));
 //  // TODO(remod): Test converting an object with original and transformed transformation, and check whether they match.
 //}
+
+#endif
