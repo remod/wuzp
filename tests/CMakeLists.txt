@@ -97,6 +97,7 @@ if (${ENABLE_TESTS})
         src/ActiveProperRigidTransformation.cpp
         src/PassiveProperRigidTransformation.cpp
         src/LorentzTransformation.cpp
+        src/RigidBodyKinematics.cpp
         src/RotatingDumbbell.cpp
     )
     target_compile_definitions(tests PRIVATE REPO_DIR=${REPO_DIR})
