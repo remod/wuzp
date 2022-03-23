@@ -102,20 +102,20 @@ struct TransformationTraits<PassiveTranslation<ValuesT_, Dimension, Scalar, Coor
 };
 
 template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs,
-          typename FromLhs, typename ToLhs, typename... UnitsLhs, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs,
-          typename ScalarRhs, typename CoordinateSystemRhs, typename FromRhs, typename ToRhs, typename... UnitsRhs>
-bool operator==(const PassiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, FromLhs, ToLhs, UnitsLhs...>& lhs,
-                const PassiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, FromRhs, ToRhs, UnitsRhs...>& rhs) {
+          typename FromLhs, typename ToLhs, typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs,
+          typename ScalarRhs, typename CoordinateSystemRhs, typename FromRhs, typename ToRhs, typename... UnitsRhsT_>
+bool operator==(const PassiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, FromLhs, ToLhs, UnitsLhsT_...>& lhs,
+                const PassiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, FromRhs, ToRhs, UnitsRhsT_...>& rhs) {
   static_assert(std::is_same<FromLhs, FromRhs>::value, "From coordinates frames do not match.");
   static_assert(std::is_same<ToLhs, ToRhs>::value, "To coordinates frames do not match.");
   return lhs.getTensor() == rhs.getTensor();
 }
 
 template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs,
-          typename FromLhs, typename ToLhs, typename... UnitsLhs, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs,
-          typename ScalarRhs, typename CoordinateSystemRhs, typename FromRhs, typename ToRhs, typename... UnitsRhs>
-bool operator!=(const PassiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, FromLhs, ToLhs, UnitsLhs...>& lhs,
-                const PassiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, FromRhs, ToRhs, UnitsRhs...>& rhs) {
+          typename FromLhs, typename ToLhs, typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs,
+          typename ScalarRhs, typename CoordinateSystemRhs, typename FromRhs, typename ToRhs, typename... UnitsRhsT_>
+bool operator!=(const PassiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, FromLhs, ToLhs, UnitsLhsT_...>& lhs,
+                const PassiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, FromRhs, ToRhs, UnitsRhsT_...>& rhs) {
   return !(lhs == rhs);
 }
 

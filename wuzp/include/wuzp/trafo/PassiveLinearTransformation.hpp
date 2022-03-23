@@ -141,26 +141,26 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Scalar, Coordi
 };
 
 template <template <typename, int, int> typename ValuesLhsT_, typename ScalarLhs, typename CoordinateSystemLhs, typename FromLhs,
-          typename ToLhs, int DimensionFromLhs, int DimensionToLhs, typename... UnitsLhs,
+          typename ToLhs, int DimensionFromLhs, int DimensionToLhs, typename... UnitsLhsT_,
           template <typename, int, int> typename ValuesRhsT_, typename ScalarRhs, typename CoordinateSystemRhs, typename FromRhs,
-          typename ToRhs, int DimensionFromRhs, int DimensionToRhs, typename... UnitsRhs>
+          typename ToRhs, int DimensionFromRhs, int DimensionToRhs, typename... UnitsRhsT_>
 bool operator==(const PassiveLinearTransformation<ValuesLhsT_, ScalarLhs, CoordinateSystemLhs, FromLhs, ToLhs, DimensionFromLhs,
-                                                  DimensionToLhs, UnitsLhs...>& lhs,
+                                                  DimensionToLhs, UnitsLhsT_...>& lhs,
                 const PassiveLinearTransformation<ValuesRhsT_, ScalarRhs, CoordinateSystemRhs, FromRhs, ToRhs, DimensionFromRhs,
-                                                  DimensionToRhs, UnitsRhs...>& rhs) {
+                                                  DimensionToRhs, UnitsRhsT_...>& rhs) {
   static_assert(std::is_same<FromLhs, FromRhs>::value, "From coordinates frames do not match.");
   static_assert(std::is_same<ToLhs, ToRhs>::value, "To coordinates frames do not match.");
   return lhs.getTensor() == rhs.getTensor();
 }
 
 template <template <typename, int, int> typename ValuesLhsT_, typename ScalarLhs, typename CoordinateSystemLhs, typename FromLhs,
-          typename ToLhs, int DimensionFromLhs, int DimensionToLhs, typename... UnitsLhs,
+          typename ToLhs, int DimensionFromLhs, int DimensionToLhs, typename... UnitsLhsT_,
           template <typename, int, int> typename ValuesRhsT_, typename ScalarRhs, typename CoordinateSystemRhs, typename FromRhs,
-          typename ToRhs, int DimensionFromRhs, int DimensionToRhs, typename... UnitsRhs>
+          typename ToRhs, int DimensionFromRhs, int DimensionToRhs, typename... UnitsRhsT_>
 bool operator!=(const PassiveLinearTransformation<ValuesLhsT_, ScalarLhs, CoordinateSystemLhs, FromLhs, ToLhs, DimensionFromLhs,
-                                                  DimensionToLhs, UnitsLhs...>& lhs,
+                                                  DimensionToLhs, UnitsLhsT_...>& lhs,
                 const PassiveLinearTransformation<ValuesRhsT_, ScalarRhs, CoordinateSystemRhs, FromRhs, ToRhs, DimensionFromRhs,
-                                                  DimensionToRhs, UnitsRhs...>& rhs) {
+                                                  DimensionToRhs, UnitsRhsT_...>& rhs) {
   return !(lhs == rhs);
 }
 

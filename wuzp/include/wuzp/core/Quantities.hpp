@@ -17,7 +17,7 @@ class Quantities {
  public:
   using ValuesT = ValuesT_;
   using UnitsT = UnitsT_;
-  using ScalarT = typename ValuesT::ScalarT;
+  using ValueT = typename ValuesT::ValueT;
   using ThisT = Quantities<ValuesT, UnitsT>;
 
   static_assert(Rows<ValuesT>::value == Rows<UnitsT>::value, "Number of rows do not match.");
@@ -74,10 +74,10 @@ class Quantities {
    */
   const ValuesT& getValues() const { return values_; }
 
-  template <typename ValuesOtherT_, typename UnitsOtherT>
-  bool isApprox(const Quantities<ValuesOtherT_, UnitsOtherT>& other, const ScalarT precision = Precision<ScalarT>::value()) const {
+  template <typename ValuesOtherT_, typename UnitsOtherT_>
+  bool isApprox(const Quantities<ValuesOtherT_, UnitsOtherT_>& other, const ValueT precision = Precision<ValueT>::value()) const {
     // Note: Allow other value types to support lazy evaluation.
-    static_assert(std::is_same<UnitsT, UnitsOtherT>::value, "Units do not match.");
+    static_assert(std::is_same<UnitsT, UnitsOtherT_>::value, "Units do not match.");
     return values_.isApprox(other.getValues(), precision);
   }
 
@@ -121,8 +121,7 @@ class Quantities {
   }
   template <typename ValuesOtherT_, typename UnitsOther>
   // Allow other value matrix types to support lazy evaluation.
-  Quantities(FromQuantities /*tag*/, Quantities<ValuesOtherT_, UnitsOther>&& other)
-      : values_(std::move(other.getValues())) {
+  Quantities(FromQuantities /*tag*/, Quantities<ValuesOtherT_, UnitsOther>&& other) : values_(std::move(other.getValues())) {
     static_assert(std::is_same<UnitsT, UnitsOther>::value, "Units do not match.");
   }
 
@@ -131,10 +130,10 @@ class Quantities {
    * @tparam Units Units of the quantities, order and types must correspond to the units of the quantity matrix.
    * @param quantities Quantities.
    */
-  template <typename... Units>
-  explicit Quantities(FromQuantitiesArgs /*tag*/, const Quantity<typename Scalar<ValuesT>::type, Units>&... quantities)
+  template <typename... QuantityUnitsT_>
+  explicit Quantities(FromQuantitiesArgs /*tag*/, const Quantity<typename Value<ValuesT>::type, QuantityUnitsT_>&... quantities)
       : Quantities(FromValuesArgs(), quantities.getValue()...) {
-    static_assert(std::is_same<std::tuple<Units...>, typename GetTypes<UnitsT>::type>::value, "Units do not match.");
+    static_assert(std::is_same<std::tuple<QuantityUnitsT_...>, typename GetTypes<UnitsT>::type>::value, "Units do not match.");
   }
 
   /**
@@ -142,10 +141,10 @@ class Quantities {
    * @tparam Units Units of the quantities, order and types must correspond to the units of the quantity matrix.
    * @param quantities Quantities.
    */
-  template <typename... Units>
-  explicit Quantities(FromQuantitiesArgs /*tag*/, Quantity<typename Scalar<ValuesT>::type, Units>&&... quantities)
+  template <typename... QuantityUnitsT_>
+  explicit Quantities(FromQuantitiesArgs /*tag*/, Quantity<typename Value<ValuesT>::type, QuantityUnitsT_>&&... quantities)
       : Quantities(FromValuesArgs(), quantities.getValue()...) {
-    static_assert(std::is_same<std::tuple<Units...>, typename GetTypes<UnitsT>::type>::value, "Units do not match.");
+    static_assert(std::is_same<std::tuple<QuantityUnitsT_...>, typename GetTypes<UnitsT>::type>::value, "Units do not match.");
   }
 
   template <typename... Ts>
@@ -168,176 +167,175 @@ struct GetTag<Quantities<ValuesT_, UnitsT_>, Ts...> {
  public:
   using type = typename IfThenElse<
       sizeof...(Ts) == 1,
-      typename IfThenElse<IsSpecialization<first, Quantities>::value, FromQuantities,
-                          typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantitiesArgs, FromValuesArgs>::type>::type,
+      typename IfThenElse<
+          IsSpecialization<first, Quantities>::value, FromQuantities,
+          typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantitiesArgs, FromValuesArgs>::type>::type,
       typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantitiesArgs, FromValuesArgs>::type>::type;
 };
 
-template <typename ValuesT_, typename Units>
-struct GetType<Quantities<ValuesT_, Units>> {
-  using type = Quantity<typename Quantities<ValuesT_, Units>::ScalarT, typename GetType<Units>::type>;
+template <typename ValuesT_, typename UnitsT_>
+struct GetType<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantity<typename Quantities<ValuesT_, UnitsT_>::ValueT, typename GetType<UnitsT_>::type>;
 };
 
-template <typename ValuesT_, typename Units>
-struct Dimension<Quantities<ValuesT_, Units>> {
+template <typename ValuesT_, typename UnitsT_>
+struct Dimension<Quantities<ValuesT_, UnitsT_>> {
   static constexpr int value = Dimension<ValuesT_>::value;
 };
 
-template <typename ValuesT_, typename Units>
-struct Rows<Quantities<ValuesT_, Units>> {
+template <typename ValuesT_, typename UnitsT_>
+struct Rows<Quantities<ValuesT_, UnitsT_>> {
   static constexpr int value = Rows<ValuesT_>::value;
 };
 
-template <typename ValuesT_, typename Units>
-struct Cols<Quantities<ValuesT_, Units>> {
+template <typename ValuesT_, typename UnitsT_>
+struct Cols<Quantities<ValuesT_, UnitsT_>> {
   static constexpr int value = Cols<ValuesT_>::value;
 };
 
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-struct Sum<Quantities<ValuesLhsT_, UnitsLhs>, Quantities<ValuesRhsT_, UnitsRhs>> {
-  using type = Quantities<typename Sum<ValuesLhsT_, ValuesRhsT_>::type, typename Sum<UnitsLhs, UnitsRhs>::type>;
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename Sum<ValuesLhsT_, ValuesRhsT_>::type, typename Sum<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-struct Difference<Quantities<ValuesLhsT_, UnitsLhs>, Quantities<ValuesRhsT_, UnitsRhs>> {
-  using type = Quantities<typename Difference<ValuesLhsT_, ValuesRhsT_>::type, typename Difference<UnitsLhs, UnitsRhs>::type>;
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct Difference<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename Difference<ValuesLhsT_, ValuesRhsT_>::type, typename Difference<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-struct Product<Quantities<ValuesLhsT_, UnitsLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = Quantities<typename Product<ValuesLhsT_, ValueRhs>::type, typename Product<UnitsLhs, UnitRhs>::type>;
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+struct Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
+  using type = Quantities<typename Product<ValuesLhsT_, ValueRhsT_>::type, typename Product<UnitsLhsT_, UnitRhsT_>::type>;
 };
-template <typename ValueLhs, typename UnitLhs, typename ValuesRhsT_, typename UnitsRhs>
-struct Product<Quantity<ValueLhs, UnitLhs>, Quantities<ValuesRhsT_, UnitsRhs>> {
-  using type = typename Product<Quantities<ValuesRhsT_, UnitsRhs>>::type;
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct Product<Quantity<ValueLhsT_, UnitLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = typename Product<Quantities<ValuesRhsT_, UnitsRhsT_>>::type;
 };
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-struct Product<Quantities<ValuesLhsT_, UnitsLhs>, Quantities<ValuesRhsT_, UnitsRhs>> {
-  using type = Quantities<typename Product<ValuesLhsT_, ValuesRhsT_>::type, typename Product<UnitsLhs, UnitsRhs>::type>;
-};
-
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-struct Division<Quantities<ValuesLhsT_, UnitsLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = Quantities<typename Division<ValuesLhsT_, ValueRhs>::type, typename Division<UnitsLhs, UnitRhs>::type>;
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename Product<ValuesLhsT_, ValuesRhsT_>::type, typename Product<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-template <typename ValuesT_, typename Units>
-struct Transpose<Quantities<ValuesT_, Units>> {
-  using type = Quantities<typename Transpose<ValuesT_>::type, typename Transpose<Units>::type>;
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
+  using type = Quantities<typename Division<ValuesLhsT_, ValueRhsT_>::type, typename Division<UnitsLhsT_, UnitRhsT_>::type>;
 };
 
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-struct DotProduct<Quantities<ValuesLhsT_, UnitsLhs>, Quantities<ValuesRhsT_, UnitsRhs>> {
-  using type = Quantity<typename DotProduct<ValuesLhsT_, ValuesRhsT_>::type, typename DotProduct<UnitsLhs, UnitsRhs>::type>;
+template <typename ValuesT_, typename UnitsT_>
+struct Transpose<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantities<typename Transpose<ValuesT_>::type, typename Transpose<UnitsT_>::type>;
 };
 
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-struct CrossProduct<Quantities<ValuesLhsT_, UnitsLhs>, Quantities<ValuesRhsT_, UnitsRhs>> {
-  using type =
-      Quantities<typename CrossProduct<ValuesLhsT_, ValuesRhsT_>::type, typename CrossProduct<UnitsLhs, UnitsRhs>::type>;
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct DotProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantity<typename DotProduct<ValuesLhsT_, ValuesRhsT_>::type, typename DotProduct<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-template <typename ValuesT_, typename Units, int ElementRowId, int ElementColId>
-struct Element<Quantities<ValuesT_, Units>, ElementRowId, ElementColId> {
-  using type = Quantity<typename Scalar<ValuesT_>::type, typename Element<Units, ElementRowId, ElementColId>::type>;
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct CrossProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename CrossProduct<ValuesLhsT_, ValuesRhsT_>::type, typename CrossProduct<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-template <typename ValuesT_, typename Units>
-struct Inverse<Quantities<ValuesT_, Units>> {
-  using type = Quantities<typename Inverse<ValuesT_>::type, typename Inverse<Units>::type>;
+template <typename ValuesT_, typename UnitsT_, int ElementRowId, int ElementColId>
+struct Element<Quantities<ValuesT_, UnitsT_>, ElementRowId, ElementColId> {
+  using type = Quantity<typename Value<ValuesT_>::type, typename Element<UnitsT_, ElementRowId, ElementColId>::type>;
 };
 
-template <typename ValuesT_, typename Units, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct Block<Quantities<ValuesT_, Units>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+template <typename ValuesT_, typename UnitsT_>
+struct Inverse<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantities<typename Inverse<ValuesT_>::type, typename Inverse<UnitsT_>::type>;
+};
+
+template <typename ValuesT_, typename UnitsT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct Block<Quantities<ValuesT_, UnitsT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   using type = Quantities<typename Block<ValuesT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-                              typename Block<Units, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+                          typename Block<UnitsT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
 };
 
-template <typename ValuesT_, typename Units>
-struct IsAbsolute<Quantities<ValuesT_, Units>> {
-  static constexpr bool value = IsAbsolute<Units>::value;
+template <typename ValuesT_, typename UnitsT_>
+struct IsAbsolute<Quantities<ValuesT_, UnitsT_>> {
+  static constexpr bool value = IsAbsolute<UnitsT_>::value;
 };
-template <typename ValuesT_, typename Units>
-struct MakeRelative<Quantities<ValuesT_, Units>> {
-  using type = Quantities<ValuesT_, typename MakeRelative<Units>::type>;
-  static auto make(const Quantities<ValuesT_, Units>& object) { return type(object.getValues()); }
+template <typename ValuesT_, typename UnitsT_>
+struct MakeRelative<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantities<ValuesT_, typename MakeRelative<UnitsT_>::type>;
+  static auto make(const Quantities<ValuesT_, UnitsT_>& object) { return type(object.getValues()); }
 };
-template <typename ValuesT_, typename Units>
-struct MakeAbsolute<Quantities<ValuesT_, Units>> {
-  using type = Quantities<ValuesT_, typename MakeAbsolute<Units>::type>;
-  static auto make(const Quantities<ValuesT_, Units>& object) { return type(object.getValues()); }
-};
-
-template <typename ValuesT_, typename Units>
-struct Evaluate<Quantities<ValuesT_, Units>> {
-  using type = Quantities<typename Evaluate<ValuesT_>::type, Units>;
+template <typename ValuesT_, typename UnitsT_>
+struct MakeAbsolute<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantities<ValuesT_, typename MakeAbsolute<UnitsT_>::type>;
+  static auto make(const Quantities<ValuesT_, UnitsT_>& object) { return type(object.getValues()); }
 };
 
-template <typename ValuesT_, typename Units>
-auto operator+(const Quantities<ValuesT_, Units>& rhs) {
+template <typename ValuesT_, typename UnitsT_>
+struct Evaluate<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantities<typename Evaluate<ValuesT_>::type, UnitsT_>;
+};
+
+template <typename ValuesT_, typename UnitsT_>
+auto operator+(const Quantities<ValuesT_, UnitsT_>& rhs) {
   return rhs;
 }
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-auto operator+(const Quantities<ValuesLhsT_, UnitsLhs>& lhs, const Quantities<ValuesRhsT_, UnitsRhs>& rhs) {
-  return typename Sum<Quantities<ValuesLhsT_, UnitsLhs>, Quantities<ValuesRhsT_, UnitsRhs>>::type(lhs.getValues() +
-                                                                                                            rhs.getValues());
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto operator+(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(lhs.getValues() + rhs.getValues());
 }
 
-template <typename ValuesT_, typename Units>
-auto operator-(const Quantities<ValuesT_, Units>& rhs) {
-  return Quantities<ValuesT_, Units>(-rhs.getValues());
+template <typename ValuesT_, typename UnitsT_>
+auto operator-(const Quantities<ValuesT_, UnitsT_>& rhs) {
+  return Quantities<ValuesT_, UnitsT_>(-rhs.getValues());
 }
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-auto operator-(const Quantities<ValuesLhsT_, UnitsLhs>& lhs, const Quantities<ValuesRhsT_, UnitsRhs>& rhs) {
-  return typename Difference<Quantities<ValuesLhsT_, UnitsLhs>, Quantities<ValuesRhsT_, UnitsRhs>>::type(lhs.getValues() -
-                                                                                                                   rhs.getValues());
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto operator-(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename Difference<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(lhs.getValues() -
+                                                                                                             rhs.getValues());
 }
 
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValueRhs>
-auto operator*(const Quantities<ValuesLhsT_, UnitsLhs>& lhs, const ValueRhs rhs) {
-  return lhs * Quantity<ValueRhs, typename AccessUnits<SpecializationDummy<ValueRhs>>::Dimensionless>(rhs);
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
+auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
+  return lhs * Quantity<ValueRhsT_, typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs);
 }
-template <typename ValueLhs, typename ValuesRhsT_, typename UnitsRhs>
-auto operator*(const ValueLhs lhs, const Quantities<ValuesRhsT_, UnitsRhs>& rhs) {
+template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto operator*(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return rhs * lhs;
 }
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-auto operator*(const Quantities<ValuesLhsT_, UnitsLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Product<Quantities<ValuesLhsT_, UnitsLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValues() * rhs.getValue());
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  return typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getValues() * rhs.getValue());
 }
-template <typename ValueLhs, typename UnitLhs, typename ValuesRhsT_, typename UnitsRhs>
-auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantities<ValuesRhsT_, UnitsRhs>& rhs) {
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto operator*(const Quantity<ValueLhsT_, UnitLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return rhs * lhs;
 }
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-auto operator*(const Quantities<ValuesLhsT_, UnitsLhs>& lhs, const Quantities<ValuesRhsT_, UnitsRhs>& rhs) {
-  return typename Product<Quantities<ValuesLhsT_, UnitsLhs>, Quantities<ValuesRhsT_, UnitsRhs>>::type(lhs.getValues() *
-                                                                                                                rhs.getValues());
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return
+      typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(lhs.getValues() * rhs.getValues());
 }
 
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValueRhs>
-auto operator/(const Quantities<ValuesLhsT_, UnitsLhs>& lhs, const ValueRhs rhs) {
-  using Dimensionless = typename Identity<typename Element<UnitsLhs, 0, 0>::type>::type;
-  return lhs / Quantity<ValueRhs, Dimensionless>(rhs);
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
+auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
+  using Dimensionless = typename Identity<typename Element<UnitsLhsT_, 0, 0>::type>::type;
+  return lhs / Quantity<ValueRhsT_, Dimensionless>(rhs);
 }
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValueRhs, typename UnitRhs>
-auto operator/(const Quantities<ValuesLhsT_, UnitsLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Division<Quantities<ValuesLhsT_, UnitsLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValues() / rhs.getValue());
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  return typename Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getValues() / rhs.getValue());
 }
 
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-bool operator==(const Quantities<ValuesLhsT_, UnitsLhs>& lhs, const Quantities<ValuesRhsT_, UnitsRhs>& rhs) {
-  static_assert(std::is_same<UnitsLhs, UnitsRhs>::value, "Units do not match.");
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+bool operator==(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  static_assert(std::is_same<UnitsLhsT_, UnitsRhsT_>::value, "Units do not match.");
   return lhs.getValues() == rhs.getValues();
 }
 
-template <typename ValuesLhsT_, typename UnitsLhs, typename ValuesRhsT_, typename UnitsRhs>
-bool operator!=(const Quantities<ValuesLhsT_, UnitsLhs>& lhs, const Quantities<ValuesRhsT_, UnitsRhs>& rhs) {
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+bool operator!=(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return !(lhs == rhs);
 }
 
-template <typename ValuesT_, typename Units>
-std::ostream& operator<<(std::ostream& lhs, const Quantities<ValuesT_, Units>& rhs) {
+template <typename ValuesT_, typename UnitsT_>
+std::ostream& operator<<(std::ostream& lhs, const Quantities<ValuesT_, UnitsT_>& rhs) {
   lhs << rhs.getValues();
   return lhs;
 }

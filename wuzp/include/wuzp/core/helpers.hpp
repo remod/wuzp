@@ -83,8 +83,8 @@ struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true
 // TODO(remod): This is a special case for the quantity matrix.
 template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantitiesT_>
 struct IsSpecializationQuantities : std::false_type {};
-template <template <typename, typename, template <typename, typename> typename> typename QuantitiesT_, typename ValuesT_,
-          typename UnitsT_, template <typename, typename> typename QuantityT_>
+template <template <typename, typename, template <typename, typename> typename> typename QuantitiesT_, typename ValuesT_, typename UnitsT_,
+          template <typename, typename> typename QuantityT_>
 struct IsSpecializationQuantities<QuantitiesT_<ValuesT_, UnitsT_, QuantityT_>, QuantitiesT_> : std::true_type {};
 
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>

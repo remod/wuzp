@@ -13,8 +13,8 @@ class ValuesWrapper {
  public:
   using ImplementationT = Implementation_;
   using ThisT = ValuesWrapper<ImplementationT>;
-  // TODO(remod): Use member types instead of traits for scalar, dim, rows, cols, in all classes?
-  using ScalarT = typename Scalar<ThisT>::type;
+  // TODO(remod): Use member types instead of traits for value, dim, rows, cols, in all classes?
+  using ValueT = typename Value<ThisT>::type;
 
   explicit ValuesWrapper(const ImplementationT& implementation) : implementation_(implementation) {}
   // TODO(remod): Is move here correct? Check all constructors.
@@ -54,12 +54,12 @@ class ValuesWrapper {
   auto getValue(int rowId, int colId) const { return implementation_(rowId, colId); }
 
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  operator typename Scalar<ThisT>::type() const {
+  operator typename Value<ThisT>::type() const {
     return implementation_(0, 0);
   }
 
   template <typename ImplementationOther_>
-  bool isApprox(const ValuesWrapper<ImplementationOther_>& other, const ScalarT precision = Precision<ScalarT>::value()) const {
+  bool isApprox(const ValuesWrapper<ImplementationOther_>& other, const ValueT precision = Precision<ValueT>::value()) const {
     return implementation_.isApprox(other.getImplementation(), precision);
   }
 
@@ -122,7 +122,7 @@ struct GetTag<ValuesWrapper<Xs...>, Ts...> {
 };
 
 template <typename Implementation_>
-struct Scalar<ValuesWrapper<Implementation_>> {
+struct Value<ValuesWrapper<Implementation_>> {
   using type = typename std::decay_t<Implementation_>::Scalar;
 };
 
@@ -250,12 +250,12 @@ auto operator-(const ValuesWrapper<ImplementationLhs_>& lhs, const ValuesWrapper
                                                                                                          rhs.getImplementation());
 }
 
-template <typename ImplementationLhs_, typename ValueRhs>
-auto operator*(const ValuesWrapper<ImplementationLhs_>& lhs, const ValueRhs rhs) {
-  return typename Product<ValuesWrapper<ImplementationLhs_>, ValueRhs>::type(lhs.getImplementation() * rhs);
+template <typename ImplementationLhs_, typename ValueRhsT_>
+auto operator*(const ValuesWrapper<ImplementationLhs_>& lhs, const ValueRhsT_ rhs) {
+  return typename Product<ValuesWrapper<ImplementationLhs_>, ValueRhsT_>::type(lhs.getImplementation() * rhs);
 }
-template <typename ValueLhs, typename ImplementationRhs_>
-auto operator*(const ValueLhs lhs, const ValuesWrapper<ImplementationRhs_>& rhs) {
+template <typename ValueLhsT_, typename ImplementationRhs_>
+auto operator*(const ValueLhsT_ lhs, const ValuesWrapper<ImplementationRhs_>& rhs) {
   return rhs * lhs;
 }
 template <typename ImplementationLhs_, typename ImplementationRhs_>
@@ -264,9 +264,9 @@ auto operator*(const ValuesWrapper<ImplementationLhs_>& lhs, const ValuesWrapper
                                                                                                       rhs.getImplementation());
 }
 
-template <typename ImplementationLhs_, typename ValueRhs>
-auto operator/(const ValuesWrapper<ImplementationLhs_>& lhs, const ValueRhs rhs) {
-  return typename Division<ValuesWrapper<ImplementationLhs_>, ValueRhs>::type(lhs.getImplementation() / rhs);
+template <typename ImplementationLhs_, typename ValueRhsT_>
+auto operator/(const ValuesWrapper<ImplementationLhs_>& lhs, const ValueRhsT_ rhs) {
+  return typename Division<ValuesWrapper<ImplementationLhs_>, ValueRhsT_>::type(lhs.getImplementation() / rhs);
 }
 
 template <typename ImplementationLhs_, typename ImplementationRhs_>

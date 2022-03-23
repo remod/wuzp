@@ -92,18 +92,18 @@ struct TransformationTraits<
 };
 
 template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs,
-          typename... UnitsLhs, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs, typename ScalarRhs,
-          typename CoordinateSystemRhs, typename... UnitsRhs>
-bool operator==(const ActiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, UnitsLhs...>& lhs,
-                const ActiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, UnitsRhs...>& rhs) {
+          typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs, typename ScalarRhs,
+          typename CoordinateSystemRhs, typename... UnitsRhsT_>
+bool operator==(const ActiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, UnitsLhsT_...>& lhs,
+                const ActiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, UnitsRhsT_...>& rhs) {
   return lhs.getTensor() == rhs.getTensor();
 }
 
 template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs,
-          typename... UnitsLhs, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs, typename ScalarRhs,
-          typename CoordinateSystemRhs, typename... UnitsRhs>
-bool operator!=(const ActiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, UnitsLhs...>& lhs,
-                const ActiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, UnitsRhs...>& rhs) {
+          typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs, typename ScalarRhs,
+          typename CoordinateSystemRhs, typename... UnitsRhsT_>
+bool operator!=(const ActiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, UnitsLhsT_...>& lhs,
+                const ActiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, UnitsRhsT_...>& rhs) {
   return !(lhs == rhs);
 }
 

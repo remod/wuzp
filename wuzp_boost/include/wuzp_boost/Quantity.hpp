@@ -19,28 +19,28 @@ using QuantityFromImplementation = wuzp::Quantity<typename ImplementationT_::val
 
 namespace wuzp {
 
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-struct Sum<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = wuzp_boost::QuantityFromImplementation<decltype(std::declval<Quantity<ValueLhs, UnitLhs>>().getImplementation() +
-                                                               std::declval<Quantity<ValueRhs, UnitRhs>>().getImplementation())>;
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+struct Sum<Quantity<ValueLhsT_, UnitLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
+  using type = wuzp_boost::QuantityFromImplementation<decltype(std::declval<Quantity<ValueLhsT_, UnitLhsT_>>().getImplementation() +
+                                                               std::declval<Quantity<ValueRhsT_, UnitRhsT_>>().getImplementation())>;
 };
 
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-struct Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = wuzp_boost::QuantityFromImplementation<decltype(std::declval<Quantity<ValueLhs, UnitLhs>>().getImplementation() -
-                                                               std::declval<Quantity<ValueRhs, UnitRhs>>().getImplementation())>;
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+struct Difference<Quantity<ValueLhsT_, UnitLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
+  using type = wuzp_boost::QuantityFromImplementation<decltype(std::declval<Quantity<ValueLhsT_, UnitLhsT_>>().getImplementation() -
+                                                               std::declval<Quantity<ValueRhsT_, UnitRhsT_>>().getImplementation())>;
 };
 
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-struct Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = wuzp_boost::QuantityFromImplementation<decltype(std::declval<Quantity<ValueLhs, UnitLhs>>().getImplementation() *
-                                                               std::declval<Quantity<ValueRhs, UnitRhs>>().getImplementation())>;
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+struct Product<Quantity<ValueLhsT_, UnitLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
+  using type = wuzp_boost::QuantityFromImplementation<decltype(std::declval<Quantity<ValueLhsT_, UnitLhsT_>>().getImplementation() *
+                                                               std::declval<Quantity<ValueRhsT_, UnitRhsT_>>().getImplementation())>;
 };
 
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-struct Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>> {
-  using type = wuzp_boost::QuantityFromImplementation<decltype(std::declval<Quantity<ValueLhs, UnitLhs>>().getImplementation() /
-                                                               std::declval<Quantity<ValueRhs, UnitRhs>>().getImplementation())>;
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+struct Division<Quantity<ValueLhsT_, UnitLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
+  using type = wuzp_boost::QuantityFromImplementation<decltype(std::declval<Quantity<ValueLhsT_, UnitLhsT_>>().getImplementation() /
+                                                               std::declval<Quantity<ValueRhsT_, UnitRhsT_>>().getImplementation())>;
 };
 
 template <typename Value, typename Unit>
@@ -78,48 +78,48 @@ template <typename Value, typename Unit>
 auto operator+(const Quantity<Value, Unit>& rhs) {
   return rhs;
 }
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-auto operator+(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Sum<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() + rhs.getValue());
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+auto operator+(const Quantity<ValueLhsT_, UnitLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  return typename Sum<Quantity<ValueLhsT_, UnitLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getValue() + rhs.getValue());
 }
 
 template <typename Value, typename Unit>
 auto operator-(const Quantity<Value, Unit>& rhs) {
   return Quantity<Value, Unit>(-rhs.getValue());
 }
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-auto operator-(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return typename Difference<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getValue() - rhs.getValue());
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+auto operator-(const Quantity<ValueLhsT_, UnitLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  return typename Difference<Quantity<ValueLhsT_, UnitLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getValue() - rhs.getValue());
 }
 
-template <typename ValueLhs, typename ValueRhs, typename UnitRhs>
-auto operator*(const ValueLhs lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return Quantity<ValueLhs, wuzp_boost::Dimensionless>(lhs) * rhs;
+template <typename ValueLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+auto operator*(const ValueLhsT_ lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  return Quantity<ValueLhsT_, wuzp_boost::Dimensionless>(lhs) * rhs;
 }
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs>
-auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const ValueRhs rhs) {
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_>
+auto operator*(const Quantity<ValueLhsT_, UnitLhsT_>& lhs, const ValueRhsT_ rhs) {
   return rhs * lhs;
 }
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-auto operator*(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return
-      typename Product<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getImplementation() * rhs.getImplementation());
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+auto operator*(const Quantity<ValueLhsT_, UnitLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  return typename Product<Quantity<ValueLhsT_, UnitLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getImplementation() *
+                                                                                                  rhs.getImplementation());
 }
 
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-auto operator/(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  return
-      typename Division<Quantity<ValueLhs, UnitLhs>, Quantity<ValueRhs, UnitRhs>>::type(lhs.getImplementation() / rhs.getImplementation());
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+auto operator/(const Quantity<ValueLhsT_, UnitLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  return typename Division<Quantity<ValueLhsT_, UnitLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getImplementation() /
+                                                                                                   rhs.getImplementation());
 }
 
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-bool operator==(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
-  static_assert(std::is_same<UnitLhs, UnitRhs>::value, "Units do not match.");
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+bool operator==(const Quantity<ValueLhsT_, UnitLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  static_assert(std::is_same<UnitLhsT_, UnitRhsT_>::value, "Units do not match.");
   return lhs.getImplementation() == rhs.getImplementation();
 }
 
-template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
-bool operator!=(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+bool operator!=(const Quantity<ValueLhsT_, UnitLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
   return !(lhs == rhs);
 }
 

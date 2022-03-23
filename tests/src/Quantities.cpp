@@ -91,8 +91,8 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename ScalarT, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
+template <typename ValueT, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
@@ -162,8 +162,8 @@ TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
 
 TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/Quantities.hpp"
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Unit.hpp"
 
@@ -179,8 +179,8 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename ScalarT, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
+template <typename ValueT, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT
@@ -240,8 +240,8 @@ TEST_F(TestQuantityMatrixF, SetGetQuantity) {  // NOLINT
 
 TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
                                                    ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/Quantities.hpp"
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Unit.hpp"
 
@@ -257,8 +257,8 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename ScalarT, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
+template <typename ValueT, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT

@@ -99,8 +99,8 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename ScalarT, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
+template <typename ValueT, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT
@@ -147,8 +147,8 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename ScalarT, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
+template <typename ValueT, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT
@@ -334,8 +334,8 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename ScalarT, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
+template <typename ValueT, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT

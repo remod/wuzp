@@ -136,20 +136,20 @@ struct TransformationTraits<
 };
 
 template <template <typename, int, int> typename ValuesLhsT_, typename ScalarLhs, typename CoordinateSystemLhs, int DimensionFromLhs,
-          int DimensionToLhs, typename... UnitsLhs, template <typename, int, int> typename ValuesRhsT_, typename ScalarRhs,
-          typename CoordinateSystemRhs, int DimensionFromRhs, int DimensionToRhs, typename... UnitsRhs>
+          int DimensionToLhs, typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, typename ScalarRhs,
+          typename CoordinateSystemRhs, int DimensionFromRhs, int DimensionToRhs, typename... UnitsRhsT_>
 bool operator==(
-    const ActiveLinearTransformation<ValuesLhsT_, ScalarLhs, CoordinateSystemLhs, DimensionFromLhs, DimensionToLhs, UnitsLhs...>& lhs,
-    const ActiveLinearTransformation<ValuesRhsT_, ScalarRhs, CoordinateSystemRhs, DimensionFromRhs, DimensionToRhs, UnitsRhs...>& rhs) {
+    const ActiveLinearTransformation<ValuesLhsT_, ScalarLhs, CoordinateSystemLhs, DimensionFromLhs, DimensionToLhs, UnitsLhsT_...>& lhs,
+    const ActiveLinearTransformation<ValuesRhsT_, ScalarRhs, CoordinateSystemRhs, DimensionFromRhs, DimensionToRhs, UnitsRhsT_...>& rhs) {
   return lhs.getTensor() == rhs.getTensor();
 }
 
 template <template <typename, int, int> typename ValuesLhsT_, typename ScalarLhs, typename CoordinateSystemLhs, int DimensionFromLhs,
-          int DimensionToLhs, typename... UnitsLhs, template <typename, int, int> typename ValuesRhsT_, typename ScalarRhs,
-          typename CoordinateSystemRhs, int DimensionFromRhs, int DimensionToRhs, typename... UnitsRhs>
+          int DimensionToLhs, typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, typename ScalarRhs,
+          typename CoordinateSystemRhs, int DimensionFromRhs, int DimensionToRhs, typename... UnitsRhsT_>
 bool operator!=(
-    const ActiveLinearTransformation<ValuesLhsT_, ScalarLhs, CoordinateSystemLhs, DimensionFromLhs, DimensionToLhs, UnitsLhs...>& lhs,
-    const ActiveLinearTransformation<ValuesRhsT_, ScalarRhs, CoordinateSystemRhs, DimensionFromRhs, DimensionToRhs, UnitsRhs...>& rhs) {
+    const ActiveLinearTransformation<ValuesLhsT_, ScalarLhs, CoordinateSystemLhs, DimensionFromLhs, DimensionToLhs, UnitsLhsT_...>& lhs,
+    const ActiveLinearTransformation<ValuesRhsT_, ScalarRhs, CoordinateSystemRhs, DimensionFromRhs, DimensionToRhs, UnitsRhsT_...>& rhs) {
   return !(lhs == rhs);
 }
 

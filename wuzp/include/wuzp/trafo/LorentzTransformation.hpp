@@ -23,8 +23,8 @@ auto getSpeedOfLight() {
 }
 
 // TODO(remod): Why do we need to explicitly specialize the template arguments when using this function?
-template <int DimensionV, template <typename, int, int> typename ValuesT, typename ScalarT, typename CoordinateSystemT>
-auto getInvariant(const SpacetimeVector<DimensionV, ValuesT, ScalarT, CoordinateSystemT>& vector) {
+template <int DimensionV, template <typename, int, int> typename ValuesT, typename ValueT, typename CoordinateSystemT>
+auto getInvariant(const SpacetimeVector<DimensionV, ValuesT, ValueT, CoordinateSystemT>& vector) {
   const auto quantities = vector.getQuantities();
   return pow<2>(quantities.template getQuantity<0, 0>()) - quantities.template block<1, 0, DimensionV - 1, 1>().squaredNorm();
 }

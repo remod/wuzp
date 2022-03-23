@@ -52,10 +52,9 @@ struct GetType {
   static_assert(FailOnInstantiation<GetType<T>>::value, "'GetType' trait not specialized for given type.");
 };
 
-// TODO(remod): Rename to GetValue.
 template <typename T>
-struct Scalar {
-  static_assert(FailOnInstantiation<Scalar<T>>::value, "'Scalar' trait not specialized for given type.");
+struct Value {
+  static_assert(FailOnInstantiation<Value<T>>::value, "'Value' trait not specialized for given type.");
 };
 
 template <typename T>
@@ -194,9 +193,9 @@ struct GetQuantityImplementation {
                 "'GetQuantityImplementation' trait not specialized for given types.");
 };
 
-template <typename ScalarT>
+template <typename ValueT>
 struct Precision {
-  static_assert(FailOnInstantiation<Precision<ScalarT>>::value, "'Precision' trait not specialized for given types.");
+  static_assert(FailOnInstantiation<Precision<ValueT>>::value, "'Precision' trait not specialized for given types.");
 };
 
 template <>
