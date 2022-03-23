@@ -5,13 +5,12 @@
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystemT_,
-          typename... Units>
-class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystemT_, Units...>> {
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystemT_, typename... Units>
+class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystemT_, Units...>> {
  public:
-  using ValueMatrixT = ValueMatrix<Scalar, Dimension, 1>;
+  using ValuesT = ValuesT_<Scalar, Dimension, 1>;
   using UnitMatrixT = TypeMatrix<Dimension, 1, Units...>;
-  using QuantityMatrixT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
+  using QuantityMatrixT = QuantityMatrix<ValuesT, UnitMatrixT>;
   using CoordinateSystemT = CoordinateSystemT_;
   using TensorT = Tensor<1, 0, QuantityMatrixT, CoordinateSystemT>;
   static_assert(!IsAbsolute<UnitMatrixT>::value, "Units are not relative.");
@@ -28,15 +27,15 @@ class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValueMat
   TensorT tensor_;
 };
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units>
-struct GetCoordinateSystem<ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>> {
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units>
+struct GetCoordinateSystem<ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>> {
   using type = CoordinateSystem;
 };
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units,
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units,
           typename NewCoordinateSystem>
-struct CastCoordinateSystem<ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>, NewCoordinateSystem> {
-  using type = ActiveTranslation<ValueMatrix, Dimension, Scalar, NewCoordinateSystem, Units...>;
+struct CastCoordinateSystem<ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>, NewCoordinateSystem> {
+  using type = ActiveTranslation<ValuesT_, Dimension, Scalar, NewCoordinateSystem, Units...>;
 };
 
 }  // namespace wuzp
@@ -45,11 +44,11 @@ struct CastCoordinateSystem<ActiveTranslation<ValueMatrix, Dimension, Scalar, Co
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units,
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units,
           typename QuantityMatrixT_, typename CoordinateSystemT_>
-struct TransformationTraits<ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>,
+struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>,
                             Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>> {
-  static auto transform(const ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>& transformation,
+  static auto transform(const ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>& transformation,
                         const Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>& object) {
     if constexpr (IsAbsolute<Tensor<1, 0, QuantityMatrixT_, CoordinateSystemT_>>::value) {
       auto result = object;
@@ -67,61 +66,59 @@ struct TransformationTraits<ActiveTranslation<ValueMatrix, Dimension, Scalar, Co
   }
 };
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units,
-          template <typename, int, int> typename ValueMatrixOther, int DimensionOther, typename ScalarOther, typename CoordinateSystemOther,
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units,
+          template <typename, int, int> typename ValuesOtherT_, int DimensionOther, typename ScalarOther, typename CoordinateSystemOther,
           typename... UnitsOther>
-struct TransformationTraits<ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>,
-                            ActiveTranslation<ValueMatrixOther, DimensionOther, ScalarOther, CoordinateSystemOther, UnitsOther...>> {
-  static auto transform(
-      const ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>& transformation,
-      const ActiveTranslation<ValueMatrixOther, DimensionOther, ScalarOther, CoordinateSystemOther, UnitsOther...>& object) {
-    return ActiveTranslation<ValueMatrixOther, DimensionOther, ScalarOther, CoordinateSystemOther, UnitsOther...>(
+struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>,
+                            ActiveTranslation<ValuesOtherT_, DimensionOther, ScalarOther, CoordinateSystemOther, UnitsOther...>> {
+  static auto transform(const ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>& transformation,
+                        const ActiveTranslation<ValuesOtherT_, DimensionOther, ScalarOther, CoordinateSystemOther, UnitsOther...>& object) {
+    return ActiveTranslation<ValuesOtherT_, DimensionOther, ScalarOther, CoordinateSystemOther, UnitsOther...>(
         transformation.transform(object.getTensor()));
   }
 };
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units,
-          template <typename, int, int> typename ValueMatrixOther, typename ScalarOther, typename CoordinateSystemOther,
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units,
+          template <typename, int, int> typename ValuesOtherT_, typename ScalarOther, typename CoordinateSystemOther,
           int DimensionFromOther, int DimensionToOther, typename... UnitsOther>
 struct TransformationTraits<
-    ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>,
-    ActiveLinearTransformation<ValueMatrixOther, ScalarOther, CoordinateSystemOther, DimensionFromOther, DimensionToOther, UnitsOther...>> {
-  static auto transform(const ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>& /*transformation*/,
-                        const ActiveLinearTransformation<ValueMatrixOther, ScalarOther, CoordinateSystemOther, DimensionFromOther,
+    ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>,
+    ActiveLinearTransformation<ValuesOtherT_, ScalarOther, CoordinateSystemOther, DimensionFromOther, DimensionToOther, UnitsOther...>> {
+  static auto transform(const ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>& /*transformation*/,
+                        const ActiveLinearTransformation<ValuesOtherT_, ScalarOther, CoordinateSystemOther, DimensionFromOther,
                                                          DimensionToOther, UnitsOther...>& object) {
     return object;
   }
 };
 
-template <template <typename, int, int> typename ValueMatrixLhs, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs,
-          typename... UnitsLhs, template <typename, int, int> typename ValueMatrixRhs, int DimensionRhs, typename ScalarRhs,
+template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs,
+          typename... UnitsLhs, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs, typename ScalarRhs,
           typename CoordinateSystemRhs, typename... UnitsRhs>
-bool operator==(const ActiveTranslation<ValueMatrixLhs, DimensionLhs, ScalarLhs, CoordinateSystemLhs, UnitsLhs...>& lhs,
-                const ActiveTranslation<ValueMatrixRhs, DimensionRhs, ScalarRhs, CoordinateSystemRhs, UnitsRhs...>& rhs) {
+bool operator==(const ActiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, UnitsLhs...>& lhs,
+                const ActiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, UnitsRhs...>& rhs) {
   return lhs.getTensor() == rhs.getTensor();
 }
 
-template <template <typename, int, int> typename ValueMatrixLhs, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs,
-          typename... UnitsLhs, template <typename, int, int> typename ValueMatrixRhs, int DimensionRhs, typename ScalarRhs,
+template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhs, typename ScalarLhs, typename CoordinateSystemLhs,
+          typename... UnitsLhs, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs, typename ScalarRhs,
           typename CoordinateSystemRhs, typename... UnitsRhs>
-bool operator!=(const ActiveTranslation<ValueMatrixLhs, DimensionLhs, ScalarLhs, CoordinateSystemLhs, UnitsLhs...>& lhs,
-                const ActiveTranslation<ValueMatrixRhs, DimensionRhs, ScalarRhs, CoordinateSystemRhs, UnitsRhs...>& rhs) {
+bool operator!=(const ActiveTranslation<ValuesLhsT_, DimensionLhs, ScalarLhs, CoordinateSystemLhs, UnitsLhs...>& lhs,
+                const ActiveTranslation<ValuesRhsT_, DimensionRhs, ScalarRhs, CoordinateSystemRhs, UnitsRhs...>& rhs) {
   return !(lhs == rhs);
 }
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units>
-std::ostream& operator<<(std::ostream& stream,
-                         const ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, Units...>& translation) {
-  stream << translation.getTensor();
-  return stream;
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem, typename... Units>
+std::ostream& operator<<(std::ostream& lhs, const ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, Units...>& rhs) {
+  lhs << rhs.getTensor();
+  return lhs;
 }
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename Scalar, typename CoordinateSystem>
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem>
 using ActiveSpatialTranslation =
-    ActiveTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, typename AccessUnits<SpecializationDummy<Scalar>>::Length>;
-template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using ActiveSpatialTranslation2 = ActiveSpatialTranslation<ValueMatrix, 2, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem>
-using ActiveSpatialTranslation3 = ActiveSpatialTranslation<ValueMatrix, 3, Scalar, CoordinateSystem>;
+    ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, typename AccessUnits<SpecializationDummy<Scalar>>::Length>;
+template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+using ActiveSpatialTranslation2 = ActiveSpatialTranslation<ValuesT_, 2, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+using ActiveSpatialTranslation3 = ActiveSpatialTranslation<ValuesT_, 3, Scalar, CoordinateSystem>;
 
 }  // namespace wuzp

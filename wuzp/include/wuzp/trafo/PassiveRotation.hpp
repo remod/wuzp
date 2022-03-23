@@ -5,14 +5,14 @@
 namespace wuzp {
 
 // TODO(remod): When instantiating a spacial rotation, test for determinant == 1.
-template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To,
+template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To,
           int Dimension>
-using PassiveSpatialRotation = PassiveLinearTransformation<ValueMatrix, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
+using PassiveSpatialRotation = PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
                                                            typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
-template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using PassiveSpatialRotation2 = PassiveSpatialRotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 2>;
-template <template <typename, int, int> typename ValueMatrix, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using PassiveSpatialRotation3 = PassiveSpatialRotation<ValueMatrix, Scalar, CoordinateSystem, From, To, 3>;
+template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
+using PassiveSpatialRotation2 = PassiveSpatialRotation<ValuesT_, Scalar, CoordinateSystem, From, To, 2>;
+template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
+using PassiveSpatialRotation3 = PassiveSpatialRotation<ValuesT_, Scalar, CoordinateSystem, From, To, 3>;
 
 // template <typename Derived, typename From, typename To, typename DimensionlessQuantity>
 // class QuaternionBase : public PassiveTransformation<Derived, From, To> {
@@ -47,14 +47,14 @@ using PassiveSpatialRotation3 = PassiveSpatialRotation<ValueMatrix, Scalar, Coor
 // template <typename From, typename To, typename ScalarT>
 // struct TransformationTraits<Quaternion<ScalarT, From, To>, PositionVector<3, ScalarT, From>> {
 //  static auto transform(const Quaternion<ScalarT, From, To>& transformation, const PositionVector<3, ScalarT, From>& object) {
-//    return PositionVector<3, ScalarT, To>(transformation.impl_ * object.getValueMatrix());
+//    return PositionVector<3, ScalarT, To>(transformation.impl_ * object.getValues());
 //  }
 //};
 //
 // template <typename From, typename To, typename ScalarT>
 // struct TransformationTraits<Quaternion<ScalarT, From, To>, PositionPoint<3, ScalarT, From>> {
 //  static auto transform(const Quaternion<ScalarT, From, To>& transformation, const PositionPoint<3, ScalarT, From>& object) {
-//    return PositionPoint<3, ScalarT, To>(transformation.impl_ * object.getValueMatrix());
+//    return PositionPoint<3, ScalarT, To>(transformation.impl_ * object.getValues());
 //  }
 //};
 

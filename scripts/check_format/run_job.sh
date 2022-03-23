@@ -16,13 +16,13 @@ CMAKE_C_COMPILER=gcc
 CMAKE_CXX_COMPILER=g++
 BUILD_TYPE=Debug
 UNITS_IMPLEMENTATION=0
-VALUE_MATRIX_IMPLEMENTATION=0
+VALUES_IMPLEMENTATION=0
 SOURCE_DIR=${WRITABLE_REPO_DIR}/tests
 
 # Run all steps.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh &&
-${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION} &&
+${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/check_format.sh ${WRITABLE_REPO_DIR} ${BUILD_DIR}
 RETURN_CODE=$?
 

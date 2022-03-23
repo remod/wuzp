@@ -15,7 +15,7 @@ namespace units = wuzp_units;  // NOLINT
 namespace units = wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 namespace vm = wuzp_eigen;
 
@@ -56,9 +56,9 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 // public:
 //  static constexpr int DimensionTo = 4;
 //  static constexpr int DimensionFrom = 3;
-//  using ValueMatrixT = ValueMatrix<double, DimensionTo, DimensionFrom>;
+//  using ValuesT = ValueMatrix<double, DimensionTo, DimensionFrom>;
 //  using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
-//  using QuantityMatrixT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
+//  using QuantityMatrixT = QuantityMatrix<ValuesT, UnitMatrixT>;
 //  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
 //  using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
 //  using TensorT = Tensor<1, 1, CoordinateMatrixT>;

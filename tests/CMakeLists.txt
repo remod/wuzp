@@ -5,8 +5,8 @@ set(REPO_DIR ${PROJECT_SOURCE_DIR}/..)
 
 set(UNITS_IMPLEMENTATION_WUZP 0)
 set(UNITS_IMPLEMENTATION_BOOST 1)
-set(VALUE_MATRIX_IMPLEMENTATION_WUZP 0)
-set(VALUE_MATRIX_IMPLEMENTATION_EIGEN 1)
+set(VALUES_IMPLEMENTATION_WUZP 0)
+set(VALUES_IMPLEMENTATION_EIGEN 1)
 
 option(FROM_SOURCE "True: Build packages from source. False: Search for installed packages." ON)
 option(ENABLE_TESTS "Enables the definition of a 'tests' target to run the unit tests." OFF)
@@ -16,7 +16,7 @@ option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clan
 
 # Use `set` instead of `option` for non-boolean values.
 set(UNITS_IMPLEMENTATION ${UNITS_IMPLEMENTATION_WUZP} CACHE STRING "Define what kind of units implementation to use: ${UNITS_IMPLEMENTATION_WUZP} = WUZP, ${UNITS_IMPLEMENTATION_BOOST} = Boost.")
-set(VALUE_MATRIX_IMPLEMENTATION ${VALUE_MATRIX_IMPLEMENTATION_EIGEN} CACHE STRING "Define what kind of matrix implementation to use: ${VALUE_MATRIX_IMPLEMENTATION_WUZP} = WUZP, ${VALUE_MATRIX_IMPLEMENTATION_EIGEN} = Eigen.")
+set(VALUES_IMPLEMENTATION ${VALUES_IMPLEMENTATION_EIGEN} CACHE STRING "Define what kind of matrix implementation to use: ${VALUES_IMPLEMENTATION_WUZP} = WUZP, ${VALUES_IMPLEMENTATION_EIGEN} = Eigen.")
 
 message(STATUS "------------------------------------------")
 message(STATUS "Building with the following configuration:")
@@ -29,7 +29,7 @@ message(STATUS "ENABLE_CODE_COVERAGE:        ${ENABLE_CODE_COVERAGE}")
 message(STATUS "ENABLE_FORMAT:               ${ENABLE_FORMAT}")
 message(STATUS "ENABLE_TIDY:                 ${ENABLE_TIDY}")
 message(STATUS "UNITS_IMPLEMENTATION:        ${UNITS_IMPLEMENTATION}")
-message(STATUS "VALUE_MATRIX_IMPLEMENTATION: ${VALUE_MATRIX_IMPLEMENTATION}")
+message(STATUS "VALUES_IMPLEMENTATION:       ${VALUES_IMPLEMENTATION}")
 message(STATUS "------------------------------------------")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -43,9 +43,9 @@ add_compile_definitions(CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
 add_compile_definitions(UNITS_IMPLEMENTATION=${UNITS_IMPLEMENTATION})
 add_compile_definitions(UNITS_IMPLEMENTATION_WUZP=${UNITS_IMPLEMENTATION_WUZP})
 add_compile_definitions(UNITS_IMPLEMENTATION_BOOST=${UNITS_IMPLEMENTATION_BOOST})
-add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION=${VALUE_MATRIX_IMPLEMENTATION})
-add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_WUZP=${VALUE_MATRIX_IMPLEMENTATION_WUZP})
-add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_EIGEN=${VALUE_MATRIX_IMPLEMENTATION_EIGEN})
+add_compile_definitions(VALUES_IMPLEMENTATION=${VALUES_IMPLEMENTATION})
+add_compile_definitions(VALUES_IMPLEMENTATION_WUZP=${VALUES_IMPLEMENTATION_WUZP})
+add_compile_definitions(VALUES_IMPLEMENTATION_EIGEN=${VALUES_IMPLEMENTATION_EIGEN})
 
 if (${FROM_SOURCE})
     add_subdirectory(${REPO_DIR}/wuzp wuzp_build)
@@ -59,7 +59,7 @@ if (${UNITS_IMPLEMENTATION} EQUAL ${UNITS_IMPLEMENTATION_BOOST})
         find_package(wuzp_boost REQUIRED)
     endif()
 endif()
-if (${VALUE_MATRIX_IMPLEMENTATION} EQUAL ${VALUE_MATRIX_IMPLEMENTATION_EIGEN})
+if (${VALUES_IMPLEMENTATION} EQUAL ${VALUES_IMPLEMENTATION_EIGEN})
     if (${FROM_SOURCE})
         add_subdirectory(${REPO_DIR}/wuzp_eigen wuzp_eigen_build)
     else()
@@ -86,7 +86,7 @@ if (${ENABLE_TESTS})
         src/TypeMatrix.cpp
         src/UnitMatrix.cpp
         src/Quantity.cpp
-            src/ValueMatrixWrapper.cpp
+        src/ValuesWrapper.cpp
         src/QuantityMatrix.cpp
         src/Tensor.cpp
         src/ActiveTranslation.cpp
@@ -107,7 +107,7 @@ if (${ENABLE_TESTS})
         # TODO(remod): Also use "namespaced" format.
         target_link_libraries(tests PRIVATE wuzp_boost)
     endif()
-    if (${VALUE_MATRIX_IMPLEMENTATION} EQUAL ${VALUE_MATRIX_IMPLEMENTATION_EIGEN})
+    if (${VALUES_IMPLEMENTATION} EQUAL ${VALUES_IMPLEMENTATION_EIGEN})
         target_link_libraries(tests PRIVATE wuzp_eigen)
     endif()
     gtest_discover_tests(tests)

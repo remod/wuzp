@@ -39,10 +39,10 @@ struct FromQuantitiesLabel {};
 using FromQuantities = Tag<FromQuantitiesLabel>;
 struct FromQuantityMatrixArgsLabel {};
 using FromQuantityMatrixArgs = Tag<FromQuantityMatrixArgsLabel>;
-struct FromValueMatrixLabel {};
-using FromValueMatrix = Tag<FromValueMatrixLabel>;
-struct FromValueMatrixArgsLabel {};
-using FromValueMatrixArgs = Tag<FromValueMatrixArgsLabel>;
+struct FromValuesLabel {};
+using FromValues = Tag<FromValuesLabel>;
+struct FromValuesArgsLabel {};
+using FromValuesArgs = Tag<FromValuesArgsLabel>;
 
 template <typename T>
 struct GetTypes {
@@ -181,7 +181,7 @@ struct CastCoordinateSystem {
 };
 template <typename To, typename T>
 auto castCoordinateSystem(T t) {
-  return typename CastCoordinateSystem<T, To>::type(t.getValueMatrix());
+  return typename CastCoordinateSystem<T, To>::type(t.getValues());
 }
 
 template <typename UnitT>

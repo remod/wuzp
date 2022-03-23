@@ -75,8 +75,8 @@ struct GetQuantityImplementation<ValueT, Unit<UnitImplementationT>> {
 };
 
 template <typename Value, typename Unit>
-auto operator+(const Quantity<Value, Unit>& quantity) {
-  return quantity;
+auto operator+(const Quantity<Value, Unit>& rhs) {
+  return rhs;
 }
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator+(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
@@ -84,8 +84,8 @@ auto operator+(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, 
 }
 
 template <typename Value, typename Unit>
-auto operator-(const Quantity<Value, Unit>& quantity) {
-  return Quantity<Value, Unit>(-quantity.getValue());
+auto operator-(const Quantity<Value, Unit>& rhs) {
+  return Quantity<Value, Unit>(-rhs.getValue());
 }
 template <typename ValueLhs, typename UnitLhs, typename ValueRhs, typename UnitRhs>
 auto operator-(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs, UnitRhs>& rhs) {
@@ -124,9 +124,9 @@ bool operator!=(const Quantity<ValueLhs, UnitLhs>& lhs, const Quantity<ValueRhs,
 }
 
 template <typename Value, typename Unit>
-std::ostream& operator<<(std::ostream& stream, const Quantity<Value, Unit>& quantity) {
-  stream << quantity.getValue();
-  return stream;
+std::ostream& operator<<(std::ostream& lhs, const Quantity<Value, Unit>& rhs) {
+  lhs << rhs.getValue();
+  return lhs;
 }
 
 template <typename ValueT, typename UnitT>

@@ -16,7 +16,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 using namespace wuzp_eigen;  // NOLINT
 
@@ -52,8 +52,8 @@ TEST(TestQuantityMatrix2, GetTag) {  // NOLINT
   static_assert(std::is_same_v<GetTag<MyQuantityMatrix, const MyQuantityMatrix&>::type, FromQuantityMatrix>);
   static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyQuantityMatrix&&>::type, FromQuantityMatrix>);
   static_assert(std::is_same_v<GetTag<MyQuantityMatrix, Quantity<double, Length>>::type, FromQuantities>);
-  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyValueMatrix>::type, FromValueMatrixArgs>);
-  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, double>::type, FromValueMatrixArgs>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyValueMatrix>::type, FromValuesArgs>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, double>::type, FromValuesArgs>);
 }
 
 TEST(TestQuantityMatrix2, EmptyConstructor) {  // NOLINT
@@ -74,7 +74,7 @@ TEST(TestQuantityMatrix2, ConstructImplicityFromQuantityMatrix) {  // NOLINT
   EXPECT_EQ(quantityMatrix, quantityMatrix3);
 }
 
-TEST(TestQuantityMatrix2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
+TEST(TestQuantityMatrix2, ConstructImplicitlyFromValues) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
@@ -89,7 +89,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ScalarT, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
@@ -115,7 +115,7 @@ TEST(TestQuantityMatrix2, ConstructExplicitlyFromQuantities) {  // NOLINT
   using MyQuantity = Quantity<int, Length>;
   const MyQuantityMatrix quantityMatrix(MyQuantity(1), MyQuantity(2), MyQuantity(3), MyQuantity(4), MyQuantity(5), MyQuantity(6));
   const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
-  EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
+  EXPECT_EQ(quantityMatrix.getValues(), valueMatrix);
 }
 
 TEST(TestQuantityMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
@@ -124,7 +124,7 @@ TEST(TestQuantityMatrix2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyQuantityMatrix quantityMatrix(valueMatrix);
-  EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
+  EXPECT_EQ(quantityMatrix.getValues(), valueMatrix);
 }
 
 TEST(TestQuantityMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
@@ -133,7 +133,7 @@ TEST(TestQuantityMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
   const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyQuantityMatrix quantityMatrix(1, 2, 3, 4, 5, 6);
-  EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
+  EXPECT_EQ(quantityMatrix.getValues(), valueMatrix);
 }
 
 // TODO(remod): Support construction from const values.
@@ -150,7 +150,7 @@ TEST(TestQuantityMatrix2, ConstructExplicitlyFromValues) {  // NOLINT
 //  const int v5 = 5;
 //  const int v6 = 6;
 //  const MyQuantityMatrix quantityMatrix(v1, v2, v3, v4, v5, v6);
-//  EXPECT_EQ(quantityMatrix.getValueMatrix(), valueMatrix);
+//  EXPECT_EQ(quantityMatrix.getValues(), valueMatrix);
 //}
 
 TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
@@ -177,7 +177,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ScalarT, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
@@ -213,8 +213,8 @@ class TestQuantityMatrixF : public ::testing::Test {
 
  protected:
   void SetUp() override {
-    quantityMatrix1_.setValueMatrix(valueMatrix1_);
-    quantityMatrix2_.setValueMatrix(valueMatrix2_);
+    quantityMatrix1_.setValues(valueMatrix1_);
+    quantityMatrix2_.setValues(valueMatrix2_);
   }
 
  private:
@@ -225,9 +225,9 @@ class TestQuantityMatrixF : public ::testing::Test {
 };
 
 TEST_F(TestQuantityMatrixF, SetGetValueMatrix) {  // NOLINT
-  EXPECT_EQ(getQuantityMatrix1().getValueMatrix(), getValueMatrix1());
-  getQuantityMatrix1().setValueMatrix(getValueMatrix2());
-  EXPECT_EQ(getQuantityMatrix1().getValueMatrix(), getValueMatrix2());
+  EXPECT_EQ(getQuantityMatrix1().getValues(), getValueMatrix1());
+  getQuantityMatrix1().setValues(getValueMatrix2());
+  EXPECT_EQ(getQuantityMatrix1().getValues(), getValueMatrix2());
 }
 
 TEST_F(TestQuantityMatrixF, SetGetQuantity) {  // NOLINT
@@ -255,7 +255,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ScalarT, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
@@ -403,11 +403,11 @@ class TestQuantityMatrixInvertible : public ::testing::Test {
   using MyUnitMatrix = TypeMatrix<2, 2, Time>;
   using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, MyUnitMatrix>;
 
-  const MyValueMatrix& getValueMatrix() const { return valueMatrix_; }
+  const MyValueMatrix& getValues() const { return valueMatrix_; }
   const MyQuantityMatrix& getQuantityMatrix() const { return quantityMatrix_; }
 
  protected:
-  void SetUp() override { quantityMatrix_.setValueMatrix(valueMatrix_); }
+  void SetUp() override { quantityMatrix_.setValues(valueMatrix_); }
 
  private:
   MyValueMatrix valueMatrix_{4.0, 7.0, 2.0, 6.0};

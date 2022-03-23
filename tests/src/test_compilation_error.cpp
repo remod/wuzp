@@ -19,15 +19,15 @@ std::string getCMakeListsContent() {
          "add_compile_definitions(UNITS_IMPLEMENTATION=" TO_STRING(UNITS_IMPLEMENTATION) ")\n"
          "add_compile_definitions(UNITS_IMPLEMENTATION_WUZP=" TO_STRING(UNITS_IMPLEMENTATION_WUZP) ")\n"
          "add_compile_definitions(UNITS_IMPLEMENTATION_BOOST=" TO_STRING(UNITS_IMPLEMENTATION_BOOST) ")\n"
-         "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION) ")\n"
-         "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_WUZP=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION_WUZP) ")\n"
-         "add_compile_definitions(VALUE_MATRIX_IMPLEMENTATION_EIGEN=" TO_STRING(VALUE_MATRIX_IMPLEMENTATION_EIGEN) ")\n"
+         "add_compile_definitions(VALUES_IMPLEMENTATION=" TO_STRING(VALUES_IMPLEMENTATION) ")\n"
+         "add_compile_definitions(VALUES_IMPLEMENTATION_WUZP=" TO_STRING(VALUES_IMPLEMENTATION_WUZP) ")\n"
+         "add_compile_definitions(VALUES_IMPLEMENTATION_EIGEN=" TO_STRING(VALUES_IMPLEMENTATION_EIGEN) ")\n"
          "\n"
          "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp wuzp_build)\n"
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
          "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_boost wuzp_boost_build)\n"
 #endif
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
          "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_eigen wuzp_eigen_build)\n"
 #endif
          "\n"
@@ -36,7 +36,7 @@ std::string getCMakeListsContent() {
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
          "target_link_libraries(tests PRIVATE wuzp_boost)\n"
 #endif
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
          "target_link_libraries(tests PRIVATE wuzp_eigen)\n"
 #endif
       ;

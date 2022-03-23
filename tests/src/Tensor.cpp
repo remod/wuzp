@@ -20,7 +20,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
@@ -97,7 +97,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ScalarT, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
@@ -131,7 +131,7 @@ TEST(TestTensor2, ConstructExplicitlyFromQuantityMatrix) {  // NOLINT
   EXPECT_EQ(tensor.getQuantityMatrix(), quantityMatrix);
 }
 
-TEST(TestTensor2, ConstructImplicitlyFromValueMatrix) {  // NOLINT
+TEST(TestTensor2, ConstructImplicitlyFromValues) {  // NOLINT
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
 #include "wuzp/core/QuantityMatrix.hpp"
 #include "wuzp/core/Tensor.hpp"
@@ -145,7 +145,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ScalarT, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;
@@ -176,7 +176,7 @@ TEST(TestTensor2, ConstructExplicitlyFromValueMatrix) {  // NOLINT
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(valueMatrix);
-  EXPECT_EQ(tensor.getValueMatrix(), valueMatrix);
+  EXPECT_EQ(tensor.getValues(), valueMatrix);
 }
 
 TEST(TestTensor2, ConstructExplicitlyFromValues) {  // NOLINT
@@ -186,7 +186,7 @@ TEST(TestTensor2, ConstructExplicitlyFromValues) {  // NOLINT
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(1, 2, 3, 4, 5, 6);
-  EXPECT_EQ(tensor.getValueMatrix(), valueMatrix);
+  EXPECT_EQ(tensor.getValues(), valueMatrix);
 }
 
 class TestTensorF : public ::testing::Test {
@@ -332,7 +332,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ScalarT, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<ScalarT, Rows, Cols>;

@@ -83,9 +83,9 @@ struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true
 // TODO(remod): This is a special case for the quantity matrix.
 template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantityMatrix>
 struct IsSpecializationQuantityMatrix : std::false_type {};
-template <template <typename, typename, template <typename, typename> typename> typename QuantityMatrix, typename ValueMatrixT_,
+template <template <typename, typename, template <typename, typename> typename> typename QuantityMatrix, typename ValuesT_,
           typename UnitMatrixT_, template <typename, typename> typename QuantityT_>
-struct IsSpecializationQuantityMatrix<QuantityMatrix<ValueMatrixT_, UnitMatrixT_, QuantityT_>, QuantityMatrix> : std::true_type {};
+struct IsSpecializationQuantityMatrix<QuantityMatrix<ValuesT_, UnitMatrixT_, QuantityT_>, QuantityMatrix> : std::true_type {};
 
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>
 struct GetSubsetImpl;

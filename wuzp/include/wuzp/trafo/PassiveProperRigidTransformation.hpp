@@ -33,16 +33,16 @@ class PassiveProperRigidTransformationTemplate
   Translation translation_;
 };
 
-template <template <typename, int, int> typename ValueMatrix, int Dimension, typename CoordinateSystem, typename From, typename To,
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename CoordinateSystem, typename From, typename To,
           typename Scalar>
 using PassiveProperRigidTransformation = PassiveProperRigidTransformationTemplate<
     CoordinateSystem, From, To,
-    PassiveSpatialRotation<ValueMatrix, Scalar, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
-    PassiveSpatialTranslation<ValueMatrix, Dimension, Scalar, CoordinateSystem, internal::Intermediate<From, To>, To>>;
-template <template <typename, int, int> typename ValueMatrix, typename CoordinateSystem, typename From, typename To, typename Scalar>
-using PassiveProperRigidTransformation2 = PassiveProperRigidTransformation<ValueMatrix, 2, CoordinateSystem, From, To, Scalar>;
-template <template <typename, int, int> typename ValueMatrix, typename CoordinateSystem, typename From, typename To, typename Scalar>
-using PassiveProperRigidTransformation3 = PassiveProperRigidTransformation<ValueMatrix, 3, CoordinateSystem, From, To, Scalar>;
+    PassiveSpatialRotation<ValuesT_, Scalar, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
+    PassiveSpatialTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, internal::Intermediate<From, To>, To>>;
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename From, typename To, typename Scalar>
+using PassiveProperRigidTransformation2 = PassiveProperRigidTransformation<ValuesT_, 2, CoordinateSystem, From, To, Scalar>;
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename From, typename To, typename Scalar>
+using PassiveProperRigidTransformation3 = PassiveProperRigidTransformation<ValuesT_, 3, CoordinateSystem, From, To, Scalar>;
 
 template <typename CoordinateSystem, typename From, typename To, typename Rotation, typename Translation, typename Object>
 struct TransformationTraits<PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>, Object> {
