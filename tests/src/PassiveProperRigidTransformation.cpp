@@ -68,10 +68,10 @@ TEST(TestPassiveProperRigidTransformation3, TransformVelocityVector) {  // NOLIN
 
 TEST(TestPassiveProperRigidTransformation3, TransformPointCloud) {  // NOLINT
   using MyValues = Values<double, 3, 2>;
-  using MyQuantityMatrix = Quantities<MyValues, TypeMatrix<3, 2, AbsoluteLength>>;
-  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
+  using MyQuantities = Quantities<MyValues, TypeMatrix<3, 2, AbsoluteLength>>;
+  using Object = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
   using Transformation = PassiveProperRigidTransformation3<Values, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, double>;
-  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemB>;
+  using TransformedObject = Tensor<1, 0, MyQuantities, CoordinateSystemB>;
   const Object object(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const TransformedObject transformedObject(1.0, 4.0, 3.0, 6.0, -3.0, -6.0);
   const Transformation::Rotation rotation(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0);  // Passive rotation of pi/2 around x.

@@ -6,7 +6,7 @@ namespace wuzp {
  * Wrapper for the actual implementation of a value container.
  * This is required as some libraries, e.g. Eigen, use different types for matrices and expressions, but we want a single trait
  * specialization to catch all of them. We cannot use CRTP, as we need this wrapper for unambiguous template specialization.
- * @tparam ImplementationT_ ImplementationT of the value matrix.
+ * @tparam ImplementationT_ ImplementationT of the values.
  */
 template <typename ImplementationT_>
 class ValuesWrapper {
@@ -180,7 +180,7 @@ struct AttemptCastToScalar {
 
 // Rules to implement product:
 // 1. If the LHS is a scalar (dimension == 0), revert the order and reuse the implementation where the scalar is on the RHS.
-// 2. To avoid overhead, do not create temporary objects to reuse implementation, e.g. creating a 0x0 matrix from a scalar.
+// 2. To avoid overhead, do not create temporary objects to reuse implementation, e.g. creating a 1x1 matrix from a scalar.
 template <typename ImplementationLhsT_, int DimensionLhsV_, typename ImplementationRhsT_, int DimensionRhsV_>
 struct ProductImpl;
 template <typename ImplementationLhsT_, typename ImplementationRhsT_, int DimensionRhsV_>
@@ -237,7 +237,7 @@ struct Transpose<ValuesWrapper<ImplementationT_>> {
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct DotProduct<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>> {
-  // Do not use the dot-product implementation, as we do not want a scalar as output, but a 0x0 matrix which is our implementation for
+  // Do not use the dot-product implementation, as we do not want a scalar as output, but a 1x1 matrix which is our implementation for
   // scalars.
   using type = typename Product<typename Transpose<ValuesWrapper<ImplementationLhsT_>>::type, ValuesWrapper<ImplementationRhsT_>>::type;
 };

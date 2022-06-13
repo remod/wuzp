@@ -80,7 +80,7 @@ template <typename T, template <int, int, typename...> typename Template>
 struct IsSpecializationInts : std::false_type {};
 template <template <int, int, typename...> typename Template, int Int0, int Int1, typename... Args>
 struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true_type {};
-// TODO(remod): This is a special case for the quantity matrix.
+// TODO(remod): This is a special case for the quantities.
 template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantitiesT_>
 struct IsSpecializationQuantities : std::false_type {};
 template <template <typename, typename, template <typename, typename> typename> typename QuantitiesT_, typename ValuesT_, typename UnitsT_,

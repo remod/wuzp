@@ -86,7 +86,7 @@ class Quantities {
   }
 
   /**
-   * Set the values of the quantity matrix.
+   * Set the values of the quantities.
    * WARNING: This method circumvents quantity type safety.
    * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
    * @param values Values.
@@ -102,10 +102,10 @@ class Quantities {
   }
 
   /**
-   * Get the values of the quantity matrix.
+   * Get the values of the quantities.
    * WARNING: This method circumvents quantity type safety.
    * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
-   * @return Values of the quantity matrix.
+   * @return Values of the quantities.
    */
   const ValuesT& getValues() const { return values_; }
 
@@ -149,31 +149,31 @@ class Quantities {
 
   //  template <bool IsHomogeneousV = IsHomogeneous<UnitsT>::value, typename = std::enable_if_t<IsHomogeneousV>>
   auto norm() const {
-    static_assert(!IsAbsolute<ThisT>::value, "Quantity matrix is not relative.");
+    static_assert(!IsAbsolute<ThisT>::value, "Quantities are not relative.");
     return typename GetType<ThisT>::type(values_.norm());
   }
 
   //  template <bool IsHomogeneousV = IsHomogeneous<UnitsT>::value, typename = std::enable_if_t<IsHomogeneousV>>
   auto squaredNorm() const {
-    static_assert(!IsAbsolute<ThisT>::value, "Quantity matrix is not relative.");
+    static_assert(!IsAbsolute<ThisT>::value, "Quantities are not relative.");
     return typename Power<typename GetType<ThisT>::type, Integer<2>>::type(values_.squaredNorm());
   }
 
  private:
   template <typename ValuesOtherT_, typename UnitsOther>
-  // Allow other value matrix types to support lazy evaluation.
+  // Allow other values types to support lazy evaluation.
   Quantities(FromSimilar /*tag*/, const Quantities<ValuesOtherT_, UnitsOther>& other) : values_(other.getValues()) {
     static_assert(std::is_same<UnitsT, UnitsOther>::value, "Units do not match.");
   }
   template <typename ValuesOtherT_, typename UnitsOther>
-  // Allow other value matrix types to support lazy evaluation.
+  // Allow other values types to support lazy evaluation.
   Quantities(FromSimilar /*tag*/, Quantities<ValuesOtherT_, UnitsOther>&& other) : values_(std::move(other.getValues())) {
     static_assert(std::is_same<UnitsT, UnitsOther>::value, "Units do not match.");
   }
 
   /**
-   * Construct a quantity matrix from quantities.
-   * @tparam Units Units of the quantities, order and types must correspond to the units of the quantity matrix.
+   * Constructor from individual quantities.
+   * @tparam Units Units of the quantities, order and types must correspond to the units of the quantities.
    * @param quantities Quantities.
    */
   template <typename... QuantityValueT_, typename... QuantityUnitsT_>
@@ -183,8 +183,8 @@ class Quantities {
   }
 
   /**
-   * Construct a quantity matrix from quantities.
-   * @tparam Units Units of the quantities, order and types must correspond to the units of the quantity matrix.
+   * Constructor from individual quantities.
+   * @tparam Units Units of the quantities, order and types must correspond to the units of the quantities.
    * @param quantities Quantities.
    */
   template <typename... QuantityValueT_, typename... QuantityUnitsT_>

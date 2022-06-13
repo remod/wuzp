@@ -56,9 +56,9 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 //  static constexpr int DimensionFrom = 3;
 //  using ValuesT = Values<double, DimensionTo, DimensionFrom>;
 //  using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
-//  using QuantityMatrixT = Quantities<ValuesT, UnitMatrixT>;
+//  using QuantitiesT = Quantities<ValuesT, UnitMatrixT>;
 //  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
-//  using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
+//  using CoordinateMatrixT = CoordinateMatrix<QuantitiesT, CoordinateSystemMatrixT>;
 //  using TensorT = Tensor<1, 1, CoordinateMatrixT>;
 //
 //  template <typename... Args>
