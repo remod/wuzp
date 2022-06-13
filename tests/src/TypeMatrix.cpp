@@ -21,7 +21,7 @@ using namespace wuzp;  // NOLINT
 // using RationalMatrix = TypeMatrix<Rows, Cols, Rationals...>;
 
 template <int Size>
-using ValueMatrixIdentity = DiagonalTypeMatrix<Size, Integer<0>, Integer<1>>;
+using ValuesIdentity = DiagonalTypeMatrix<Size, Integer<0>, Integer<1>>;
 
 TEST(TestTypeMatrix, Conversions) {  // NOLINT
   static_assert(std::is_same<HomogeneousTuple<3, int>, std::tuple<int, int, int>>::value);
@@ -52,10 +52,10 @@ TEST(TestTypeMatrix, Cols) {  // NOLINT
 }
 
 TEST(TestTypeMatrix, DiagonalTypeMatrix) {  // NOLINT
-  static_assert(std::is_same<ValueMatrixIdentity<1>, TypeMatrix<1, 1, Integer<1>>>::value);
-  static_assert(std::is_same<ValueMatrixIdentity<2>, TypeMatrix<2, 2, Integer<1>, Integer<0>, Integer<0>, Integer<1>>>::value);
-  static_assert(std::is_same<ValueMatrixIdentity<3>, TypeMatrix<3, 3, Integer<1>, Integer<0>, Integer<0>, Integer<0>, Integer<1>,
-                                                                Integer<0>, Integer<0>, Integer<0>, Integer<1>>>::value);
+  static_assert(std::is_same<ValuesIdentity<1>, TypeMatrix<1, 1, Integer<1>>>::value);
+  static_assert(std::is_same<ValuesIdentity<2>, TypeMatrix<2, 2, Integer<1>, Integer<0>, Integer<0>, Integer<1>>>::value);
+  static_assert(std::is_same<ValuesIdentity<3>, TypeMatrix<3, 3, Integer<1>, Integer<0>, Integer<0>, Integer<0>, Integer<1>, Integer<0>,
+                                                           Integer<0>, Integer<0>, Integer<1>>>::value);
 }
 
 TEST(TestTypeMatrix, Block) {  // NOLINT

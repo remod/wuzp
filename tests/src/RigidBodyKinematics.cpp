@@ -8,27 +8,25 @@
 using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/Values.hpp"
 template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+using Values = wuzp_eigen::Values<Scalar, Rows, Cols>;
 
 using AngleQuantity = wuzp::QuantityD<Angle>;
 
 // TODO(remod): Turn this into a proper function.
 TEST(TestRigidBodyKinematics, CalculateVelocity) {  // NOLINT
-  using VelocityVector = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
-  using TranslationVector = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
-  using RotationalVelocityVector = AngularVelocityVector3<ValueMatrix, double, CoordinateSystemA>;  // Against inertial system.
+  using VelocityVector = VelocityVector3<Values, double, CoordinateSystemA>;
+  using TranslationVector = PositionVector3<Values, double, CoordinateSystemA>;
+  using RotationalVelocityVector = AngularVelocityVector3<Values, double, CoordinateSystemA>;  // Against inertial system.
   const VelocityVector velocity(1.0, 2.0, 3.0);
   const TranslationVector translation(0.0, 0.0, 1.0);
   const RotationalVelocityVector rotationalVelocity(4.0, 1.0, 2.0);
@@ -42,10 +40,10 @@ TEST(TestRigidBodyKinematics, CalculateVelocity) {  // NOLINT
 }
 
 TEST(TestRigidBodyKinematics, CalculateAcceleration) {  // NOLINT
-  using AccelerationVector = AccelerationVector3<ValueMatrix, double, CoordinateSystemA>;
-  using TranslationVector = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
-  using RotationalVelocityVector = AngularVelocityVector3<ValueMatrix, double, CoordinateSystemA>;          // Against inertial system.
-  using RotationalAccelerationVector = AngularAccelerationVector3<ValueMatrix, double, CoordinateSystemA>;  // Against inertial system.
+  using AccelerationVector = AccelerationVector3<Values, double, CoordinateSystemA>;
+  using TranslationVector = PositionVector3<Values, double, CoordinateSystemA>;
+  using RotationalVelocityVector = AngularVelocityVector3<Values, double, CoordinateSystemA>;          // Against inertial system.
+  using RotationalAccelerationVector = AngularAccelerationVector3<Values, double, CoordinateSystemA>;  // Against inertial system.
   const AccelerationVector acceleration(1.0, 2.0, 3.0);
   const TranslationVector translation(0.0, 0.0, 1.0);
   const RotationalAccelerationVector rotationalAcceleration(2.0, -1.0, 3.0);

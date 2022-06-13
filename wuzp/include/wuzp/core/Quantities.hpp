@@ -1,10 +1,10 @@
 #pragma once
 
+#include <cmath>
 #include <ostream>
 #include <type_traits>
 
 #include "wuzp/core/Integer.hpp"
-#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"

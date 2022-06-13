@@ -4,7 +4,6 @@
 
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Quantities.hpp"
-#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"

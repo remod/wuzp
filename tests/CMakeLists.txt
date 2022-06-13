@@ -15,8 +15,8 @@ option(ENABLE_FORMAT "Enables the definition of a 'format' target to format the 
 option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clang tidy warnings." OFF)
 
 # Use `set` instead of `option` for non-boolean values.
-set(UNITS_IMPLEMENTATION ${UNITS_IMPLEMENTATION_WUZP} CACHE STRING "Define what kind of units implementation to use: ${UNITS_IMPLEMENTATION_WUZP} = WUZP, ${UNITS_IMPLEMENTATION_BOOST} = Boost.")
-set(VALUES_IMPLEMENTATION ${VALUES_IMPLEMENTATION_EIGEN} CACHE STRING "Define what kind of matrix implementation to use: ${VALUES_IMPLEMENTATION_WUZP} = WUZP, ${VALUES_IMPLEMENTATION_EIGEN} = Eigen.")
+set(UNITS_IMPLEMENTATION ${UNITS_IMPLEMENTATION_WUZP} CACHE STRING "Define which kind of units implementation to use: ${UNITS_IMPLEMENTATION_WUZP} = WUZP, ${UNITS_IMPLEMENTATION_BOOST} = Boost.")
+set(VALUES_IMPLEMENTATION ${VALUES_IMPLEMENTATION_EIGEN} CACHE STRING "Define which kind of values implementation to use: ${VALUES_IMPLEMENTATION_WUZP} = WUZP, ${VALUES_IMPLEMENTATION_EIGEN} = Eigen.")
 
 message(STATUS "------------------------------------------")
 message(STATUS "Building with the following configuration:")
@@ -84,7 +84,7 @@ if (${ENABLE_TESTS})
         src/Integer.cpp
         src/Unit.cpp
         src/TypeMatrix.cpp
-            src/Units.cpp
+        src/Units.cpp
         src/Quantity.cpp
         src/ValuesWrapper.cpp
         src/Quantities.cpp
@@ -130,7 +130,7 @@ endif()
 
 if (${ENABLE_FORMAT} OR ${ENABLE_TIDY})
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
-        # A /*/ matches one or more level of directories.
+        # A /*/ matches one or more levels of directories.
         ${REPO_DIR}/wuzp/include/*/*.hpp
         ${REPO_DIR}/wuzp_boost/include/*/*.hpp
         ${REPO_DIR}/wuzp_eigen/include/*/*.hpp

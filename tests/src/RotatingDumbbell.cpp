@@ -6,17 +6,15 @@
 #include "wuzp/core/traits.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 namespace units = wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 namespace units = wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
+#include "wuzp_eigen/Values.hpp"
 namespace vm = wuzp_eigen;
 
 // From https://en.wikipedia.org/wiki/Mass_matrix#Rotating_dumbbell
@@ -25,7 +23,7 @@ using CartesianCoordinateSystem = wuzp::CoordinateSystem<CartesianCoordinateSyst
 struct MinimalCoordinateSystemName {};
 using MinimalCoordinateSystem = wuzp::CoordinateSystem<MinimalCoordinateSystemName>;
 
-using MinimalCoordinatesValueVector = vm::ValueMatrix<double, 3, 1>;
+using MinimalCoordinatesValueVector = vm::Values<double, 3, 1>;
 using MinimalCoordinatesUnitVector = wuzp::TypeMatrix<3, 1, units::AbsoluteLength, units::AbsoluteLength, units::AbsoluteAngle>;
 using MinimalCoordinatesQuantityVector = wuzp::Quantities<MinimalCoordinatesValueVector, MinimalCoordinatesUnitVector>;
 using MinimalCoordinatesDtUnitVector = wuzp::TypeMatrix<3, 1, units::Velocity, units::Velocity, units::AngularVelocity>;
@@ -33,16 +31,16 @@ using MinimalCoordinatesDtQuantityVector = wuzp::Quantities<MinimalCoordinatesVa
 using MinimalCoordinates = wuzp::Vector<MinimalCoordinatesQuantityVector, MinimalCoordinateSystem>;
 using MinimalCoordinatesDt = wuzp::Vector<MinimalCoordinatesDtQuantityVector, MinimalCoordinateSystem>;
 
-using PositionPoint = wuzp::PositionPoint2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
-using DirectionVector = wuzp::DirectionVector2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
-using VelocityVector = wuzp::VelocityVector2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
+using PositionPoint = wuzp::PositionPoint2<vm::Values, double, CartesianCoordinateSystem>;
+using DirectionVector = wuzp::DirectionVector2<vm::Values, double, CartesianCoordinateSystem>;
+using VelocityVector = wuzp::VelocityVector2<vm::Values, double, CartesianCoordinateSystem>;
 
 using RadiusQuantity = wuzp::QuantityD<units::Length>;
 using MassQuantity = wuzp::QuantityD<units::Mass>;
 using EnergyQuantity = wuzp::QuantityD<units::Energy>;
 using AngleQuantity = wuzp::QuantityD<units::Angle>;
 
-using MassMatrixValues = vm::ValueMatrix<double, 3, 3>;
+using MassMatrixValues = vm::Values<double, 3, 3>;
 using MassLength = wuzp::Product<units::Mass, wuzp::Division<units::Length, units::Angle>::type>::type;
 using MassLength2 = wuzp::Product<MassLength, wuzp::Division<units::Length, units::Angle>::type>::type;
 using MassMatrixUnits =
@@ -56,7 +54,7 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 // public:
 //  static constexpr int DimensionTo = 4;
 //  static constexpr int DimensionFrom = 3;
-//  using ValuesT = ValueMatrix<double, DimensionTo, DimensionFrom>;
+//  using ValuesT = Values<double, DimensionTo, DimensionFrom>;
 //  using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
 //  using QuantityMatrixT = Quantities<ValuesT, UnitMatrixT>;
 //  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
