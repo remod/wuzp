@@ -128,27 +128,27 @@ template <typename Types>
 struct Dimension<TypeMatrixImpl<1, 1, Types>> {
   static constexpr int value = 0;
 };
-template <int _Rows, typename Types>
-struct Dimension<TypeMatrixImpl<_Rows, 1, Types>> {
+template <int RowsV_, typename Types>
+struct Dimension<TypeMatrixImpl<RowsV_, 1, Types>> {
   static constexpr int value = 1;
 };
-template <int _Cols, typename Types>
-struct Dimension<TypeMatrixImpl<1, _Cols, Types>> {
+template <int ColsV_, typename Types>
+struct Dimension<TypeMatrixImpl<1, ColsV_, Types>> {
   static constexpr int value = 1;
 };
-template <int _Rows, int _Cols, typename Types>
-struct Dimension<TypeMatrixImpl<_Rows, _Cols, Types>> {
+template <int RowsV_, int ColsV_, typename Types>
+struct Dimension<TypeMatrixImpl<RowsV_, ColsV_, Types>> {
   static constexpr int value = 2;
 };
 
-template <int _Rows, int _Cols, typename Types>
-struct Rows<TypeMatrixImpl<_Rows, _Cols, Types>> {
-  static constexpr int value = _Rows;
+template <int RowsV_, int ColsV_, typename Types>
+struct Rows<TypeMatrixImpl<RowsV_, ColsV_, Types>> {
+  static constexpr int value = RowsV_;
 };
 
-template <int _Rows, int _Cols, typename Types>
-struct Cols<TypeMatrixImpl<_Rows, _Cols, Types>> {
-  static constexpr int value = _Cols;
+template <int RowsV_, int ColsV_, typename Types>
+struct Cols<TypeMatrixImpl<RowsV_, ColsV_, Types>> {
+  static constexpr int value = ColsV_;
 };
 
 template <int Rows, int Cols, typename... Types, int ElementRowId, int ElementColId>

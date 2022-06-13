@@ -34,6 +34,10 @@ using TestQuantityMatrix = Quantities<TestValueMatrix<Rows, Cols>, TestUnitMatri
 template <int Rows, int Cols>
 using TestTensor = Tensor<1, 0, TestQuantityMatrix<Rows, Cols>, CoordinateSystemA>;
 
+using LengthQuantityI = QuantityI<Length>;
+using MassQuantityI = QuantityI<Mass>;
+using AreaQuantityI = QuantityI<Area>;
+
 TEST(TestTensor2, Dimension) {  // NOLINT
   static_assert(Dimension<TestTensor<1, 1>>::value == 0);
   static_assert(Dimension<TestTensor<3, 1>>::value == 1);
@@ -54,13 +58,15 @@ TEST(TestTensor2, GetTag) {  // NOLINT
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
-  static_assert(std::is_same_v<GetTag<MyTensor, MyTensor>::type, FromTensor>);
-  static_assert(std::is_same_v<GetTag<MyTensor, const MyTensor&>::type, FromTensor>);
-  static_assert(std::is_same_v<GetTag<MyTensor, MyTensor&&>::type, FromTensor>);
-  static_assert(std::is_same_v<GetTag<MyTensor, MyQuantityMatrix>::type, FromQuantities>);
-  static_assert(std::is_same_v<GetTag<MyTensor, Quantity<double, Length>>::type, FromQuantitiesArgs>);
-  static_assert(std::is_same_v<GetTag<MyTensor, MyValueMatrix>::type, FromQuantitiesArgs>);
-  static_assert(std::is_same_v<GetTag<MyTensor, double>::type, FromQuantitiesArgs>);
+  static_assert(std::is_same_v<GetTag<MyTensor, MyTensor>::type, FromSimilar>);
+  static_assert(std::is_same_v<GetTag<MyTensor, const MyTensor&>::type, FromSimilar>);
+  static_assert(std::is_same_v<GetTag<MyTensor, MyTensor&&>::type, FromSimilar>);
+  static_assert(std::is_same_v<GetTag<MyTensor, MyQuantityMatrix>::type, FromImplementationArgs>);
+  static_assert(std::is_same_v<GetTag<MyTensor, QuantityD<Length>>::type, FromImplementationArgs>);
+  static_assert(std::is_same_v<GetTag<MyTensor, QuantityD<Length>, QuantityD<Length>>::type, FromImplementationArgs>);
+  static_assert(std::is_same_v<GetTag<MyTensor, MyValueMatrix>::type, FromImplementationArgs>);
+  static_assert(std::is_same_v<GetTag<MyTensor, double>::type, FromImplementationArgs>);
+  static_assert(std::is_same_v<GetTag<MyTensor, double, int>::type, FromImplementationArgs>);
 }
 
 TEST(TestTensor2, EmptyConstructor) {  // NOLINT
@@ -212,23 +218,23 @@ TEST_F(TestTensorF, EqualityOperator) {  // NOLINT
 }
 
 TEST_F(TestTensorF, GetQuantityCompileTime) {  // NOLINT
-  EXPECT_EQ(getHomogeneousTensor().getQuantity(0, 0), (Quantity<int, Length>(1.0)));
-  EXPECT_EQ(getHomogeneousTensor().getQuantity(1, 0), (Quantity<int, Length>(4.0)));
+  EXPECT_EQ((getTensor().getQuantity<0, 0>()), LengthQuantityI(1));
+  EXPECT_EQ((getTensor().getQuantity<1, 0>()), MassQuantityI(4));
 }
 
 TEST_F(TestTensorF, GetQuantityRunTime) {  // NOLINT
-  EXPECT_EQ((getTensor().getQuantity<0, 0>()), (Quantity<int, Length>(1.0)));
-  EXPECT_EQ((getTensor().getQuantity<1, 0>()), (Quantity<int, Mass>(4.0)));
+  EXPECT_EQ(getHomogeneousTensor().getQuantity(0, 0), LengthQuantityI(1));
+  EXPECT_EQ(getHomogeneousTensor().getQuantity(1, 0), LengthQuantityI(4));
 }
 
 TEST_F(TestTensorF, SetQuantityCompileTime) {  // NOLINT
-  getHomogeneousTensor().setQuantity(1, 0, Quantity<int, Length>(1.0));
-  EXPECT_EQ(getHomogeneousTensor().getQuantity(1, 0), (Quantity<int, Length>(1.0)));
+  getHomogeneousTensor().setQuantity(1, 0, LengthQuantityI(1));
+  EXPECT_EQ(getHomogeneousTensor().getQuantity(1, 0), LengthQuantityI(1));
 }
 
 TEST_F(TestTensorF, SetQuantityRunTime) {  // NOLINT
-  getTensor().setQuantity<1, 0>(Quantity<int, Mass>(1.0));
-  EXPECT_EQ((getTensor().getQuantity<1, 0>()), (Quantity<int, Mass>(1.0)));
+  getTensor().setQuantity<1, 0>(MassQuantityI(1));
+  EXPECT_EQ((getTensor().getQuantity<1, 0>()), MassQuantityI(1));
 }
 
 TEST_F(TestTensorF, Block) {  // NOLINT
@@ -255,12 +261,11 @@ TEST(TestTensor2, ProductQuantity) {  // NOLINT
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using MyValue = int;
-  using MyQuantity = Quantity<MyValue, Length>;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
   using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
   using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA>;
   const MyValue value{2};
-  const MyQuantity quantity(value);
+  const LengthQuantityI quantity(value);
   const MyValueMatrix valueMatrix(1, 2, 3, 4);
   const MyTensor tensor(valueMatrix);
   EXPECT_EQ(tensor * quantity, MyTensorResult(valueMatrix * value));
@@ -286,12 +291,11 @@ TEST(TestTensor2, DivisionQuantity) {  // NOLINT
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
   using MyValue = int;
-  using MyQuantity = Quantity<MyValue, Length>;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Dimensionless>;
   using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
   using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA>;
   const MyValue value{2};
-  const MyQuantity quantity(value);
+  const LengthQuantityI quantity(value);
   const MyValueMatrix valueMatrix(1, 2, 3, 4);
   const MyTensor tensor(valueMatrix);
   EXPECT_EQ(tensor / quantity, MyTensorResult(valueMatrix / value));
@@ -314,8 +318,7 @@ TEST(TestTensor2, Dot) {  // NOLINT
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
-  using MyQuantityResult = Quantity<int, Area>;
-  EXPECT_EQ(MyTensor(1, 2, 3, 4).dotProduct(MyTensor(0, 3, -1, 2)), MyQuantityResult(11));
+  EXPECT_EQ(MyTensor(1, 2, 3, 4).dotProduct(MyTensor(0, 3, -1, 2)), AreaQuantityI(11));
 }
 
 TEST(TestTensor2, DotBadFrames) {  // NOLINT

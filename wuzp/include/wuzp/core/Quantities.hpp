@@ -13,6 +13,21 @@
 namespace wuzp {
 
 template <typename ValuesT_, typename UnitsT_>
+class Quantities;
+
+// Defining a scalar to be equivalent to a 1x1 matrix is not 100% clean, but the implicit conversions help to avoid duplicated code and
+// explicit casting, e.g. when calculating the inner product of a vector x^T * x. https://math.stackexchange.com/q/65002
+template <typename ValueT_, typename UnitT_>
+using Quantity = Quantities<ValueT_, TypeMatrixImpl<1, 1, std::tuple<UnitT_>>>;
+
+template <typename UnitT_>
+using QuantityI = Quantity<typename AccessValues<SpecializationDummy<UnitT_>>::ValueI, UnitT_>;
+template <typename UnitT_>
+using QuantityF = Quantity<typename AccessValues<SpecializationDummy<UnitT_>>::ValueF, UnitT_>;
+template <typename UnitT_>
+using QuantityD = Quantity<typename AccessValues<SpecializationDummy<UnitT_>>::ValueD, UnitT_>;
+
+template <typename ValuesT_, typename UnitsT_>
 class Quantities {
  public:
   using ValuesT = ValuesT_;
@@ -27,39 +42,53 @@ class Quantities {
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromQuantities>) Quantities(const T0& t0, const Ts&... ts)
+  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) Quantities(const T0& t0, const Ts&... ts)
       : Quantities(typename GetTag<ThisT, T0, Ts...>::type(), t0, ts...) {}
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromQuantities>) Quantities(T0&& t0, Ts&&... ts)
+  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) Quantities(T0&& t0, Ts&&... ts)
       : Quantities(typename GetTag<ThisT, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
   static ThisT zero() { return ThisT(ValuesT::zero()); }
   static ThisT random() { return ThisT(ValuesT::random()); }
 
-  template <int RowId, int ColId>
-  auto getQuantity() const {
-    return typename Element<ThisT, RowId, ColId>::type(values_.template getValue<RowId, ColId>());
+  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
+  auto get() const {
+    return get<0, 0>();
   }
 
-  auto getQuantity(const int rowId, const int colId) const { return typename GetType<ThisT>::type(values_.getValue(rowId, colId)); }
-
-  template <int RowId, int ColId, typename Quantity>
-  void setQuantity(const Quantity& quantity) {
-    static_assert(std::is_same<typename Element<UnitsT, RowId, ColId>::type, typename Quantity::UnitT>::value, "Units do not match.");
-    values_.template setValue<RowId, ColId>(quantity.getValue());
+  template <int RowId, int ColId, int Dimension = Dimension<ThisT>::value>
+  auto get() const {
+    return typename Element<ThisT, RowId, ColId>::type(values_.template get<RowId, ColId>());
   }
 
-  template <typename Quantity>
-  void setQuantity(const int rowId, const int colId, const Quantity& quantity) {
-    static_assert(IsHomogeneous<ThisT>::value && std::is_same<typename Element<UnitsT, 0, 0>::type, typename Quantity::UnitT>::value,
-                  "Units do not match.");
-    values_.setValue(rowId, colId, quantity.getValue());
+  template <int Dimension = Dimension<ThisT>::value>
+  auto get(const int rowId, const int colId) const {
+    return typename GetType<ThisT>::type(values_.get(rowId, colId));
+  }
+
+  template <typename ValueT_, typename UnitT_, int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
+  void set(const Quantity<ValueT_, UnitT_>& quantity) {
+    return set<0, 0>(quantity);
+  }
+
+  template <int RowId, int ColId, typename ValueT_, typename UnitT_, int Dimension = Dimension<ThisT>::value>
+  void set(const Quantity<ValueT_, UnitT_>& quantity) {
+    static_assert(std::is_same<typename Element<UnitsT, RowId, ColId>::type, UnitT_>::value, "Units do not match.");
+    values_.template set<RowId, ColId>(quantity.getValue());
+  }
+
+  template <typename ValueT_, typename UnitT_, int Dimension = Dimension<ThisT>::value>
+  void set(const int rowId, const int colId, const Quantity<ValueT_, UnitT_>& quantity) {
+    static_assert(IsHomogeneous<ThisT>::value, "Quantities are not homogeneous.");
+    static_assert(std::is_same<typename Element<UnitsT, 0, 0>::type, UnitT_>::value, "Units do not match.");
+    values_.set(rowId, colId, quantity.getValue());
   }
 
   /**
    * Set the values of the quantity matrix.
    * WARNING: This method circumvents quantity type safety.
+   * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
    * @param values Values.
    */
   template <typename ValuesOtherT_>
@@ -67,12 +96,29 @@ class Quantities {
     values_ = values;
   }
 
+  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
+  void setValue(ValueT value) {
+    values_.set(value);
+  }
+
   /**
    * Get the values of the quantity matrix.
    * WARNING: This method circumvents quantity type safety.
+   * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
    * @return Values of the quantity matrix.
    */
   const ValuesT& getValues() const { return values_; }
+
+  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
+  ValueT getValue() const {
+    return getValues();
+  }
+
+  //  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
+  //// NOLINTNEXTLINE(google-explicit-constructor)
+  //  operator typename Element<ThisT, 0, 0>::type() const {
+  //    return typename Element<ThisT, 0, 0>::type(values_(0, 0));
+  //  }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   bool isApprox(const Quantities<ValuesOtherT_, UnitsOtherT_>& other, const ValueT precision = Precision<ValueT>::value()) const {
@@ -116,12 +162,12 @@ class Quantities {
  private:
   template <typename ValuesOtherT_, typename UnitsOther>
   // Allow other value matrix types to support lazy evaluation.
-  Quantities(FromQuantities /*tag*/, const Quantities<ValuesOtherT_, UnitsOther>& other) : values_(other.getValues()) {
+  Quantities(FromSimilar /*tag*/, const Quantities<ValuesOtherT_, UnitsOther>& other) : values_(other.getValues()) {
     static_assert(std::is_same<UnitsT, UnitsOther>::value, "Units do not match.");
   }
   template <typename ValuesOtherT_, typename UnitsOther>
   // Allow other value matrix types to support lazy evaluation.
-  Quantities(FromQuantities /*tag*/, Quantities<ValuesOtherT_, UnitsOther>&& other) : values_(std::move(other.getValues())) {
+  Quantities(FromSimilar /*tag*/, Quantities<ValuesOtherT_, UnitsOther>&& other) : values_(std::move(other.getValues())) {
     static_assert(std::is_same<UnitsT, UnitsOther>::value, "Units do not match.");
   }
 
@@ -130,9 +176,9 @@ class Quantities {
    * @tparam Units Units of the quantities, order and types must correspond to the units of the quantity matrix.
    * @param quantities Quantities.
    */
-  template <typename... QuantityUnitsT_>
-  explicit Quantities(FromQuantitiesArgs /*tag*/, const Quantity<typename Value<ValuesT>::type, QuantityUnitsT_>&... quantities)
-      : Quantities(FromValuesArgs(), quantities.getValue()...) {
+  template <typename... QuantityValueT_, typename... QuantityUnitsT_>
+  explicit Quantities(FromImplementation /*tag*/, const Quantity<QuantityValueT_, QuantityUnitsT_>&... quantities)
+      : Quantities(FromImplementationArgs(), quantities.getValue()...) {
     static_assert(std::is_same<std::tuple<QuantityUnitsT_...>, typename GetTypes<UnitsT>::type>::value, "Units do not match.");
   }
 
@@ -141,16 +187,16 @@ class Quantities {
    * @tparam Units Units of the quantities, order and types must correspond to the units of the quantity matrix.
    * @param quantities Quantities.
    */
-  template <typename... QuantityUnitsT_>
-  explicit Quantities(FromQuantitiesArgs /*tag*/, Quantity<typename Value<ValuesT>::type, QuantityUnitsT_>&&... quantities)
-      : Quantities(FromValuesArgs(), quantities.getValue()...) {
+  template <typename... QuantityValueT_, typename... QuantityUnitsT_>
+  explicit Quantities(FromImplementation /*tag*/, Quantity<QuantityValueT_, QuantityUnitsT_>&&... quantities)
+      : Quantities(FromImplementationArgs(), quantities.getValue()...) {
     static_assert(std::is_same<std::tuple<QuantityUnitsT_...>, typename GetTypes<UnitsT>::type>::value, "Units do not match.");
   }
 
   template <typename... Ts>
-  explicit Quantities(FromValuesArgs /*tag*/, const Ts&... ts) : values_(ValuesT(ts...)) {}
+  explicit Quantities(FromImplementationArgs /*tag*/, const Ts&... ts) : values_(ts...) {}
   template <typename... Ts>
-  explicit Quantities(FromValuesArgs /*tag*/, Ts&&... ts) : values_(ValuesT(std::forward<Ts>(ts)...)) {}
+  explicit Quantities(FromImplementationArgs /*tag*/, Ts&&... ts) : values_(std::forward<Ts>(ts)...) {}
 
   ValuesT values_;
 };
@@ -168,14 +214,16 @@ struct GetTag<Quantities<ValuesT_, UnitsT_>, Ts...> {
   using type = typename IfThenElse<
       sizeof...(Ts) == 1,
       typename IfThenElse<
-          IsSpecialization<first, Quantities>::value, FromQuantities,
-          typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantitiesArgs, FromValuesArgs>::type>::type,
-      typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromQuantitiesArgs, FromValuesArgs>::type>::type;
+          IsSpecialization<first, Quantities>::value, FromSimilar,
+          typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromImplementation, FromImplementationArgs>::type>::type,
+      typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromImplementation, FromImplementationArgs>::type>::type;
 };
 
 template <typename ValuesT_, typename UnitsT_>
 struct GetType<Quantities<ValuesT_, UnitsT_>> {
-  using type = Quantity<typename Quantities<ValuesT_, UnitsT_>::ValueT, typename GetType<UnitsT_>::type>;
+  using type =
+      Quantity<typename AccessValues<SpecializationDummy<ValuesT_>>::template Value<typename Quantities<ValuesT_, UnitsT_>::ValueT>,
+               typename GetType<UnitsT_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
@@ -203,22 +251,42 @@ struct Difference<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, U
   using type = Quantities<typename Difference<ValuesLhsT_, ValuesRhsT_>::type, typename Difference<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
-struct Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
-  using type = Quantities<typename Product<ValuesLhsT_, ValueRhsT_>::type, typename Product<UnitsLhsT_, UnitRhsT_>::type>;
+// 0+dim * 0dim
+template <typename ValuesLhsT_, int RowsLhsV_, int ColsLhsV_, typename Unit0LhsT_, typename... UnitsLhsT_, typename ValueRhsT_,
+          typename UnitRhsT_>
+struct Product<Quantities<ValuesLhsT_, TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<Unit0LhsT_, UnitsLhsT_...>>>,
+               Quantity<ValueRhsT_, UnitRhsT_>> {
+  using type = Quantities<typename Product<ValuesLhsT_, ValueRhsT_>::type,
+                          typename Product<TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<Unit0LhsT_, UnitsLhsT_...>>, UnitRhsT_>::type>;
 };
-template <typename ValueLhsT_, typename UnitLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-struct Product<Quantity<ValueLhsT_, UnitLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
-  using type = typename Product<Quantities<ValuesRhsT_, UnitsRhsT_>>::type;
+// 0dim * 1+dim
+template <typename ValueLhsT_, typename UnitLhsT_, typename ValuesRhsT_, int RowsRhsV_, int ColsRhsV_, typename Unit0RhsT_,
+          typename Unit1RhsT_, typename... UnitsRhsT_>
+struct Product<Quantity<ValueLhsT_, UnitLhsT_>,
+               Quantities<ValuesRhsT_, TypeMatrixImpl<RowsRhsV_, ColsRhsV_, std::tuple<Unit0RhsT_, Unit1RhsT_, UnitsRhsT_...>>>> {
+  using type =
+      typename Product<Quantities<ValuesRhsT_, TypeMatrixImpl<RowsRhsV_, ColsRhsV_, std::tuple<Unit0RhsT_, Unit1RhsT_, UnitsRhsT_...>>>,
+                       Quantity<ValueLhsT_, UnitLhsT_>>::type;
 };
-template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-struct Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
-  using type = Quantities<typename Product<ValuesLhsT_, ValuesRhsT_>::type, typename Product<UnitsLhsT_, UnitsRhsT_>::type>;
+// 1+dim * 1+dim
+template <typename ValuesLhsT_, int RowsLhsV_, int ColsLhsV_, typename Unit0LhsT_, typename Unit1LhsT_, typename... UnitsLhsT_,
+          typename ValuesRhsT_, int RowsRhsV_, int ColsRhsV_, typename Unit0RhsT_, typename Unit1RhsT_, typename... UnitsRhsT_>
+struct Product<Quantities<ValuesLhsT_, TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<Unit0LhsT_, Unit1LhsT_, UnitsLhsT_...>>>,
+               Quantities<ValuesRhsT_, TypeMatrixImpl<RowsRhsV_, ColsRhsV_, std::tuple<Unit0RhsT_, Unit1RhsT_, UnitsRhsT_...>>>> {
+  using type = Quantities<typename Product<ValuesLhsT_, ValuesRhsT_>::type,
+                          typename Product<TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<Unit0LhsT_, Unit1LhsT_, UnitsLhsT_...>>,
+                                           TypeMatrixImpl<RowsRhsV_, ColsRhsV_, std::tuple<Unit0RhsT_, Unit1RhsT_, UnitsRhsT_...>>>::type>;
 };
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
 struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
-  using type = Quantities<typename Division<ValuesLhsT_, ValueRhsT_>::type, typename Division<UnitsLhsT_, UnitRhsT_>::type>;
+  using type =
+      Quantities<typename Division<ValuesLhsT_, typename ValueRhsT_::ValueT>::type, typename Division<UnitsLhsT_, UnitRhsT_>::type>;
+};
+
+template <typename ValueT_, typename UnitT_, typename ExponentT>
+struct Power<Quantity<ValueT_, UnitT_>, ExponentT> {
+  using type = Quantity<ValueT_, typename Power<UnitT_, ExponentT>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
@@ -238,7 +306,8 @@ struct CrossProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_,
 
 template <typename ValuesT_, typename UnitsT_, int ElementRowId, int ElementColId>
 struct Element<Quantities<ValuesT_, UnitsT_>, ElementRowId, ElementColId> {
-  using type = Quantity<typename Value<ValuesT_>::type, typename Element<UnitsT_, ElementRowId, ElementColId>::type>;
+  using type = Quantity<typename AccessValues<SpecializationDummy<ValuesT_>>::template Value<typename ValuesT_::ValueT>,
+                        typename Element<UnitsT_, ElementRowId, ElementColId>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
@@ -293,18 +362,12 @@ auto operator-(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
-  return lhs * Quantity<ValueRhsT_, typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs);
+  // Evaluate to avoid returning an expression on a temporary object.
+  return evaluate(lhs * Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
+                                 typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs));
 }
 template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto operator*(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return rhs * lhs;
-}
-template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
-auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
-  return typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getValues() * rhs.getValue());
-}
-template <typename ValueLhsT_, typename UnitLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-auto operator*(const Quantity<ValueLhsT_, UnitLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return rhs * lhs;
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
@@ -316,7 +379,7 @@ auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
   using Dimensionless = typename Identity<typename Element<UnitsLhsT_, 0, 0>::type>::type;
-  return lhs / Quantity<ValueRhsT_, Dimensionless>(rhs);
+  return lhs / Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>, Dimensionless>(rhs);
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
 auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
@@ -339,5 +402,38 @@ std::ostream& operator<<(std::ostream& lhs, const Quantities<ValuesT_, UnitsT_>&
   lhs << rhs.getValues();
   return lhs;
 }
+
+// TODO(remod): Implement for full matrices?
+// Exponent first, as value and unit can be derived automatically.
+template <typename ExponentT, typename Value, typename Unit>
+auto pow(const Quantity<Value, Unit>& quantity) {
+  // Evaluate the value here, as we need the result to have a constructor which can take a scalar, which expressions do not have.
+  return typename Power<Quantity<typename Evaluate<Value>::type, Unit>, ExponentT>::type(
+      std::pow(quantity.getValue(), ExponentT::template value<typename Value::ValueT>()));
+}
+
+// Convenience definition, so one can write pow<2>() to get pow<Integer<2>>().
+template <int ExponentV, typename Value, typename Unit>
+auto pow(const Quantity<Value, Unit>& quantity) {
+  return pow<Integer<ExponentV>>(quantity);
+}
+
+// Convenience definition, so one can write pow<1, 2>() to get pow<Rational<1, 2>>().
+template <int ExponentDividendV, int ExponentDivisorV, typename Value, typename Unit>
+auto pow(const Quantity<Value, Unit>& quantity) {
+  return pow<Rational<ExponentDividendV, ExponentDivisorV>>(quantity);
+}
+
+template <typename Value>
+auto sin(const Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>& angle) {
+  return Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Dimensionless>(std::sin(angle.getValue()));
+}
+
+template <typename Value>
+auto cos(const Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>& angle) {
+  return Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Dimensionless>(std::cos(angle.getValue()));
+}
+
+// TODO(remod): add more math functions.
 
 }  // namespace wuzp

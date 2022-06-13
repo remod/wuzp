@@ -37,10 +37,10 @@ using PositionPoint = wuzp::PositionPoint2<vm::ValueMatrix, double, CartesianCoo
 using DirectionVector = wuzp::DirectionVector2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
 using VelocityVector = wuzp::VelocityVector2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
 
-using RadiusQuantity = wuzp::Quantity<double, units::Length>;
-using MassQuantity = wuzp::Quantity<double, units::Mass>;
-using EnergyQuantity = wuzp::Quantity<double, units::Energy>;
-using AngleQuantity = wuzp::Quantity<double, units::Angle>;
+using RadiusQuantity = wuzp::QuantityD<units::Length>;
+using MassQuantity = wuzp::QuantityD<units::Mass>;
+using EnergyQuantity = wuzp::QuantityD<units::Energy>;
+using AngleQuantity = wuzp::QuantityD<units::Angle>;
 
 using MassMatrixValues = vm::ValueMatrix<double, 3, 3>;
 using MassLength = wuzp::Product<units::Mass, wuzp::Division<units::Length, units::Angle>::type>::type;
@@ -115,6 +115,7 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
 
   const MassQuantity massSum = mass1 + mass2;
   const MassQuantity massDifference = mass1 - mass2;
+  // TODO(remod): For vectors, make it possible to write <1> instead of <1, 0>.
   const EnergyQuantity energyMinimalCoordinates1 =
       0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantity<0, 0>()) + pow<2>(minimalCoordinatesDt.getQuantity<1, 0>()) +
                         pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantity<2, 0>()
@@ -149,13 +150,11 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const MassMatrix massMatrix(massMatrix00, massMatrix01, massMatrix02, massMatrix01, massMatrix00, massMatrix12, massMatrix02,
                               massMatrix12, massMatrix22);
 
-  // TODO(remod): Enable implicit conversion from 1x1 quantity matrix to quantity. Only required if we don't just use 1x1 matrices as impl.
   const EnergyQuantity energyMinimalCoordinates2 =
-      0.5 * (minimalCoordinatesDt.transpose() * (massMatrix * minimalCoordinatesDt)).getQuantity<0, 0>();
+      0.5 * (minimalCoordinatesDt.transpose() * (massMatrix * minimalCoordinatesDt)).getQuantity();
 
-  // TODO(remod): Use isApprox() after switching to 1x1 matrices.
-  EXPECT_NEAR(energyCartesianCoordinates.getValue(), energyMinimalCoordinates1.getValue(), 1e-5);
-  EXPECT_NEAR(energyMinimalCoordinates1.getValue(), energyMinimalCoordinates2.getValue(), 1e-5);
+  EXPECT_TRUE(energyCartesianCoordinates.isApprox(energyMinimalCoordinates1));
+  EXPECT_TRUE(energyMinimalCoordinates1.isApprox(energyMinimalCoordinates2));
 }
 
 #endif

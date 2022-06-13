@@ -16,6 +16,20 @@ namespace wuzp_eigen {
 template <typename ValueT, int Rows, int Cols>
 using ValueMatrix = wuzp::ValuesWrapper<Eigen::Matrix<ValueT, Rows, Cols>>;
 
+template <int Rows, int Cols>
+using ValueMatrixI = ValueMatrix<int, Rows, Cols>;
+template <int Rows, int Cols>
+using ValueMatrixF = ValueMatrix<float, Rows, Cols>;
+template <int Rows, int Cols>
+using ValueMatrixD = ValueMatrix<double, Rows, Cols>;
+
+template <typename ValueT>
+using Value = ValueMatrix<ValueT, 1, 1>;
+
+using ValueI = Value<int>;
+using ValueF = Value<float>;
+using ValueD = Value<double>;
+
 }  // namespace wuzp_eigen
 
 namespace wuzp {
@@ -26,5 +40,14 @@ void initialize(ValuesWrapper<Eigen::Matrix<ValueT, Rows, Cols>>& valueMatrix, A
   wuzp_eigen::internal::spliceCommas((implementation << std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
   valueMatrix.setImplementation(implementation);
 }
+
+template <typename T>
+struct AccessValues<SpecializationDummy<T>> {
+  template <typename ValueT_>
+  using Value = wuzp_eigen::Value<ValueT_>;
+  using ValueI = wuzp_eigen::ValueI;
+  using ValueF = wuzp_eigen::ValueF;
+  using ValueD = wuzp_eigen::ValueD;
+};
 
 }  // namespace wuzp

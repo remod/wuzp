@@ -52,9 +52,9 @@ template <template <typename, int, int> typename ValuesT_, typename Scalar, type
           int DimensionFrom, int DimensionTo, typename... Units, typename QuantitiesT_, typename CoordinateSystemT_>
 struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>,
                             Tensor<0, 1, QuantitiesT_, CoordinateSystemT_>> {
-  static auto transform(
-      const PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_>& object) {
+  static auto transform(const PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo,
+                                                          Units...>& /*transformation*/,
+                        const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_>& /*object*/) {
     //    return transformation.getTensor() * object;
   }
 };
@@ -102,9 +102,9 @@ template <template <typename, int, int> typename ValuesT_, typename Scalar, type
           int DimensionFrom, int DimensionTo, typename... Units, typename QuantitiesT_, typename CoordinateSystemT_>
 struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>,
                             Tensor<2, 0, QuantitiesT_, CoordinateSystemT_>> {
-  static auto transform(
-      const PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_>& object) {
+  static auto transform(const PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, DimensionFrom, DimensionTo,
+                                                          Units...>& /*transformation*/,
+                        const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_>& /*object*/) {
     //    return transformation.getTensor() * object;
   }
 };

@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/traits.hpp"
+
+#include "test_compilation_error.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Quantity.hpp"
@@ -12,21 +15,23 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#include "test_compilation_error.hpp"
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
+#include "wuzp_eigen/ValueMatrix.hpp"
+using namespace wuzp_eigen;  // NOLINT
 
 using namespace wuzp;  // NOLINT
 
-using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
-using TimeQuantity = Quantity<double, Time>;
-using DimensionlessQuantity = Quantity<double, Dimensionless>;
-using FrequencyQuantity = Quantity<double, Frequency>;
-using AngleQuantity = Quantity<double, Angle>;
-using LengthQuantity = Quantity<double, Length>;
+using AbsoluteTimeQuantity = QuantityD<AbsoluteTime>;
+using TimeQuantity = QuantityD<Time>;
+using DimensionlessQuantity = QuantityD<Dimensionless>;
+using FrequencyQuantity = QuantityD<Frequency>;
+using AngleQuantity = QuantityD<Angle>;
+using LengthQuantity = QuantityD<Length>;
 
 TEST(TestQuantity, CopyConstructor) {  // NOLINT
   const auto time = TimeQuantity(1.0);
   EXPECT_EQ(time.getValue(), 1.0);
-  const auto time2(time);
+  const auto time2(time);  // NOLINT
   EXPECT_EQ(time2.getValue(), 1.0);
   EXPECT_EQ(time2, time);
 }
@@ -73,8 +78,8 @@ using namespace wuzp_boost;  // NOLINT
 
 using namespace wuzp;  // NOLINT
 
-using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
-using FrequencyQuantity = Quantity<double, Frequency>;
+using AbsoluteTimeQuantity = QuantityD<AbsoluteTime>;
+using FrequencyQuantity = QuantityD<Frequency>;
 
 int main() {
   [[maybe_unused]] const auto invalid = AbsoluteTimeQuantity(2.0) * FrequencyQuantity(3.0);
@@ -83,8 +88,6 @@ int main() {
 )",
                                                "An absolute unit cannot appear in a multiplication.")
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-  using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
-  using FrequencyQuantity = Quantity<double, Frequency>;
   [[maybe_unused]] const auto valid = AbsoluteTimeQuantity(2.0) * FrequencyQuantity(3.0);
 #endif
 }
@@ -99,6 +102,8 @@ TEST(TestQuantity, Inverse) {  // NOLINT
 
 TEST(TestQuantity, AbsoluteInverse) {  // NOLINT
   const std::string code = R"(
+#include "wuzp/core/Quantities.hpp"
+
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
@@ -109,9 +114,12 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
+#include "wuzp_eigen/ValueMatrix.hpp"
+using namespace wuzp_eigen;  // NOLINT
+
 using namespace wuzp;  // NOLINT
 
-using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
+using AbsoluteTimeQuantity = QuantityD<AbsoluteTime>;
 
 int main() {
   [[maybe_unused]] const auto invalid = AbsoluteTimeQuantity(2.0).inverse();
@@ -136,3 +144,5 @@ TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
 #endif
       ;
 }
+
+#endif

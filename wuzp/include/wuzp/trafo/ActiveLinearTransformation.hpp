@@ -51,8 +51,8 @@ template <template <typename, int, int> typename ValuesT_, typename Scalar, type
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>,
                             Tensor<0, 1, QuantitiesT_, CoordinateSystemT_>> {
   static auto transform(
-      const ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_>& object) {
+      const ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
+      const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_>& /*object*/) {
     //    return transformation.getTensor() * object;
   }
 };
@@ -101,8 +101,8 @@ template <template <typename, int, int> typename ValuesT_, typename Scalar, type
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>,
                             Tensor<2, 0, QuantitiesT_, CoordinateSystemT_>> {
   static auto transform(
-      const ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_>& object) {
+      const ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
+      const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_>& /*object*/) {
     //    return transformation.getTensor() * object;
   }
 };

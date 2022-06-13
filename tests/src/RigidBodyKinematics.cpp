@@ -22,7 +22,7 @@ using namespace wuzp_boost;  // NOLINT
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 
-using AngleQuantity = wuzp::Quantity<double, Angle>;
+using AngleQuantity = wuzp::QuantityD<Angle>;
 
 // TODO(remod): Turn this into a proper function.
 TEST(TestRigidBodyKinematics, CalculateVelocity) {  // NOLINT

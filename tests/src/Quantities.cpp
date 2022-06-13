@@ -2,7 +2,6 @@
 
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/core/Unit.hpp"
 
 #include "test_compilation_error.hpp"
 
@@ -29,6 +28,9 @@ using TestUnitMatrix = TypeMatrix<Rows, Cols, Length>;
 template <int Rows, int Cols>
 using TestQuantityMatrix = Quantities<TestValueMatrix<Rows, Cols>, TestUnitMatrix<Rows, Cols>>;
 
+using LengthQuantityI = QuantityI<Length>;
+using AreaQuantityI = QuantityI<Area>;
+
 TEST(TestQuantityMatrix2, Dimension) {  // NOLINT
   static_assert(Dimension<TestQuantityMatrix<1, 1>>::value == 0);
   static_assert(Dimension<TestQuantityMatrix<3, 1>>::value == 1);
@@ -46,14 +48,19 @@ TEST(TestQuantityMatrix2, Cols) {  // NOLINT
 
 TEST(TestQuantityMatrix2, GetTag) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
+  using MyValue = ValueMatrix<int, 1, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyQuantityMatrix>::type, FromQuantities>);
-  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, const MyQuantityMatrix&>::type, FromQuantities>);
-  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyQuantityMatrix&&>::type, FromQuantities>);
-  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, Quantity<double, Length>>::type, FromQuantitiesArgs>);
-  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyValueMatrix>::type, FromValuesArgs>);
-  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, double>::type, FromValuesArgs>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyQuantityMatrix>::type, FromSimilar>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, const MyQuantityMatrix&>::type, FromSimilar>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyQuantityMatrix&&>::type, FromSimilar>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, Quantity<MyValue, Length>>::type, FromSimilar>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, Quantity<MyValue, Length>, Quantity<MyValue, Area>, Quantity<MyValue, Volume>,
+                                      Quantity<MyValue, Mass>>::type,
+                               FromImplementation>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, MyValueMatrix>::type, FromImplementationArgs>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, double>::type, FromImplementationArgs>);
+  static_assert(std::is_same_v<GetTag<MyQuantityMatrix, double, int, float, double>::type, FromImplementationArgs>);
 }
 
 TEST(TestQuantityMatrix2, EmptyConstructor) {  // NOLINT
@@ -74,8 +81,8 @@ TEST(TestQuantityMatrix2, ConstructImplicityFromQuantityMatrix) {  // NOLINT
   EXPECT_EQ(quantityMatrix, quantityMatrix3);
 }
 
-TEST(TestQuantityMatrix2, ConstructImplicitlyFromValues) {  // NOLINT
-  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
+TEST(TestQuantityMatrix2, ConstructImplicitlyFromValues){// NOLINT
+                                                         ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 
@@ -105,14 +112,13 @@ int main() {
   return 0;
 }
 )",
-                                        "(no viable )?conversion from");
-}
+                                                                                               "(no viable )?conversion from")}
 
 TEST(TestQuantityMatrix2, ConstructExplicitlyFromQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  using MyQuantity = Quantity<int, Length>;
+  using MyQuantity = LengthQuantityI;
   const MyQuantityMatrix quantityMatrix(MyQuantity(1), MyQuantity(2), MyQuantity(3), MyQuantity(4), MyQuantity(5), MyQuantity(6));
   const MyValueMatrix valueMatrix(1, 2, 3, 4, 5, 6);
   EXPECT_EQ(quantityMatrix.getValues(), valueMatrix);
@@ -157,7 +163,8 @@ TEST(TestQuantityMatrix2, ConstructFromGoodQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix quantityMatrix(Quantity<int, Length>(1), Quantity<int, Area>(2), Quantity<int, Volume>(3), Quantity<int, Mass>(4));
+  MyQuantityMatrix quantityMatrix(Quantity<ValueI, Length>(1), Quantity<ValueI, Area>(2), Quantity<ValueI, Volume>(3),
+                                  Quantity<ValueI, Mass>(4));
 }
 
 TEST(TestQuantityMatrix2, ConstructFromBadQuantities) {  // NOLINT
@@ -189,19 +196,19 @@ int main() {
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix quantityMatrix(Quantity<int, Length>(1),
-                                  Quantity<int, Area>(2),
-                                  Quantity<int, Volume>(3),
-                                  Quantity<int, Length>(4));
+  MyQuantityMatrix quantityMatrix(QuantityI<Length>(1),
+                                  QuantityI<Area>(2),
+                                  QuantityI<Volume>(3),
+                                  QuantityI<Length>(4));
   return 0;
 }
   )",
                                                "Units do not match.")
 }
 
-class TestQuantityMatrixF : public ::testing::Test {
+class TestQuantityMatrixFixture : public ::testing::Test {
  public:
-  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  using MyValueMatrix = ValueMatrixI<2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
 
@@ -224,18 +231,18 @@ class TestQuantityMatrixF : public ::testing::Test {
   MyQuantityMatrix quantityMatrix2_;
 };
 
-TEST_F(TestQuantityMatrixF, SetGetValueMatrix) {  // NOLINT
+TEST_F(TestQuantityMatrixFixture, SetGetValueMatrix) {  // NOLINT
   EXPECT_EQ(getQuantityMatrix1().getValues(), getValueMatrix1());
   getQuantityMatrix1().setValues(getValueMatrix2());
   EXPECT_EQ(getQuantityMatrix1().getValues(), getValueMatrix2());
 }
 
-TEST_F(TestQuantityMatrixF, SetGetQuantity) {  // NOLINT
-  using EnergyQuantity = Quantity<int, Energy>;
-  EXPECT_EQ((getQuantityMatrix1().getQuantity<1, 2>()), EnergyQuantity(getValueMatrix1().getValue<1, 2>()));
+TEST_F(TestQuantityMatrixFixture, SetGetQuantity) {  // NOLINT
+  using EnergyQuantity = QuantityI<Energy>;
+  EXPECT_EQ((getQuantityMatrix1().get<1, 2>()), EnergyQuantity(getValueMatrix1().get<1, 2>()));
   const auto quantity = EnergyQuantity(7);
-  getQuantityMatrix1().setQuantity<1, 2>(quantity);
-  EXPECT_EQ((getQuantityMatrix1().getQuantity<1, 2>()), quantity);
+  getQuantityMatrix1().set<1, 2>(quantity);
+  EXPECT_EQ((getQuantityMatrix1().get<1, 2>()), quantity);
 }
 
 TEST(TestQuantityMatrixStandalone, SetBadQuantity){// NOLINT
@@ -268,29 +275,29 @@ int main() {
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   MyQuantityMatrix quantityMatrix;
-  quantityMatrix.setQuantity<1, 2>(Quantity<int, Time>(7));
+  quantityMatrix.set<1, 2>(QuantityI<Time>(7));
   return 0;
 }
   )",
                                                                                                 "Units do not match.")}
 
-TEST_F(TestQuantityMatrixF, Addition) {  // NOLINT
+TEST_F(TestQuantityMatrixFixture, Addition) {  // NOLINT
   EXPECT_EQ(getQuantityMatrix1() + getQuantityMatrix2(), MyQuantityMatrix(getValueMatrix1() + getValueMatrix2()));
 }
 
-TEST_F(TestQuantityMatrixF, Subtraction) {  // NOLINT
+TEST_F(TestQuantityMatrixFixture, Subtraction) {  // NOLINT
   EXPECT_EQ(getQuantityMatrix1() - getQuantityMatrix2(), MyQuantityMatrix(getValueMatrix1() - getValueMatrix2()));
 }
 
-TEST_F(TestQuantityMatrixF, EqualityOperator) {  // NOLINT
+TEST_F(TestQuantityMatrixFixture, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getQuantityMatrix1(), getQuantityMatrix1());
 }
 
-TEST_F(TestQuantityMatrixF, InequalityOperator) {  // NOLINT
+TEST_F(TestQuantityMatrixFixture, InequalityOperator) {  // NOLINT
   EXPECT_NE(getQuantityMatrix1(), getQuantityMatrix1() + getQuantityMatrix2());
 }
 
-TEST_F(TestQuantityMatrixF, Block) {  // NOLINT
+TEST_F(TestQuantityMatrixFixture, Block) {  // NOLINT
   using MyValueMatrixB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = TypeMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyQuantityMatrixB = Quantities<MyValueMatrixB, MyUnitMatrixB>;
@@ -299,7 +306,7 @@ TEST_F(TestQuantityMatrixF, Block) {  // NOLINT
   EXPECT_EQ((getQuantityMatrix1().block<0, 1, 2, 2>()), quantityMatrixB);
 }
 
-TEST_F(TestQuantityMatrixF, Transpose) {  // NOLINT
+TEST_F(TestQuantityMatrixFixture, Transpose) {  // NOLINT
   using MyValueMatrixT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = TypeMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantityMatrixT = Quantities<MyValueMatrixT, MyUnitMatrixT>;
@@ -323,11 +330,10 @@ TEST(TestQuantityMatrix2, ProductQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  using MyValue = int;
-  using MyQuantity = Quantity<MyValue, Length>;
+  using MyQuantity = QuantityI<Length>;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
   using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
-  const MyValue value{2};
+  const int value{2};
   const auto quantity = MyQuantity(value);
   const MyValueMatrix valueMatrix(1, 2, 3, 4);
   const MyQuantityMatrix quantityMatrix(valueMatrix);
@@ -352,11 +358,10 @@ TEST(TestQuantityMatrix2, DivisionQuantity) {  // NOLINT
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyValue = int;
-  using MyQuantity = Quantity<MyValue, Length>;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Dimensionless>;
   using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
   const MyValue value{2};
-  const auto quantity = MyQuantity(value);
+  const auto quantity = LengthQuantityI(value);
   const MyValueMatrix valueMatrix(1, 2, 3, 4);
   const MyQuantityMatrix quantityMatrix(valueMatrix);
   EXPECT_EQ(quantityMatrix / quantity, MyQuantityMatrixResult(valueMatrix / value));
@@ -377,7 +382,7 @@ TEST(TestQuantityMatrix2, Dot) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  using MyQuantityResult = Quantity<int, Area>;
+  using MyQuantityResult = AreaQuantityI;
   const MyValueMatrix valueMatrix1(1, 2, 3, 4);
   const MyValueMatrix valueMatrix2(0, 3, -1, 2);
   EXPECT_EQ(MyQuantityMatrix(valueMatrix1).dotProduct(MyQuantityMatrix(valueMatrix2)), MyQuantityResult(11));

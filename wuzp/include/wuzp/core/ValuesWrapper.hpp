@@ -6,55 +6,66 @@ namespace wuzp {
  * Wrapper for the actual implementation of a value container.
  * This is required as some libraries, e.g. Eigen, use different types for matrices and expressions, but we want a single trait
  * specialization to catch all of them. We cannot use CRTP, as we need this wrapper for unambiguous template specialization.
- * @tparam Implementation_ ImplementationT of the value matrix.
+ * @tparam ImplementationT_ ImplementationT of the value matrix.
  */
-template <typename Implementation_>
+template <typename ImplementationT_>
 class ValuesWrapper {
  public:
-  using ImplementationT = Implementation_;
+  using ImplementationT = std::decay_t<ImplementationT_>;
   using ThisT = ValuesWrapper<ImplementationT>;
   // TODO(remod): Use member types instead of traits for value, dim, rows, cols, in all classes?
-  using ValueT = typename Value<ThisT>::type;
+  using ValueT = typename GetValue<ThisT>::type;
 
-  explicit ValuesWrapper(const ImplementationT& implementation) : implementation_(implementation) {}
+  //  explicit ValuesWrapper(const ImplementationT& implementation) : implementation_(implementation) {}
   // TODO(remod): Is move here correct? Check all constructors.
-  explicit ValuesWrapper(ImplementationT&& implementation) : implementation_(std::move(implementation)) {}
+  //  explicit ValuesWrapper(ImplementationT&& implementation) : implementation_(std::move(implementation)) {}
 
   ValuesWrapper() = default;
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromValues>) ValuesWrapper(const T0& t0, const Ts&... ts)
+  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) ValuesWrapper(const T0& t0, const Ts&... ts)
       : ValuesWrapper(typename GetTag<ThisT, T0, Ts...>::type(), t0, ts...) {}
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromValues>) ValuesWrapper(T0&& t0, Ts&&... ts)
+  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) ValuesWrapper(T0&& t0, Ts&&... ts)
       : ValuesWrapper(typename GetTag<ThisT, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
   static ThisT zero() { return Zero<ThisT>::value(); }
   static ThisT random() { return Random<ThisT>::value(); }
 
+  template <int RowId, int ColId>
+  auto get() const {
+    return implementation_(RowId, ColId);
+  }
+
+  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
+  auto get() const {
+    return get<0, 0>();
+  }
+
+  auto get(int rowId, int colId) const { return implementation_(rowId, colId); }
+
   template <int RowId, int ColId, typename ValueT>
-  ThisT& setValue(ValueT value) {
+  ThisT& set(ValueT value) {
     implementation_(RowId, ColId) = value;
     return *this;
   }
 
-  template <int RowId, int ColId>
-  auto getValue() const {
-    return implementation_(RowId, ColId);
+  template <typename ValueT, int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
+  ThisT& set(ValueT value) {
+    return set<0, 0>(value);
   }
 
   template <typename ValueT>
-  ThisT& setValue(int rowId, int colId, ValueT value) {
+  ThisT& set(int rowId, int colId, ValueT value) {
     implementation_(rowId, colId) = value;
     return *this;
   }
 
-  auto getValue(int rowId, int colId) const { return implementation_(rowId, colId); }
-
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  operator typename Value<ThisT>::type() const {
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  operator typename GetValue<ThisT>::type() const {
     return implementation_(0, 0);
   }
 
@@ -73,7 +84,7 @@ class ValuesWrapper {
 
   template <typename ImplementationOther_>
   auto dotProduct(const ValuesWrapper<ImplementationOther_>& other) const {
-    return typename DotProduct<ThisT, ValuesWrapper<ImplementationOther_>>::type(implementation_.dot(other.getImplementation()));
+    return typename DotProduct<ThisT, ValuesWrapper<ImplementationOther_>>::type(transpose() * other);
   }
 
   template <typename ImplementationOther_>
@@ -95,16 +106,18 @@ class ValuesWrapper {
  private:
   template <typename ImplementationOther_>
   // Allow other implementation types to support lazy evaluation.
-  ValuesWrapper(FromValues /*tag*/, const ValuesWrapper<ImplementationOther_>& other) : implementation_(other.getImplementation()) {}
+  ValuesWrapper(FromSimilar /*tag*/, const ValuesWrapper<ImplementationOther_>& other) : implementation_(other.getImplementation()) {}
   template <typename ImplementationOther_>
   // Allow other implementation types to support lazy evaluation.
-  ValuesWrapper(FromValues /*tag*/, ValuesWrapper<ImplementationOther_>&& other) : implementation_(std::move(other.getImplementation())) {}
+  ValuesWrapper(FromSimilar /*tag*/, ValuesWrapper<ImplementationOther_>&& other)
+      : implementation_(std::forward<ImplementationOther_>(other.getImplementation())) {}
 
+  // Temporary Eigen objects do not have a default constructor, therefore we must provide this method.
   template <typename T0>
-  ValuesWrapper(FromValuesArgs /*tag*/, T0&& t0) : implementation_(std::forward<T0>(t0)) {}
+  ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0) : implementation_(std::forward<T0>(t0)) {}
   template <typename T0, typename... Ts>
-  ValuesWrapper(FromValuesArgs /*tag*/, T0&& t0, Ts&&... ts) {
-    initialize(*this, t0, ts...);
+  ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0, Ts&&... ts) {
+    initialize(*this, std::forward<T0>(t0), std::forward<Ts>(ts)...);
   }
 
   ImplementationT implementation_;
@@ -116,171 +129,228 @@ struct GetTag<ValuesWrapper<Xs...>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
 
  public:
-  using type = typename IfThenElse<sizeof...(Ts) == 1,
-                                   typename IfThenElse<IsSpecialization<first, ValuesWrapper>::value, FromValues, FromValuesArgs>::type,
-                                   FromValuesArgs>::type;
+  using type =
+      typename IfThenElse<sizeof...(Ts) == 1,
+                          typename IfThenElse<IsSpecialization<first, ValuesWrapper>::value, FromSimilar, FromImplementationArgs>::type,
+                          FromImplementationArgs>::type;
 };
 
-template <typename Implementation_>
-struct Value<ValuesWrapper<Implementation_>> {
-  using type = typename std::decay_t<Implementation_>::Scalar;
+template <typename ImplementationT_>
+struct GetValue<ValuesWrapper<ImplementationT_>> {
+  using type = typename std::decay_t<ImplementationT_>::Scalar;
 };
 
-template <typename Implementation_>
-struct Rows<ValuesWrapper<Implementation_>> {
-  static constexpr int value = std::decay_t<Implementation_>::RowsAtCompileTime;
+template <typename ImplementationT_>
+struct Rows<ValuesWrapper<ImplementationT_>> {
+  static constexpr int value = std::decay_t<ImplementationT_>::RowsAtCompileTime;
 };
 
-template <typename Implementation_>
-struct Cols<ValuesWrapper<Implementation_>> {
-  static constexpr int value = std::decay_t<Implementation_>::ColsAtCompileTime;
+template <typename ImplementationT_>
+struct Cols<ValuesWrapper<ImplementationT_>> {
+  static constexpr int value = std::decay_t<ImplementationT_>::ColsAtCompileTime;
 };
 
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-struct Sum<ValuesWrapper<ImplementationLhs_>, ValuesWrapper<ImplementationRhs_>> {
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Sum<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>> {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<ImplementationLhs_>() + std::declval<ImplementationRhs_>())>;
+  using type = ValuesWrapper<decltype(std::declval<ImplementationLhsT_>() + std::declval<ImplementationRhsT_>())>;
 };
 
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-struct Difference<ValuesWrapper<ImplementationLhs_>, ValuesWrapper<ImplementationRhs_>> {
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Difference<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>> {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<ImplementationLhs_>() - std::declval<ImplementationRhs_>())>;
+  using type = ValuesWrapper<decltype(std::declval<ImplementationLhsT_>() - std::declval<ImplementationRhsT_>())>;
 };
 
-template <typename ImplementationLhs_, typename ValueRhs_>
-struct Product<ValuesWrapper<ImplementationLhs_>, ValueRhs_> {
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<ImplementationLhs_>() * std::declval<ValueRhs_>())>;
+template <typename T_, int DimensionV_>
+struct AttemptCastToScalarImpl;
+template <typename ImplementationT_, int DimensionV_>
+struct AttemptCastToScalarImpl<ValuesWrapper<ImplementationT_>, DimensionV_> {
+  using type = decltype(std::declval<ImplementationT_>());
 };
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-struct Product<ValuesWrapper<ImplementationLhs_>, ValuesWrapper<ImplementationRhs_>> {
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<ImplementationLhs_>() * std::declval<ImplementationRhs_>())>;
-};
-
-template <typename ImplementationLhs_, typename ValueRhs_>
-struct Division<ValuesWrapper<ImplementationLhs_>, ValueRhs_> {
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<ImplementationLhs_>() / std::declval<ValueRhs_>())>;
-};
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-struct Division<ValuesWrapper<ImplementationLhs_>, ValuesWrapper<ImplementationRhs_>> {
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<ImplementationLhs_>() / std::declval<ImplementationRhs_>())>;
+template <typename ImplementationT_>
+struct AttemptCastToScalarImpl<ValuesWrapper<ImplementationT_>, 0> {
+  using type = decltype(std::declval<ImplementationT_>()(0, 0));
 };
 
-template <typename Implementation_>
-struct Transpose<ValuesWrapper<Implementation_>> {
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<const Implementation_>().transpose())>;
+template <typename ImplementationT_>
+struct AttemptCastToScalar {
+  using type = typename AttemptCastToScalarImpl<ValuesWrapper<ImplementationT_>, Dimension<ValuesWrapper<ImplementationT_>>::value>::type;
 };
 
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-struct DotProduct<ValuesWrapper<ImplementationLhs_>, ValuesWrapper<ImplementationRhs_>> {
+// Rules to implement product:
+// 1. If the LHS is a scalar (dimension == 0), revert the order and reuse the implementation where the scalar is on the RHS.
+// 2. To avoid overhead, do not create temporary objects to reuse implementation, e.g. creating a 0x0 matrix from a scalar.
+template <typename ImplementationLhsT_, int DimensionLhsV_, typename ImplementationRhsT_, int DimensionRhsV_>
+struct ProductImpl;
+template <typename ImplementationLhsT_, typename ImplementationRhsT_, int DimensionRhsV_>
+struct ProductImpl<ValuesWrapper<ImplementationLhsT_>, 0, ValuesWrapper<ImplementationRhsT_>, DimensionRhsV_> {
+  using type = typename ProductImpl<ValuesWrapper<ImplementationRhsT_>, DimensionRhsV_, ValuesWrapper<ImplementationLhsT_>, 0>::type;
+};
+template <typename ImplementationLhsT_, int DimensionLhsV_, typename ImplementationRhsT_>
+struct ProductImpl<ValuesWrapper<ImplementationLhsT_>, DimensionLhsV_, ValuesWrapper<ImplementationRhsT_>, 0> {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(std::declval<ImplementationLhs_>().dot(std::declval<ImplementationRhs_>()));
+  using type = ValuesWrapper<decltype(std::declval<ImplementationLhsT_>() * std::declval<ImplementationRhsT_>()(0, 0))>;
+};
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct ProductImpl<ValuesWrapper<ImplementationLhsT_>, 0, ValuesWrapper<ImplementationRhsT_>, 0> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = ValuesWrapper<decltype(std::declval<ImplementationLhsT_>() * std::declval<ImplementationRhsT_>())>;
+};
+template <typename ImplementationLhsT_, int DimensionLhsV_, typename ImplementationRhsT_, int DimensionRhsV_>
+struct ProductImpl<ValuesWrapper<ImplementationLhsT_>, DimensionLhsV_, ValuesWrapper<ImplementationRhsT_>, DimensionRhsV_> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = ValuesWrapper<decltype(std::declval<ImplementationLhsT_>() * std::declval<ImplementationRhsT_>())>;
 };
 
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-struct CrossProduct<ValuesWrapper<ImplementationLhs_>, ValuesWrapper<ImplementationRhs_>> {
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<ImplementationLhs_>().cross(std::declval<ImplementationRhs_>()))>;
+template <typename ValueLhs_, typename ImplementationRhsT_>
+struct Product<ValueLhs_, ValuesWrapper<ImplementationRhsT_>> {
+  using type = typename Product<typename AccessValues<SpecializationDummy<ValueLhs_>>::template Value<ValueLhs_>,
+                                ValuesWrapper<ImplementationRhsT_>>::type;
+};
+template <typename ImplementationLhsT_, typename ValueRhs_>
+struct Product<ValuesWrapper<ImplementationLhsT_>, ValueRhs_> {
+  using type = typename Product<ValueRhs_, ValuesWrapper<ImplementationLhsT_>>::type;
+};
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Product<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>> {
+  using type = typename ProductImpl<ValuesWrapper<ImplementationLhsT_>, Dimension<ValuesWrapper<ImplementationLhsT_>>::value,
+                                    ValuesWrapper<ImplementationRhsT_>, Dimension<ValuesWrapper<ImplementationRhsT_>>::value>::type;
 };
 
-template <typename Implementation_>
-struct Inverse<ValuesWrapper<Implementation_>> {
+template <typename ImplementationLhsT_, typename ValueRhs_>
+struct Division<ValuesWrapper<ImplementationLhsT_>, ValueRhs_> {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<Implementation_>().inverse())>;
+  using type = ValuesWrapper<decltype(std::declval<ImplementationLhsT_>() / std::declval<ValueRhs_>())>;
+};
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Division<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = ValuesWrapper<decltype(std::declval<ImplementationLhsT_>() / std::declval<ImplementationRhsT_>())>;
 };
 
-// template <typename Implementation_, int ElementRowId, int ElementColId>
-// struct Element<ValuesWrapper<Implementation_>, ElementRowId, ElementColId> {
-//  static_assert(ElementRowId >= 0 && ElementRowId < Rows<ValuesWrapper<Implementation_>>::value, "Element row id is out
-//  of range."); static_assert(ElementColId >= 0 && ElementColId < Cols<ValuesWrapper<Implementation_>>::value, "Element
+template <typename ImplementationT_>
+struct Transpose<ValuesWrapper<ImplementationT_>> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = ValuesWrapper<decltype(std::declval<const ImplementationT_>().transpose())>;
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct DotProduct<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>> {
+  // Do not use the dot-product implementation, as we do not want a scalar as output, but a 0x0 matrix which is our implementation for
+  // scalars.
+  using type = typename Product<typename Transpose<ValuesWrapper<ImplementationLhsT_>>::type, ValuesWrapper<ImplementationRhsT_>>::type;
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct CrossProduct<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = ValuesWrapper<decltype(std::declval<ImplementationLhsT_>().cross(std::declval<ImplementationRhsT_>()))>;
+};
+
+template <typename ImplementationT_>
+struct Inverse<ValuesWrapper<ImplementationT_>> {
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = ValuesWrapper<decltype(std::declval<ImplementationT_>().inverse())>;
+};
+
+// template <typename implementation_, int ElementRowId, int ElementColId>
+// struct Element<ValuesWrapper<implementation_>, ElementRowId, ElementColId> {
+//  static_assert(ElementRowId >= 0 && ElementRowId < Rows<ValuesWrapper<implementation_>>::value, "Element row id is out
+//  of range."); static_assert(ElementColId >= 0 && ElementColId < Cols<ValuesWrapper<implementation_>>::value, "Element
 //  columns id is out of range."); using type = typename std::tuple_element<ElementRowId *
-//  Cols<ValuesWrapper<Implementation_>>::value + ElementColId, std::tuple<Types...>>::type;
+//  Cols<ValuesWrapper<implementation_>>::value + ElementColId, std::tuple<Types...>>::type;
 //};
 
-template <typename Implementation_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct Block<ValuesWrapper<Implementation_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct Block<ValuesWrapper<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   // Use decltype/declval to allow for lazy evaluation.
-  using type = ValuesWrapper<decltype(std::declval<const Implementation_>().template block<BlockRows, BlockCols>(BlockRowId, BlockColId))>;
+  using type = ValuesWrapper<decltype(std::declval<const ImplementationT_>().template block<BlockRows, BlockCols>(BlockRowId, BlockColId))>;
 };
 
-template <typename Implementation_>
-struct Zero<ValuesWrapper<Implementation_>> {
-  static auto value() { return ValuesWrapper(Implementation_::Zero()); }
+template <typename ImplementationT_>
+struct Zero<ValuesWrapper<ImplementationT_>> {
+  static auto value() { return ValuesWrapper(ImplementationT_::Zero()); }
 };
 
-template <typename Implementation_>
-struct Random<ValuesWrapper<Implementation_>> {
-  static auto value() { return ValuesWrapper(Implementation_::Random()); }
+template <typename ImplementationT_>
+struct Random<ValuesWrapper<ImplementationT_>> {
+  static auto value() { return ValuesWrapper(ImplementationT_::Random()); }
 };
 
-template <typename Implementation_>
-struct Evaluate<ValuesWrapper<Implementation_>> {
-  using type = ValuesWrapper<std::decay_t<decltype(std::declval<Implementation_>().eval())>>;
+template <typename ImplementationT_>
+struct Evaluate<ValuesWrapper<ImplementationT_>> {
+  using type = ValuesWrapper<std::decay_t<decltype(std::declval<ImplementationT_>().eval())>>;
 };
-template <typename Implementation_>
-static auto evaluate(ValuesWrapper<Implementation_> t) {
-  return typename Evaluate<ValuesWrapper<Implementation_>>::type(t.getImplementation());
+template <typename ImplementationT_>
+static auto evaluate(ValuesWrapper<ImplementationT_> t) {
+  return typename Evaluate<ValuesWrapper<ImplementationT_>>::type(t.getImplementation());
 }
 
-template <typename Implementation_, typename... Args>
-void initialize(ValuesWrapper<Implementation_>& values, Args&&... args);
+template <typename ImplementationT_, typename... Args>
+void initialize(ValuesWrapper<ImplementationT_>& values, Args&&... args);
 
-template <typename Implementation_>
-auto operator+(const ValuesWrapper<Implementation_>& rhs) {
+template <typename ImplementationT_>
+auto operator+(const ValuesWrapper<ImplementationT_>& rhs) {
   return rhs;
 }
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-auto operator+(const ValuesWrapper<ImplementationLhs_>& lhs, const ValuesWrapper<ImplementationRhs_>& rhs) {
-  return typename Sum<ValuesWrapper<ImplementationLhs_>, ValuesWrapper<ImplementationRhs_>>::type(lhs.getImplementation() +
-                                                                                                  rhs.getImplementation());
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+auto operator+(const ValuesWrapper<ImplementationLhsT_>& lhs, const ValuesWrapper<ImplementationRhsT_>& rhs) {
+  return typename Sum<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>>::type(lhs.getImplementation() +
+                                                                                                    rhs.getImplementation());
 }
 
-template <typename Implementation_>
-auto operator-(const ValuesWrapper<Implementation_>& rhs) {
-  return ValuesWrapper<Implementation_>(-rhs.getImplementation());
+template <typename ImplementationT_>
+auto operator-(const ValuesWrapper<ImplementationT_>& rhs) {
+  return ValuesWrapper<ImplementationT_>(-rhs.getImplementation());
 }
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-auto operator-(const ValuesWrapper<ImplementationLhs_>& lhs, const ValuesWrapper<ImplementationRhs_>& rhs) {
-  return typename Difference<ValuesWrapper<ImplementationLhs_>, ValuesWrapper<ImplementationRhs_>>::type(lhs.getImplementation() -
-                                                                                                         rhs.getImplementation());
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+auto operator-(const ValuesWrapper<ImplementationLhsT_>& lhs, const ValuesWrapper<ImplementationRhsT_>& rhs) {
+  return typename Difference<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>>::type(lhs.getImplementation() -
+                                                                                                           rhs.getImplementation());
 }
 
-template <typename ImplementationLhs_, typename ValueRhsT_>
-auto operator*(const ValuesWrapper<ImplementationLhs_>& lhs, const ValueRhsT_ rhs) {
-  return typename Product<ValuesWrapper<ImplementationLhs_>, ValueRhsT_>::type(lhs.getImplementation() * rhs);
+template <typename ImplementationLhsT_, typename ValueRhsT_>
+auto operator*(const ValuesWrapper<ImplementationLhsT_>& lhs, const ValueRhsT_ rhs) {
+  return typename Product<ValuesWrapper<ImplementationLhsT_>, ValueRhsT_>::type(lhs.getImplementation() * rhs);
 }
-template <typename ValueLhsT_, typename ImplementationRhs_>
-auto operator*(const ValueLhsT_ lhs, const ValuesWrapper<ImplementationRhs_>& rhs) {
+template <typename ValueLhsT_, typename ImplementationRhsT_>
+auto operator*(const ValueLhsT_ lhs, const ValuesWrapper<ImplementationRhsT_>& rhs) {
   return rhs * lhs;
 }
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-auto operator*(const ValuesWrapper<ImplementationLhs_>& lhs, const ValuesWrapper<ImplementationRhs_>& rhs) {
-  return typename Product<ValuesWrapper<ImplementationLhs_>, ValuesWrapper<ImplementationRhs_>>::type(lhs.getImplementation() *
-                                                                                                      rhs.getImplementation());
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+auto operator*(const ValuesWrapper<ImplementationLhsT_>& lhs, const ValuesWrapper<ImplementationRhsT_>& rhs) {
+  if constexpr (Dimension<ValuesWrapper<ImplementationLhsT_>>::value == 0 && Dimension<ValuesWrapper<ImplementationRhsT_>>::value == 0) {
+    return typename Product<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>>::type(lhs.getImplementation() *
+                                                                                                          rhs.getImplementation());
+  } else if constexpr (Dimension<ValuesWrapper<ImplementationLhsT_>>::value == 0) {
+    return rhs * lhs;
+  } else if constexpr (Dimension<ValuesWrapper<ImplementationRhsT_>>::value == 0) {
+    return
+        typename Product<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>>::type(lhs.getImplementation() * rhs.get());
+  } else {
+    return typename Product<ValuesWrapper<ImplementationLhsT_>, ValuesWrapper<ImplementationRhsT_>>::type(lhs.getImplementation() *
+                                                                                                          rhs.getImplementation());
+  }
 }
 
-template <typename ImplementationLhs_, typename ValueRhsT_>
-auto operator/(const ValuesWrapper<ImplementationLhs_>& lhs, const ValueRhsT_ rhs) {
-  return typename Division<ValuesWrapper<ImplementationLhs_>, ValueRhsT_>::type(lhs.getImplementation() / rhs);
+template <typename ImplementationLhsT_, typename ValueRhsT_>
+auto operator/(const ValuesWrapper<ImplementationLhsT_>& lhs, const ValueRhsT_ rhs) {
+  return typename Division<ValuesWrapper<ImplementationLhsT_>, ValueRhsT_>::type(lhs.getImplementation() / rhs);
 }
 
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-bool operator==(const ValuesWrapper<ImplementationLhs_>& lhs, const ValuesWrapper<ImplementationRhs_>& rhs) {
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+bool operator==(const ValuesWrapper<ImplementationLhsT_>& lhs, const ValuesWrapper<ImplementationRhsT_>& rhs) {
   return lhs.getImplementation() == rhs.getImplementation();
 }
 
-template <typename ImplementationLhs_, typename ImplementationRhs_>
-bool operator!=(const ValuesWrapper<ImplementationLhs_>& lhs, const ValuesWrapper<ImplementationRhs_>& rhs) {
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+bool operator!=(const ValuesWrapper<ImplementationLhsT_>& lhs, const ValuesWrapper<ImplementationRhsT_>& rhs) {
   return !(lhs == rhs);
 }
 
-template <typename Implementation_>
-std::ostream& operator<<(std::ostream& lhs, const ValuesWrapper<Implementation_>& rhs) {
+template <typename ImplementationT_>
+std::ostream& operator<<(std::ostream& lhs, const ValuesWrapper<ImplementationT_>& rhs) {
   lhs << rhs.getImplementation();
   return lhs;
 }

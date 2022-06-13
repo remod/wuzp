@@ -29,18 +29,12 @@ struct Tag {};
 template <typename T, typename... Args>
 struct GetTag;
 
-struct FromTensorLabel {};
-using FromTensor = Tag<FromTensorLabel>;
-struct FromQuantitiesLabel {};
-struct FromCoordinatesLabel {};
-using FromCoordinates = Tag<FromCoordinatesLabel>;
-using FromQuantities = Tag<FromQuantitiesLabel>;
-struct FromQuantitiesArgsLabel {};
-using FromQuantitiesArgs = Tag<FromQuantitiesArgsLabel>;
-struct FromValuesLabel {};
-using FromValues = Tag<FromValuesLabel>;
-struct FromValuesArgsLabel {};
-using FromValuesArgs = Tag<FromValuesArgsLabel>;
+struct FromSimilarLabel {};
+using FromSimilar = Tag<FromSimilarLabel>;
+struct FromImplementationLabel {};
+using FromImplementation = Tag<FromImplementationLabel>;
+struct FromImplementationArgsLabel {};
+using FromImplementationArgs = Tag<FromImplementationArgsLabel>;
 
 template <typename T>
 struct GetTypes {
@@ -53,8 +47,8 @@ struct GetType {
 };
 
 template <typename T>
-struct Value {
-  static_assert(FailOnInstantiation<Value<T>>::value, "'Value' trait not specialized for given type.");
+struct GetValue {
+  static_assert(FailOnInstantiation<GetValue<T>>::value, "'GetValue' trait not specialized for given type.");
 };
 
 template <typename T>
@@ -136,7 +130,7 @@ struct Random {
 
 template <typename T>
 struct Evaluate {
-  static_assert(FailOnInstantiation<Evaluate<T>>::value, "'Evaluate' trait not specialized for given type.");
+  using type = std::decay_t<T>;  // Default e.g. for arithmetic types.
 };
 template <typename T>
 auto evaluate(T t) {
@@ -185,6 +179,12 @@ template <typename UnitT>
 struct AccessUnits {
   static_assert(FailOnInstantiation<AccessUnits<UnitT>>::value,
                 "'AccessUnits' trait not specialized for given type. Make sure you included the necessary unit headers.");
+};
+
+template <typename ValueT>
+struct AccessValues {
+  static_assert(FailOnInstantiation<AccessValues<ValueT>>::value,
+                "'AccessValues' trait not specialized for given type. Make sure you included the necessary unit headers.");
 };
 
 template <typename ValueT, typename UnitT>

@@ -104,25 +104,25 @@ class Tensor {
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(const T0& t0, const Ts&... ts)
+  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromSimilar>) Tensor(const T0& t0, const Ts&... ts)
       : Tensor(typename GetTag<This, T0, Ts...>::type(), t0, ts...) {}
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromTensor>) Tensor(T0&& t0, Ts&&... ts)
+  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromSimilar>) Tensor(T0&& t0, Ts&&... ts)
       : Tensor(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
   static This zero() { return This(QuantitiesT::zero()); }
   static This random() { return This(QuantitiesT::random()); }
 
-  template <typename ValuesT_Other, typename UnitsOther>
-  void setQuantities(const Quantities<ValuesT_Other, UnitsOther>& component) {
+  template <typename ValuesOtherT_, typename UnitsOther>
+  void setQuantities(const Quantities<ValuesOtherT_, UnitsOther>& component) {
     quantities_ = component;
   }
   const QuantitiesT& getQuantities() const { return quantities_; }
 
-  template <typename ValuesT_Other>
-  void setValuesT_(const ValuesT_Other& ValuesT_) {
-    quantities_.setValuesT_(ValuesT_);
+  template <typename ValuesOtherT_>
+  void setValues(const ValuesOtherT_& values) {
+    quantities_.setValues(values);
   }
   const ValuesT& getValues() const { return quantities_.getValues(); }
 
@@ -136,22 +136,32 @@ class Tensor {
     return quantities_.isApprox(other.getQuantities(), precision);
   }
 
+  template <int Dimension = Dimension<This>::value, typename = std::enable_if_t<Dimension == 0>>
+  auto getQuantity() const {
+    return quantities_.get();
+  }
+
   // TODO(remod): Remove 'get' from all getters?
   template <int RowId, int ColId>
   auto getQuantity() const {
-    return quantities_.template getQuantity<RowId, ColId>();
+    return quantities_.template get<RowId, ColId>();
   }
 
-  auto getQuantity(const int rowId, const int colId) const { return quantities_.getQuantity(rowId, colId); }
+  auto getQuantity(const int rowId, const int colId) const { return quantities_.get(rowId, colId); }
+
+  template <typename QuantityT_, int Dimension = Dimension<This>::value, typename = std::enable_if_t<Dimension == 0>>
+  void setQuantity(const QuantityT_& quantity) {
+    return quantities_.set(quantity);
+  }
 
   template <int RowId, int ColId, typename QuantityT_>
   void setQuantity(const QuantityT_& quantity) {
-    return quantities_.template setQuantity<RowId, ColId>(quantity);
+    return quantities_.template set<RowId, ColId>(quantity);
   }
 
   template <typename Quantity>
   void setQuantity(const int rowId, const int colId, const Quantity& quantity) {
-    quantities_.setQuantity(rowId, colId, quantity);
+    quantities_.set(rowId, colId, quantity);
   }
 
   // TODO(remod): Rename to "slice"?
@@ -192,7 +202,7 @@ class Tensor {
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther>
   // Allow other tensor types to support lazy evaluation.
-  Tensor(FromTensor /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>& other)
+  Tensor(FromSimilar /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>& other)
       : quantities_(other.getQuantities()) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
@@ -200,22 +210,22 @@ class Tensor {
   }
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther>
   // Allow other tensor types to support lazy evaluation.
-  Tensor(FromTensor /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>&& other)
+  Tensor(FromSimilar /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>&& other)
       : quantities_(std::move(other.getQuantities())) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
     static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
   }
 
-  template <typename ValuesT_Other, typename UnitsOther>
-  Tensor(FromQuantities /*tag*/, const Quantities<ValuesT_Other, UnitsOther>& quantities) : quantities_(quantities) {}
-  template <typename ValuesT_Other, typename UnitsOther>
-  Tensor(FromQuantities /*tag*/, Quantities<ValuesT_Other, UnitsOther>&& quantities) : quantities_(std::move(quantities)) {}
+  //  template <typename ValuesOtherT_, typename UnitsOther>
+  //  Tensor(FromImplementation /*tag*/, const Quantities<ValuesOtherT_, UnitsOther>& quantities) : quantities_(quantities) {}
+  //  template <typename ValuesOtherT_, typename UnitsOther>
+  //  Tensor(FromImplementation /*tag*/, Quantities<ValuesOtherT_, UnitsOther>&& quantities) : quantities_(std::move(quantities)) {}
 
   template <typename... Ts>
-  explicit Tensor(FromQuantitiesArgs /*tag*/, const Ts&... ts) : quantities_(ts...) {}
+  explicit Tensor(FromImplementationArgs /*tag*/, const Ts&... ts) : quantities_(ts...) {}
   template <typename... Ts>
-  explicit Tensor(FromQuantitiesArgs /*tag*/, Ts&&... ts) : quantities_(std::forward<Ts>(ts)...) {}
+  explicit Tensor(FromImplementationArgs /*tag*/, Ts&&... ts) : quantities_(std::forward<Ts>(ts)...) {}
 
   QuantitiesT quantities_;
 };
@@ -225,10 +235,10 @@ struct GetTag<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, Coord
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
   using type = typename IfThenElse<
       sizeof...(Ts) == 1,
-      typename IfThenElse<
-          IsSpecializationInts<first, Tensor>::value, FromTensor,
-          typename IfThenElse<(IsSpecialization<Ts, Quantities>::value && ...), FromQuantities, FromQuantitiesArgs>::type>::type,
-      typename IfThenElse<(IsSpecialization<Ts, Quantities>::value && ...), FromQuantities, FromQuantitiesArgs>::type>::type;
+      typename IfThenElse<IsSpecializationInts<first, Tensor>::value, FromSimilar,
+                          typename IfThenElse<(IsSpecialization<Ts, Quantities>::value && ...), FromImplementationArgs,
+                                              FromImplementationArgs>::type>::type,
+      typename IfThenElse<(IsSpecialization<Ts, Quantities>::value && ...), FromImplementationArgs, FromImplementationArgs>::type>::type;
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_>
@@ -404,7 +414,8 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Quantit
           typename ValueRhsT_>
 auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_>& lhs,
                const ValueRhsT_ rhs) {
-  return lhs * Quantity<ValueRhsT_, typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs);
+  return lhs * Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
+                        typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs);
 }
 template <typename ValueLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
           typename CoordinateSystemRhsT_>
@@ -439,7 +450,8 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Quantit
           typename ValueRhsT_>
 auto operator/(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_>& lhs,
                const ValueRhsT_ rhs) {
-  return lhs / Quantity<ValueRhsT_, typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs);
+  return lhs / Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
+                        typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs);
 }
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename ValueRhsT_, typename UnitRhsT_>
