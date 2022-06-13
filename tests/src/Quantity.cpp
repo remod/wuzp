@@ -64,6 +64,8 @@ TEST(TestQuantity, Product) {  // NOLINT
 TEST(TestQuantity, AbsoluteProduct) {  // NOLINT
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "wuzp/core/Quantities.hpp"
+
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
@@ -71,6 +73,9 @@ using namespace wuzp_units;  // NOLINT
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
+
+#include "wuzp_eigen/Values.hpp"
+using namespace wuzp_eigen;  // NOLINT
 
 using namespace wuzp;  // NOLINT
 
@@ -121,7 +126,7 @@ int main() {
 }
 )";
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "An absolute unit cannot be powered.")
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "An absolute unit cannot appear in a multiplication.")
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, "implicit instantiation of undefined template|invalid use of incomplete type")
 #endif
