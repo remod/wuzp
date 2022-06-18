@@ -99,8 +99,8 @@ class Quantities {
 
   /**
    * Get the values of the quantities.
-   * WARNING: ThisT method circumvents quantity type safety.
-   * ThisT method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
+   * WARNING: This method circumvents quantity type safety.
+   * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
    * @return Values of the quantities.
    */
   const ValuesT& getValues() const { return values_; }
