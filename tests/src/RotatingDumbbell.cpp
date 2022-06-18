@@ -32,6 +32,7 @@ using MinimalCoordinates = wuzp::Vector<MinimalCoordinatesQuantityVector, Minima
 using MinimalCoordinatesDt = wuzp::Vector<MinimalCoordinatesDtQuantityVector, MinimalCoordinateSystem>;
 
 using PositionPoint = wuzp::PositionPoint2<vm::Values, double, CartesianCoordinateSystem>;
+using PositionVector = wuzp::PositionVector2<vm::Values, double, CartesianCoordinateSystem>;
 using DirectionVector = wuzp::DirectionVector2<vm::Values, double, CartesianCoordinateSystem>;
 using VelocityVector = wuzp::VelocityVector2<vm::Values, double, CartesianCoordinateSystem>;
 
@@ -77,8 +78,8 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordinates& minimalCoordinates, const RadiusQuantity& radius) {
   // TODO(remod): Temporarily cast to relative? Or define sin/cos for absolute quantities
   // TODO(remod): Replace all autos by explicit types and then try to remove all evaluate calls.
-  const auto relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
-  const auto positionVector = radius * DirectionVector(cos(relativeAngle), sin(relativeAngle));
+  const AngleQuantity relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
+  const PositionVector positionVector = radius * DirectionVector(cos(relativeAngle), sin(relativeAngle));
   const PositionPoint position1 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) + positionVector;
   const PositionPoint position2 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) - positionVector;
   return std::make_pair(position1, position2);
@@ -87,10 +88,11 @@ std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordina
 std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordinates& minimalCoordinates,
                                                              const MinimalCoordinatesDt& minimalCoordinatesDt,
                                                              const RadiusQuantity& radius) {
-  const auto relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
-  const auto velocityVector = radius * minimalCoordinatesDt.getQuantity<2, 0>() * DirectionVector(-sin(relativeAngle), cos(relativeAngle))
+  const AngleQuantity relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
+  const VelocityVector velocityVector = radius * minimalCoordinatesDt.getQuantity<2, 0>() *
+                                        DirectionVector(-sin(relativeAngle), cos(relativeAngle))
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                              / AngleQuantity(1.0)
+                                        / AngleQuantity(1.0)
 #endif
       ;
   const VelocityVector velocity1 =
@@ -107,8 +109,9 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const MassQuantity mass1(1.0);
   const MassQuantity mass2(3.0);
 
-  const auto cartesianCoordinates = minimalToCartesian(minimalCoordinates, radius);
-  const auto cartesianCoordinatesDt = minimalToCartesian(minimalCoordinates, minimalCoordinatesDt, radius);
+  const std::pair<PositionPoint, PositionPoint> cartesianCoordinates = minimalToCartesian(minimalCoordinates, radius);
+  const std::pair<VelocityVector, VelocityVector> cartesianCoordinatesDt =
+      minimalToCartesian(minimalCoordinates, minimalCoordinatesDt, radius);
 
   const EnergyQuantity energyCartesianCoordinates =
       0.5 * (mass1 * cartesianCoordinatesDt.first.squaredNorm() + mass2 * cartesianCoordinatesDt.second.squaredNorm());

@@ -74,7 +74,7 @@ TEST(TestQuantities2, ConstructImplicityFromQuantities) {  // NOLINT
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   const MyQuantities quantities1;
   const MyQuantities quantities2;
-  const auto quantities3 = quantities1 + quantities2;
+  const MyQuantities quantities3 = quantities1 + quantities2;
   const MyQuantities quantities = quantities3;
   EXPECT_EQ(quantities, quantities3);
 }
@@ -140,22 +140,20 @@ TEST(TestQuantities2, ConstructExplicitlyFromCsv) {  // NOLINT
   EXPECT_EQ(quantities.getValues(), values);
 }
 
-// TODO(remod): Support construction from const values.
-// TEST(TestQuantities2, ConstructExplicitlyFromConstValues) {  // NOLINT
-//  using MyValues = Values<int, 2, 3>;
-//  using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-//  using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-//  MyValues values;
-//  values << 1, 2, 3, 4, 5, 6;
-//  const int v1 = 1;
-//  const int v2 = 2;
-//  const int v3 = 3;
-//  const int v4 = 4;
-//  const int v5 = 5;
-//  const int v6 = 6;
-//  const MyQuantities quantities(v1, v2, v3, v4, v5, v6);
-//  EXPECT_EQ(quantities.getValues(), values);
-//}
+TEST(TestQuantities2, ConstructExplicitlyFromConstValues) {  // NOLINT
+  using MyValues = Values<int, 2, 3>;
+  using MyUnitMatrix = TypeMatrix<2, 3, Length>;
+  using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
+  MyValues values(1, 2, 3, 4, 5, 6);
+  const int v1 = 1;
+  const int v2 = 2;
+  const int v3 = 3;
+  const int v4 = 4;
+  const int v5 = 5;
+  const int v6 = 6;
+  const MyQuantities quantities(v1, v2, v3, v4, v5, v6);
+  EXPECT_EQ(quantities.getValues(), values);
+}
 
 TEST(TestQuantities2, ConstructFromGoodQuantities) {  // NOLINT
   using MyValues = Values<int, 4, 1>;
@@ -234,7 +232,7 @@ TEST_F(TestQuantitiesFixture, SetGetValues) {  // NOLINT
 TEST_F(TestQuantitiesFixture, SetGetQuantity) {  // NOLINT
   using EnergyQuantity = QuantityI<Energy>;
   EXPECT_EQ((getQuantities1().get<1, 2>()), EnergyQuantity(getValues1().get<1, 2>()));
-  const auto quantity = EnergyQuantity(7);
+  const EnergyQuantity quantity(7);
   getQuantities1().set<1, 2>(quantity);
   EXPECT_EQ((getQuantities1().get<1, 2>()), quantity);
 }
@@ -325,7 +323,7 @@ TEST(TestQuantities2, ProductQuantity) {  // NOLINT
   using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
   using MyQuantitiesResult = Quantities<MyValues, MyUnitMatrixResult>;
   const int value{2};
-  const auto quantity = MyQuantity(value);
+  const MyQuantity quantity(value);
   const MyValues values(1, 2, 3, 4);
   const MyQuantities quantities(values);
   EXPECT_EQ(quantities * quantity, MyQuantitiesResult(values * value));
@@ -352,7 +350,7 @@ TEST(TestQuantities2, DivisionQuantity) {  // NOLINT
   using MyUnitMatrixResult = TypeMatrix<2, 2, Dimensionless>;
   using MyQuantitiesResult = Quantities<MyValues, MyUnitMatrixResult>;
   const MyValue value{2};
-  const auto quantity = LengthQuantityI(value);
+  const LengthQuantityI quantity(value);
   const MyValues values(1, 2, 3, 4);
   const MyQuantities quantities(values);
   EXPECT_EQ(quantities / quantity, MyQuantitiesResult(values / value));

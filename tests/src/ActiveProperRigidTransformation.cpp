@@ -25,7 +25,7 @@ TEST(TestActiveProperRigidTransformation2, TransformPosition) {  // NOLINT
   //  const Eigen::Quaterniond rotation{1.0, 0.0, 0.0, 0.0};
   //  const Translation2<double, CoordinateSystemB> translation(1.0, 2.0);
   //  const ActiveProperRigidTransformation2<FromCoordinateSystem, CoordinateSystemB, double> transformation(rotation, translation);
-  //  const auto result = transformation.transform(object);
+  //  const result = transformation.transform(object);
 }
 
 TEST(TestActiveProperRigidTransformation3, TransformPositionVector) {  // NOLINT

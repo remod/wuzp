@@ -27,15 +27,15 @@ using AngleQuantity = QuantityD<Angle>;
 using LengthQuantity = QuantityD<Length>;
 
 TEST(TestQuantity, CopyConstructor) {  // NOLINT
-  const auto time = TimeQuantity(1.0);
+  const TimeQuantity time(1.0);
   EXPECT_EQ(time.getValue(), 1.0);
-  const auto time2(time);  // NOLINT
+  const TimeQuantity time2(time);  // NOLINT
   EXPECT_EQ(time2.getValue(), 1.0);
   EXPECT_EQ(time2, time);
 }
 
 TEST(TestQuantity, ValueAccess) {  // NOLINT
-  auto time = TimeQuantity(1.0);
+  TimeQuantity time(1.0);
   EXPECT_EQ(time.getValue(), 1.0);
   time.setValue(2.0);
   EXPECT_EQ(time.getValue(), 2.0);
@@ -133,8 +133,8 @@ int main() {
 }
 
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
-  const auto radius = LengthQuantity(2.0);
-  const auto angle = AngleQuantity(3.0);
+  const LengthQuantity radius(2.0);
+  const AngleQuantity angle(3.0);
   [[maybe_unused]] const LengthQuantity arcLength = angle *
                                                     radius
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST

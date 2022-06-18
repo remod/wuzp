@@ -16,10 +16,6 @@ class ValuesWrapper {
   // TODO(remod): Use member types instead of traits for value, dim, rows, cols, in all classes?
   using ValueT = typename GetValue<ThisT>::type;
 
-  //  explicit ValuesWrapper(const ImplementationT& implementation) : implementation_(implementation) {}
-  // TODO(remod): Is move here correct? Check all constructors.
-  //  explicit ValuesWrapper(ImplementationT&& implementation) : implementation_(std::move(implementation)) {}
-
   ValuesWrapper() = default;
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
@@ -245,14 +241,6 @@ struct Inverse<ValuesWrapper<ImplementationT_>> {
   // Use decltype/declval to allow for lazy evaluation.
   using type = ValuesWrapper<decltype(std::declval<ImplementationT_>().inverse())>;
 };
-
-// template <typename implementation_, int ElementRowId, int ElementColId>
-// struct Element<ValuesWrapper<implementation_>, ElementRowId, ElementColId> {
-//  static_assert(ElementRowId >= 0 && ElementRowId < Rows<ValuesWrapper<implementation_>>::value, "Element row id is out
-//  of range."); static_assert(ElementColId >= 0 && ElementColId < Cols<ValuesWrapper<implementation_>>::value, "Element
-//  columns id is out of range."); using type = typename std::tuple_element<ElementRowId *
-//  Cols<ValuesWrapper<implementation_>>::value + ElementColId, std::tuple<Types...>>::type;
-//};
 
 template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<ValuesWrapper<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {

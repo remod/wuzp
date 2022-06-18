@@ -82,7 +82,7 @@ TEST(TestTensor2, ConstructImplicitlyFromTensor) {  // NOLINT
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
   const MyTensor tensor1;
   const MyTensor tensor2;
-  const auto tensor3 = tensor1 + tensor2;
+  const MyTensor tensor3 = tensor1 + tensor2;
   const MyTensor tensor = tensor3;
   EXPECT_EQ(tensor, tensor3);
 }
