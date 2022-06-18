@@ -80,12 +80,12 @@ template <typename T, template <int, int, typename...> typename Template>
 struct IsSpecializationInts : std::false_type {};
 template <template <int, int, typename...> typename Template, int Int0, int Int1, typename... Args>
 struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true_type {};
-// TODO(remod): This is a special case for the quantity matrix.
-template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantityMatrix>
-struct IsSpecializationQuantityMatrix : std::false_type {};
-template <template <typename, typename, template <typename, typename> typename> typename QuantityMatrix, typename ValueMatrixT_,
-          typename UnitMatrixT_, template <typename, typename> typename QuantityT_>
-struct IsSpecializationQuantityMatrix<QuantityMatrix<ValueMatrixT_, UnitMatrixT_, QuantityT_>, QuantityMatrix> : std::true_type {};
+// TODO(remod): This is a special case for the quantities.
+template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantitiesT_>
+struct IsSpecializationQuantities : std::false_type {};
+template <template <typename, typename, template <typename, typename> typename> typename QuantitiesT_, typename ValuesT_, typename UnitsT_,
+          template <typename, typename> typename QuantityT_>
+struct IsSpecializationQuantities<QuantitiesT_<ValuesT_, UnitsT_, QuantityT_>, QuantitiesT_> : std::true_type {};
 
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>
 struct GetSubsetImpl;

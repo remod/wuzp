@@ -22,7 +22,7 @@ jobs:
       CMAKE_C_CXX_COMPILER: "clang_clang++"
       SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: 0
-      VALUE_MATRIX_IMPLEMENTATION: 0
+      VALUES_IMPLEMENTATION: 0
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
@@ -37,7 +37,7 @@ jobs:
       - name: Install Dependencies
         run: sudo ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh
       - name: Create Build Environment
-        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
       - name: Check Format
         run: ${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
   check_package_versions:
@@ -91,14 +91,14 @@ jobs:
       matrix:
         CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
         UNITS_IMPLEMENTATION: [0, 1]
-        VALUE_MATRIX_IMPLEMENTATION: [1]
+        VALUES_IMPLEMENTATION: [1]
     env:
-      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}
       BUILD_TYPE: Debug
       CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
       SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
-      VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      VALUES_IMPLEMENTATION: ${{matrix.VALUES_IMPLEMENTATION}}
     steps:
     - name: Prepare Repository
       uses: actions/checkout@v2
@@ -111,11 +111,11 @@ jobs:
     - name: Upgrade
       run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
-      run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+      run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
     - name: Create Build Environment
       run: |
         [ "${CMAKE_C_CXX_COMPILER}" = "clang_clang++" ] && ENABLE_CODE_COVERAGE=1 || ENABLE_CODE_COVERAGE=0
-        ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON ${ENABLE_CODE_COVERAGE} OFF ON ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON ${ENABLE_CODE_COVERAGE} OFF ON ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
     - name: Build
       run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
     - name: Test
@@ -127,8 +127,8 @@ jobs:
       uses: actions/cache@v2
       with:
         # Note: It is not possible to reuse environment variables here.
-        key: test_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+        key: test_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}_${{github.run_id}}
+        path: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}
   merge_code_coverage:
     needs: test
     runs-on: ubuntu-20.04
@@ -289,7 +289,7 @@ jobs:
       matrix:
         CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
         UNITS_IMPLEMENTATION: [0, 1]
-        VALUE_MATRIX_IMPLEMENTATION: [1]
+        VALUES_IMPLEMENTATION: [1]
     env:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test_packages
       BUILD_TYPE: Debug
@@ -297,7 +297,7 @@ jobs:
       PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package/test
       SOURCE_DIR: ${{github.workspace}}/wuzp/tests
       UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
-      VALUE_MATRIX_IMPLEMENTATION: ${{matrix.VALUE_MATRIX_IMPLEMENTATION}}
+      VALUES_IMPLEMENTATION: ${{matrix.VALUES_IMPLEMENTATION}}
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
@@ -328,11 +328,11 @@ jobs:
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
-        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
       - name: Install Packages
-        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGES_DIR} ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGES_DIR} ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
       - name: Create Build Environment
-        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON OFF OFF OFF ${UNITS_IMPLEMENTATION} ${VALUE_MATRIX_IMPLEMENTATION}
+        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON OFF OFF OFF ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
       - name: Build
         run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
       - name: Test

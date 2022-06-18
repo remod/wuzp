@@ -110,10 +110,11 @@ Documentation:
 * Limitations
   * In-place operations not supported if they change the type
 * Migration notes from kindr
+* Do not use auto when working with Eigen (https://eigen.tuxfamily.org/dox/TopicPitfalls.html)
 
 ## Design Decisions
 
-## Order of methods
+### Order of methods
 
 1. Empty constructor
 1. Copy constructor

@@ -10,25 +10,22 @@
 using namespace wuzp;  // NOLINT
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
+#include "wuzp_eigen/Values.hpp"
 template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
-#endif
+using Values = wuzp_eigen::Values<Scalar, Rows, Cols>;
 
 TEST(TestActiveTranslation, TransformPositionVector) {  // NOLINT
-  using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Object = PositionVector3<Values, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
+  using TransformedObject = PositionVector3<Values, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -36,9 +33,9 @@ TEST(TestActiveTranslation, TransformPositionVector) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformPositionPoint) {  // NOLINT
-  using Object = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
+  using Object = PositionPoint3<Values, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
+  using TransformedObject = PositionPoint3<Values, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 4.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -46,9 +43,9 @@ TEST(TestActiveTranslation, TransformPositionPoint) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
-  using Object = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using TransformedObject = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Object = VelocityVector3<Values, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
+  using TransformedObject = VelocityVector3<Values, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -56,11 +53,11 @@ TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformPointCloud) {  // NOLINT
-  using MyValueMatrix = ValueMatrix<double, 3, 2>;
-  using MyQuantityMatrix = QuantityMatrix<MyValueMatrix, TypeMatrix<3, 2, AbsoluteLength>>;
-  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA>;
+  using MyValues = Values<double, 3, 2>;
+  using MyQuantities = Quantities<MyValues, TypeMatrix<3, 2, AbsoluteLength>>;
+  using Object = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
+  using TransformedObject = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
   const Object object(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const TransformedObject transformedObject(1.0, 4.0, 2.0, 5.0, 4.0, 7.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -68,9 +65,9 @@ TEST(TestActiveTranslation, TransformPointCloud) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformActiveTranslation) {  // NOLINT
-  using Object = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using TransformedObject = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using Object = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
+  using TransformedObject = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -78,11 +75,13 @@ TEST(TestActiveTranslation, TransformActiveTranslation) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformActiveRotation) {  // NOLINT
-  using Object = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using TransformedObject = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+  using Object = ActiveSpatialRotation3<Values, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
+  using TransformedObject = ActiveSpatialRotation3<Values, double, CoordinateSystemA>;
   const Object object(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
   const TransformedObject transformedObject(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
+
+#endif

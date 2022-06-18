@@ -29,20 +29,12 @@ struct Tag {};
 template <typename T, typename... Args>
 struct GetTag;
 
-struct FromTensorLabel {};
-using FromTensor = Tag<FromTensorLabel>;
-struct FromQuantityMatrixLabel {};
-struct FromCoordinatesLabel {};
-using FromCoordinates = Tag<FromCoordinatesLabel>;
-using FromQuantityMatrix = Tag<FromQuantityMatrixLabel>;
-struct FromQuantitiesLabel {};
-using FromQuantities = Tag<FromQuantitiesLabel>;
-struct FromQuantityMatrixArgsLabel {};
-using FromQuantityMatrixArgs = Tag<FromQuantityMatrixArgsLabel>;
-struct FromValueMatrixLabel {};
-using FromValueMatrix = Tag<FromValueMatrixLabel>;
-struct FromValueMatrixArgsLabel {};
-using FromValueMatrixArgs = Tag<FromValueMatrixArgsLabel>;
+struct FromSimilarLabel {};
+using FromSimilar = Tag<FromSimilarLabel>;
+struct FromImplementationLabel {};
+using FromImplementation = Tag<FromImplementationLabel>;
+struct FromImplementationArgsLabel {};
+using FromImplementationArgs = Tag<FromImplementationArgsLabel>;
 
 template <typename T>
 struct GetTypes {
@@ -54,10 +46,9 @@ struct GetType {
   static_assert(FailOnInstantiation<GetType<T>>::value, "'GetType' trait not specialized for given type.");
 };
 
-// TODO(remod): Rename to GetValue.
 template <typename T>
-struct Scalar {
-  static_assert(FailOnInstantiation<Scalar<T>>::value, "'Scalar' trait not specialized for given type.");
+struct GetValue {
+  static_assert(FailOnInstantiation<GetValue<T>>::value, "'GetValue' trait not specialized for given type.");
 };
 
 template <typename T>
@@ -139,7 +130,7 @@ struct Random {
 
 template <typename T>
 struct Evaluate {
-  static_assert(FailOnInstantiation<Evaluate<T>>::value, "'Evaluate' trait not specialized for given type.");
+  using type = std::decay_t<T>;  // Default e.g. for arithmetic types.
 };
 template <typename T>
 auto evaluate(T t) {
@@ -181,7 +172,7 @@ struct CastCoordinateSystem {
 };
 template <typename To, typename T>
 auto castCoordinateSystem(T t) {
-  return typename CastCoordinateSystem<T, To>::type(t.getValueMatrix());
+  return typename CastCoordinateSystem<T, To>::type(t.getValues());
 }
 
 template <typename UnitT>
@@ -190,15 +181,21 @@ struct AccessUnits {
                 "'AccessUnits' trait not specialized for given type. Make sure you included the necessary unit headers.");
 };
 
+template <typename ValueT>
+struct AccessValues {
+  static_assert(FailOnInstantiation<AccessValues<ValueT>>::value,
+                "'AccessValues' trait not specialized for given type. Make sure you included the necessary unit headers.");
+};
+
 template <typename ValueT, typename UnitT>
 struct GetQuantityImplementation {
   static_assert(FailOnInstantiation<GetQuantityImplementation<ValueT, UnitT>>::value,
                 "'GetQuantityImplementation' trait not specialized for given types.");
 };
 
-template <typename ScalarT>
+template <typename ValueT>
 struct Precision {
-  static_assert(FailOnInstantiation<Precision<ScalarT>>::value, "'Precision' trait not specialized for given types.");
+  static_assert(FailOnInstantiation<Precision<ValueT>>::value, "'Precision' trait not specialized for given types.");
 };
 
 template <>
@@ -216,4 +213,4 @@ struct Precision<double> {
   static constexpr double value() { return 1e-12; }
 };
 
-};  // namespace wuzp
+}  // namespace wuzp

@@ -1,38 +1,41 @@
 #include <gtest/gtest.h>
 
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/traits.hpp"
 
+#include "test_compilation_error.hpp"
+
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#include "test_compilation_error.hpp"
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
+#include "wuzp_eigen/Values.hpp"
+using namespace wuzp_eigen;  // NOLINT
 
 using namespace wuzp;  // NOLINT
 
-using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
-using TimeQuantity = Quantity<double, Time>;
-using DimensionlessQuantity = Quantity<double, Dimensionless>;
-using FrequencyQuantity = Quantity<double, Frequency>;
-using AngleQuantity = Quantity<double, Angle>;
-using LengthQuantity = Quantity<double, Length>;
+using AbsoluteTimeQuantity = QuantityD<AbsoluteTime>;
+using TimeQuantity = QuantityD<Time>;
+using DimensionlessQuantity = QuantityD<Dimensionless>;
+using FrequencyQuantity = QuantityD<Frequency>;
+using AngleQuantity = QuantityD<Angle>;
+using LengthQuantity = QuantityD<Length>;
 
 TEST(TestQuantity, CopyConstructor) {  // NOLINT
-  const auto time = TimeQuantity(1.0);
+  const TimeQuantity time(1.0);
   EXPECT_EQ(time.getValue(), 1.0);
-  const auto time2(time);
+  const TimeQuantity time2(time);  // NOLINT
   EXPECT_EQ(time2.getValue(), 1.0);
   EXPECT_EQ(time2, time);
 }
 
 TEST(TestQuantity, ValueAccess) {  // NOLINT
-  auto time = TimeQuantity(1.0);
+  TimeQuantity time(1.0);
   EXPECT_EQ(time.getValue(), 1.0);
   time.setValue(2.0);
   EXPECT_EQ(time.getValue(), 2.0);
@@ -61,20 +64,23 @@ TEST(TestQuantity, Product) {  // NOLINT
 TEST(TestQuantity, AbsoluteProduct) {  // NOLINT
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "wuzp/core/Quantities.hpp"
+
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
 
+#include "wuzp_eigen/Values.hpp"
+using namespace wuzp_eigen;  // NOLINT
+
 using namespace wuzp;  // NOLINT
 
-using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
-using FrequencyQuantity = Quantity<double, Frequency>;
+using AbsoluteTimeQuantity = QuantityD<AbsoluteTime>;
+using FrequencyQuantity = QuantityD<Frequency>;
 
 int main() {
   [[maybe_unused]] const auto invalid = AbsoluteTimeQuantity(2.0) * FrequencyQuantity(3.0);
@@ -83,8 +89,6 @@ int main() {
 )",
                                                "An absolute unit cannot appear in a multiplication.")
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-  using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
-  using FrequencyQuantity = Quantity<double, Frequency>;
   [[maybe_unused]] const auto valid = AbsoluteTimeQuantity(2.0) * FrequencyQuantity(3.0);
 #endif
 }
@@ -99,19 +103,22 @@ TEST(TestQuantity, Inverse) {  // NOLINT
 
 TEST(TestQuantity, AbsoluteInverse) {  // NOLINT
   const std::string code = R"(
+#include "wuzp/core/Quantities.hpp"
+
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 using namespace wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 using namespace wuzp_boost;  // NOLINT
 #endif
 
+#include "wuzp_eigen/Values.hpp"
+using namespace wuzp_eigen;  // NOLINT
+
 using namespace wuzp;  // NOLINT
 
-using AbsoluteTimeQuantity = Quantity<double, AbsoluteTime>;
+using AbsoluteTimeQuantity = QuantityD<AbsoluteTime>;
 
 int main() {
   [[maybe_unused]] const auto invalid = AbsoluteTimeQuantity(2.0).inverse();
@@ -119,15 +126,15 @@ int main() {
 }
 )";
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "An absolute unit cannot be powered.")
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "An absolute unit cannot appear in a multiplication.")
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
   ASSERT_COMPILATION_ERROR_WITH_MESSAGE(code, "implicit instantiation of undefined template|invalid use of incomplete type")
 #endif
 }
 
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
-  const auto radius = LengthQuantity(2.0);
-  const auto angle = AngleQuantity(3.0);
+  const LengthQuantity radius(2.0);
+  const AngleQuantity angle(3.0);
   [[maybe_unused]] const LengthQuantity arcLength = angle *
                                                     radius
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
@@ -136,3 +143,5 @@ TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
 #endif
       ;
 }
+
+#endif

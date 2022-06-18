@@ -1,24 +1,21 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/QuantityMatrix.hpp"
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Quantity.hpp"
 #include "wuzp_units/Unit.hpp"
 namespace units = wuzp_units;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Quantity.hpp"
 #include "wuzp_boost/Unit.hpp"
 namespace units = wuzp_boost;  // NOLINT
 #endif
 
-#if VALUE_MATRIX_IMPLEMENTATION == VALUE_MATRIX_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
+#include "wuzp_eigen/Values.hpp"
 namespace vm = wuzp_eigen;
-#endif
 
 // From https://en.wikipedia.org/wiki/Mass_matrix#Rotating_dumbbell
 struct CartesianCoordinateSystemName {};
@@ -26,29 +23,33 @@ using CartesianCoordinateSystem = wuzp::CoordinateSystem<CartesianCoordinateSyst
 struct MinimalCoordinateSystemName {};
 using MinimalCoordinateSystem = wuzp::CoordinateSystem<MinimalCoordinateSystemName>;
 
-using MinimalCoordinatesValueVector = vm::ValueMatrix<double, 3, 1>;
+using MinimalCoordinatesValueVector = vm::Values<double, 3, 1>;
 using MinimalCoordinatesUnitVector = wuzp::TypeMatrix<3, 1, units::AbsoluteLength, units::AbsoluteLength, units::AbsoluteAngle>;
-using MinimalCoordinatesQuantityVector = wuzp::QuantityMatrix<MinimalCoordinatesValueVector, MinimalCoordinatesUnitVector>;
+using MinimalCoordinatesQuantityVector = wuzp::Quantities<MinimalCoordinatesValueVector, MinimalCoordinatesUnitVector>;
 using MinimalCoordinatesDtUnitVector = wuzp::TypeMatrix<3, 1, units::Velocity, units::Velocity, units::AngularVelocity>;
-using MinimalCoordinatesDtQuantityVector = wuzp::QuantityMatrix<MinimalCoordinatesValueVector, MinimalCoordinatesDtUnitVector>;
+using MinimalCoordinatesDtQuantityVector = wuzp::Quantities<MinimalCoordinatesValueVector, MinimalCoordinatesDtUnitVector>;
 using MinimalCoordinates = wuzp::Vector<MinimalCoordinatesQuantityVector, MinimalCoordinateSystem>;
 using MinimalCoordinatesDt = wuzp::Vector<MinimalCoordinatesDtQuantityVector, MinimalCoordinateSystem>;
 
-using PositionPoint = wuzp::PositionPoint2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
-using DirectionVector = wuzp::DirectionVector2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
-using VelocityVector = wuzp::VelocityVector2<vm::ValueMatrix, double, CartesianCoordinateSystem>;
+using PositionPoint = wuzp::PositionPoint2<vm::Values, double, CartesianCoordinateSystem>;
+using PositionVector = wuzp::PositionVector2<vm::Values, double, CartesianCoordinateSystem>;
+using DirectionVector = wuzp::DirectionVector2<vm::Values, double, CartesianCoordinateSystem>;
+using VelocityVector = wuzp::VelocityVector2<vm::Values, double, CartesianCoordinateSystem>;
 
-using RadiusQuantity = wuzp::Quantity<double, units::Length>;
-using MassQuantity = wuzp::Quantity<double, units::Mass>;
-using EnergyQuantity = wuzp::Quantity<double, units::Energy>;
-using AngleQuantity = wuzp::Quantity<double, units::Angle>;
-
-using MassMatrixValues = vm::ValueMatrix<double, 3, 3>;
 using MassLength = wuzp::Product<units::Mass, wuzp::Division<units::Length, units::Angle>::type>::type;
 using MassLength2 = wuzp::Product<MassLength, wuzp::Division<units::Length, units::Angle>::type>::type;
+
+using RadiusQuantity = wuzp::QuantityD<units::Length>;
+using MassQuantity = wuzp::QuantityD<units::Mass>;
+using MassLengthQuantity = wuzp::QuantityD<MassLength>;
+using MassLength2Quantity = wuzp::QuantityD<MassLength2>;
+using EnergyQuantity = wuzp::QuantityD<units::Energy>;
+using AngleQuantity = wuzp::QuantityD<units::Angle>;
+
+using MassMatrixValues = vm::Values<double, 3, 3>;
 using MassMatrixUnits =
     wuzp::TypeMatrix<3, 3, units::Mass, units::Mass, MassLength, units::Mass, units::Mass, MassLength, MassLength, MassLength, MassLength2>;
-using MassMatrixQuantities = wuzp::QuantityMatrix<MassMatrixValues, MassMatrixUnits>;
+using MassMatrixQuantities = wuzp::Quantities<MassMatrixValues, MassMatrixUnits>;
 using MassMatrixSystemMatrix = wuzp::TypeMatrix<3, 3, MinimalCoordinateSystem>;
 using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatrix>;
 
@@ -57,11 +58,11 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 // public:
 //  static constexpr int DimensionTo = 4;
 //  static constexpr int DimensionFrom = 3;
-//  using ValueMatrixT = ValueMatrix<double, DimensionTo, DimensionFrom>;
+//  using ValuesT = Values<double, DimensionTo, DimensionFrom>;
 //  using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
-//  using QuantityMatrixT = QuantityMatrix<ValueMatrixT, UnitMatrixT>;
+//  using QuantitiesT = Quantities<ValuesT, UnitMatrixT>;
 //  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
-//  using CoordinateMatrixT = CoordinateMatrix<QuantityMatrixT, CoordinateSystemMatrixT>;
+//  using CoordinateMatrixT = CoordinateMatrix<QuantitiesT, CoordinateSystemMatrixT>;
 //  using TensorT = Tensor<1, 1, CoordinateMatrixT>;
 //
 //  template <typename... Args>
@@ -76,8 +77,9 @@ using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatr
 // TODO(remod): Create a custom transformation class for this?
 std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordinates& minimalCoordinates, const RadiusQuantity& radius) {
   // TODO(remod): Temporarily cast to relative? Or define sin/cos for absolute quantities
-  const auto relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
-  const auto positionVector = radius * DirectionVector(cos(relativeAngle), sin(relativeAngle));
+  // TODO(remod): Replace all autos by explicit types and then try to remove all evaluate calls.
+  const AngleQuantity relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
+  const PositionVector positionVector = radius * DirectionVector(cos(relativeAngle), sin(relativeAngle));
   const PositionPoint position1 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) + positionVector;
   const PositionPoint position2 = castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) - positionVector;
   return std::make_pair(position1, position2);
@@ -86,10 +88,11 @@ std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordina
 std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordinates& minimalCoordinates,
                                                              const MinimalCoordinatesDt& minimalCoordinatesDt,
                                                              const RadiusQuantity& radius) {
-  const auto relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
-  const auto velocityVector = radius * minimalCoordinatesDt.getQuantity<2, 0>() * DirectionVector(-sin(relativeAngle), cos(relativeAngle))
+  const AngleQuantity relativeAngle = makeRelative(minimalCoordinates.getQuantity<2, 0>());
+  const VelocityVector velocityVector = radius * minimalCoordinatesDt.getQuantity<2, 0>() *
+                                        DirectionVector(-sin(relativeAngle), cos(relativeAngle))
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                              / AngleQuantity(1.0)
+                                        / AngleQuantity(1.0)
 #endif
       ;
   const VelocityVector velocity1 =
@@ -106,8 +109,9 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const MassQuantity mass1(1.0);
   const MassQuantity mass2(3.0);
 
-  const auto cartesianCoordinates = minimalToCartesian(minimalCoordinates, radius);
-  const auto cartesianCoordinatesDt = minimalToCartesian(minimalCoordinates, minimalCoordinatesDt, radius);
+  const std::pair<PositionPoint, PositionPoint> cartesianCoordinates = minimalToCartesian(minimalCoordinates, radius);
+  const std::pair<VelocityVector, VelocityVector> cartesianCoordinatesDt =
+      minimalToCartesian(minimalCoordinates, minimalCoordinatesDt, radius);
 
   const EnergyQuantity energyCartesianCoordinates =
       0.5 * (mass1 * cartesianCoordinatesDt.first.squaredNorm() + mass2 * cartesianCoordinatesDt.second.squaredNorm());
@@ -116,6 +120,7 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
 
   const MassQuantity massSum = mass1 + mass2;
   const MassQuantity massDifference = mass1 - mass2;
+  // TODO(remod): For vectors, make it possible to write <1> instead of <1, 0>.
   const EnergyQuantity energyMinimalCoordinates1 =
       0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantity<0, 0>()) + pow<2>(minimalCoordinatesDt.getQuantity<1, 0>()) +
                         pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantity<2, 0>()
@@ -130,31 +135,31 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
                  * (cos(relativeAngle) * minimalCoordinatesDt.getQuantity<1, 0>() -
                     sin(relativeAngle) * minimalCoordinatesDt.getQuantity<0, 0>()));
 
-  auto massMatrix00 = massSum;
-  auto massMatrix01 = MassQuantity(0.0);
-  auto massMatrix02 = -radius * massDifference * sin(relativeAngle)
+  const MassQuantity massMatrix00 = massSum;
+  const MassQuantity massMatrix01(0.0);
+  const MassLengthQuantity massMatrix02 = -radius * massDifference * sin(relativeAngle)
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                      / AngleQuantity(1.0)
+                                          / AngleQuantity(1.0)
 #endif
       ;
-  auto massMatrix12 = radius * massDifference * cos(relativeAngle)
+  const MassLengthQuantity massMatrix12 = radius * massDifference * cos(relativeAngle)
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                      / AngleQuantity(1.0)
+                                          / AngleQuantity(1.0)
 #endif
       ;
-  auto massMatrix22 = pow<2>(radius) * massSum
+  const MassLength2Quantity massMatrix22 = pow<2>(radius) * massSum
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                      / pow<2>(AngleQuantity(1.0))
+                                           / pow<2>(AngleQuantity(1.0))
 #endif
       ;
   const MassMatrix massMatrix(massMatrix00, massMatrix01, massMatrix02, massMatrix01, massMatrix00, massMatrix12, massMatrix02,
                               massMatrix12, massMatrix22);
 
-  // TODO(remod): Enable implicit conversion from 1x1 quantity matrix to quantity. Only required if we don't just use 1x1 matrices as impl.
   const EnergyQuantity energyMinimalCoordinates2 =
-      0.5 * (minimalCoordinatesDt.transpose() * (massMatrix * minimalCoordinatesDt)).getQuantity<0, 0>();
+      0.5 * (minimalCoordinatesDt.transpose() * (massMatrix * minimalCoordinatesDt)).getQuantity();
 
-  // TODO(remod): Use isApprox() after switching to 1x1 matrices.
-  EXPECT_NEAR(energyCartesianCoordinates.getValue(), energyMinimalCoordinates1.getValue(), 1e-5);
-  EXPECT_NEAR(energyMinimalCoordinates1.getValue(), energyMinimalCoordinates2.getValue(), 1e-5);
+  EXPECT_TRUE(energyCartesianCoordinates.isApprox(energyMinimalCoordinates1));
+  EXPECT_TRUE(energyMinimalCoordinates1.isApprox(energyMinimalCoordinates2));
 }
+
+#endif
