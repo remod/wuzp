@@ -85,8 +85,14 @@ namespace wuzp {
 
 // Orthogonal matrix / transformation: A^-1 == A^T
 
+template <bool Value>
+struct AbsoluteImpl;
+
+using Absolute = AbsoluteImpl<true>;
+using Relative = AbsoluteImpl<false>;
+
 // TODO(remod): Are two indices sufficient or do we need a boolean per dimension?
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_>
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, bool IsAbsolute_>
 class Tensor {
  public:
   using QuantitiesT = QuantitiesT_;
@@ -94,7 +100,8 @@ class Tensor {
   using UnitsT = typename QuantitiesT::UnitsT;
   using ValuesT = typename QuantitiesT::ValuesT;
   using ValueT = typename QuantitiesT::ValueT;
-  using This = Tensor<ContravariantIndices, CovariantIndices, QuantitiesT, CoordinateSystemT>;
+  static constexpr bool IsAbsolute = IsAbsolute_;
+  using ThisT = Tensor<ContravariantIndices, CovariantIndices, QuantitiesT, CoordinateSystemT, IsAbsolute>;
 
   static_assert(CovariantIndices >= 0, "Covariant index must not be negative.");
   static_assert(ContravariantIndices >= 0, "Contravariant index must not be negative.");
@@ -103,11 +110,11 @@ class Tensor {
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromSimilar>) Tensor(T0&& t0, Ts&&... ts)
-      : Tensor(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
+  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) Tensor(T0&& t0, Ts&&... ts)
+      : Tensor(typename GetTag<ThisT, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
-  static This zero() { return This(QuantitiesT::zero()); }
-  static This random() { return This(QuantitiesT::random()); }
+  static ThisT zero() { return ThisT(QuantitiesT::zero()); }
+  static ThisT random() { return ThisT(QuantitiesT::random()); }
 
   template <typename ValuesOtherT_, typename UnitsOther>
   void setQuantities(const Quantities<ValuesOtherT_, UnitsOther>& component) {
@@ -121,17 +128,18 @@ class Tensor {
   }
   const ValuesT& getValues() const { return quantities_.getValues(); }
 
-  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther>
-  bool isApprox(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>& other,
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther, bool IsAbsoluteOther>
+  bool isApprox(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, IsAbsoluteOther>& other,
                 const ValueT precision = Precision<ValueT>::value()) const {
     // Note: Allow other tensor types to support lazy evaluation.
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
+    static_assert(IsAbsolute == IsAbsoluteOther, "Absolute/relative mismatch.");
     return quantities_.isApprox(other.getQuantities(), precision);
   }
 
-  template <int Dimension = Dimension<This>::value, typename = std::enable_if_t<Dimension == 0>>
+  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
   auto getQuantity() const {
     return quantities_.get();
   }
@@ -143,7 +151,7 @@ class Tensor {
 
   auto getQuantity(const int rowId, const int colId) const { return quantities_.get(rowId, colId); }
 
-  template <typename QuantityT_, int Dimension = Dimension<This>::value, typename = std::enable_if_t<Dimension == 0>>
+  template <typename QuantityT_, int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
   void setQuantity(const QuantityT_& quantity) {
     return quantities_.set(quantity);
   }
@@ -161,27 +169,27 @@ class Tensor {
   // TODO(remod): Rename to "slice"?
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
-    return typename Block<This, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
+    return typename Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
         quantities_.template block<BlockRowId, BlockColId, BlockRows, BlockCols>());
   }
 
-  auto transpose() const { return typename Transpose<This>::type(quantities_.transpose()); }
+  auto transpose() const { return typename Transpose<ThisT>::type(quantities_.transpose()); }
 
-  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther>
-  auto dotProduct(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>& other) const {
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther, bool IsAbsoluteOther>
+  auto dotProduct(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, IsAbsoluteOther>& other) const {
     return
-        typename DotProduct<This, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>>::type(
+        typename DotProduct<ThisT, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, IsAbsoluteOther>>::type(
             quantities_.dotProduct(other.getQuantities()));
   }
 
-  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther>
-  auto crossProduct(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>& other) const {
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther, bool IsAbsoluteOther>
+  auto crossProduct(const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, IsAbsoluteOther>& other) const {
     return
-        typename CrossProduct<This, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>>::type(
+        typename CrossProduct<ThisT, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, IsAbsoluteOther>>::type(
             quantities_.crossProduct(other.getQuantities()));
   }
 
-  auto inverse() const { return typename Inverse<This>::type(quantities_.inverse()); }
+  auto inverse() const { return typename Inverse<ThisT>::type(quantities_.inverse()); }
 
   template <bool IsHomogeneousV = IsHomogeneous<UnitsT>::value, typename = std::enable_if_t<IsHomogeneousV>>
   auto norm() const {
@@ -194,9 +202,9 @@ class Tensor {
   }
 
  private:
-  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther>
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther, bool IsAbsoluteOther>
   // Allow other tensor types to support lazy evaluation.
-  Tensor(FromSimilar /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>& other)
+  Tensor(FromSimilar /*tag*/, const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, IsAbsoluteOther>& other)
       : quantities_(other.getQuantities()) {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
@@ -209,8 +217,8 @@ class Tensor {
   QuantitiesT quantities_;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename... Ts>
-struct GetTag<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_>, Ts...> {
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, bool IsAbsolute, typename... Ts>
+struct GetTag<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, IsAbsolute>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
   using type = typename IfThenElse<
       sizeof...(Ts) == 1,
@@ -220,25 +228,25 @@ struct GetTag<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, Coord
       typename IfThenElse<(IsSpecialization<Ts, Quantities>::value && ...), FromImplementationArgs, FromImplementationArgs>::type>::type;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_>
-struct Dimension<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_>> {
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, bool IsAbsolute>
+struct Dimension<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, IsAbsolute>> {
   static constexpr int value = Dimension<QuantitiesT_>::value;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_>
-struct Rows<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_>> {
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, bool IsAbsolute>
+struct Rows<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, IsAbsolute>> {
   static constexpr int value = Rows<QuantitiesT_>::value;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_>
-struct Cols<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_>> {
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, bool IsAbsolute>
+struct Cols<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, IsAbsolute>> {
   static constexpr int value = Cols<QuantitiesT_>::value;
 };
 
-template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
-          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_, typename CoordinateSystemRhsT_>
-struct Sum<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_>,
-           Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_>> {
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_, bool IsAbsoluteLhs,
+          int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_, typename CoordinateSystemRhsT_, bool IsAbsoluteRhs>
+struct Sum<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, IsAbsoluteLhs>,
+           Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, IsAbsoluteRhs>> {
   static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
   static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
   using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, typename Sum<QuantitiesLhsT_, QuantitiesRhsT_>::type,

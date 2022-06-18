@@ -2,7 +2,7 @@
 
 *wuzp* is a C++ library for compile time analysis of units and coordinate frames for linear algebra.
 
-[![Continuous Integration](https://github.com/remod/wuzp/actions/workflows/ci.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/ci.yml)
+[![CI](https://github.com/remod/wuzp/actions/workflows/ci.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/ci.yml)
 [![Code Coverage](https://codecov.io/gh/remod/wuzp/branch/master/graph/badge.svg?token=FVPNHZKXVX)](https://codecov.io/gh/remod/wuzp)
 
 ## Introduction
@@ -137,5 +137,5 @@ Options:
 Decision: 1.
 
 Transforming certain tensors, e.g. a mass matrix, requires left and right multiplication with a transformation object.
-This rules out option 2, as the two multiplications do not know about each other.
+ThisT rules out option 2, as the two multiplications do not know about each other.
 The information that the new coordinate system needs to be applied is only available on the level of the transformation object.
