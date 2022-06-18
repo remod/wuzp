@@ -24,10 +24,6 @@ class ValuesWrapper {
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) ValuesWrapper(const T0& t0, const Ts&... ts)
-      : ValuesWrapper(typename GetTag<ThisT, T0, Ts...>::type(), t0, ts...) {}
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
-  // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) ValuesWrapper(T0&& t0, Ts&&... ts)
       : ValuesWrapper(typename GetTag<ThisT, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
@@ -107,10 +103,6 @@ class ValuesWrapper {
   template <typename ImplementationOther_>
   // Allow other implementation types to support lazy evaluation.
   ValuesWrapper(FromSimilar /*tag*/, const ValuesWrapper<ImplementationOther_>& other) : implementation_(other.getImplementation()) {}
-  template <typename ImplementationOther_>
-  // Allow other implementation types to support lazy evaluation.
-  ValuesWrapper(FromSimilar /*tag*/, ValuesWrapper<ImplementationOther_>&& other)
-      : implementation_(std::forward<ImplementationOther_>(other.getImplementation())) {}
 
   // Temporary Eigen objects do not have a default constructor, therefore we must provide this method.
   template <typename T0>

@@ -213,4 +213,4 @@ struct Precision<double> {
   static constexpr double value() { return 1e-12; }
 };
 
-};  // namespace wuzp
+}  // namespace wuzp

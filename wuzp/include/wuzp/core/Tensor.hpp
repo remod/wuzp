@@ -103,10 +103,6 @@ class Tensor {
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromSimilar>) Tensor(const T0& t0, const Ts&... ts)
-      : Tensor(typename GetTag<This, T0, Ts...>::type(), t0, ts...) {}
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
-  // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<This, T0, Ts...>::type, FromSimilar>) Tensor(T0&& t0, Ts&&... ts)
       : Tensor(typename GetTag<This, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
@@ -140,7 +136,6 @@ class Tensor {
     return quantities_.get();
   }
 
-  // TODO(remod): Remove 'get' from all getters?
   template <int RowId, int ColId>
   auto getQuantity() const {
     return quantities_.template get<RowId, ColId>();
@@ -207,22 +202,7 @@ class Tensor {
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
     static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
   }
-  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther>
-  // Allow other tensor types to support lazy evaluation.
-  Tensor(FromSimilar /*tag*/, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther>&& other)
-      : quantities_(std::move(other.getQuantities())) {
-    static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
-    static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
-    static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
-  }
 
-  //  template <typename ValuesOtherT_, typename UnitsOther>
-  //  Tensor(FromImplementation /*tag*/, const Quantities<ValuesOtherT_, UnitsOther>& quantities) : quantities_(quantities) {}
-  //  template <typename ValuesOtherT_, typename UnitsOther>
-  //  Tensor(FromImplementation /*tag*/, Quantities<ValuesOtherT_, UnitsOther>&& quantities) : quantities_(std::move(quantities)) {}
-
-  template <typename... Ts>
-  explicit Tensor(FromImplementationArgs /*tag*/, const Ts&... ts) : quantities_(ts...) {}
   template <typename... Ts>
   explicit Tensor(FromImplementationArgs /*tag*/, Ts&&... ts) : quantities_(std::forward<Ts>(ts)...) {}
 

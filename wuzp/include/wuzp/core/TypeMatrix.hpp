@@ -190,29 +190,47 @@ struct Difference<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, Typ
   using type = TypeMatrixImpl<RowsLhs, ColsRhs, typename SubtractTwoTuples<std::tuple<TypesLhs...>, std::tuple<TypesRhs...>>::type>;
 };
 
-// So far, we do not require the RHS traits.
+// Product of type matrix and type.
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, typename TypeRhs>
 struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeRhs> {
   using type = TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<typename Product<TypesLhs, TypeRhs>::type...>>;
 };
-// So far, we do not require the LHS traits.
+// Product of type and type matrix.
 template <typename TypeLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
 struct Product<TypeLhs, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
   using type = typename Product<TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>, TypeLhs>::type;
 };
-template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
-struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
-  static_assert(ColsLhs == RowsRhs, "Matrix sizes do not match.");
-  using type =
-      TypeMatrixImpl<RowsLhs, ColsRhs,
-                     typename MultiplyTuples<typename ToRows<ColsLhs, TypesLhs...>::type, typename ToCols<ColsRhs, TypesRhs...>::type,
-                                             std::make_index_sequence<RowsLhs * ColsRhs>>::type>;
+// Product of two type matrices. The right one is a 1x1 matrix, the left one can be a 1x1 matrix as well.
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, typename TypeRhs>
+struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<1, 1, std::tuple<TypeRhs>>> {
+  using type = typename Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeRhs>::type;
+};
+// Product of two type matrices. The left one is a 1x1 matrix, the right one is not.
+template <typename TypeLhs, int RowsRhs, int ColsRhs, typename Type0Rhs, typename Type1Rhs, typename... TypesRhs>
+struct Product<TypeMatrixImpl<1, 1, std::tuple<TypeLhs>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<Type0Rhs, Type1Rhs, TypesRhs...>>> {
+  using type = typename Product<TypeLhs, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<Type0Rhs, Type1Rhs, TypesRhs...>>>::type;
+};
+// Product of two type matrices. None of them is a 1x1 matrix.
+template <int RowsLhs, int ColsLhs, typename Type0Lhs, typename Type1Lhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename Type0Rhs,
+          typename Type1Rhs, typename... TypesRhs>
+struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<Type0Lhs, Type1Lhs, TypesLhs...>>,
+               TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<Type0Rhs, Type1Rhs, TypesRhs...>>> {
+  static_assert(ColsLhs == RowsRhs, "Matrix sizes do not match and neither of the matrices is a scalar.");
+  using type = TypeMatrixImpl<RowsLhs, ColsRhs,
+                              typename MultiplyTuples<typename ToRows<ColsLhs, Type0Lhs, Type1Lhs, TypesLhs...>::type,
+                                                      typename ToCols<ColsRhs, Type0Rhs, Type1Rhs, TypesRhs...>::type,
+                                                      std::make_index_sequence<RowsLhs * ColsRhs>>::type>;
 };
 
-// So far, we do not require the RHS traits.
+// Division of a type matrix by a type.
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, typename TypeRhs>
 struct Division<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeRhs> {
   using type = TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<typename Division<TypesLhs, TypeRhs>::type...>>;
+};
+// Division of a type matrix by a 1x1 type matrix.
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, typename TypeRhs>
+struct Division<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<1, 1, std::tuple<TypeRhs>>> {
+  using type = typename Division<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeRhs>::type;
 };
 
 template <int Rows, int Cols, typename... Types>

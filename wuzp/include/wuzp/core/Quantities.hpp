@@ -42,10 +42,6 @@ class Quantities {
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) Quantities(const T0& t0, const Ts&... ts)
-      : Quantities(typename GetTag<ThisT, T0, Ts...>::type(), t0, ts...) {}
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
-  // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) Quantities(T0&& t0, Ts&&... ts)
       : Quantities(typename GetTag<ThisT, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
@@ -165,11 +161,6 @@ class Quantities {
   Quantities(FromSimilar /*tag*/, const Quantities<ValuesOtherT_, UnitsOther>& other) : values_(other.getValues()) {
     static_assert(std::is_same<UnitsT, UnitsOther>::value, "Units do not match.");
   }
-  template <typename ValuesOtherT_, typename UnitsOther>
-  // Allow other values types to support lazy evaluation.
-  Quantities(FromSimilar /*tag*/, Quantities<ValuesOtherT_, UnitsOther>&& other) : values_(std::move(other.getValues())) {
-    static_assert(std::is_same<UnitsT, UnitsOther>::value, "Units do not match.");
-  }
 
   /**
    * Constructor from individual quantities.
@@ -182,19 +173,6 @@ class Quantities {
     static_assert(std::is_same<std::tuple<QuantityUnitsT_...>, typename GetTypes<UnitsT>::type>::value, "Units do not match.");
   }
 
-  /**
-   * Constructor from individual quantities.
-   * @tparam Units Units of the quantities, order and types must correspond to the units of the quantities.
-   * @param quantities Quantities.
-   */
-  template <typename... QuantityValueT_, typename... QuantityUnitsT_>
-  explicit Quantities(FromImplementation /*tag*/, Quantity<QuantityValueT_, QuantityUnitsT_>&&... quantities)
-      : Quantities(FromImplementationArgs(), quantities.getValue()...) {
-    static_assert(std::is_same<std::tuple<QuantityUnitsT_...>, typename GetTypes<UnitsT>::type>::value, "Units do not match.");
-  }
-
-  template <typename... Ts>
-  explicit Quantities(FromImplementationArgs /*tag*/, const Ts&... ts) : values_(ts...) {}
   template <typename... Ts>
   explicit Quantities(FromImplementationArgs /*tag*/, Ts&&... ts) : values_(std::forward<Ts>(ts)...) {}
 
@@ -251,31 +229,9 @@ struct Difference<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, U
   using type = Quantities<typename Difference<ValuesLhsT_, ValuesRhsT_>::type, typename Difference<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-// 0+dim * 0dim
-template <typename ValuesLhsT_, int RowsLhsV_, int ColsLhsV_, typename Unit0LhsT_, typename... UnitsLhsT_, typename ValueRhsT_,
-          typename UnitRhsT_>
-struct Product<Quantities<ValuesLhsT_, TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<Unit0LhsT_, UnitsLhsT_...>>>,
-               Quantity<ValueRhsT_, UnitRhsT_>> {
-  using type = Quantities<typename Product<ValuesLhsT_, ValueRhsT_>::type,
-                          typename Product<TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<Unit0LhsT_, UnitsLhsT_...>>, UnitRhsT_>::type>;
-};
-// 0dim * 1+dim
-template <typename ValueLhsT_, typename UnitLhsT_, typename ValuesRhsT_, int RowsRhsV_, int ColsRhsV_, typename Unit0RhsT_,
-          typename Unit1RhsT_, typename... UnitsRhsT_>
-struct Product<Quantity<ValueLhsT_, UnitLhsT_>,
-               Quantities<ValuesRhsT_, TypeMatrixImpl<RowsRhsV_, ColsRhsV_, std::tuple<Unit0RhsT_, Unit1RhsT_, UnitsRhsT_...>>>> {
-  using type =
-      typename Product<Quantities<ValuesRhsT_, TypeMatrixImpl<RowsRhsV_, ColsRhsV_, std::tuple<Unit0RhsT_, Unit1RhsT_, UnitsRhsT_...>>>,
-                       Quantity<ValueLhsT_, UnitLhsT_>>::type;
-};
-// 1+dim * 1+dim
-template <typename ValuesLhsT_, int RowsLhsV_, int ColsLhsV_, typename Unit0LhsT_, typename Unit1LhsT_, typename... UnitsLhsT_,
-          typename ValuesRhsT_, int RowsRhsV_, int ColsRhsV_, typename Unit0RhsT_, typename Unit1RhsT_, typename... UnitsRhsT_>
-struct Product<Quantities<ValuesLhsT_, TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<Unit0LhsT_, Unit1LhsT_, UnitsLhsT_...>>>,
-               Quantities<ValuesRhsT_, TypeMatrixImpl<RowsRhsV_, ColsRhsV_, std::tuple<Unit0RhsT_, Unit1RhsT_, UnitsRhsT_...>>>> {
-  using type = Quantities<typename Product<ValuesLhsT_, ValuesRhsT_>::type,
-                          typename Product<TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<Unit0LhsT_, Unit1LhsT_, UnitsLhsT_...>>,
-                                           TypeMatrixImpl<RowsRhsV_, ColsRhsV_, std::tuple<Unit0RhsT_, Unit1RhsT_, UnitsRhsT_...>>>::type>;
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename Product<ValuesLhsT_, ValuesRhsT_>::type, typename Product<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
