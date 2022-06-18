@@ -27,21 +27,6 @@ using Time = wuzp::Unit<boost::units::si::time>;
 using Velocity = wuzp::Unit<boost::units::si::velocity>;
 using Volume = wuzp::Unit<boost::units::si::volume>;
 
-using AbsoluteAcceleration = wuzp::Unit<boost::units::absolute<boost::units::si::acceleration>>;
-using AbsoluteAngle = wuzp::Unit<boost::units::absolute<boost::units::si::plane_angle>>;
-using AbsoluteAngularAcceleration = wuzp::Unit<boost::units::absolute<boost::units::si::angular_acceleration>>;
-using AbsoluteAngularVelocity = wuzp::Unit<boost::units::absolute<boost::units::si::angular_velocity>>;
-using AbsoluteArea = wuzp::Unit<boost::units::absolute<boost::units::si::area>>;
-using AbsoluteDimensionless = wuzp::Unit<boost::units::absolute<boost::units::si::dimensionless>>;
-using AbsoluteEnergy = wuzp::Unit<boost::units::absolute<boost::units::si::energy>>;
-using AbsoluteForce = wuzp::Unit<boost::units::absolute<boost::units::si::force>>;
-using AbsoluteFrequency = wuzp::Unit<boost::units::absolute<boost::units::si::frequency>>;
-using AbsoluteLength = wuzp::Unit<boost::units::absolute<boost::units::si::length>>;
-using AbsoluteMass = wuzp::Unit<boost::units::absolute<boost::units::si::mass>>;
-using AbsoluteTime = wuzp::Unit<boost::units::absolute<boost::units::si::time>>;
-using AbsoluteVelocity = wuzp::Unit<boost::units::absolute<boost::units::si::velocity>>;
-using AbsoluteVolume = wuzp::Unit<boost::units::absolute<boost::units::si::volume>>;
-
 }  // namespace wuzp_boost
 
 namespace wuzp {
@@ -86,46 +71,8 @@ struct Inverse<Unit<Implementation>> {
   using type = Unit<typename boost::units::power_typeof_helper<Implementation, boost::units::static_rational<-1>>::type>;
 };
 
-template <typename Implementation>
-struct IsAbsolute<Unit<Implementation>> : public std::false_type {};
-template <typename Implementation>
-struct IsAbsolute<Unit<boost::units::absolute<Implementation>>> : public std::true_type {};
-
-template <typename Implementation>
-struct MakeRelative<Unit<Implementation>> {
-  static_assert(FailOnInstantiation<MakeRelative<Unit<Implementation>>>::value, "Unit is already relative.");
-};
-template <typename Implementation>
-struct MakeRelative<Unit<boost::units::absolute<Implementation>>> {
-  using type = Unit<Implementation>;
-};
-
-template <typename Implementation>
-struct MakeAbsolute<Unit<Implementation>> {
-  using type = Unit<boost::units::absolute<Implementation>>;
-};
-template <typename Implementation>
-struct MakeAbsolute<Unit<boost::units::absolute<Implementation>>> {
-  static_assert(FailOnInstantiation<Unit<boost::units::absolute<Implementation>>>::value, "Unit is already absolute.");
-};
-
 template <typename T>
 struct AccessUnits<SpecializationDummy<T>> {
-  using AbsoluteAcceleration = wuzp_boost::AbsoluteAcceleration;
-  using AbsoluteAngle = wuzp_boost::AbsoluteAngle;
-  using AbsoluteAngularAcceleration = wuzp_boost::AbsoluteAngularAcceleration;
-  using AbsoluteAngularVelocity = wuzp_boost::AbsoluteAngularVelocity;
-  using AbsoluteArea = wuzp_boost::AbsoluteArea;
-  using AbsoluteDimensionless = wuzp_boost::AbsoluteDimensionless;
-  using AbsoluteEnergy = wuzp_boost::AbsoluteEnergy;
-  using AbsoluteForce = wuzp_boost::AbsoluteForce;
-  using AbsoluteFrequency = wuzp_boost::AbsoluteFrequency;
-  using AbsoluteLength = wuzp_boost::AbsoluteLength;
-  using AbsoluteMass = wuzp_boost::AbsoluteMass;
-  using AbsoluteTime = wuzp_boost::AbsoluteTime;
-  using AbsoluteVelocity = wuzp_boost::AbsoluteVelocity;
-  using AbsoluteVolume = wuzp_boost::AbsoluteVolume;
-
   using Acceleration = wuzp_boost::Acceleration;
   using Angle = wuzp_boost::Angle;
   using AngularAcceleration = wuzp_boost::AngularAcceleration;

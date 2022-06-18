@@ -76,10 +76,10 @@ struct IsSpecialization<Template1<Args...>, Template2> {
 };
 // TODO(remod): This corner case could be avoided by using std::integral_constant instead of ints for the Tensor class and providing a
 // simplified alias.
-template <typename T, template <int, int, typename, typename, bool> typename Template>
+template <typename T, template <int, int, typename...> typename Template>
 struct IsSpecializationInts : std::false_type {};
-template <template <int, int, typename, typename, bool> typename Template, int Int0, int Int1, typename T0, typename T1, bool Bool>
-struct IsSpecializationInts<Template<Int0, Int1, T0, T1, Bool>, Template> : std::true_type {};
+template <template <int, int, typename...> typename Template, int Int0, int Int1, typename... Args>
+struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true_type {};
 // TODO(remod): This is a special case for the quantities.
 template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantitiesT_>
 struct IsSpecializationQuantities : std::false_type {};

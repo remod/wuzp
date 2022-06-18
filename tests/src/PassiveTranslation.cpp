@@ -54,10 +54,10 @@ TEST(TestPassiveTranslation, TransformVelocityVector) {  // NOLINT
 
 TEST(TestPassiveTranslation, TransformPointCloud) {  // NOLINT
   using MyValues = Values<double, 3, 2>;
-  using MyQuantities = Quantities<MyValues, TypeMatrix<3, 2, AbsoluteLength>>;
-  using Object = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyQuantities = Quantities<MyValues, TypeMatrix<3, 2, Length>>;
+  using Object = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
   using Transformation = PassiveSpatialTranslation3<Values, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
-  using TransformedObject = Tensor<1, 0, MyQuantities, CoordinateSystemB>;
+  using TransformedObject = Tensor<1, 0, MyQuantities, CoordinateSystemB, Absolute>;
   const Object object(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const TransformedObject transformedObject(1.0, 4.0, 2.0, 5.0, 2.0, 5.0);
   const Transformation transformation(0.0, 0.0, -1.0);  // Passive translation of 1 along z.
