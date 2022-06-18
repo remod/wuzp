@@ -3,7 +3,7 @@
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/Rational.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/core/UnitMatrix.hpp"
+#include "wuzp/core/Units.hpp"
 
 #include "test_compilation_error.hpp"
 
@@ -17,11 +17,8 @@ using namespace wuzp_boost;  // NOLINT
 
 using namespace wuzp;  // NOLINT
 
-// template <int Rows, int Cols, typename... Rationals>
-// using RationalMatrix = TypeMatrix<Rows, Cols, Rationals...>;
-
 template <int Size>
-using ValueMatrixIdentity = DiagonalTypeMatrix<Size, Integer<0>, Integer<1>>;
+using ValuesIdentity = DiagonalTypeMatrix<Size, Integer<0>, Integer<1>>;
 
 TEST(TestTypeMatrix, Conversions) {  // NOLINT
   static_assert(std::is_same<HomogeneousTuple<3, int>, std::tuple<int, int, int>>::value);
@@ -52,10 +49,10 @@ TEST(TestTypeMatrix, Cols) {  // NOLINT
 }
 
 TEST(TestTypeMatrix, DiagonalTypeMatrix) {  // NOLINT
-  static_assert(std::is_same<ValueMatrixIdentity<1>, TypeMatrix<1, 1, Integer<1>>>::value);
-  static_assert(std::is_same<ValueMatrixIdentity<2>, TypeMatrix<2, 2, Integer<1>, Integer<0>, Integer<0>, Integer<1>>>::value);
-  static_assert(std::is_same<ValueMatrixIdentity<3>, TypeMatrix<3, 3, Integer<1>, Integer<0>, Integer<0>, Integer<0>, Integer<1>,
-                                                                Integer<0>, Integer<0>, Integer<0>, Integer<1>>>::value);
+  static_assert(std::is_same<ValuesIdentity<1>, TypeMatrix<1, 1, Integer<1>>>::value);
+  static_assert(std::is_same<ValuesIdentity<2>, TypeMatrix<2, 2, Integer<1>, Integer<0>, Integer<0>, Integer<1>>>::value);
+  static_assert(std::is_same<ValuesIdentity<3>, TypeMatrix<3, 3, Integer<1>, Integer<0>, Integer<0>, Integer<0>, Integer<1>, Integer<0>,
+                                                           Integer<0>, Integer<0>, Integer<1>>>::value);
 }
 
 TEST(TestTypeMatrix, Block) {  // NOLINT
@@ -126,6 +123,34 @@ TEST(TestTypeMatrix, Product4) {  // NOLINT
   using B = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using C = TypeMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
   static_assert(std::is_same<Product<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, Product5) {  // NOLINT
+  using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = TypeMatrix<1, 1, Integer<3>>;
+  using C = TypeMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
+  static_assert(std::is_same<Product<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, Product6) {  // NOLINT
+  using A = TypeMatrix<1, 1, Integer<3>>;
+  using B = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using C = TypeMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
+  static_assert(std::is_same<Product<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, DivisionByType) {  // NOLINT
+  using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = Integer<3>;
+  using C = TypeMatrix<1, 4, Integer<0>, Rational<1, 3>, Rational<2, 3>, Integer<1>>;
+  static_assert(std::is_same<Division<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, DivisionBy1x1TypeMatrix) {  // NOLINT
+  using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = TypeMatrix<1, 1, Integer<3>>;
+  using C = TypeMatrix<1, 4, Integer<0>, Rational<1, 3>, Rational<2, 3>, Integer<1>>;
+  static_assert(std::is_same<Division<A, B>::type, C>::value);
 }
 
 TEST(TestTypeMatrix, DotProduct) {  // NOLINT

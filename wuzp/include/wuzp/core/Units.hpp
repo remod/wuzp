@@ -7,7 +7,7 @@ namespace wuzp {
 
 // TODO(remod): Do we still need this?
 // template <int Rows, int Cols, typename... Implementations>
-// using UnitMatrix = TypeMatrix<Rows, Cols, Unit<Implementations>...>;
+// using Units = TypeMatrix<Rows, Cols, Unit<Implementations>...>;
 
 template <int Rows, int Cols, typename... UnitImplementations>
 struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
@@ -54,7 +54,7 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>..
 template <int Rows, int Cols, typename... UnitImplementations>
 struct IsAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
   static_assert(IsHomogeneous<std::integral_constant<bool, IsAbsolute<Unit<UnitImplementations>>::value>...>::value,
-                "Unit matrix is mixed absolute/relative.");
+                "Units are mixed absolute/relative.");
   static constexpr bool value = (IsAbsolute<Unit<UnitImplementations>>::value && ...);
 };
 template <int Rows, int Cols, typename... UnitImplementations>
