@@ -10,7 +10,7 @@
 set -e
 
 # Check arguments.
-if [ $# -lt 4 ] || [ $# -gt 5 ]; then
+if [ $# -lt 3 ] || [ $# -gt 5 ]; then
   echo "Number of arguments is incorrect: $*"
   echo "Usage: ./run_workflow.sh GPG_SIGNING_KEY_FILE GPG_SIGNING_KEYGRIP GPG_SIGNING_KEY_PASSPHRASE [SKIP_CHECK_FORMAT=false] [DOCKER_IMAGE=ubuntu:20.04]"
   exit 1
@@ -28,8 +28,8 @@ if [ $# -ge 5 ]; then
   DOCKER_IMAGE=${5}
 else
   DOCKER_IMAGE="ubuntu:20.04"
+  docker pull ${DOCKER_IMAGE}
 fi
-docker pull ${DOCKER_IMAGE}
 
 # Check GPG signing key file.
 if [ ! -f ${GPG_SIGNING_KEY_FILE} ]; then
@@ -43,7 +43,8 @@ export GPG_SIGNING_KEY=${GPG_SIGNING_KEY_TMP}
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" &> /dev/null && pwd )"
 # Define directories.
 REPO_DIR=${SCRIPT_DIR}/..
-WORKSPACE_DIR=/root
+echo "The repository is found in ${REPO_DIR}"
+WORKSPACE_DIR=/root/workspace
 TMP_DIR=/tmp/wuzp
 CHECK_FORMAT_DIR=${TMP_DIR}/check_format
 TESTS_DIR=${TMP_DIR}/test
@@ -56,13 +57,19 @@ BUILD_TYPE=Debug
 DEBIAN_FRONTEND=noninteractive
 export DEBIAN_FRONTEND
 
+print_title () {
+  echo "****************************************************************************************"
+  echo "* $1"
+  echo "****************************************************************************************"
+}
+
 # Run workflow.
-echo "Running workflow in docker image ${DOCKER_IMAGE} ..."
+print_title "Running workflow in docker image ${DOCKER_IMAGE} ..."
 mkdir -p ${TMP_DIR}
 
 # Check format.
 if [[ ${SKIP_CHECK_FORMAT} = false ]]; then
-  echo "Checking format ..."
+  print_title "Checking format ..."
   # Instead of modifying the real code with the docker user which then owns the files, modify a copy of it.
   rm -rf ${CHECK_FORMAT_DIR}
   mkdir -p ${CHECK_FORMAT_DIR}
@@ -73,7 +80,7 @@ if [[ ${SKIP_CHECK_FORMAT} = false ]]; then
 fi
 
 # Check package versions.
-echo "Checking package versions ..."
+print_title "Checking package versions ..."
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
   docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_package_version/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_NAME}
 done
@@ -82,7 +89,7 @@ done
 for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
     for VALUES_IMPLEMENTATION in 1; do
-      echo "Testing with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} ..."
+      print_title "Testing with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} ..."
       TEST_DIR=${TESTS_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUES_IMPLEMENTATION}
       rm -rf ${TEST_DIR}
       mkdir -p ${TEST_DIR}
@@ -97,13 +104,13 @@ for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
 done
 
 # Merge code coverage.
-echo "Merging code coverage ..."
+print_title "Merging code coverage ..."
 rm -rf ${CODE_COVERAGE_DIR}
 mkdir -p ${CODE_COVERAGE_DIR}
 docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${TESTS_DIR}:${TESTS_DIR}:ro -v ${CODE_COVERAGE_DIR}:${CODE_COVERAGE_DIR}:rw ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/merge_code_coverage/run_job.sh ${WORKSPACE_DIR} ${TESTS_DIR} ${CODE_COVERAGE_DIR}
 
 # Package wuzp.
-echo "Packaging wuzp ..."
+print_title "Packaging wuzp ..."
 PACKAGE_TEST_DIR=${PACKAGES_TEST_DIR}/wuzp
 rm -rf ${PACKAGE_TEST_DIR}
 mkdir -p ${PACKAGE_TEST_DIR}
@@ -115,7 +122,7 @@ docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -e GPG_SIGNING_KEYGRIP
 # Package extensions.
 WUZP_PACKAGE_TEST_DIR=${PACKAGE_TEST_DIR}
 for PACKAGE_NAME in "wuzp_boost" "wuzp_eigen"; do
-  echo "Packaging ${PACKAGE_NAME} ..."
+  print_title "Packaging ${PACKAGE_NAME} ..."
   PACKAGE_TEST_DIR=${PACKAGES_TEST_DIR}/${PACKAGE_NAME}
   rm -rf ${PACKAGE_TEST_DIR}
   mkdir -p ${PACKAGE_TEST_DIR}
@@ -129,7 +136,7 @@ done
 for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
     for VALUES_IMPLEMENTATION in 1; do
-      echo "Testing packages with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} ..."
+      print_title "Testing packages with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} ..."
       TEST_PACKAGE_DIR=${TEST_PACKAGES_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUES_IMPLEMENTATION}
       rm -rf ${TEST_PACKAGE_DIR}
       mkdir -p ${TEST_PACKAGE_DIR}
@@ -140,10 +147,10 @@ done
 
 # Deliver.
 for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
-  echo "Delivering package ${PACKAGE_NAME} ..."
+  print_title "Delivering package ${PACKAGE_NAME} ..."
   PACKAGE_DIR=${PACKAGES_SHIP_DIR}/${PACKAGE_NAME}
   docker run --rm -ti -e DEBIAN_FRONTEND -e GPG_SIGNING_KEY -v ${REPO_DIR}:${WORKSPACE_DIR}:ro -v ${PACKAGE_DIR}:${PACKAGE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/deliver/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_DIR} ${PACKAGE_NAME} true
 done
 
-echo "Done."
+print_title "Done."
 exit 0

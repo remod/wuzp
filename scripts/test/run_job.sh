@@ -17,6 +17,9 @@ UNITS_IMPLEMENTATION=${7}
 VALUES_IMPLEMENTATION=${8}
 SOURCE_DIR=${REPO_DIR}/tests
 
+# Trust the repository.
+git config --global --add safe.directory '*'
+
 # Run all steps.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} &&
