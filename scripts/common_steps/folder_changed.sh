@@ -17,9 +17,15 @@ set +e
 echo ${1}
 echo ${2}
 git -C ${1} status
-git -C ${1} diff origin/master
+echo "git -C ${1} diff --name-only origin/master"
+git -C ${1} diff --name-only origin/master
+echo "git -C ${1} diff --name-only origin/master -- ${2}"
+git -C ${1} diff --name-only origin/master -- ${2}
+echo "git -C ${1} diff --quiet --exit-code origin/master -- ${2}"
 git -C ${1} diff --quiet --exit-code origin/master -- ${2}
 export FOLDER_CHANGED=$?
+echo "FOLDER CHANGED:"
+echo ${FOLDER_CHANGED}
 set -e
 
 return 0
