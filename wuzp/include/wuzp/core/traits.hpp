@@ -187,12 +187,6 @@ struct AccessValues {
                 "'AccessValues' trait not specialized for given type. Make sure you included the necessary unit headers.");
 };
 
-template <typename ValueT, typename UnitT>
-struct GetQuantityImplementation {
-  static_assert(FailOnInstantiation<GetQuantityImplementation<ValueT, UnitT>>::value,
-                "'GetQuantityImplementation' trait not specialized for given types.");
-};
-
 template <typename ValueT>
 struct Precision {
   static_assert(FailOnInstantiation<Precision<ValueT>>::value, "'Precision' trait not specialized for given types.");

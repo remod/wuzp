@@ -16,9 +16,9 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
-using Values = wuzp_eigen::Values<Scalar, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 
 TEST(TestActiveProperRigidTransformation2, TransformPosition) {  // NOLINT
   //  const Position2<double, FromCoordinateSystem> object(1.0, 2.0);
@@ -29,9 +29,9 @@ TEST(TestActiveProperRigidTransformation2, TransformPosition) {  // NOLINT
 }
 
 TEST(TestActiveProperRigidTransformation3, TransformPositionVector) {  // NOLINT
-  using Object = PositionVector3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveProperRigidTransformation3<Values, CoordinateSystemA, double>;
-  using TransformedObject = PositionVector3<Values, double, CoordinateSystemA>;
+  using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
+  using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, -3.0, 2.0);
   const Transformation::Rotation rotation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.
@@ -41,9 +41,9 @@ TEST(TestActiveProperRigidTransformation3, TransformPositionVector) {  // NOLINT
 }
 
 TEST(TestActiveProperRigidTransformation3, TransformPositionPoint) {  // NOLINT
-  using Object = PositionPoint3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveProperRigidTransformation3<Values, CoordinateSystemA, double>;
-  using TransformedObject = PositionPoint3<Values, double, CoordinateSystemA>;
+  using Object = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
+  using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, -3.0, 3.0);
   const Transformation::Rotation rotation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.
@@ -53,9 +53,9 @@ TEST(TestActiveProperRigidTransformation3, TransformPositionPoint) {  // NOLINT
 }
 
 TEST(TestActiveProperRigidTransformation3, TransformVelocityVector) {  // NOLINT
-  using Object = VelocityVector3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveProperRigidTransformation3<Values, CoordinateSystemA, double>;
-  using TransformedObject = VelocityVector3<Values, double, CoordinateSystemA>;
+  using Object = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
+  using TransformedObject = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, -3.0, 2.0);
   const Transformation::Rotation rotation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.
@@ -65,10 +65,10 @@ TEST(TestActiveProperRigidTransformation3, TransformVelocityVector) {  // NOLINT
 }
 
 TEST(TestActiveProperRigidTransformation3, TransformPointCloud) {  // NOLINT
-  using MyValues = Values<double, 3, 2>;
+  using MyValues = ValueMatrix<double, 3, 2>;
   using MyQuantities = Quantities<MyValues, TypeMatrix<3, 2, Length>>;
   using Object = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
-  using Transformation = ActiveProperRigidTransformation3<Values, CoordinateSystemA, double>;
+  using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
   using TransformedObject = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
   const Object object(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const TransformedObject transformedObject(1.0, 4.0, -3.0, -6.0, 3.0, 6.0);
@@ -79,9 +79,9 @@ TEST(TestActiveProperRigidTransformation3, TransformPointCloud) {  // NOLINT
 }
 
 TEST(TestActiveProperRigidTransformation3, TransformActiveTranslation) {  // NOLINT
-  using Object = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveProperRigidTransformation3<Values, CoordinateSystemA, double>;
-  using TransformedObject = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
+  using Object = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
+  using TransformedObject = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, -3.0, 2.0);
   const Transformation::Rotation rotation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.
@@ -91,9 +91,9 @@ TEST(TestActiveProperRigidTransformation3, TransformActiveTranslation) {  // NOL
 }
 
 TEST(TestActiveProperRigidTransformation3, TransformActiveRotation) {  // NOLINT
-  using Object = ActiveSpatialRotation3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveProperRigidTransformation3<Values, CoordinateSystemA, double>;
-  using TransformedObject = ActiveSpatialRotation3<Values, double, CoordinateSystemA>;
+  using Object = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
+  using TransformedObject = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
   const TransformedObject transformedObject(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0);
   const Transformation::Rotation rotation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.

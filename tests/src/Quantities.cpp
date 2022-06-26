@@ -14,19 +14,20 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 using namespace wuzp_eigen;  // NOLINT
 
 using namespace wuzp;  // NOLINT
 
 template <int Rows, int Cols>
-using TestValues = Values<double, Rows, Cols>;
+using TestValues = ValueMatrix<double, Rows, Cols>;
 template <int Rows, int Cols>
 using TestUnitMatrix = TypeMatrix<Rows, Cols, Length>;
 template <int Rows, int Cols>
 using TestQuantities = Quantities<TestValues<Rows, Cols>, TestUnitMatrix<Rows, Cols>>;
 
 using LengthQuantityI = QuantityI<Length>;
+using SquaredLengthQuantityI = QuantityI<Power<Length, Integer<2>>::type>;
 using AreaQuantityI = QuantityI<Area>;
 
 TEST(TestQuantities2, Dimension) {  // NOLINT
@@ -45,8 +46,8 @@ TEST(TestQuantities2, Cols) {  // NOLINT
 }
 
 TEST(TestQuantities2, GetTag) {  // NOLINT
-  using MyValues = Values<int, 4, 1>;
-  using MyValue = Values<int, 1, 1>;
+  using MyValues = ValueMatrix<int, 4, 1>;
+  using MyValue = ValueMatrix<int, 1, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   static_assert(std::is_same_v<GetTag<MyQuantities, MyQuantities>::type, FromSimilar>);
@@ -62,14 +63,14 @@ TEST(TestQuantities2, GetTag) {  // NOLINT
 }
 
 TEST(TestQuantities2, EmptyConstructor) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   [[maybe_unused]] const MyQuantities myMatrix;
 }
 
 TEST(TestQuantities2, ConstructImplicityFromQuantities) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   const MyQuantities quantities1;
@@ -95,12 +96,12 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ValueT, int Rows, int Cols>
-using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
-using MyValues = Values<int, 2, 3>;
+using MyValues = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
 
@@ -113,7 +114,7 @@ int main() {
                                                                                            "(no viable )?conversion from")}
 
 TEST(TestQuantities2, ConstructExplicitlyFromQuantities) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyQuantity = LengthQuantityI;
@@ -123,7 +124,7 @@ TEST(TestQuantities2, ConstructExplicitlyFromQuantities) {  // NOLINT
 }
 
 TEST(TestQuantities2, ConstructExplicitlyFromValues) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   const MyValues values(1, 2, 3, 4, 5, 6);
@@ -132,7 +133,7 @@ TEST(TestQuantities2, ConstructExplicitlyFromValues) {  // NOLINT
 }
 
 TEST(TestQuantities2, ConstructExplicitlyFromCsv) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   const MyValues values(1, 2, 3, 4, 5, 6);
@@ -141,7 +142,7 @@ TEST(TestQuantities2, ConstructExplicitlyFromCsv) {  // NOLINT
 }
 
 TEST(TestQuantities2, ConstructExplicitlyFromConstValues) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   MyValues values(1, 2, 3, 4, 5, 6);
@@ -156,7 +157,7 @@ TEST(TestQuantities2, ConstructExplicitlyFromConstValues) {  // NOLINT
 }
 
 TEST(TestQuantities2, ConstructFromGoodQuantities) {  // NOLINT
-  using MyValues = Values<int, 4, 1>;
+  using MyValues = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   MyQuantities quantities(Quantity<ValueI, Length>(1), Quantity<ValueI, Area>(2), Quantity<ValueI, Volume>(3), Quantity<ValueI, Mass>(4));
@@ -177,15 +178,15 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ValueT, int Rows, int Cols>
-using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT
 
 int main() {
-  using MyValues = Values<int, 4, 1>;
+  using MyValues = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   MyQuantities quantities(QuantityI<Length>(1),
@@ -200,7 +201,7 @@ int main() {
 
 class TestQuantitiesFixture : public ::testing::Test {
  public:
-  using MyValues = ValuesI<2, 3>;
+  using MyValues = ValueMatrixI<2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
 
@@ -252,15 +253,15 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ValueT, int Rows, int Cols>
-using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT
 
 int main() {
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   MyQuantities quantities;
@@ -287,7 +288,7 @@ TEST_F(TestQuantitiesFixture, InequalityOperator) {  // NOLINT
 }
 
 TEST_F(TestQuantitiesFixture, Block) {  // NOLINT
-  using MyValuesB = Values<int, 2, 2>;
+  using MyValuesB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = TypeMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyQuantitiesB = Quantities<MyValuesB, MyUnitMatrixB>;
   const MyValuesB valuesB(2, 3, 5, 6);
@@ -296,7 +297,7 @@ TEST_F(TestQuantitiesFixture, Block) {  // NOLINT
 }
 
 TEST_F(TestQuantitiesFixture, Transpose) {  // NOLINT
-  using MyValuesT = Values<int, 3, 2>;
+  using MyValuesT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = TypeMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantitiesT = Quantities<MyValuesT, MyUnitMatrixT>;
   const MyValuesT valuesT(1, 4, 2, 5, 3, 6);
@@ -305,7 +306,7 @@ TEST_F(TestQuantitiesFixture, Transpose) {  // NOLINT
 }
 
 TEST(TestQuantities2, ProductQuantities) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
@@ -316,7 +317,7 @@ TEST(TestQuantities2, ProductQuantities) {  // NOLINT
 }
 
 TEST(TestQuantities2, ProductQuantity) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyQuantity = QuantityI<Length>;
@@ -331,7 +332,7 @@ TEST(TestQuantities2, ProductQuantity) {  // NOLINT
 }
 
 TEST(TestQuantities2, ProductValue) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyValue = int;
@@ -343,7 +344,7 @@ TEST(TestQuantities2, ProductValue) {  // NOLINT
 }
 
 TEST(TestQuantities2, DivisionQuantity) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyValue = int;
@@ -357,7 +358,7 @@ TEST(TestQuantities2, DivisionQuantity) {  // NOLINT
 }
 
 TEST(TestQuantities2, DivisionValue) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyValue = int;
@@ -368,7 +369,7 @@ TEST(TestQuantities2, DivisionValue) {  // NOLINT
 }
 
 TEST(TestQuantities2, Dot) {  // NOLINT
-  using MyValues = Values<int, 4, 1>;
+  using MyValues = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyQuantityResult = AreaQuantityI;
@@ -378,7 +379,7 @@ TEST(TestQuantities2, Dot) {  // NOLINT
 }
 
 TEST(TestQuantities2, Chain) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix1 = TypeMatrix<2, 2, Length>;
   using MyUnitMatrix2 = TypeMatrix<2, 2, Area>;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
@@ -393,7 +394,7 @@ TEST(TestQuantities2, Chain) {  // NOLINT
 
 class TestQuantitiesInvertible : public ::testing::Test {
  public:
-  using MyValues = Values<double, 2, 2>;
+  using MyValues = ValueMatrix<double, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Time>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
 
@@ -414,6 +415,30 @@ TEST_F(TestQuantitiesInvertible, Inverse) {  // NOLINT
   const MyValues valuesInv{0.6, -0.7, -0.2, 0.4};
   const MyQuantitiesInv quantitiesInv(valuesInv);
   EXPECT_TRUE(getQuantities().inverse().isApprox(quantitiesInv));
+}
+
+TEST(TestQuantities, Norm) {  // NOLINT
+  using MyValueVector = ValueVector<int, 3>;
+  using MyUnitVector = TypeVector<3, Length>;
+  using MyQuantities = Quantities<MyValueVector, MyUnitVector>;
+  const MyQuantities quantities(-1, 2, 3);
+  EXPECT_EQ(quantities.norm(), LengthQuantityI(quantities.getValues().getImplementation().norm()));
+}
+
+TEST(TestQuantities, SquaredNorm) {  // NOLINT
+  using MyValueVector = ValueVector<int, 3>;
+  using MyUnitVector = TypeVector<3, Length>;
+  using MyQuantities = Quantities<MyValueVector, MyUnitVector>;
+  const MyQuantities quantities(-1, 2, 3);
+  EXPECT_EQ(quantities.squaredNorm(), SquaredLengthQuantityI (quantities.getValues().getImplementation().squaredNorm()));
+}
+
+TEST(TestQuantities, Determinant) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantities = Quantities<MyValueMatrix, MyUnitMatrix>;
+  const MyQuantities quantities(-1, 2, 3, 1);
+  EXPECT_EQ(quantities.determinant(), LengthQuantityI (quantities.getValues().getImplementation().determinant()));
 }
 
 #endif

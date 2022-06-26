@@ -2,9 +2,10 @@
 
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/trafo/PassiveRotation.hpp"
+#include "wuzp/trafo/PassiveTransformation.hpp"
 #include "wuzp/trafo/PassiveTranslation.hpp"
-#include "wuzp/trafo/Transformation.hpp"
 #include "wuzp/trafo/internal/intermediate_coordinate_system.hpp"
+#include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 

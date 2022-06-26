@@ -91,15 +91,8 @@ struct TypeMatrixImpl<Rows, Cols, std::tuple<Types...>> {
   static_assert(sizeof...(Types) == Rows * Cols, "Number of types does not match matrix size.");
 };
 
-// TODO(remod): Can we simply remove the next two declarations?
-template <int Rows, int Cols, typename... Types>
-struct CreateTypeMatrix;
-template <int Rows, int Cols>
-struct CreateTypeMatrix<Rows, Cols> {
-  static_assert(FailOnInstantiation<CreateTypeMatrix<Rows, Cols>>::value, "Empty type matrix is not allowed.");
-};
 template <int Rows, int Cols, typename Type0, typename... Types>
-struct CreateTypeMatrix<Rows, Cols, Type0, Types...> {
+struct CreateTypeMatrix {
   static_assert(sizeof...(Types) + 1 == Rows * Cols, "Number of types does not match matrix size.");
   using type = TypeMatrixImpl<Rows, Cols, std::tuple<Type0, Types...>>;
 };
@@ -277,20 +270,6 @@ struct DiagonalTypeMatrixImpl<Size, ZeroType, OneType, std::index_sequence<Is...
 
 template <int Size, typename ZeroType, typename OneType>
 using DiagonalTypeMatrix = typename DiagonalTypeMatrixImpl<Size, ZeroType, OneType, std::make_index_sequence<Size * Size>>::type;
-
-// template <typename Matrix, typename Result, int Row, int Col>
-// struct GaussianElimination;
-// template <int Rows, int Cols, typename... Types, typename Result, int Row, int Col>
-// struct GaussianElimination<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, Result, Row, Col> {
-//
-//};
-//
-// template <int Rows, int Cols, typename... Types>
-// struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
-//  static_assert(Rows == Cols, "Matrix is not square.");
-//  using type = typename GaussianElimination<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, typename Traits::template
-//  Identity<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>>::type, Rows - 1, 0>::type;
-//};
 
 template <int Rows, int Cols, typename... Types>
 using TypeMatrix = typename CreateTypeMatrix<Rows, Cols, Types...>::type;

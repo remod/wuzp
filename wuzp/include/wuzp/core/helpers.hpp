@@ -27,7 +27,6 @@ struct ExtractAndApply<X, std::tuple<Ts...>> {
 
 template <bool>
 struct SelectIf {
-  // TODO(remod): Move type template to SelectIf?
   template <typename T>
   using type = std::tuple<T>;
 };
@@ -80,12 +79,6 @@ template <typename T, template <int, int, typename...> typename Template>
 struct IsSpecializationInts : std::false_type {};
 template <template <int, int, typename...> typename Template, int Int0, int Int1, typename... Args>
 struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true_type {};
-// TODO(remod): This is a special case for the quantities.
-template <typename T, template <typename, typename, template <typename, typename> typename> typename QuantitiesT_>
-struct IsSpecializationQuantities : std::false_type {};
-template <template <typename, typename, template <typename, typename> typename> typename QuantitiesT_, typename ValuesT_, typename UnitsT_,
-          template <typename, typename> typename QuantityT_>
-struct IsSpecializationQuantities<QuantitiesT_<ValuesT_, UnitsT_, QuantityT_>, QuantitiesT_> : std::true_type {};
 
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>
 struct GetSubsetImpl;

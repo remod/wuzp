@@ -14,7 +14,7 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 using namespace wuzp_eigen;  // NOLINT
 
 using namespace wuzp;  // NOLINT
@@ -56,7 +56,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 using namespace wuzp_eigen;  // NOLINT
 
 using namespace wuzp;  // NOLINT
@@ -92,7 +92,7 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 using namespace wuzp_eigen;  // NOLINT
 
 using namespace wuzp;  // NOLINT

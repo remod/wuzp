@@ -14,17 +14,27 @@
 namespace wuzp_eigen {
 
 template <typename ValueT, int Rows, int Cols>
-using Values = wuzp::ValuesWrapper<Eigen::Matrix<ValueT, Rows, Cols>>;
+using ValueMatrix = wuzp::ValuesWrapper<Eigen::Matrix<ValueT, Rows, Cols>>;
 
 template <int Rows, int Cols>
-using ValuesI = Values<int, Rows, Cols>;
+using ValueMatrixI = ValueMatrix<int, Rows, Cols>;
 template <int Rows, int Cols>
-using ValuesF = Values<float, Rows, Cols>;
+using ValueMatrixF = ValueMatrix<float, Rows, Cols>;
 template <int Rows, int Cols>
-using ValuesD = Values<double, Rows, Cols>;
+using ValueMatrixD = ValueMatrix<double, Rows, Cols>;
+
+template <typename ValueT, int Rows>
+using ValueVector = ValueMatrix<ValueT, Rows, 1>;
+
+template <int Rows>
+using ValueVectorI = ValueVector<int, Rows>;
+template <int Rows>
+using ValueVectorF = ValueVector<float, Rows>;
+template <int Rows>
+using ValueVectorD = ValueVector<double, Rows>;
 
 template <typename ValueT>
-using Value = Values<ValueT, 1, 1>;
+using Value = ValueMatrix<ValueT, 1, 1>;
 
 using ValueI = Value<int>;
 using ValueF = Value<float>;
@@ -35,7 +45,7 @@ using ValueD = Value<double>;
 namespace wuzp {
 
 template <typename ValueT, int Rows, int Cols, typename Arg0, typename... Args>
-void initialize(wuzp_eigen::Values<ValueT, Rows, Cols>& values, Arg0&& arg0, Args&&... args) {
+void initialize(wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>& values, Arg0&& arg0, Args&&... args) {
   Eigen::Matrix<ValueT, Rows, Cols> implementation;
   wuzp_eigen::internal::spliceCommas((implementation << std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
   values.setImplementation(implementation);

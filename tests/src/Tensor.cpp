@@ -19,12 +19,11 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
-template <typename Scalar, int Rows, int Cols>
-using Values = wuzp_eigen::Values<Scalar, Rows, Cols>;
+#include "wuzp_eigen/ValueMatrix.hpp"
+using namespace wuzp_eigen;  // NOLINT
 
 template <int Rows, int Cols>
-using TestValues = Values<double, Rows, Cols>;
+using TestValues = ValueMatrix<double, Rows, Cols>;
 template <int Rows, int Cols>
 using TestUnitMatrix = TypeMatrix<Rows, Cols, Length>;
 template <int Rows, int Cols>
@@ -33,6 +32,7 @@ template <int Rows, int Cols>
 using TestTensor = Tensor<1, 0, TestQuantities<Rows, Cols>, CoordinateSystemA, Relative>;
 
 using LengthQuantityI = QuantityI<Length>;
+using SquaredLengthQuantityI = QuantityI<Power<Length, Integer<2>>::type>;
 using MassQuantityI = QuantityI<Mass>;
 using AreaQuantityI = QuantityI<Area>;
 
@@ -52,7 +52,7 @@ TEST(TestTensor2, Cols) {  // NOLINT
 }
 
 TEST(TestTensor2, GetTag) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -68,7 +68,7 @@ TEST(TestTensor2, GetTag) {  // NOLINT
 }
 
 TEST(TestTensor2, EmptyConstructor) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 1, MyQuantities, CoordinateSystemA, Relative>;
@@ -76,7 +76,7 @@ TEST(TestTensor2, EmptyConstructor) {  // NOLINT
 }
 
 TEST(TestTensor2, ConstructImplicitlyFromTensor) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -102,16 +102,16 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ValueT, int Rows, int Cols>
-using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using MyValues = Values<int, 2, 3>;
+using MyValues = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
 using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -126,7 +126,7 @@ int main() {
 }
 
 TEST(TestTensor2, ConstructExplicitlyFromQuantities) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -150,16 +150,16 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ValueT, int Rows, int Cols>
-using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using MyValues = Values<int, 2, 3>;
+using MyValues = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
 using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -174,7 +174,7 @@ int main() {
 }
 
 TEST(TestTensor2, ConstructExplicitlyFromValues) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -184,7 +184,7 @@ TEST(TestTensor2, ConstructExplicitlyFromValues) {  // NOLINT
 }
 
 TEST(TestTensor2, ConstructExplicitlyFromCsv) {  // NOLINT
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -195,7 +195,7 @@ TEST(TestTensor2, ConstructExplicitlyFromCsv) {  // NOLINT
 
 class TestTensorF : public ::testing::Test {
  public:
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -208,7 +208,7 @@ class TestTensorF : public ::testing::Test {
 
 class TestHomogeneousTensorF : public ::testing::Test {
  public:
-  using MyValues = Values<int, 2, 3>;
+  using MyValues = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -244,7 +244,7 @@ TEST_F(TestTensorF, SetQuantityRunTime) {  // NOLINT
 }
 
 TEST_F(TestTensorF, Block) {  // NOLINT
-  using MyValuesB = Values<int, 2, 2>;
+  using MyValuesB = ValueMatrix<int, 2, 2>;
   using MyUnitMatrixB = TypeMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyQuantitiesB = Quantities<MyValuesB, MyUnitMatrixB>;
   using MyTensorB = Tensor<1, 0, MyQuantitiesB, CoordinateSystemA, Relative>;
@@ -253,7 +253,7 @@ TEST_F(TestTensorF, Block) {  // NOLINT
 }
 
 TEST_F(TestTensorF, Transpose) {  // NOLINT
-  using MyValuesT = Values<int, 3, 2>;
+  using MyValuesT = ValueMatrix<int, 3, 2>;
   using MyUnitMatrixT = TypeMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantitiesT = Quantities<MyValuesT, MyUnitMatrixT>;
   using MyTensorT = Tensor<1, 0, MyQuantitiesT, CoordinateSystemA, Relative>;
@@ -294,16 +294,16 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ValueT, int Rows, int Cols>
-using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = wuzp::CoordinateSystem<CoordinateSystemAName>;
-using MyValues = Values<int, 2, 3>;
+using MyValues = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
 using MyAbsoluteTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
@@ -344,16 +344,16 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ValueT, int Rows, int Cols>
-using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = wuzp::CoordinateSystem<CoordinateSystemAName>;
-using MyValues = Values<int, 2, 3>;
+using MyValues = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
 using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -376,7 +376,7 @@ TEST_F(TestTensorF, DifferenceAbsoluteAndAbsolute) {  // NOLINT
 }
 
 TEST(TestTensor2, ProductQuantity) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -393,7 +393,7 @@ TEST(TestTensor2, ProductQuantity) {  // NOLINT
 }
 
 TEST(TestTensor2, ProductValue) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -406,7 +406,7 @@ TEST(TestTensor2, ProductValue) {  // NOLINT
 }
 
 TEST(TestTensor2, DivisionQuantity) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -422,7 +422,7 @@ TEST(TestTensor2, DivisionQuantity) {  // NOLINT
 }
 
 TEST(TestTensor2, DivisionValue) {  // NOLINT
-  using MyValues = Values<int, 2, 2>;
+  using MyValues = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -434,7 +434,7 @@ TEST(TestTensor2, DivisionValue) {  // NOLINT
 }
 
 TEST(TestTensor2, Dot) {  // NOLINT
-  using MyValues = Values<int, 4, 1>;
+  using MyValues = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
@@ -456,9 +456,9 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename ValueT, int Rows, int Cols>
-using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 #endif
 
 using namespace wuzp;  // NOLINT
@@ -467,7 +467,7 @@ struct CoordinateSystemAName {};
 struct CoordinateSystemBName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
-using MyValues = Values<int, 4, 1>;
+using MyValues = ValueMatrix<int, 4, 1>;
 using MyUnitMatrix = TypeMatrix<4, 1, Length>;
 using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
 using MyTensorLhs = Vector<MyQuantities, CoordinateSystemA>;
@@ -479,6 +479,25 @@ int main() {
 }
 )",
                                                "Coordinate systems do not match.");
+}
+
+TEST(TestTensor2, Norm) {  // NOLINT
+  const PositionVector3<ValueMatrix, int, CoordinateSystemA> vector(-1, 2, 3);
+  EXPECT_EQ(vector.norm(), LengthQuantityI(vector.getValues().getImplementation().norm()));
+}
+
+TEST(TestTensor2, SquaredNorm) {  // NOLINT
+  const PositionVector3<ValueMatrix, int, CoordinateSystemA> vector(-1, 2, 3);
+  EXPECT_EQ(vector.squaredNorm(), SquaredLengthQuantityI(vector.getValues().getImplementation().squaredNorm()));
+}
+
+TEST(TestTensor2, Determinant) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantities = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 1, MyQuantities, CoordinateSystemA, Relative>;
+  const MyTensor tensor(-1, 2, 3, 1);
+  EXPECT_EQ(tensor.determinant(), LengthQuantityI (tensor.getValues().getImplementation().determinant()));
 }
 
 #endif
