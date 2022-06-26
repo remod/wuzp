@@ -43,7 +43,7 @@ export GPG_SIGNING_KEY=${GPG_SIGNING_KEY_TMP}
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" &> /dev/null && pwd )"
 # Define directories.
 REPO_DIR=${SCRIPT_DIR}/..
-echo "The repository is found in ${REPO_DIR}"
+echo "The repository was found in: ${REPO_DIR}"
 WORKSPACE_DIR=/root/workspace
 TMP_DIR=/tmp/wuzp
 CHECK_FORMAT_DIR=${TMP_DIR}/check_format
