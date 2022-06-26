@@ -271,10 +271,28 @@ struct DiagonalTypeMatrixImpl<Size, ZeroType, OneType, std::index_sequence<Is...
 template <int Size, typename ZeroType, typename OneType>
 using DiagonalTypeMatrix = typename DiagonalTypeMatrixImpl<Size, ZeroType, OneType, std::make_index_sequence<Size * Size>>::type;
 
+/**
+ * A matrix storing types at compile-time.
+ * @tparam Rows Number of rows.
+ * @tparam Cols Number of columns.
+ * @tparam Types Types stored in the matrix, row-first. The number of types must match the number of elements the matrix can store.
+ */
 template <int Rows, int Cols, typename... Types>
 using TypeMatrix = typename CreateTypeMatrix<Rows, Cols, Types...>::type;
 
+/**
+ * A vector storing types at compile-time.
+ * @tparam Rows Number of rows.
+ * @tparam Types Types stored in the vector. The number of types must match the number of elements the vector can store.
+ */
 template <int Rows, typename... Types>
 using TypeVector = typename CreateTypeMatrix<Rows, 1, Types...>::type;
+
+/**
+ * A scalar storing a type at compile-time.
+ * @tparam Type Type stored in the scalar.
+ */
+template <typename Type>
+using TypeScalar = typename CreateTypeMatrix<1, 1, Type>::type;
 
 }  // namespace wuzp

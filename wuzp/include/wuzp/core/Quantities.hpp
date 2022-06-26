@@ -13,6 +13,13 @@
 
 namespace wuzp {
 
+/**
+ * Container to store quantities.
+ * Every quantity consists of a value and a unit.
+ * The values are evaluated at run-time, the units at compile-time.
+ * @tparam ValuesT_ Container type to store the values (e.g. a scalar, vector, matrix, etc.).
+ * @tparam UnitsT_ Container storing the units (e.g. a scalar, vector, matrix, etc.).
+ */
 template <typename ValuesT_, typename UnitsT_>
 class Quantities {
  public:

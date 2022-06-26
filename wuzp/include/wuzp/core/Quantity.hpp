@@ -16,8 +16,15 @@ namespace wuzp {
 template <typename ValuesT_, typename UnitsT_>
 class Quantities;
 
-// Defining a scalar to be equivalent to a 1x1 matrix is not 100% clean, but the implicit conversions help to avoid duplicated code and
-// explicit casting, e.g. when calculating the inner product of a vector x^T * x. https://math.stackexchange.com/q/65002
+/**
+ * Container to store a single quantity.
+ * A quantity consists of a value and a unit.
+ * The value is evaluated at run-time, the unit at compile-time.
+ * Defining a scalar to be equivalent to a 1x1 matrix is not 100% clean, but the implicit conversions help to avoid duplicated code and
+ * explicit casting, e.g. when calculating the inner product of a vector x^T * x. https://math.stackexchange.com/q/65002
+ * @tparam ValueT_ Container type to store the value.
+ * @tparam UnitT_ Container storing the unit.
+ */
 template <typename ValueT_, typename UnitT_>
 using Quantity = Quantities<ValueT_, TypeMatrixImpl<1, 1, std::tuple<UnitT_>>>;
 
