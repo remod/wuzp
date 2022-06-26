@@ -25,8 +25,9 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   constexpr int FromDimension = 3;
   constexpr int ToDimension = 2;
-  using Object = Vector<Quantities<ValueMatrix<double, FromDimension, 1>, TypeMatrix<FromDimension, 1, Velocity, Velocity, AngularVelocity>>,
-                        CoordinateSystemA>;
+  using Object =
+      Vector<Quantities<ValueMatrix<double, FromDimension, 1>, TypeMatrix<FromDimension, 1, Velocity, Velocity, AngularVelocity>>,
+             CoordinateSystemA>;
   // Note: With wuzp units angles are dimensionless, but with boost units not.
   using AngleOverLength = Division<Angle, Length>::type;
   using LengthOverAngle = Inverse<AngleOverLength>::type;
@@ -50,10 +51,10 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
                                   LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
   using MassLength = Product<Mass, Length>::type;
   using MassLength2 = Product<MassLength, Length>::type;
-  using TransformedObject = Tensor<
-      0, 2,
-      Quantities<ValueMatrix<double, ToDimension, ToDimension>, TypeMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>>,
-      CoordinateSystemB, Relative>;
+  using TransformedObject = Tensor<0, 2,
+                                   Quantities<ValueMatrix<double, ToDimension, ToDimension>,
+                                              TypeMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>>,
+                                   CoordinateSystemB, Relative>;
   const Object object(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0, 4.0);
   const Transformation transformation(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);

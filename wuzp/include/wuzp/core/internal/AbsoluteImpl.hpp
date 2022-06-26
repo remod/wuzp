@@ -9,4 +9,4 @@ struct AbsoluteImpl {
   static constexpr bool value = Value_;
 };
 
-}  // namespace wuzp
+}  // namespace wuzp::internal

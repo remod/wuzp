@@ -211,9 +211,7 @@ class Tensor {
     return quantities_.determinant();
   }
 
-  auto hyperdeterminant() const {
-    static_assert(FailOnInstantiation<typeof(ThisT::hyperdeterminant())>::value, "Not implemented");
-  }
+  auto hyperdeterminant() const { static_assert(FailOnInstantiation<typeof(ThisT::hyperdeterminant())>::value, "Not implemented"); }
 
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther,
