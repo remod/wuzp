@@ -19,6 +19,9 @@ UNITS_IMPLEMENTATION=0
 VALUES_IMPLEMENTATION=0
 SOURCE_DIR=${WRITABLE_REPO_DIR}/tests
 
+# Trust the repository.
+git config --global --add safe.directory '*'
+
 # Run all steps.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh &&

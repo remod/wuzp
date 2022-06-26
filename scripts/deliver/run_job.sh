@@ -13,6 +13,9 @@ PACKAGE_NAME=${3}
 DRY_RUN=${4}
 SOURCE_DIR=${REPO_DIR}/${PACKAGE_NAME}
 
+# Trust the repository.
+git config --global --add safe.directory '*'
+
 # Run all steps.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh &&

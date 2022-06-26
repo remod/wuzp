@@ -15,7 +15,7 @@ class ActiveLinearTransformation
   using UnitsT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
   using QuantitiesT = Quantities<ValuesT, UnitsT>;
   using CoordinateSystemT = CoordinateSystemT_;
-  using TensorT = Tensor<1, 1, QuantitiesT, CoordinateSystemT>;
+  using TensorT = Tensor<1, 1, QuantitiesT, CoordinateSystemT, Relative>;
 
   template <typename... Args>
   explicit ActiveLinearTransformation(Args... args) : tensor_(args...) {}
@@ -47,37 +47,37 @@ struct CastCoordinateSystem<ActiveLinearTransformation<ValuesT_, Scalar, Coordin
 };
 
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, int DimensionFrom, int DimensionTo,
-          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_>
+          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<0, 1, QuantitiesT_, CoordinateSystemT_>> {
+                            Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
-      const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_>& /*object*/) {
+      const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
     //    return transformation.getTensor() * object;
   }
 };
 
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, int DimensionFrom, int DimensionTo,
-          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_>
+          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<0, 2, QuantitiesT_, CoordinateSystemT_>> {
+                            Tensor<0, 2, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<0, 2, QuantitiesT_, CoordinateSystemT_>& object) {
+      const Tensor<0, 2, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     const auto result = transformation.getTensor().inverse().transpose() * object * transformation.getTensor().inverse();
     return evaluate(result);
   }
 };
 
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, int DimensionFrom, int DimensionTo,
-          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_>
+          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<1, 0, QuantitiesT_, CoordinateSystemT_>> {
+                            Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_>& object) {
+      const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     // If the object is absolute (point), make it relative (vector), transform it, and make it absolute again.
-    if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_>>::value) {
+    if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
       return evaluate(makeAbsolute(transformation.getTensor() * makeRelative(object)));
     } else {
       return evaluate(transformation.getTensor() * object);
@@ -86,23 +86,23 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Scalar, Coordin
 };
 
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, int DimensionFrom, int DimensionTo,
-          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_>
+          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<1, 1, QuantitiesT_, CoordinateSystemT_>> {
+                            Tensor<1, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
-      const Tensor<1, 1, QuantitiesT_, CoordinateSystemT_>& object) {
+      const Tensor<1, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     return transformation.getTensor() * (object * transformation.getTensor().inverse());
   }
 };
 
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, int DimensionFrom, int DimensionTo,
-          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_>
+          typename... Units, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>,
-                            Tensor<2, 0, QuantitiesT_, CoordinateSystemT_>> {
+                            Tensor<2, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
-      const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_>& /*object*/) {
+      const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
     //    return transformation.getTensor() * object;
   }
 };

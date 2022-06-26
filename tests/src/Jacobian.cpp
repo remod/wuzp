@@ -33,7 +33,7 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   using Transformation = Jacobian<Values, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, FromDimension, ToDimension,
                                   AngleOverLength, AngleOverLength, Dimensionless, Dimensionless, Dimensionless, LengthOverAngle>;
   using TransformedObject =
-      Tensor<1, 0, Quantities<Values<double, ToDimension, 1>, TypeMatrix<ToDimension, 1, AngularVelocity, Velocity>>, CoordinateSystemB>;
+      Vector<Quantities<Values<double, ToDimension, 1>, TypeMatrix<ToDimension, 1, AngularVelocity, Velocity>>, CoordinateSystemB>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(14.0, 32.0);
   const Transformation transformation(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
@@ -44,7 +44,7 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   constexpr int FromDimension = 3;
   constexpr int ToDimension = 2;
   using Object = Tensor<0, 2, Quantities<Values<double, FromDimension, FromDimension>, TypeMatrix<FromDimension, FromDimension, Mass>>,
-                        CoordinateSystemA>;
+                        CoordinateSystemA, Relative>;
   using LengthInv = Inverse<Length>::type;
   using Transformation = Jacobian<Values, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, FromDimension, ToDimension,
                                   LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
@@ -53,7 +53,7 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   using TransformedObject = Tensor<
       0, 2,
       Quantities<Values<double, ToDimension, ToDimension>, TypeMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>>,
-      CoordinateSystemB>;
+      CoordinateSystemB, Relative>;
   const Object object(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0, 4.0);
   const Transformation transformation(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);

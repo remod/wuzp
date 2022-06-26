@@ -39,9 +39,6 @@ LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension> c
                              typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
   const auto squaredNorm = velocity.squaredNorm();
   const auto lorentzFactor = pow<-1, 2>(QuantityT(1.0) - squaredNorm / pow<2>(getSpeedOfLight<Scalar>()));
-  std::cerr << velocity << std::endl;
-  std::cerr << squaredNorm << std::endl;
-  std::cerr << lorentzFactor << std::endl;
   QuantitiesT quantities;
   // Set the lower left matrix inclusive the diagonal.
   for (int row = 0; row < Dimension; ++row) {

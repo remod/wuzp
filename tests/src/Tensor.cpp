@@ -30,7 +30,7 @@ using TestUnitMatrix = TypeMatrix<Rows, Cols, Length>;
 template <int Rows, int Cols>
 using TestQuantities = Quantities<TestValues<Rows, Cols>, TestUnitMatrix<Rows, Cols>>;
 template <int Rows, int Cols>
-using TestTensor = Tensor<1, 0, TestQuantities<Rows, Cols>, CoordinateSystemA>;
+using TestTensor = Tensor<1, 0, TestQuantities<Rows, Cols>, CoordinateSystemA, Relative>;
 
 using LengthQuantityI = QuantityI<Length>;
 using MassQuantityI = QuantityI<Mass>;
@@ -55,7 +55,7 @@ TEST(TestTensor2, GetTag) {  // NOLINT
   using MyValues = Values<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   static_assert(std::is_same_v<GetTag<MyTensor, MyTensor>::type, FromSimilar>);
   static_assert(std::is_same_v<GetTag<MyTensor, const MyTensor&>::type, FromSimilar>);
   static_assert(std::is_same_v<GetTag<MyTensor, MyTensor&&>::type, FromSimilar>);
@@ -71,7 +71,7 @@ TEST(TestTensor2, EmptyConstructor) {  // NOLINT
   using MyValues = Values<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 1, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 1, MyQuantities, CoordinateSystemA, Relative>;
   [[maybe_unused]] const MyTensor tensor;
 }
 
@@ -79,7 +79,7 @@ TEST(TestTensor2, ConstructImplicitlyFromTensor) {  // NOLINT
   using MyValues = Values<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   const MyTensor tensor1;
   const MyTensor tensor2;
   const MyTensor tensor3 = tensor1 + tensor2;
@@ -114,7 +114,7 @@ using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using MyValues = Values<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
 
 int main() {
   MyQuantities quantities(1, 2, 3, 4, 5, 6);
@@ -129,7 +129,7 @@ TEST(TestTensor2, ConstructExplicitlyFromQuantities) {  // NOLINT
   using MyValues = Values<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   const MyQuantities quantities(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(quantities);
   EXPECT_EQ(tensor.getQuantities(), quantities);
@@ -162,7 +162,7 @@ using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using MyValues = Values<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
 
 int main() {
   const MyValues values(1, 2, 3, 4, 5, 6);
@@ -177,7 +177,7 @@ TEST(TestTensor2, ConstructExplicitlyFromValues) {  // NOLINT
   using MyValues = Values<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   const MyValues values(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(values);
   EXPECT_EQ(tensor.getValues(), values);
@@ -187,7 +187,7 @@ TEST(TestTensor2, ConstructExplicitlyFromCsv) {  // NOLINT
   using MyValues = Values<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   const MyValues values(1, 2, 3, 4, 5, 6);
   const MyTensor tensor(1, 2, 3, 4, 5, 6);
   EXPECT_EQ(tensor.getValues(), values);
@@ -197,18 +197,26 @@ class TestTensorF : public ::testing::Test {
  public:
   using MyValues = Values<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
-  using MyHomogeneousUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyHomogeneousQuantities = Quantities<MyValues, MyHomogeneousUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
-  using MyHomogeneousTensor = Tensor<1, 0, MyHomogeneousQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
 
   MyTensor& getTensor() { return tensor_; }
-  MyHomogeneousTensor& getHomogeneousTensor() { return homogeneousTensor_; }
 
  private:
   MyTensor tensor_{1, 2, 3, 4, 5, 6};
-  MyHomogeneousTensor homogeneousTensor_{1, 2, 3, 4, 5, 6};
+};
+
+class TestHomogeneousTensorF : public ::testing::Test {
+ public:
+  using MyValues = Values<int, 2, 3>;
+  using MyUnitMatrix = TypeMatrix<2, 3, Length>;
+  using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
+
+  MyTensor& getTensor() { return tensor_; }
+
+ private:
+  MyTensor tensor_{1, 2, 3, 4, 5, 6};
 };
 
 TEST_F(TestTensorF, EqualityOperator) {  // NOLINT
@@ -220,14 +228,14 @@ TEST_F(TestTensorF, GetQuantityCompileTime) {  // NOLINT
   EXPECT_EQ((getTensor().getQuantity<1, 0>()), MassQuantityI(4));
 }
 
-TEST_F(TestTensorF, GetQuantityRunTime) {  // NOLINT
-  EXPECT_EQ(getHomogeneousTensor().getQuantity(0, 0), LengthQuantityI(1));
-  EXPECT_EQ(getHomogeneousTensor().getQuantity(1, 0), LengthQuantityI(4));
+TEST_F(TestHomogeneousTensorF, GetQuantityRunTime) {  // NOLINT
+  EXPECT_EQ(getTensor().getQuantity(0, 0), LengthQuantityI(1));
+  EXPECT_EQ(getTensor().getQuantity(1, 0), LengthQuantityI(4));
 }
 
-TEST_F(TestTensorF, SetQuantityCompileTime) {  // NOLINT
-  getHomogeneousTensor().setQuantity(1, 0, LengthQuantityI(1));
-  EXPECT_EQ(getHomogeneousTensor().getQuantity(1, 0), LengthQuantityI(1));
+TEST_F(TestHomogeneousTensorF, SetQuantityCompileTime) {  // NOLINT
+  getTensor().setQuantity(1, 0, LengthQuantityI(1));
+  EXPECT_EQ(getTensor().getQuantity(1, 0), LengthQuantityI(1));
 }
 
 TEST_F(TestTensorF, SetQuantityRunTime) {  // NOLINT
@@ -239,7 +247,7 @@ TEST_F(TestTensorF, Block) {  // NOLINT
   using MyValuesB = Values<int, 2, 2>;
   using MyUnitMatrixB = TypeMatrix<2, 2, Area, Volume, Force, Energy>;
   using MyQuantitiesB = Quantities<MyValuesB, MyUnitMatrixB>;
-  using MyTensorB = Tensor<1, 0, MyQuantitiesB, CoordinateSystemA>;
+  using MyTensorB = Tensor<1, 0, MyQuantitiesB, CoordinateSystemA, Relative>;
   MyTensorB tensorB(2, 3, 5, 6);
   EXPECT_EQ((getTensor().block<0, 1, 2, 2>()), tensorB);
 }
@@ -248,20 +256,134 @@ TEST_F(TestTensorF, Transpose) {  // NOLINT
   using MyValuesT = Values<int, 3, 2>;
   using MyUnitMatrixT = TypeMatrix<3, 2, Length, Mass, Area, Force, Volume, Energy>;
   using MyQuantitiesT = Quantities<MyValuesT, MyUnitMatrixT>;
-  using MyTensorT = Tensor<1, 0, MyQuantitiesT, CoordinateSystemA>;
+  using MyTensorT = Tensor<1, 0, MyQuantitiesT, CoordinateSystemA, Relative>;
   const MyTensorT tensorT(1, 4, 2, 5, 3, 6);
   EXPECT_EQ(getTensor().transpose(), tensorT);
+}
+
+TEST_F(TestTensorF, Sum) {  // NOLINT
+  EXPECT_EQ((getTensor() + getTensor()).getQuantities(), getTensor().getQuantities() + getTensor().getQuantities());
+}
+
+TEST_F(TestTensorF, SumRelativeAndAbsolute) {  // NOLINT
+  using MyAbsoluteTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
+  const MyAbsoluteTensor tensor(1, 4, 2, 5, 3, 6);
+  EXPECT_EQ((getTensor() + tensor).getQuantities(), getTensor().getQuantities() + tensor.getQuantities());
+}
+
+TEST_F(TestTensorF, SumAbsoluteAndRelative) {  // NOLINT
+  using MyAbsoluteTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
+  const MyAbsoluteTensor tensor(1, 4, 2, 5, 3, 6);
+  EXPECT_EQ((tensor + getTensor()).getQuantities(), getTensor().getQuantities() + tensor.getQuantities());
+}
+
+TEST(TestTensor, SumAbsoluteAndAbsolute) {  // NOLINT
+  const std::string code = R"(
+#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/Quantities.hpp"
+#include "wuzp/core/Tensor.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/Unit.hpp"
+
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
+
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
+#include "wuzp_eigen/Values.hpp"
+template <typename ValueT, int Rows, int Cols>
+using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+#endif
+
+using namespace wuzp;
+
+struct CoordinateSystemAName {};
+using CoordinateSystemA = wuzp::CoordinateSystem<CoordinateSystemAName>;
+using MyValues = Values<int, 2, 3>;
+using MyUnitMatrix = TypeMatrix<2, 3, Length>;
+using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
+using MyAbsoluteTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
+
+int main() {
+  const MyAbsoluteTensor tensor(1, 4, 2, 5, 3, 6);
+  tensor + tensor;
+  return 0;
+}
+)";
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "Two absolute objects cannot be summed.");
+}
+
+TEST_F(TestTensorF, Difference) {  // NOLINT
+  EXPECT_EQ((getTensor() - getTensor()).getQuantities(), getTensor().getQuantities() - getTensor().getQuantities());
+}
+
+TEST_F(TestTensorF, DifferenceAbsoluteAndRelative) {  // NOLINT
+  using MyAbsoluteTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
+  const MyAbsoluteTensor tensor(1, 4, 2, 5, 3, 6);
+  EXPECT_EQ((tensor - getTensor()).getQuantities(), tensor.getQuantities() - getTensor().getQuantities());
+}
+
+TEST(TestTensor, DifferenceRelativeAndAbsolute) {  // NOLINT
+  const std::string code = R"(
+#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/Quantities.hpp"
+#include "wuzp/core/Tensor.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/Unit.hpp"
+
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#include "wuzp_units/Unit.hpp"
+using namespace wuzp_units;  // NOLINT
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#include "wuzp_boost/Unit.hpp"
+using namespace wuzp_boost;  // NOLINT
+#endif
+
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
+#include "wuzp_eigen/Values.hpp"
+template <typename ValueT, int Rows, int Cols>
+using Values = wuzp_eigen::Values<ValueT, Rows, Cols>;
+#endif
+
+using namespace wuzp;
+
+struct CoordinateSystemAName {};
+using CoordinateSystemA = wuzp::CoordinateSystem<CoordinateSystemAName>;
+using MyValues = Values<int, 2, 3>;
+using MyUnitMatrix = TypeMatrix<2, 3, Length>;
+using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
+using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
+using MyAbsoluteTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
+
+int main() {
+  const MyTensor tensor(1, 2, 3, 4, 5, 6);
+  const MyAbsoluteTensor absoluteTensor(1, 4, 2, 5, 3, 6);
+  tensor - absoluteTensor;
+  return 0;
+}
+)";
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "An absolute object cannot be subtracted from a relative object.");
+}
+
+TEST_F(TestTensorF, DifferenceAbsoluteAndAbsolute) {  // NOLINT
+  using MyAbsoluteTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
+  const MyAbsoluteTensor tensor(1, 4, 2, 5, 3, 6);
+  EXPECT_EQ((tensor - tensor).getQuantities(), tensor.getQuantities() - tensor.getQuantities());
 }
 
 TEST(TestTensor2, ProductQuantity) {  // NOLINT
   using MyValues = Values<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   using MyValue = int;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
   using MyQuantitiesResult = Quantities<MyValues, MyUnitMatrixResult>;
-  using MyTensorResult = Tensor<1, 0, MyQuantitiesResult, CoordinateSystemA>;
+  using MyTensorResult = Tensor<1, 0, MyQuantitiesResult, CoordinateSystemA, Relative>;
   const MyValue value{2};
   const LengthQuantityI quantity(value);
   const MyValues values(1, 2, 3, 4);
@@ -274,7 +396,7 @@ TEST(TestTensor2, ProductValue) {  // NOLINT
   using MyValues = Values<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   using MyValue = int;
   const MyValue value{2};
   const MyValues values(1, 2, 3, 4);
@@ -287,11 +409,11 @@ TEST(TestTensor2, DivisionQuantity) {  // NOLINT
   using MyValues = Values<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   using MyValue = int;
   using MyUnitMatrixResult = TypeMatrix<2, 2, Dimensionless>;
   using MyQuantitiesResult = Quantities<MyValues, MyUnitMatrixResult>;
-  using MyTensorResult = Tensor<1, 0, MyQuantitiesResult, CoordinateSystemA>;
+  using MyTensorResult = Tensor<1, 0, MyQuantitiesResult, CoordinateSystemA, Relative>;
   const MyValue value{2};
   const LengthQuantityI quantity(value);
   const MyValues values(1, 2, 3, 4);
@@ -303,7 +425,7 @@ TEST(TestTensor2, DivisionValue) {  // NOLINT
   using MyValues = Values<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   using MyValue = int;
   const MyValue value{2};
   const MyValues values(1, 2, 3, 4);
@@ -315,7 +437,7 @@ TEST(TestTensor2, Dot) {  // NOLINT
   using MyValues = Values<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
   using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
+  using MyTensor = Tensor<1, 0, MyQuantities, CoordinateSystemA, Relative>;
   EXPECT_EQ(MyTensor(1, 2, 3, 4).dotProduct(MyTensor(0, 3, -1, 2)), AreaQuantityI(11));
 }
 
@@ -348,8 +470,8 @@ using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
 using MyValues = Values<int, 4, 1>;
 using MyUnitMatrix = TypeMatrix<4, 1, Length>;
 using MyQuantities = Quantities<MyValues, MyUnitMatrix>;
-using MyTensorLhs = Tensor<1, 0, MyQuantities, CoordinateSystemA>;
-using MyTensorRhs = Tensor<1, 0, MyQuantities, CoordinateSystemB>;
+using MyTensorLhs = Vector<MyQuantities, CoordinateSystemA>;
+using MyTensorRhs = Vector<MyQuantities, CoordinateSystemB>;
 
 int main() {
   MyTensorLhs(1, 2, 3, 4).dotProduct(MyTensorRhs(0, 3, -1, 2));

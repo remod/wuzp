@@ -15,7 +15,7 @@ fi
 # Check if the folder changed.
 set +e
 git -C ${1} diff --quiet --exit-code origin/master -- ${2}
-export FOLDER_CHANGED=$?
+echo ${FOLDER_CHANGED}
 set -e
 
 return 0

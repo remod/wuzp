@@ -16,6 +16,9 @@ if [ $# -ge 5 ]; then
 fi
 SOURCE_DIR=${REPO_DIR}/${PACKAGE_NAME}
 
+# Trust the repository.
+git config --global --add safe.directory '*'
+
 # Run all steps.
 # TODO(remod): When making this repo public, use GitHub environment to restrict deployment secrets to master.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
