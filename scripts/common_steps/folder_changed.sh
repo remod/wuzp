@@ -17,6 +17,7 @@ set +e
 echo ${1}
 echo ${2}
 git -C ${1} status
+git -C ${1} diff origin/master
 git -C ${1} diff --quiet --exit-code origin/master -- ${2}
 export FOLDER_CHANGED=$?
 set -e
