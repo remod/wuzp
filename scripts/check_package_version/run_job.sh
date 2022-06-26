@@ -13,6 +13,9 @@ WRITABLE_REPO_DIR=/tmp/wuzp/check_package_versions
 SOURCE_DIR=${REPO_DIR}/${PACKAGE_NAME}
 WRITABLE_SOURCE_DIR=${WRITABLE_REPO_DIR}/${PACKAGE_NAME}
 
+# Trust the repository.
+git config --global --add safe.directory '*'
+
 # Run all steps.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
 ${REPO_DIR}/scripts/check_package_version/steps/install_dependencies.sh &&

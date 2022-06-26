@@ -51,19 +51,4 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>..
   */
 };
 
-template <int Rows, int Cols, typename... UnitImplementations>
-struct IsAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
-  static_assert(IsHomogeneous<std::integral_constant<bool, IsAbsolute<Unit<UnitImplementations>>::value>...>::value,
-                "Units are mixed absolute/relative.");
-  static constexpr bool value = (IsAbsolute<Unit<UnitImplementations>>::value && ...);
-};
-template <int Rows, int Cols, typename... UnitImplementations>
-struct MakeRelative<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
-  using type = TypeMatrix<Rows, Cols, typename MakeRelative<Unit<UnitImplementations>>::type...>;
-};
-template <int Rows, int Cols, typename... UnitImplementations>
-struct MakeAbsolute<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
-  using type = TypeMatrix<Rows, Cols, typename MakeAbsolute<Unit<UnitImplementations>>::type...>;
-};
-
 }  // namespace wuzp

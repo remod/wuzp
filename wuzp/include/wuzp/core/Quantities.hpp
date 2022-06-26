@@ -143,17 +143,9 @@ class Quantities {
 
   auto inverse() const { return typename Inverse<ThisT>::type(values_.inverse()); }
 
-  //  template <bool IsHomogeneousV = IsHomogeneous<UnitsT>::value, typename = std::enable_if_t<IsHomogeneousV>>
-  auto norm() const {
-    static_assert(!IsAbsolute<ThisT>::value, "Quantities are not relative.");
-    return typename GetType<ThisT>::type(values_.norm());
-  }
+  auto norm() const { return typename GetType<ThisT>::type(values_.norm()); }
 
-  //  template <bool IsHomogeneousV = IsHomogeneous<UnitsT>::value, typename = std::enable_if_t<IsHomogeneousV>>
-  auto squaredNorm() const {
-    static_assert(!IsAbsolute<ThisT>::value, "Quantities are not relative.");
-    return typename Power<typename GetType<ThisT>::type, Integer<2>>::type(values_.squaredNorm());
-  }
+  auto squaredNorm() const { return typename Power<typename GetType<ThisT>::type, Integer<2>>::type(values_.squaredNorm()); }
 
  private:
   template <typename ValuesOtherT_, typename UnitsOther>
@@ -199,6 +191,7 @@ struct GetTag<Quantities<ValuesT_, UnitsT_>, Ts...> {
 
 template <typename ValuesT_, typename UnitsT_>
 struct GetType<Quantities<ValuesT_, UnitsT_>> {
+  static_assert(IsHomogeneous<Quantities<ValuesT_, UnitsT_>>::value, "Quantities are not homogeneous.");
   using type =
       Quantity<typename AccessValues<SpecializationDummy<ValuesT_>>::template Value<typename Quantities<ValuesT_, UnitsT_>::ValueT>,
                typename GetType<UnitsT_>::type>;
@@ -275,21 +268,6 @@ template <typename ValuesT_, typename UnitsT_, int BlockRowId, int BlockColId, i
 struct Block<Quantities<ValuesT_, UnitsT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   using type = Quantities<typename Block<ValuesT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
                           typename Block<UnitsT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
-};
-
-template <typename ValuesT_, typename UnitsT_>
-struct IsAbsolute<Quantities<ValuesT_, UnitsT_>> {
-  static constexpr bool value = IsAbsolute<UnitsT_>::value;
-};
-template <typename ValuesT_, typename UnitsT_>
-struct MakeRelative<Quantities<ValuesT_, UnitsT_>> {
-  using type = Quantities<ValuesT_, typename MakeRelative<UnitsT_>::type>;
-  static auto make(const Quantities<ValuesT_, UnitsT_>& object) { return type(object.getValues()); }
-};
-template <typename ValuesT_, typename UnitsT_>
-struct MakeAbsolute<Quantities<ValuesT_, UnitsT_>> {
-  using type = Quantities<ValuesT_, typename MakeAbsolute<UnitsT_>::type>;
-  static auto make(const Quantities<ValuesT_, UnitsT_>& object) { return type(object.getValues()); }
 };
 
 template <typename ValuesT_, typename UnitsT_>

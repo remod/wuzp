@@ -270,11 +270,11 @@ int main() {
   )",
                                                                                             "Units do not match.")}
 
-TEST_F(TestQuantitiesFixture, Addition) {  // NOLINT
+TEST_F(TestQuantitiesFixture, Sum) {  // NOLINT
   EXPECT_EQ(getQuantities1() + getQuantities2(), MyQuantities(getValues1() + getValues2()));
 }
 
-TEST_F(TestQuantitiesFixture, Subtraction) {  // NOLINT
+TEST_F(TestQuantitiesFixture, Difference) {  // NOLINT
   EXPECT_EQ(getQuantities1() - getQuantities2(), MyQuantities(getValues1() - getValues2()));
 }
 
