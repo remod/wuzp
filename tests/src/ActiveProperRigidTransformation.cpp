@@ -65,11 +65,11 @@ TEST(TestActiveProperRigidTransformation3, TransformVelocityVector) {  // NOLINT
 }
 
 TEST(TestActiveProperRigidTransformation3, TransformPointCloud) {  // NOLINT
-  using MyValues = ValueMatrix<double, 3, 2>;
-  using MyQuantities = Quantities<MyValues, TypeMatrix<3, 2, Length>>;
-  using Object = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
+  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, Length>>;
+  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
-  using TransformedObject = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
+  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   const Object object(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const TransformedObject transformedObject(1.0, 4.0, -3.0, -6.0, 3.0, 6.0);
   const Transformation::Rotation rotation(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);  // Active rotation of pi/2 around x.

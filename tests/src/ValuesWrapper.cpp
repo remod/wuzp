@@ -25,28 +25,28 @@ TEST(TestValuesWrapper, Cols) {  // NOLINT
 }
 
 TEST(TestValuesWrapper, LazyBlock) {  // NOLINT
-  using MyValues = ValueMatrix<double, 3, 2>;
-  static_assert(!std::is_same<Block<MyValues, 0, 0, 1, 1>::type, MyValues>::value);
+  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  static_assert(!std::is_same<Block<MyValueMatrix, 0, 0, 1, 1>::type, MyValueMatrix>::value);
 }
 
 TEST(TestValuesWrapper, LazyTranspose) {  // NOLINT
-  using MyValues = ValueMatrix<double, 3, 2>;
-  static_assert(!std::is_same<Transpose<MyValues>::type, MyValues>::value);
+  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  static_assert(!std::is_same<Transpose<MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
 TEST(TestValuesWrapper, LazySum) {  // NOLINT
-  using MyValues = ValueMatrix<double, 3, 2>;
-  static_assert(!std::is_same<Sum<MyValues, MyValues>::type, MyValues>::value);
+  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  static_assert(!std::is_same<Sum<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
 TEST(TestValuesWrapper, LazyDifference) {  // NOLINT
-  using MyValues = ValueMatrix<double, 3, 2>;
-  static_assert(!std::is_same<Difference<MyValues, MyValues>::type, MyValues>::value);
+  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  static_assert(!std::is_same<Difference<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
 TEST(TestValuesWrapper, LazyProduct) {  // NOLINT
-  using MyValues = ValueMatrix<double, 3, 2>;
-  static_assert(!std::is_same<Product<MyValues, MyValues>::type, MyValues>::value);
+  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  static_assert(!std::is_same<Product<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
 // TODO(remod): Compile-time check number of constructor arguments and test it.
