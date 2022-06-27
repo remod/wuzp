@@ -2,8 +2,9 @@
 
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/trafo/ActiveRotation.hpp"
+#include "wuzp/trafo/ActiveTransformation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
-#include "wuzp/trafo/Transformation.hpp"
+#include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 

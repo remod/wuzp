@@ -18,14 +18,14 @@ using namespace wuzp_boost;  // NOLINT
 #endif
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/Values.hpp"
+#include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
-using Values = wuzp_eigen::Values<Scalar, Rows, Cols>;
+using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 
 TEST(TestActiveTranslation, TransformPositionVector) {  // NOLINT
-  using Object = PositionVector3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
-  using TransformedObject = PositionVector3<Values, double, CoordinateSystemA>;
+  using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -33,9 +33,9 @@ TEST(TestActiveTranslation, TransformPositionVector) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformPositionPoint) {  // NOLINT
-  using Object = PositionPoint3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
-  using TransformedObject = PositionPoint3<Values, double, CoordinateSystemA>;
+  using Object = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 4.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -43,9 +43,9 @@ TEST(TestActiveTranslation, TransformPositionPoint) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
-  using Object = VelocityVector3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
-  using TransformedObject = VelocityVector3<Values, double, CoordinateSystemA>;
+  using Object = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using TransformedObject = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -53,11 +53,11 @@ TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformPointCloud) {  // NOLINT
-  using MyValues = Values<double, 3, 2>;
-  using MyQuantities = Quantities<MyValues, TypeMatrix<3, 2, Length>>;
-  using Object = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
-  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
-  using TransformedObject = Tensor<1, 0, MyQuantities, CoordinateSystemA, Absolute>;
+  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, Length>>;
+  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   const Object object(1.0, 4.0, 2.0, 5.0, 3.0, 6.0);
   const TransformedObject transformedObject(1.0, 4.0, 2.0, 5.0, 4.0, 7.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -65,9 +65,9 @@ TEST(TestActiveTranslation, TransformPointCloud) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformActiveTranslation) {  // NOLINT
-  using Object = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
-  using TransformedObject = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
+  using Object = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using TransformedObject = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(1.0, 2.0, 3.0);
   const TransformedObject transformedObject(1.0, 2.0, 3.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
@@ -75,9 +75,9 @@ TEST(TestActiveTranslation, TransformActiveTranslation) {  // NOLINT
 }
 
 TEST(TestActiveTranslation, TransformActiveRotation) {  // NOLINT
-  using Object = ActiveSpatialRotation3<Values, double, CoordinateSystemA>;
-  using Transformation = ActiveSpatialTranslation3<Values, double, CoordinateSystemA>;
-  using TransformedObject = ActiveSpatialRotation3<Values, double, CoordinateSystemA>;
+  using Object = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using TransformedObject = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
   const Object object(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
   const TransformedObject transformedObject(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.

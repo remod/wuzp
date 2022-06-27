@@ -5,6 +5,7 @@
 #include <type_traits>
 
 #include "wuzp/core/Integer.hpp"
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
@@ -12,21 +13,13 @@
 
 namespace wuzp {
 
-template <typename ValuesT_, typename UnitsT_>
-class Quantities;
-
-// Defining a scalar to be equivalent to a 1x1 matrix is not 100% clean, but the implicit conversions help to avoid duplicated code and
-// explicit casting, e.g. when calculating the inner product of a vector x^T * x. https://math.stackexchange.com/q/65002
-template <typename ValueT_, typename UnitT_>
-using Quantity = Quantities<ValueT_, TypeMatrixImpl<1, 1, std::tuple<UnitT_>>>;
-
-template <typename UnitT_>
-using QuantityI = Quantity<typename AccessValues<SpecializationDummy<UnitT_>>::ValueI, UnitT_>;
-template <typename UnitT_>
-using QuantityF = Quantity<typename AccessValues<SpecializationDummy<UnitT_>>::ValueF, UnitT_>;
-template <typename UnitT_>
-using QuantityD = Quantity<typename AccessValues<SpecializationDummy<UnitT_>>::ValueD, UnitT_>;
-
+/**
+ * Container to store quantities.
+ * Every quantity consists of a value and a unit.
+ * The values are evaluated at run-time, the units at compile-time.
+ * @tparam ValuesT_ Container type to store the values (e.g. a scalar, vector, matrix, etc.).
+ * @tparam UnitsT_ Container storing the units (e.g. a scalar, vector, matrix, etc.).
+ */
 template <typename ValuesT_, typename UnitsT_>
 class Quantities {
  public:
@@ -85,7 +78,7 @@ class Quantities {
    * Set the values of the quantities.
    * WARNING: This method circumvents quantity type safety.
    * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
-   * @param values Values.
+   * @param values ValueMatrix.
    */
   template <typename ValuesOtherT_>
   void setValues(const ValuesOtherT_& values) {
@@ -101,7 +94,7 @@ class Quantities {
    * Get the values of the quantities.
    * WARNING: This method circumvents quantity type safety.
    * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
-   * @return Values of the quantities.
+   * @return ValueMatrix of the quantities.
    */
   const ValuesT& getValues() const { return values_; }
 
@@ -146,6 +139,15 @@ class Quantities {
   auto norm() const { return typename GetType<ThisT>::type(values_.norm()); }
 
   auto squaredNorm() const { return typename Power<typename GetType<ThisT>::type, Integer<2>>::type(values_.squaredNorm()); }
+
+  /**
+   * Get the determinant.
+   * @tparam Dimension Do not use this.
+   */
+  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 2>>
+  auto determinant() const {
+    return typename GetType<ThisT>::type(values_.determinant());
+  }
 
  private:
   template <typename ValuesOtherT_, typename UnitsOther>

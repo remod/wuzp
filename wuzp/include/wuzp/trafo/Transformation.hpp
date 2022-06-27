@@ -4,63 +4,14 @@
 
 namespace wuzp {
 
-template <typename Transformation, typename Object>
-struct TransformationTraits {
-  static_assert(FailOnInstantiation<TransformationTraits<Transformation, Object>>::value, "'TransformationTraits' trait not specialized.");
-};
-
+/**
+ * Base class for all transformations.
+ * Transformations can be one or a combination of the following base-transformations:
+ * Translation, rotation, reflection, dilation.
+ */
 class Transformation {
  protected:
   virtual ~Transformation() = default;
 };
-
-// Translation, Rotation, Reflection, Dilation.
-
-template <typename Derived>
-class ActiveTransformation : public Transformation {
- public:
-  template <typename Object>
-  auto transform(const Object& object) const {
-    return TransformationTraits<Derived, Object>::transform(derived(), object);
-  }
-
-  template <typename Other>
-  bool isApprox(const Other& other) {
-    return derived().getTensor().isApprox(other.getTensor());
-  }
-
-  // TODO(remod): Add inverse() function.
-
- private:
-  const Derived& derived() const { return static_cast<const Derived&>(*this); }  // TODO(remod): Use CRTP class template from web.
-};
-
-template <typename Derived, typename From, typename To>
-class PassiveTransformation : public Transformation {
- public:
-  // TODO(remod): Add test to make sure From and To are actually frames.
-
-  template <typename Object>
-  auto transform(const Object& object) const {
-    static_assert(std::is_same<typename GetCoordinateSystem<Object>::type, From>::value, "Coordinate systems do not match.");
-    return TransformationTraits<Derived, Object>::transform(derived(), object);
-  }
-
-  template <typename Other>
-  bool isApprox(const Other& other) {
-    return derived().getTensor().isApprox(other.getTensor());
-  }
-
-  // TODO(remod): Add inverse() function.
-
- private:
-  const Derived& derived() const { return static_cast<const Derived&>(*this); }  // TODO(remod): Use CRTP class template from web.
-};
-
-// Static frames
-// Rotation:    B_r = A_BA * A_r
-//              B_v = A_BA * A_v
-//              B_a = A_BA * A_a
-// Translation: r_0B = r_AB + r_0A
 
 }  // namespace wuzp

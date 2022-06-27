@@ -1,10 +1,11 @@
 #pragma once
 
 #include "wuzp/trafo/PassiveLinearTransformation.hpp"
+#include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 
-// TODO(remod): When instantiating a spacial rotation, test for determinant == 1.
+// TODO(remod): When instantiating a spatial rotation, test for determinant == 1.
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To,
           int Dimension>
 using PassiveSpatialRotation = PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension, Dimension,

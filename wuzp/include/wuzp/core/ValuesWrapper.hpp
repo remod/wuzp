@@ -86,6 +86,7 @@ class ValuesWrapper {
 
   auto norm() const { return implementation_.norm(); }
   auto squaredNorm() const { return implementation_.squaredNorm(); }
+  auto determinant() const { return implementation_.determinant(); }
 
   auto inverse() const { return typename Inverse<ThisT>::type(implementation_.inverse()); }
 
