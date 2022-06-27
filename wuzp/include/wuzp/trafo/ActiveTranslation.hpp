@@ -1,7 +1,8 @@
 #pragma once
 
 #include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/trafo/Transformation.hpp"
+#include "wuzp/trafo/ActiveTransformation.hpp"
+#include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 
@@ -15,9 +16,7 @@ class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_
   using TensorT = Tensor<1, 0, QuantitiesT, CoordinateSystemT, Relative>;
 
   template <typename... Args>
-  explicit ActiveTranslation(Args... args) : tensor_(args...) {}
-  //  template <typename... Args>
-  //  explicit ActiveTranslation(Args&&... args) : tensor_(std::forward<Args>(args)...) {}
+  explicit ActiveTranslation(Args&&... args) : tensor_(std::forward<Args>(args)...) {}
 
   const TensorT& getTensor() const { return tensor_; }
 

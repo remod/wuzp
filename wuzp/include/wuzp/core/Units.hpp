@@ -5,10 +5,6 @@
 
 namespace wuzp {
 
-// TODO(remod): Do we still need this?
-// template <int Rows, int Cols, typename... Implementations>
-// using Units = TypeMatrix<Rows, Cols, Unit<Implementations>...>;
-
 template <int Rows, int Cols, typename... UnitImplementations>
 struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
   static_assert(Rows == Cols, "Matrix is not square.");

@@ -190,15 +190,28 @@ class Tensor {
 
   auto inverse() const { return typename Inverse<ThisT>::type(quantities_.inverse()); }
 
+  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0 || Dimension == 1>>
   auto norm() const {
     static_assert(!AbsoluteT_::value, "Tensor is not relative.");
     return quantities_.norm();
   }
 
+  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0 || Dimension == 1>>
   auto squaredNorm() const {
     static_assert(!AbsoluteT_::value, "Tensor is not relative.");
     return quantities_.squaredNorm();
   }
+
+  /**
+   * Get the determinant of a tensor of rank 2.
+   * @tparam Dimension Do not use this.
+   */
+  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 2>>
+  auto determinant() const {
+    return quantities_.determinant();
+  }
+
+  auto hyperdeterminant() const { static_assert(FailOnInstantiation<typeof(ThisT::hyperdeterminant())>::value, "Not implemented"); }
 
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther,

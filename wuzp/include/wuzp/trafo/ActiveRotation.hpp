@@ -4,7 +4,7 @@
 
 namespace wuzp {
 
-// TODO(remod): When instantiating a spacial rotation, test for determinant == 1.
+// TODO(remod): When instantiating a spatial rotation, test for determinant == 1.
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, int Dimension>
 using ActiveSpatialRotation = ActiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, Dimension, Dimension,
                                                          typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
