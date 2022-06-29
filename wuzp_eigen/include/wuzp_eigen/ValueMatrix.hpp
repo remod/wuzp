@@ -8,13 +8,14 @@
 #include <Eigen/LU>
 
 #include "wuzp/core/ValuesWrapper.hpp"
+#include "wuzp/core/MatrixSize.hpp"
 
 #include "wuzp_eigen/internal/comma_operations.hpp"
 
 namespace wuzp_eigen {
 
 template <typename ValueT, int Rows, int Cols>
-using ValueMatrix = wuzp::ValuesWrapper<Eigen::Matrix<ValueT, Rows, Cols>>;
+using ValueMatrix = wuzp::ValuesWrapper<wuzp::MatrixSize<Rows, Cols>, Eigen::Matrix<ValueT, Rows, Cols>>;
 
 template <int Rows, int Cols>
 using ValueMatrixI = ValueMatrix<int, Rows, Cols>;

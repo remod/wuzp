@@ -45,7 +45,7 @@ TEST(TestValuesWrapper, LazyDifference) {  // NOLINT
 }
 
 TEST(TestValuesWrapper, LazyProduct) {  // NOLINT
-  using MyValueMatrix = ValueMatrix<double, 3, 2>;
+  using MyValueMatrix = ValueMatrix<double, 2, 2>;
   static_assert(!std::is_same<Product<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
