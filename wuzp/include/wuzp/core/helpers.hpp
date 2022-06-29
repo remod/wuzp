@@ -105,8 +105,8 @@ struct IsHomogeneous<std::tuple<Ts...>> {
 template <typename T>
 struct SpecializationDummy;
 
-template <typename Tag, typename Implementation = void>
-struct AccessExtension;
+template <typename Implementation>
+struct AccessImplementation;
 
 template <typename T>
 constexpr auto getTypeName() noexcept {

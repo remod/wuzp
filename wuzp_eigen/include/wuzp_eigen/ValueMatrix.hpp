@@ -62,49 +62,49 @@ struct AccessValues<SpecializationDummy<T>> {
 };
 
 template <typename ImplementationT_>
-struct Transpose<AccessExtension<wuzp::TransposeTag, ImplementationT_>> {
+struct Transpose<AccessImplementation<ImplementationT_>> {
   static auto value(const ImplementationT_& impl) { return impl.transpose(); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct CrossProduct<AccessExtension<CrossProductTag, ImplementationLhsT_>, AccessExtension<CrossProductTag, ImplementationRhsT_>> {
+struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs.cross(implRhs); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
 };
 
 template <typename ImplementationT_>
-struct Inverse<AccessExtension<wuzp::InverseTag, ImplementationT_>> {
+struct Inverse<AccessImplementation<ImplementationT_>> {
   static auto value(const ImplementationT_& impl) { return impl.inverse(); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct Block<AccessExtension<wuzp::BlockTag, ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+struct Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   static auto value(const ImplementationT_& impl) { return impl.template block<BlockRows, BlockCols>(BlockRowId, BlockColId); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <typename ImplementationT_>
-struct Zero<AccessExtension<wuzp::ZeroTag, ImplementationT_>> {
+struct Zero<AccessImplementation<ImplementationT_>> {
   static auto value() { return ImplementationT_::Zero(); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <typename ImplementationT_>
-struct Random<AccessExtension<wuzp::RandomTag, ImplementationT_>> {
+struct Random<AccessImplementation<ImplementationT_>> {
   static auto value() { return ImplementationT_::Random(); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <typename ImplementationT_>
-struct Evaluate<AccessExtension<wuzp::EvaluateTag, ImplementationT_>> {
+struct Evaluate<AccessImplementation<ImplementationT_>> {
   static auto value(const ImplementationT_& impl) { return impl.eval(); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));

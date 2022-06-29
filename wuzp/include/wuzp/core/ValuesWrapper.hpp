@@ -73,27 +73,30 @@ class ValuesWrapper {
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto getBlock() const {
     return typename Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
-        Block<AccessExtension<BlockTag, ImplementationT>, BlockRowId, BlockColId, BlockRows, BlockCols>::value(implementation_));
+        Block<AccessImplementation<ImplementationT>, BlockRowId, BlockColId, BlockRows, BlockCols>::value(implementation_));
   }
 
-  auto transpose() const { return typename Transpose<ThisT>::type(implementation_.transpose()); }
+  auto transpose() const {
+    return typename Transpose<ThisT>::type(Transpose<AccessImplementation<ImplementationT>>::value(implementation_));
+  }
 
   template <typename MatrixSizeOtherT_, typename ImplementationOther_>
   auto dotProduct(const ValuesWrapper<MatrixSizeOtherT_, ImplementationOther_>& other) const {
     return typename DotProduct<ThisT, ValuesWrapper<MatrixSizeOtherT_, ImplementationOther_>>::type(transpose() * other);
   }
 
-  template <typename MatrixSizeOtherT_, typename ImplementationOther_>
-  auto crossProduct(const ValuesWrapper<MatrixSizeOtherT_, ImplementationOther_>& other) const {
-    return typename CrossProduct<ThisT, ValuesWrapper<MatrixSizeOtherT_, ImplementationOther_>>::type(
-        implementation_.cross(other.getImplementation()));
+  template <typename MatrixSizeOtherT_, typename ImplementationOtherT_>
+  auto crossProduct(const ValuesWrapper<MatrixSizeOtherT_, ImplementationOtherT_>& other) const {
+    return typename CrossProduct<ThisT, ValuesWrapper<MatrixSizeOtherT_, ImplementationOtherT_>>::type(
+        CrossProduct<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOtherT_>>::value(implementation_,
+                                                                                                                other.getImplementation()));
   }
 
   auto norm() const { return implementation_.norm(); }
   auto squaredNorm() const { return implementation_.squaredNorm(); }
   auto determinant() const { return implementation_.determinant(); }
 
-  auto inverse() const { return typename Inverse<ThisT>::type(implementation_.inverse()); }
+  auto inverse() const { return typename Inverse<ThisT>::type(Inverse<AccessImplementation<ImplementationT>>::value(implementation_)); }
 
   ThisT& setImplementation(const ImplementationT& implementation) {
     implementation_ = implementation;
@@ -101,9 +104,7 @@ class ValuesWrapper {
   }
   const ImplementationT& getImplementation() const { return implementation_; }
 
-  auto evaluate() const {
-    return typename Evaluate<ThisT>::type(Evaluate<AccessExtension<EvaluateTag, ImplementationT>>::value(implementation_));
-  }
+  auto evaluate() const { return typename Evaluate<ThisT>::type(Evaluate<AccessImplementation<ImplementationT>>::value(implementation_)); }
 
  private:
   template <typename MatrixSizeOtherT_, typename ImplementationOther_>
@@ -245,8 +246,7 @@ struct Division<ValuesWrapper<MatrixSizeLhsT_, ImplementationLhsT_>, ValuesWrapp
 
 template <typename MatrixSizeT_, typename ImplementationT_>
 struct Transpose<ValuesWrapper<MatrixSizeT_, ImplementationT_>> {
-  using type =
-      ValuesWrapper<typename Transpose<MatrixSizeT_>::type, typename Transpose<AccessExtension<TransposeTag, ImplementationT_>>::type>;
+  using type = ValuesWrapper<typename Transpose<MatrixSizeT_>::type, typename Transpose<AccessImplementation<ImplementationT_>>::type>;
 };
 
 template <typename MatrixSizeLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ImplementationRhsT_>
@@ -259,36 +259,35 @@ struct DotProduct<ValuesWrapper<MatrixSizeLhsT_, ImplementationLhsT_>, ValuesWra
 
 template <typename MatrixSizeLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ImplementationRhsT_>
 struct CrossProduct<ValuesWrapper<MatrixSizeLhsT_, ImplementationLhsT_>, ValuesWrapper<MatrixSizeRhsT_, ImplementationRhsT_>> {
-  using type = ValuesWrapper<typename CrossProduct<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
-                             typename CrossProduct<AccessExtension<CrossProductTag, ImplementationLhsT_>, AccessExtension<CrossProductTag, ImplementationRhsT_>>::type>;
+  using type =
+      ValuesWrapper<typename CrossProduct<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
+                    typename CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::type>;
 };
 
 template <typename MatrixSizeT_, typename ImplementationT_>
 struct Inverse<ValuesWrapper<MatrixSizeT_, ImplementationT_>> {
-  using type = ValuesWrapper<typename Inverse<MatrixSizeT_>::type,
-                             typename Inverse<AccessExtension<InverseTag, ImplementationT_>>::type>;
+  using type = ValuesWrapper<typename Inverse<MatrixSizeT_>::type, typename Inverse<AccessImplementation<ImplementationT_>>::type>;
 };
 
 template <typename MatrixSizeT_, typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<ValuesWrapper<MatrixSizeT_, ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type =
-      ValuesWrapper<typename Block<MatrixSizeT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-                    typename Block<AccessExtension<BlockTag, ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+  using type = ValuesWrapper<typename Block<MatrixSizeT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
+                             typename Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
 };
 
 template <typename MatrixSizeT_, typename ImplementationT_>
 struct Zero<ValuesWrapper<MatrixSizeT_, ImplementationT_>> {
-  static auto value() { return ValuesWrapper(Zero<AccessExtension<ZeroTag, ImplementationT_>>::value()); }
+  static auto value() { return ValuesWrapper(Zero<AccessImplementation<ImplementationT_>>::value()); }
 };
 
 template <typename MatrixSizeT_, typename ImplementationT_>
 struct Random<ValuesWrapper<MatrixSizeT_, ImplementationT_>> {
-  static auto value() { return ValuesWrapper(Random<AccessExtension<RandomTag, ImplementationT_>>::value()); }
+  static auto value() { return ValuesWrapper(Random<AccessImplementation<ImplementationT_>>::value()); }
 };
 
 template <typename MatrixSizeT_, typename ImplementationT_>
 struct Evaluate<ValuesWrapper<MatrixSizeT_, ImplementationT_>> {
-  using type = ValuesWrapper<MatrixSizeT_, typename Evaluate<AccessExtension<EvaluateTag, ImplementationT_>>::type>;
+  using type = ValuesWrapper<MatrixSizeT_, typename Evaluate<AccessImplementation<ImplementationT_>>::type>;
 };
 
 template <typename MatrixSizeT_, typename ImplementationT_, typename... Args>
