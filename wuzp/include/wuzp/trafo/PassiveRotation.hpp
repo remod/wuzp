@@ -9,7 +9,7 @@ namespace wuzp {
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To,
           int Dimension>
 using PassiveSpatialRotation = PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
-                                                           typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
+                                                           typename AccessUnits<AccessImplementation<Scalar>>::Dimensionless>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
 using PassiveSpatialRotation2 = PassiveSpatialRotation<ValuesT_, Scalar, CoordinateSystem, From, To, 2>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>

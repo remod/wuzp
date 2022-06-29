@@ -51,7 +51,7 @@ void initialize(wuzp_blitz::ValueMatrix<ValueT, Rows, Cols>& values, Arg0&& arg0
 }
 
 template <typename T>
-struct AccessValues<SpecializationDummy<T>> {
+struct AccessValues<AccessImplementation<T>> {
   template <typename ValueT_>
   using Value = wuzp_blitz::Value<ValueT_>;
   using ValueI = wuzp_blitz::ValueI;

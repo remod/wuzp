@@ -72,7 +72,7 @@ struct Inverse<Unit<Implementation>> {
 };
 
 template <typename T>
-struct AccessUnits<SpecializationDummy<T>> {
+struct AccessUnits<AccessImplementation<T>> {
   using Acceleration = wuzp_boost::Acceleration;
   using Angle = wuzp_boost::Angle;
   using AngularAcceleration = wuzp_boost::AngularAcceleration;

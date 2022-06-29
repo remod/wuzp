@@ -428,8 +428,8 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Quantit
 auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const ValueRhsT_ rhs) {
   // Evaluate to avoid returning an expression on a temporary object.
-  return (lhs * Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
-                         typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs))
+  return (lhs * Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
+                         typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs))
       .evaluate();
 }
 template <typename ValueLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
@@ -466,8 +466,8 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Quantit
 auto operator/(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const ValueRhsT_ rhs) {
   // Evaluate to avoid returning an expression on a temporary object.
-  return (lhs / Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
-                         typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs))
+  return (lhs / Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
+                         typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs))
       .evaluate();
 }
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
@@ -527,7 +527,7 @@ using HomogeneousCopoint = Copoint<Quantities<ValuesT_<Scalar, 1, Dimension>, Ty
 
 template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using DirectionVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Dimensionless, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using DirectionVector2 = DirectionVector<2, ValuesT_, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
@@ -535,7 +535,7 @@ using DirectionVector3 = DirectionVector<3, ValuesT_, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using PositionPoint =
-    HomogeneousPoint<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Length, CoordinateSystem>;
+    HomogeneousPoint<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Length, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using PositionPoint2 = PositionPoint<2, ValuesT_, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
@@ -543,7 +543,7 @@ using PositionPoint3 = PositionPoint<3, ValuesT_, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using PositionVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Length, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Length, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using PositionVector2 = PositionVector<2, ValuesT_, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
@@ -551,7 +551,7 @@ using PositionVector3 = PositionVector<3, ValuesT_, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using VelocityVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Velocity, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Velocity, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using VelocityVector2 = VelocityVector<2, ValuesT_, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
@@ -559,7 +559,7 @@ using VelocityVector3 = VelocityVector<3, ValuesT_, Scalar, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using AccelerationVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Acceleration, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Acceleration, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using AccelerationVector2 = AccelerationVector<2, ValuesT_, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
@@ -567,7 +567,7 @@ using AccelerationVector3 = AccelerationVector<3, ValuesT_, Scalar, CoordinateSy
 
 template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using AngularVelocityVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::AngularVelocity, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::AngularVelocity, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using AngularVelocityVector2 = AngularVelocityVector<2, ValuesT_, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
@@ -575,7 +575,7 @@ using AngularVelocityVector3 = AngularVelocityVector<3, ValuesT_, Scalar, Coordi
 
 template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using AngularAccelerationVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::AngularAcceleration,
+    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::AngularAcceleration,
                       CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using AngularAccelerationVector2 = AngularAccelerationVector<2, ValuesT_, Scalar, CoordinateSystem>;

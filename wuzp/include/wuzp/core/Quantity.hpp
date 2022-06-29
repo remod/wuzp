@@ -29,10 +29,10 @@ template <typename ValueT_, typename UnitT_>
 using Quantity = Quantities<ValueT_, TypeMatrixImpl<1, 1, std::tuple<UnitT_>>>;
 
 template <typename UnitT_>
-using QuantityI = Quantity<typename AccessValues<SpecializationDummy<UnitT_>>::ValueI, UnitT_>;
+using QuantityI = Quantity<typename AccessValues<AccessImplementation<UnitT_>>::ValueI, UnitT_>;
 template <typename UnitT_>
-using QuantityF = Quantity<typename AccessValues<SpecializationDummy<UnitT_>>::ValueF, UnitT_>;
+using QuantityF = Quantity<typename AccessValues<AccessImplementation<UnitT_>>::ValueF, UnitT_>;
 template <typename UnitT_>
-using QuantityD = Quantity<typename AccessValues<SpecializationDummy<UnitT_>>::ValueD, UnitT_>;
+using QuantityD = Quantity<typename AccessValues<AccessImplementation<UnitT_>>::ValueD, UnitT_>;
 
 }  // namespace wuzp

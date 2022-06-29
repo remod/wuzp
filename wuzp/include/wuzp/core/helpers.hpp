@@ -102,9 +102,7 @@ struct IsHomogeneous<std::tuple<Ts...>> {
   static constexpr bool value = IsHomogeneous<Ts...>::value;
 };
 
-template <typename T>
-struct SpecializationDummy;
-
+//! Type wrapper which is used to access traits partially specialized in the implementation header files.
 template <typename Implementation>
 struct AccessImplementation;
 

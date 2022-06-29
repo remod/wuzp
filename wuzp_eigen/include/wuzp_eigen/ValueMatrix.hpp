@@ -53,7 +53,7 @@ void initialize(wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>& values, Arg0&& arg0
 }
 
 template <typename T>
-struct AccessValues<SpecializationDummy<T>> {
+struct AccessValues<AccessImplementation<T>> {
   template <typename ValueT_>
   using Value = wuzp_eigen::Value<ValueT_>;
   using ValueI = wuzp_eigen::ValueI;

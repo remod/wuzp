@@ -9,7 +9,7 @@ namespace wuzp {
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To,
           int Dimension>
 using LorentzTransformation = PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
-                                                          typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
+                                                          typename AccessUnits<AccessImplementation<Scalar>>::Dimensionless>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
 using LorentzTransformation2 = LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, 2>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
@@ -19,8 +19,8 @@ using LorentzTransformation4 = LorentzTransformation<ValuesT_, Scalar, Coordinat
 
 template <typename ValueT_>
 auto getSpeedOfLight() {
-  return Quantity<typename AccessValues<SpecializationDummy<ValueT_>>::template Value<ValueT_>,
-                  typename AccessUnits<SpecializationDummy<ValueT_>>::Velocity>(static_cast<ValueT_>(299792458));
+  return Quantity<typename AccessValues<AccessImplementation<ValueT_>>::template Value<ValueT_>,
+                  typename AccessUnits<AccessImplementation<ValueT_>>::Velocity>(static_cast<ValueT_>(299792458));
 }
 
 // TODO(remod): Why do we need to explicitly specialize the template arguments when using this function?
@@ -35,8 +35,8 @@ template <template <typename, int, int> typename ValuesT_, typename Scalar, type
 LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension> createBoostMatrix(
     const VelocityVector<Dimension - 1, ValuesT_, Scalar, CoordinateSystem>& velocity) {
   using QuantitiesT = typename LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension>::QuantitiesT;
-  using QuantityT = Quantity<typename AccessValues<SpecializationDummy<Scalar>>::template Value<Scalar>,
-                             typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
+  using QuantityT = Quantity<typename AccessValues<AccessImplementation<Scalar>>::template Value<Scalar>,
+                             typename AccessUnits<AccessImplementation<Scalar>>::Dimensionless>;
   const auto squaredNorm = velocity.squaredNorm();
   const auto lorentzFactor = pow<-1, 2>(QuantityT(1.0) - squaredNorm / pow<2>(getSpeedOfLight<Scalar>()));
   QuantitiesT quantities;

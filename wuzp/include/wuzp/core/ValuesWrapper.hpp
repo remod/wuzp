@@ -218,7 +218,7 @@ struct ProductImpl<ValuesWrapper<MatrixSizeLhsT_, ImplementationLhsT_>, Dimensio
 
 template <typename ValueLhs_, typename MatrixSizeRhsT_, typename ImplementationRhsT_>
 struct Product<ValueLhs_, ValuesWrapper<MatrixSizeRhsT_, ImplementationRhsT_>> {
-  using type = typename Product<typename AccessValues<SpecializationDummy<ValueLhs_>>::template Value<ValueLhs_>,
+  using type = typename Product<typename AccessValues<AccessImplementation<ValueLhs_>>::template Value<ValueLhs_>,
                                 ValuesWrapper<MatrixSizeRhsT_, ImplementationRhsT_>>::type;
 };
 template <typename MatrixSizeLhsT_, typename ImplementationLhsT_, typename ValueRhs_>

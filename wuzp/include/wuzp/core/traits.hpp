@@ -181,7 +181,7 @@ struct AccessUnits {
 template <typename ValueT>
 struct AccessValues {
   static_assert(FailOnInstantiation<AccessValues<ValueT>>::value,
-                "'AccessValues' trait not specialized for given type. Make sure you included the necessary unit headers.");
+                "'AccessValues' trait not specialized for given type. Make sure you included the necessary value headers.");
 };
 
 template <typename ValueT>

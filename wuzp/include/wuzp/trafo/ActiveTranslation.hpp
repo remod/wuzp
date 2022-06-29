@@ -112,7 +112,7 @@ std::ostream& operator<<(std::ostream& lhs, const ActiveTranslation<ValuesT_, Di
 
 template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem>
 using ActiveSpatialTranslation =
-    ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, typename AccessUnits<SpecializationDummy<Scalar>>::Length>;
+    ActiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, typename AccessUnits<AccessImplementation<Scalar>>::Length>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
 using ActiveSpatialTranslation2 = ActiveSpatialTranslation<ValuesT_, 2, Scalar, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>

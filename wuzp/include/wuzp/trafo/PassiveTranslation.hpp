@@ -128,7 +128,7 @@ std::ostream& operator<<(std::ostream& lhs,
 template <template <typename, int, int> typename ValuesT_, int Dimension, typename Scalar, typename CoordinateSystem, typename From,
           typename To>
 using PassiveSpatialTranslation =
-    PassiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, From, To, typename AccessUnits<SpecializationDummy<Scalar>>::Length>;
+    PassiveTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, From, To, typename AccessUnits<AccessImplementation<Scalar>>::Length>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
 using PassiveSpatialTranslation2 = PassiveSpatialTranslation<ValuesT_, 2, Scalar, CoordinateSystem, From, To>;
 template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>

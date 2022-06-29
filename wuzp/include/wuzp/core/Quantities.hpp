@@ -197,7 +197,7 @@ template <typename ValuesT_, typename UnitsT_>
 struct GetType<Quantities<ValuesT_, UnitsT_>> {
   static_assert(IsHomogeneous<Quantities<ValuesT_, UnitsT_>>::value, "Quantities are not homogeneous.");
   using type =
-      Quantity<typename AccessValues<SpecializationDummy<ValuesT_>>::template Value<typename Quantities<ValuesT_, UnitsT_>::ValueT>,
+      Quantity<typename AccessValues<AccessImplementation<ValuesT_>>::template Value<typename Quantities<ValuesT_, UnitsT_>::ValueT>,
                typename GetType<UnitsT_>::type>;
 };
 
@@ -259,7 +259,7 @@ struct CrossProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_,
 
 template <typename ValuesT_, typename UnitsT_, int ElementRowId, int ElementColId>
 struct Element<Quantities<ValuesT_, UnitsT_>, ElementRowId, ElementColId> {
-  using type = Quantity<typename AccessValues<SpecializationDummy<ValuesT_>>::template Value<typename ValuesT_::ValueT>,
+  using type = Quantity<typename AccessValues<AccessImplementation<ValuesT_>>::template Value<typename ValuesT_::ValueT>,
                         typename Element<UnitsT_, ElementRowId, ElementColId>::type>;
 };
 
@@ -301,8 +301,8 @@ auto operator-(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
   // Evaluate to avoid returning an expression on a temporary object.
-  return (lhs * Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
-                         typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs))
+  return (lhs * Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
+                         typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs))
       .evaluate();
 }
 template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
@@ -318,7 +318,7 @@ auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
   using Dimensionless = typename Identity<typename Element<UnitsLhsT_, 0, 0>::type>::type;
-  return lhs / Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>, Dimensionless>(rhs);
+  return lhs / Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>, Dimensionless>(rhs);
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
 auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
@@ -364,13 +364,13 @@ auto pow(const Quantity<Value, Unit>& quantity) {
 }
 
 template <typename Value>
-auto sin(const Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>& angle) {
-  return Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Dimensionless>(std::sin(angle.getValue()));
+auto sin(const Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Angle>& angle) {
+  return Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Dimensionless>(std::sin(angle.getValue()));
 }
 
 template <typename Value>
-auto cos(const Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Angle>& angle) {
-  return Quantity<Value, typename AccessUnits<SpecializationDummy<Value>>::Dimensionless>(std::cos(angle.getValue()));
+auto cos(const Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Angle>& angle) {
+  return Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Dimensionless>(std::cos(angle.getValue()));
 }
 
 // TODO(remod): add more math functions.
