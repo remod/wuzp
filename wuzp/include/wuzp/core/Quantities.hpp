@@ -149,6 +149,8 @@ class Quantities {
     return typename GetType<ThisT>::type(values_.determinant());
   }
 
+  auto evaluate() const { return typename Evaluate<ThisT>::type(values_.evaluate()); }
+
  private:
   template <typename ValuesOtherT_, typename UnitsOther>
   // Allow other values types to support lazy evaluation.
@@ -299,8 +301,9 @@ auto operator-(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
   // Evaluate to avoid returning an expression on a temporary object.
-  return evaluate(lhs * Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
-                                 typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs));
+  return (lhs * Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
+                         typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs))
+      .evaluate();
 }
 template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto operator*(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {

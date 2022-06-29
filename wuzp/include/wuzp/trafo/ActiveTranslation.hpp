@@ -56,10 +56,9 @@ struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Scalar, Coord
           result.template setQuantity(row, col, result.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
         }
       }
-      return evaluate(result);
+      return result.evaluate();
     } else {
-      const auto result = object;
-      return evaluate(result);
+      return object;
     }
   }
 };

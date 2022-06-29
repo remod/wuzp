@@ -17,6 +17,6 @@ fi
 # Install dependencies.
 apt install -y cmake debhelper-compat devscripts gnupg-agent ${WUZP_PACKAGE_PATH}
 # TODO(remod): Make this step cleaner, by only installing the required dependencies.
-apt install -y libboost-dev libeigen3-dev
+apt install -y libboost-dev libeigen3-dev libblitz0-dev
 
 exit 0

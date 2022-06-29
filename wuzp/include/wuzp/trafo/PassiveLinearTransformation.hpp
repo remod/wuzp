@@ -81,9 +81,9 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Scalar, Coordi
       const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     // If the object is absolute (point), make it relative (vector), transform it, and make it absolute again.
     if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
-      return evaluate(castCoordinateSystem<To>(makeAbsolute(transformation.getTensor() * makeRelative(object))));
+      return (castCoordinateSystem<To>(makeAbsolute(transformation.getTensor() * makeRelative(object)))).evaluate();
     } else {
-      return evaluate(castCoordinateSystem<To>(transformation.getTensor() * object));
+      return (castCoordinateSystem<To>(transformation.getTensor() * object)).evaluate();
     }
   }
 };

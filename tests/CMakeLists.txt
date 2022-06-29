@@ -7,6 +7,7 @@ set(UNITS_IMPLEMENTATION_WUZP 0)
 set(UNITS_IMPLEMENTATION_BOOST 1)
 set(VALUES_IMPLEMENTATION_WUZP 0)
 set(VALUES_IMPLEMENTATION_EIGEN 1)
+set(VALUES_IMPLEMENTATION_BLITZ 2)
 
 option(FROM_SOURCE "True: Build packages from source. False: Search for installed packages." ON)
 option(ENABLE_TESTS "Enables the definition of a 'tests' target to run the unit tests." OFF)
@@ -16,7 +17,7 @@ option(ENABLE_TIDY "Enables the definition of a 'tidy' target to search for clan
 
 # Use `set` instead of `option` for non-boolean values.
 set(UNITS_IMPLEMENTATION ${UNITS_IMPLEMENTATION_WUZP} CACHE STRING "Define which kind of units implementation to use: ${UNITS_IMPLEMENTATION_WUZP} = WUZP, ${UNITS_IMPLEMENTATION_BOOST} = Boost.")
-set(VALUES_IMPLEMENTATION ${VALUES_IMPLEMENTATION_EIGEN} CACHE STRING "Define which kind of values implementation to use: ${VALUES_IMPLEMENTATION_WUZP} = WUZP, ${VALUES_IMPLEMENTATION_EIGEN} = Eigen.")
+set(VALUES_IMPLEMENTATION ${VALUES_IMPLEMENTATION_EIGEN} CACHE STRING "Define which kind of values implementation to use: ${VALUES_IMPLEMENTATION_WUZP} = WUZP, ${VALUES_IMPLEMENTATION_EIGEN} = Eigen, ${VALUES_IMPLEMENTATION_BLITZ} = Blitz.")
 
 message(STATUS "------------------------------------------")
 message(STATUS "Building with the following configuration:")
@@ -46,30 +47,37 @@ add_compile_definitions(UNITS_IMPLEMENTATION_BOOST=${UNITS_IMPLEMENTATION_BOOST}
 add_compile_definitions(VALUES_IMPLEMENTATION=${VALUES_IMPLEMENTATION})
 add_compile_definitions(VALUES_IMPLEMENTATION_WUZP=${VALUES_IMPLEMENTATION_WUZP})
 add_compile_definitions(VALUES_IMPLEMENTATION_EIGEN=${VALUES_IMPLEMENTATION_EIGEN})
+add_compile_definitions(VALUES_IMPLEMENTATION_BLITZ=${VALUES_IMPLEMENTATION_BLITZ})
 
-if (${FROM_SOURCE})
+if(${FROM_SOURCE})
     add_subdirectory(${REPO_DIR}/wuzp wuzp_build)
 else()
     find_package(wuzp REQUIRED)
 endif()
-if (${UNITS_IMPLEMENTATION} EQUAL ${UNITS_IMPLEMENTATION_BOOST})
-    if (${FROM_SOURCE})
+if(${UNITS_IMPLEMENTATION} EQUAL ${UNITS_IMPLEMENTATION_BOOST})
+    if(${FROM_SOURCE})
         add_subdirectory(${REPO_DIR}/wuzp_boost wuzp_boost_build)
     else()
         find_package(wuzp_boost REQUIRED)
     endif()
 endif()
-if (${VALUES_IMPLEMENTATION} EQUAL ${VALUES_IMPLEMENTATION_EIGEN})
-    if (${FROM_SOURCE})
+if(${VALUES_IMPLEMENTATION} EQUAL ${VALUES_IMPLEMENTATION_EIGEN})
+    if(${FROM_SOURCE})
         add_subdirectory(${REPO_DIR}/wuzp_eigen wuzp_eigen_build)
     else()
         find_package(wuzp_eigen REQUIRED)
     endif()
+elseif(${VALUES_IMPLEMENTATION} EQUAL ${VALUES_IMPLEMENTATION_BLITZ})
+    if(${FROM_SOURCE})
+        add_subdirectory(${REPO_DIR}/wuzp_blitz wuzp_blitz_build)
+    else()
+        find_package(wuzp_blitz REQUIRED)
+    endif()
 endif()
 
-if (${ENABLE_TESTS})
+if(${ENABLE_TESTS})
     enable_testing()
-    if (${ENABLE_CODE_COVERAGE})
+    if(${ENABLE_CODE_COVERAGE})
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-instr-generate -fcoverage-mapping -O0 -fno-inline -fno-elide-constructors")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping -O0 -fno-inline -fno-elide-constructors")
     endif()
@@ -103,15 +111,17 @@ if (${ENABLE_TESTS})
     target_compile_definitions(tests PRIVATE REPO_DIR=${REPO_DIR})
     target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)
     target_link_libraries(tests PRIVATE wuzp)
-    if (${UNITS_IMPLEMENTATION} EQUAL ${UNITS_IMPLEMENTATION_BOOST})
+    if(${UNITS_IMPLEMENTATION} EQUAL ${UNITS_IMPLEMENTATION_BOOST})
         # TODO(remod): Also use "namespaced" format.
         target_link_libraries(tests PRIVATE wuzp_boost)
     endif()
-    if (${VALUES_IMPLEMENTATION} EQUAL ${VALUES_IMPLEMENTATION_EIGEN})
+    if(${VALUES_IMPLEMENTATION} EQUAL ${VALUES_IMPLEMENTATION_EIGEN})
         target_link_libraries(tests PRIVATE wuzp_eigen)
+    elseif(${VALUES_IMPLEMENTATION} EQUAL ${VALUES_IMPLEMENTATION_BLITZ})
+        target_link_libraries(tests PRIVATE wuzp_blitz)
     endif()
     gtest_discover_tests(tests)
-    if (${ENABLE_CODE_COVERAGE})
+    if(${ENABLE_CODE_COVERAGE})
         add_custom_target(code_coverage_preprocessing
                 COMMAND LLVM_PROFILE_FILE=tests.profraw $<TARGET_FILE:tests>
                 COMMAND llvm-profdata merge -sparse tests.profraw -o tests.profdata
@@ -128,24 +138,25 @@ if (${ENABLE_TESTS})
     endif()
 endif()
 
-if (${ENABLE_FORMAT} OR ${ENABLE_TIDY})
+if(${ENABLE_FORMAT} OR ${ENABLE_TIDY})
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
         # A /*/ matches one or more levels of directories.
         ${REPO_DIR}/wuzp/include/*/*.hpp
         ${REPO_DIR}/wuzp_boost/include/*/*.hpp
+        ${REPO_DIR}/wuzp_blitz/include/*/*.hpp
         ${REPO_DIR}/wuzp_eigen/include/*/*.hpp
         ${REPO_DIR}/tests/src/*.[ch]pp
     )
 endif()
 
-if (${ENABLE_FORMAT})
+if(${ENABLE_FORMAT})
     find_program(CLANG_FORMAT "clang-format")
     add_custom_target(format
         COMMAND clang-format -i --verbose -style=file ${ALL_CXX_SOURCE_FILES}
     )
 endif()
 
-if (${ENABLE_TIDY})
+if(${ENABLE_TIDY})
     find_program(CLANG_TIDY "clang-tidy")
     add_custom_target(tidy
         COMMAND clang-tidy --format-style=file -p build ${ALL_CXX_SOURCE_FILES}

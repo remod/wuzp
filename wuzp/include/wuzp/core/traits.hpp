@@ -86,6 +86,7 @@ template <typename T>
 struct Transpose {
   static_assert(FailOnInstantiation<Transpose<T>>::value, "'Transpose' trait not specialized for given type.");
 };
+struct TransposeTag;
 
 template <typename Lhs, typename Rhs>
 struct DotProduct {
@@ -96,6 +97,7 @@ template <typename Lhs, typename Rhs>
 struct CrossProduct {
   static_assert(FailOnInstantiation<CrossProduct<Lhs, Rhs>>::value, "'CrossProduct' trait not specialized for given type.");
 };
+struct CrossProductTag;
 
 template <typename Object, int ElementRowId, int ElementColId>
 struct Element {
@@ -107,11 +109,14 @@ struct Block {
   static_assert(FailOnInstantiation<Block<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value,
                 "'Block' trait not specialized for given type.");
 };
+struct BlockTag;
 
 template <typename T>
 struct Inverse {
   static_assert(FailOnInstantiation<Inverse<T>>::value, "'Inverse' trait not specialized for given type.");
 };
+// TODO(remod): Do we really need these tags?
+struct InverseTag;
 
 template <typename T>
 struct Identity {
@@ -122,20 +127,19 @@ template <typename T>
 struct Zero {
   static_assert(FailOnInstantiation<Zero<T>>::value, "'Zero' trait not specialized for given type.");
 };
+struct ZeroTag;
 
 template <typename T>
 struct Random {
   static_assert(FailOnInstantiation<Random<T>>::value, "'Random' trait not specialized for given type.");
 };
+struct RandomTag;
 
 template <typename T>
 struct Evaluate {
   using type = std::decay_t<T>;  // Default e.g. for arithmetic types.
 };
-template <typename T>
-auto evaluate(T t) {
-  return typename Evaluate<T>::type(t);
-}
+struct EvaluateTag;
 
 template <typename T>
 struct IsAbsolute {
@@ -170,6 +174,7 @@ struct CastCoordinateSystem {
   static_assert(FailOnInstantiation<CastCoordinateSystem<T, NewCoordinateSystem>>::value,
                 "'CastCoordinateSystem' trait not specialized for given types.");
 };
+// TODO(remod): turn this (and other free functions?) into a member
 template <typename To, typename T>
 auto castCoordinateSystem(T t) {
   return typename CastCoordinateSystem<T, To>::type(t.getValues());

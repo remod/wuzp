@@ -88,7 +88,7 @@ done
 # Test.
 for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
-    for VALUES_IMPLEMENTATION in 1; do
+    for VALUES_IMPLEMENTATION in 1 2; do
       print_title "Testing with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} ..."
       TEST_DIR=${TESTS_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUES_IMPLEMENTATION}
       rm -rf ${TEST_DIR}
@@ -135,7 +135,7 @@ done
 # Test packages.
 for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
-    for VALUES_IMPLEMENTATION in 1; do
+    for VALUES_IMPLEMENTATION in 1 2; do
       print_title "Testing packages with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} ..."
       TEST_PACKAGE_DIR=${TEST_PACKAGES_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUES_IMPLEMENTATION}
       rm -rf ${TEST_PACKAGE_DIR}

@@ -90,6 +90,8 @@ struct Inverse<MatrixSize<RowsV_, ColsV_>> {
 
 template <int RowsV_, int ColsV_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<MatrixSize<RowsV_, ColsV_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+  static_assert(BlockRowId >= 0 && BlockColId >= 0, "Block top left corner is out of range.");
+  static_assert(BlockRowId + BlockRows <= RowsV_ && BlockColId + BlockCols <= ColsV_, "Block bottom right corner is out of range.");
   using type = MatrixSize<BlockRows, BlockCols>;
 };
 

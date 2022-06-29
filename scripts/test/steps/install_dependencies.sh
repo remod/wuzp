@@ -10,13 +10,18 @@ if [ $# != 2 ]; then
   exit 1
 fi
 
+UNITS_IMPLEMENTATION=${1}
+VALUES_IMPLEMENTATION=${2}
+
 # Install dependencies.
 DEPENDENCIES="build-essential cmake gcc g++ clang libgtest-dev clang-tidy llvm"
-if [[ ${1} == "1" ]]; then
+if [[ ${UNITS_IMPLEMENTATION} == "1" ]]; then
   DEPENDENCIES="${DEPENDENCIES} libboost-dev"
 fi
-if [[ ${2} == "1" ]]; then
+if [[ ${VALUES_IMPLEMENTATION} == "1" ]]; then
   DEPENDENCIES="${DEPENDENCIES} libeigen3-dev"
+elif [[ ${VALUES_IMPLEMENTATION} == "2" ]]; then
+  DEPENDENCIES="${DEPENDENCIES} libblitz0-dev"
 fi
 apt install -y ${DEPENDENCIES}
 

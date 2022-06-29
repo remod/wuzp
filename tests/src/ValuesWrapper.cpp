@@ -8,6 +8,11 @@ using namespace wuzp;  // NOLINT
 #include "wuzp_eigen/ValueMatrix.hpp"
 template <typename Scalar, int Rows, int Cols>
 using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
+#include "wuzp_blitz/ValueMatrix.hpp"
+template <typename Scalar, int Rows, int Cols>
+using ValueMatrix = wuzp_blitz::ValueMatrix<Scalar, Rows, Cols>;
+#endif
 
 TEST(TestValuesWrapper, Dimension) {  // NOLINT
   static_assert(Dimension<ValueMatrix<double, 1, 1>>::value == 0);
@@ -49,6 +54,8 @@ TEST(TestValuesWrapper, LazyProduct) {  // NOLINT
   static_assert(!std::is_same<Product<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
-// TODO(remod): Compile-time check number of constructor arguments and test it.
+TEST(TestValuesWrapper, Initialize) {  // NOLINT
+  ValueMatrix<int, 3, 2> matrix;
+}
 
-#endif
+// TODO(remod): Compile-time check number of constructor arguments and test it.

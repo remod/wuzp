@@ -7,8 +7,8 @@
 #include <Eigen/Geometry>
 #include <Eigen/LU>
 
-#include "wuzp/core/ValuesWrapper.hpp"
 #include "wuzp/core/MatrixSize.hpp"
+#include "wuzp/core/ValuesWrapper.hpp"
 
 #include "wuzp_eigen/internal/comma_operations.hpp"
 
@@ -59,6 +59,55 @@ struct AccessValues<SpecializationDummy<T>> {
   using ValueI = wuzp_eigen::ValueI;
   using ValueF = wuzp_eigen::ValueF;
   using ValueD = wuzp_eigen::ValueD;
+};
+
+template <typename ImplementationT_>
+struct Transpose<AccessExtension<wuzp::TransposeTag, ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return impl.transpose(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct CrossProduct<AccessExtension<CrossProductTag, ImplementationLhsT_>, AccessExtension<CrossProductTag, ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs.cross(implRhs); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+
+template <typename ImplementationT_>
+struct Inverse<AccessExtension<wuzp::InverseTag, ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return impl.inverse(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct Block<AccessExtension<wuzp::BlockTag, ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+  static auto value(const ImplementationT_& impl) { return impl.template block<BlockRows, BlockCols>(BlockRowId, BlockColId); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationT_>
+struct Zero<AccessExtension<wuzp::ZeroTag, ImplementationT_>> {
+  static auto value() { return ImplementationT_::Zero(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationT_>
+struct Random<AccessExtension<wuzp::RandomTag, ImplementationT_>> {
+  static auto value() { return ImplementationT_::Random(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationT_>
+struct Evaluate<AccessExtension<wuzp::EvaluateTag, ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return impl.eval(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 }  // namespace wuzp

@@ -60,11 +60,11 @@ struct TransformationTraits<PassiveTranslation<ValuesT_, Dimension, Scalar, Coor
         }
       }
       const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(fromResult.getQuantities());
-      return evaluate(toResult);
+      return toResult.evaluate();
     } else {
       const auto fromResult = object;
       const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(fromResult.getQuantities());
-      return evaluate(toResult);
+      return toResult.evaluate();
     }
   }
 };

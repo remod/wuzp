@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-if (DEFINED PACKAGE_VERSION)
+if(DEFINED PACKAGE_VERSION)
     project(wuzp_boost
         VERSION ${PACKAGE_VERSION}
     )
@@ -19,7 +19,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 target_link_libraries(${PROJECT_NAME} INTERFACE Boost::boost)
 
 # The installation of this package is only supported when the version number is specified.
-if (DEFINED PACKAGE_VERSION)
+if(DEFINED PACKAGE_VERSION)
     include(CMakePackageConfigHelpers)
     write_basic_package_version_file(
         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"

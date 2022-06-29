@@ -213,6 +213,8 @@ class Tensor {
 
   auto hyperdeterminant() const { static_assert(FailOnInstantiation<typeof(ThisT::hyperdeterminant())>::value, "Not implemented"); }
 
+  auto evaluate() const { return typename Evaluate<ThisT>::type(quantities_.evaluate()); }
+
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther,
             typename AbsoluteOtherT>
@@ -426,8 +428,9 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Quantit
 auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const ValueRhsT_ rhs) {
   // Evaluate to avoid returning an expression on a temporary object.
-  return evaluate(lhs * Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
-                                 typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs));
+  return (lhs * Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
+                         typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs))
+      .evaluate();
 }
 template <typename ValueLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
@@ -463,8 +466,9 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Quantit
 auto operator/(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const ValueRhsT_ rhs) {
   // Evaluate to avoid returning an expression on a temporary object.
-  return evaluate(lhs / Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
-                                 typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs));
+  return (lhs / Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
+                         typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs))
+      .evaluate();
 }
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, typename ValueRhsT_, typename UnitRhsT_>

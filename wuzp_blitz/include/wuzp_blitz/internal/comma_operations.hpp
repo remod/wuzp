@@ -2,8 +2,7 @@
 
 #include <type_traits>
 
-namespace wuzp_blitz {
-namespace internal {
+namespace wuzp_blitz::internal {
 
 template <typename T0, typename... Ts>
 struct CollapseCommas {
@@ -24,5 +23,4 @@ typename CollapseCommas<Lhs, Rhs, Tail...>::type&& spliceCommas(Lhs&& lhs, Rhs&&
   return spliceCommas(std::forward<decltype(firstTwo)>(firstTwo), std::forward<Tail>(tail)...);
 }
 
-}  // namespace internal
-}  // namespace wuzp_blitz
+}  // namespace wuzp_blitz::internal

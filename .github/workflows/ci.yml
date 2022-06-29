@@ -91,7 +91,7 @@ jobs:
       matrix:
         CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
         UNITS_IMPLEMENTATION: [0, 1]
-        VALUES_IMPLEMENTATION: [1]
+        VALUES_IMPLEMENTATION: [1, 2]
     env:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}
       BUILD_TYPE: Debug
@@ -289,7 +289,7 @@ jobs:
       matrix:
         CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
         UNITS_IMPLEMENTATION: [0, 1]
-        VALUES_IMPLEMENTATION: [1]
+        VALUES_IMPLEMENTATION: [1, 2]
     env:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test_packages
       BUILD_TYPE: Debug
