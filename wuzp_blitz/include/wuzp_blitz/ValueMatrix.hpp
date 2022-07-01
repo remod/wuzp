@@ -7,6 +7,8 @@
 #include <blitz/range.h>
 
 #include "wuzp/core/ValuesWrapper.hpp"
+#include "wuzp/core/MatrixSize.hpp"
+#include "wuzp/core/traits.hpp"
 
 #include "wuzp_blitz/internal/comma_operations.hpp"
 
@@ -43,12 +45,13 @@ using ValueD = Value<double>;
 
 namespace wuzp {
 
-template <typename ValueT, int Rows, int Cols, typename Arg0, typename... Args>
-void initialize(wuzp_blitz::ValueMatrix<ValueT, Rows, Cols>& values, Arg0&& arg0, Args&&... args) {
-  blitz::Array<ValueT, 2> implementation(Rows, Cols);
-  wuzp_blitz::internal::spliceCommas((implementation = std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
-  values.setImplementation(implementation);
-}
+template <typename ImplementationT_, int... SizesV_, typename Arg0, typename... Args>
+struct Initialize<ImplementationT_, MatrixSize<SizesV_...>, Arg0, Args...> {
+  static void run(ImplementationT_& impl, Arg0&& arg0, Args&&... args) {
+    impl.resize(SizesV_...);
+    wuzp_blitz::internal::spliceCommas((impl = std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
+  }
+};
 
 template <typename T>
 struct AccessValues<AccessImplementation<T>> {

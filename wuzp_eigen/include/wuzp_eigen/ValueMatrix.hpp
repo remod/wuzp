@@ -9,6 +9,7 @@
 
 #include "wuzp/core/MatrixSize.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
+#include "wuzp/core/traits.hpp"
 
 #include "wuzp_eigen/internal/comma_operations.hpp"
 
@@ -45,12 +46,12 @@ using ValueD = Value<double>;
 
 namespace wuzp {
 
-template <typename ValueT, int Rows, int Cols, typename Arg0, typename... Args>
-void initialize(wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>& values, Arg0&& arg0, Args&&... args) {
-  Eigen::Matrix<ValueT, Rows, Cols> implementation;
-  wuzp_eigen::internal::spliceCommas((implementation << std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
-  values.setImplementation(implementation);
-}
+template <typename ImplementationT_, int... SizesV_, typename Arg0, typename... Args>
+struct Initialize<ImplementationT_, MatrixSize<SizesV_...>, Arg0, Args...> {
+  static void run(ImplementationT_& impl, Arg0&& arg0, Args&&... args) {
+    wuzp_eigen::internal::spliceCommas((impl << std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
+  }
+};
 
 template <typename T>
 struct AccessValues<AccessImplementation<T>> {

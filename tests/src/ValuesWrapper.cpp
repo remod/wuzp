@@ -55,7 +55,7 @@ TEST(TestValuesWrapper, LazyProduct) {  // NOLINT
 }
 
 TEST(TestValuesWrapper, Initialize) {  // NOLINT
-  ValueMatrix<int, 3, 2> matrix(1, 2, 3, 4, 5, 6);
+  const ValueMatrix<int, 3, 2> matrix(1, 2, 3, 4, 5, 6);
   EXPECT_EQ((matrix.get<1, 0>()), 3);
 }
 

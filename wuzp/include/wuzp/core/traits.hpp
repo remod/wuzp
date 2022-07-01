@@ -194,6 +194,9 @@ auto castCoordinateSystem(T t) {
   return typename CastCoordinateSystem<T, To>::type(t.getValues());
 }
 
+template <typename ImplementationT_, typename MatrixSizeT_, typename Arg0, typename... Args>
+struct Initialize;
+
 template <typename UnitT>
 struct AccessUnits {
   static_assert(FailOnInstantiation<AccessUnits<UnitT>>::value,

@@ -102,6 +102,7 @@ class ValuesWrapper {
     implementation_ = implementation;
     return *this;
   }
+  ImplementationT& implementation() { return implementation_; }
   const ImplementationT& getImplementation() const { return implementation_; }
 
   auto evaluate() const { return typename Evaluate<ThisT>::type(Evaluate<AccessImplementation<ImplementationT>>::value(implementation_)); }
@@ -112,12 +113,11 @@ class ValuesWrapper {
   ValuesWrapper(FromSimilar /*tag*/, const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other)
       : implementation_(other.getImplementation()) {}
 
-  // Temporary Eigen objects do not have a default constructor, therefore we must provide this method.
   template <typename T0>
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0) : implementation_(std::forward<T0>(t0)) {}
   template <typename T0, typename... Ts>
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0, Ts&&... ts) {
-    initialize(*this, std::forward<T0>(t0), std::forward<Ts>(ts)...);
+    Initialize<ImplementationT_, MatrixSizeT_, T0, Ts...>::run(implementation_, std::forward<T0>(t0), std::forward<Ts>(ts)...);
   }
 
   ImplementationT implementation_;
