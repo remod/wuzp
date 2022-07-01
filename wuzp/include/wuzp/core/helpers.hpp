@@ -102,6 +102,11 @@ struct IsHomogeneous<std::tuple<Ts...>> {
   static constexpr bool value = IsHomogeneous<Ts...>::value;
 };
 
+// TODO(remod): Use "value" or "value" everywhere for consistency?
+//! Wrapper for partial specializations of trait for values types.
+template <typename T>
+struct ValueType;
+
 //! Type wrapper which is used to access traits partially specialized in the implementation header files.
 template <typename Implementation>
 struct AccessImplementation;

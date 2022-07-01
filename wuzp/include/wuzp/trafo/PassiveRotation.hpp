@@ -6,14 +6,14 @@
 namespace wuzp {
 
 // TODO(remod): When instantiating a spatial rotation, test for determinant == 1.
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To,
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To,
           int Dimension>
-using PassiveSpatialRotation = PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
-                                                           typename AccessUnits<AccessImplementation<Scalar>>::Dimensionless>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using PassiveSpatialRotation2 = PassiveSpatialRotation<ValuesT_, Scalar, CoordinateSystem, From, To, 2>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using PassiveSpatialRotation3 = PassiveSpatialRotation<ValuesT_, Scalar, CoordinateSystem, From, To, 3>;
+using PassiveSpatialRotation = PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension, Dimension,
+                                                           typename AccessUnits<AccessImplementation<Value>>::Dimensionless>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To>
+using PassiveSpatialRotation2 = PassiveSpatialRotation<ValuesT_, Value, CoordinateSystem, From, To, 2>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To>
+using PassiveSpatialRotation3 = PassiveSpatialRotation<ValuesT_, Value, CoordinateSystem, From, To, 3>;
 
 // template <typename Derived, typename From, typename To, typename DimensionlessQuantity>
 // class QuaternionBase : public PassiveTransformation<Derived, From, To> {

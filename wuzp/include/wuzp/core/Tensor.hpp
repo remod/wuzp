@@ -507,95 +507,95 @@ std::ostream& operator<<(std::ostream& lhs,
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Vector = Tensor<1, 0, QuantityVectorT_, CoordinateSystemT_, Relative>;
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename Unit, typename CoordinateSystemT_>
-using HomogeneousVector = Vector<Quantities<ValuesT_<Scalar, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename Unit, typename CoordinateSystemT_>
+using HomogeneousVector = Vector<Quantities<ValuesT_<Value, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>, CoordinateSystemT_>;
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Covector = Tensor<0, 1, QuantityVectorT_, CoordinateSystemT_, Relative>;
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename Unit, typename CoordinateSystemT_>
-using HomogeneousCovector = Covector<Quantities<ValuesT_<Scalar, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename Unit, typename CoordinateSystemT_>
+using HomogeneousCovector = Covector<Quantities<ValuesT_<Value, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>, CoordinateSystemT_>;
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Point = Tensor<1, 0, QuantityVectorT_, CoordinateSystemT_, Absolute>;
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename Unit, typename CoordinateSystemT_>
-using HomogeneousPoint = Point<Quantities<ValuesT_<Scalar, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename Unit, typename CoordinateSystemT_>
+using HomogeneousPoint = Point<Quantities<ValuesT_<Value, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>, CoordinateSystemT_>;
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Copoint = Tensor<0, 1, QuantityVectorT_, CoordinateSystemT_, Absolute>;
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename Unit, typename CoordinateSystemT_>
-using HomogeneousCopoint = Copoint<Quantities<ValuesT_<Scalar, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename Unit, typename CoordinateSystemT_>
+using HomogeneousCopoint = Copoint<Quantities<ValuesT_<Value, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>, CoordinateSystemT_>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using DirectionVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Dimensionless, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using DirectionVector2 = DirectionVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using DirectionVector3 = DirectionVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Dimensionless, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using DirectionVector2 = DirectionVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using DirectionVector3 = DirectionVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using PositionPoint =
-    HomogeneousPoint<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Length, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using PositionPoint2 = PositionPoint<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using PositionPoint3 = PositionPoint<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousPoint<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Length, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using PositionPoint2 = PositionPoint<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using PositionPoint3 = PositionPoint<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using PositionVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Length, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using PositionVector2 = PositionVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using PositionVector3 = PositionVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Length, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using PositionVector2 = PositionVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using PositionVector3 = PositionVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using VelocityVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Velocity, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using VelocityVector2 = VelocityVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using VelocityVector3 = VelocityVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Velocity, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using VelocityVector2 = VelocityVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using VelocityVector3 = VelocityVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using AccelerationVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::Acceleration, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AccelerationVector2 = AccelerationVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AccelerationVector3 = AccelerationVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Acceleration, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AccelerationVector2 = AccelerationVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AccelerationVector3 = AccelerationVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using AngularVelocityVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::AngularVelocity, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AngularVelocityVector2 = AngularVelocityVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AngularVelocityVector3 = AngularVelocityVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::AngularVelocity, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AngularVelocityVector2 = AngularVelocityVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AngularVelocityVector3 = AngularVelocityVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using AngularAccelerationVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<AccessImplementation<Scalar>>::AngularAcceleration,
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::AngularAcceleration,
                       CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AngularAccelerationVector2 = AngularAccelerationVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AngularAccelerationVector3 = AngularAccelerationVector<3, ValuesT_, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AngularAccelerationVector2 = AngularAccelerationVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AngularAccelerationVector3 = AngularAccelerationVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimePoint = PositionPoint<Dimension, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimePoint2 = SpacetimePoint<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimePoint3 = SpacetimePoint<3, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimePoint4 = SpacetimePoint<4, ValuesT_, Scalar, CoordinateSystem>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimePoint = PositionPoint<Dimension, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimePoint2 = SpacetimePoint<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimePoint3 = SpacetimePoint<3, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimePoint4 = SpacetimePoint<4, ValuesT_, Value, CoordinateSystem>;
 template <int DimensionV, template <typename, int, int> typename ValuesT, typename ValueT, typename CoordinateSystemT>
 using SpacetimeVector = PositionVector<DimensionV, ValuesT, ValueT, CoordinateSystemT>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimeVector2 = SpacetimeVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimeVector3 = SpacetimeVector<3, ValuesT_, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimeVector2 = SpacetimeVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimeVector3 = SpacetimeVector<3, ValuesT_, Value, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT, typename ValueT, typename CoordinateSystemT>
 using SpacetimeVector4 = SpacetimeVector<4, ValuesT, ValueT, CoordinateSystemT>;
 

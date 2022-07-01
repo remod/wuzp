@@ -15,7 +15,7 @@
 namespace wuzp_eigen {
 
 template <typename ValueT, int Rows, int Cols>
-using ValueMatrix = wuzp::ValuesWrapper<wuzp::MatrixSize<Rows, Cols>, Eigen::Matrix<ValueT, Rows, Cols>>;
+using ValueMatrix = wuzp::ValuesWrapper<wuzp::MatrixSize<Rows, Cols>, ValueT, Eigen::Matrix<ValueT, Rows, Cols>>;
 
 template <int Rows, int Cols>
 using ValueMatrixI = ValueMatrix<int, Rows, Cols>;

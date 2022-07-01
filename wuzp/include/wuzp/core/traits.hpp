@@ -67,7 +67,18 @@ struct Dimension {
 };
 
 DEFINE_RECURSIVE_TRAIT(Sum)
+template <typename Lhs, typename Rhs>
+struct Sum<ValueType<Lhs>, ValueType<Rhs>> {
+  static_assert(std::is_same<Lhs, Rhs>::value, "Value types mismatch.");
+  using type = Lhs;
+};
+
 DEFINE_RECURSIVE_TRAIT(Difference)
+template <typename Lhs, typename Rhs>
+struct Difference<ValueType<Lhs>, ValueType<Rhs>> {
+  static_assert(std::is_same<Lhs, Rhs>::value, "Value types mismatch.");
+  using type = Lhs;
+};
 
 template <typename T>
 struct Negate {
@@ -75,7 +86,18 @@ struct Negate {
 };
 
 DEFINE_RECURSIVE_TRAIT(Product)
+template <typename Lhs, typename Rhs>
+struct Product<ValueType<Lhs>, ValueType<Rhs>> {
+  static_assert(std::is_same<Lhs, Rhs>::value, "Value types mismatch.");
+  using type = Lhs;
+};
+
 DEFINE_RECURSIVE_TRAIT(Division)
+template <typename Lhs, typename Rhs>
+struct Division<ValueType<Lhs>, ValueType<Rhs>> {
+  static_assert(std::is_same<Lhs, Rhs>::value, "Value types mismatch.");
+  using type = Lhs;
+};
 
 template <typename T, typename ExponentT>
 struct Power {

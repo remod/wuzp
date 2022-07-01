@@ -17,8 +17,8 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+template <typename Value, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
 
 TEST(TestActiveProperRigidTransformation2, TransformPosition) {  // NOLINT
   //  const Position2<double, FromCoordinateSystem> object(1.0, 2.0);

@@ -6,12 +6,12 @@ using namespace wuzp;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+template <typename Value, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
 #elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
 #include "wuzp_blitz/ValueMatrix.hpp"
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_blitz::ValueMatrix<Scalar, Rows, Cols>;
+template <typename Value, int Rows, int Cols>
+using ValueMatrix = wuzp_blitz::ValueMatrix<Value, Rows, Cols>;
 #endif
 
 TEST(TestValuesWrapper, Dimension) {  // NOLINT
@@ -55,7 +55,8 @@ TEST(TestValuesWrapper, LazyProduct) {  // NOLINT
 }
 
 TEST(TestValuesWrapper, Initialize) {  // NOLINT
-  ValueMatrix<int, 3, 2> matrix;
+  ValueMatrix<int, 3, 2> matrix(1, 2, 3, 4, 5, 6);
+  EXPECT_EQ((matrix.get<1, 0>()), 3);
 }
 
 // TODO(remod): Compile-time check number of constructor arguments and test it.
