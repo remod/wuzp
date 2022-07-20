@@ -575,8 +575,7 @@ using AngularVelocityVector3 = AngularVelocityVector<3, ValuesT_, Value, Coordin
 
 template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using AngularAccelerationVector =
-    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::AngularAcceleration,
-                      CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::AngularAcceleration, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using AngularAccelerationVector2 = AngularAccelerationVector<2, ValuesT_, Value, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>

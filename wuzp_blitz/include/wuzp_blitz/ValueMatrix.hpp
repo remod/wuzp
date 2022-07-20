@@ -6,8 +6,8 @@
 #include <blitz/array.h>
 #include <blitz/range.h>
 
-#include "wuzp/core/ValuesWrapper.hpp"
 #include "wuzp/core/MatrixSize.hpp"
+#include "wuzp/core/ValuesWrapper.hpp"
 #include "wuzp/core/traits.hpp"
 
 #include "wuzp_blitz/internal/comma_operations.hpp"

@@ -76,8 +76,8 @@ struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Value, Coordi
 };
 
 template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystem, typename... Units,
-          template <typename, int, int> typename ValuesOtherT_, typename ValueOther, typename CoordinateSystemOther,
-          int DimensionFromOther, int DimensionToOther, typename... UnitsOther>
+          template <typename, int, int> typename ValuesOtherT_, typename ValueOther, typename CoordinateSystemOther, int DimensionFromOther,
+          int DimensionToOther, typename... UnitsOther>
 struct TransformationTraits<
     ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>,
     ActiveLinearTransformation<ValuesOtherT_, ValueOther, CoordinateSystemOther, DimensionFromOther, DimensionToOther, UnitsOther...>> {
