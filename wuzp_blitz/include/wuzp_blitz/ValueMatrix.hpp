@@ -78,9 +78,8 @@ struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementat
 
 template <typename ImplementationT_>
 struct Inverse<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return impl.inverse(); }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationT_>()));
+  static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value,
+                "Matrix inversion is not implemented for blitz.");
 };
 
 template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>

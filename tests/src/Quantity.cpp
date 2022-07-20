@@ -15,7 +15,15 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
+template <typename Value, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
+#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
+#include "wuzp_blitz/ValueMatrix.hpp"
+template <typename Value, int Rows, int Cols>
+using ValueMatrix = wuzp_blitz::ValueMatrix<Value, Rows, Cols>;
+#endif
+
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 
 using namespace wuzp;  // NOLINT
 
