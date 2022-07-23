@@ -66,6 +66,11 @@ struct Dimension {
   static constexpr int value = static_cast<int>(Rows<T>::value > 1) + static_cast<int>(Cols<T>::value > 1);
 };
 
+template <typename Lhs, typename Rhs>
+struct Comparison {
+  static_assert(FailOnInstantiation<Comparison<Lhs, Rhs>>::value, "'Random' trait not specialized for given type.");
+};
+
 DEFINE_RECURSIVE_TRAIT(Sum)
 template <typename Lhs, typename Rhs>
 struct Sum<ValueType<Lhs>, ValueType<Rhs>> {

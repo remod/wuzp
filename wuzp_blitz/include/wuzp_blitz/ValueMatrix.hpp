@@ -62,6 +62,13 @@ struct AccessValues<AccessImplementation<T>> {
   using ValueD = wuzp_blitz::ValueD;
 };
 
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static bool equal(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs) {
+    return blitz::all(blitz::Array<bool, 2>(lhs == rhs));
+  }
+};
+
 template <typename ImplementationT_>
 struct Transpose<AccessImplementation<ImplementationT_>> {
   static auto value(const ImplementationT_& impl) { return impl.transpose(0, 1); }
@@ -107,7 +114,7 @@ struct Random<AccessImplementation<ImplementationT_>> {
 
 template <typename ImplementationT_>
 struct Evaluate<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return impl.eval(); }
+  static auto value(const ImplementationT_& impl) { return blitz::Array<typename ImplementationT_::T_numtype, 2>(impl); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };

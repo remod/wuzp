@@ -15,15 +15,11 @@ using namespace wuzp_boost;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Value, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
+using namespace wuzp_eigen;  // NOLINT
 #elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
 #include "wuzp_blitz/ValueMatrix.hpp"
-template <typename Value, int Rows, int Cols>
-using ValueMatrix = wuzp_blitz::ValueMatrix<Value, Rows, Cols>;
+using namespace wuzp_blitz;  // NOLINT
 #endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 
 using namespace wuzp;  // NOLINT
 
@@ -64,8 +60,13 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 using namespace wuzp_eigen;  // NOLINT
+#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
+#include "wuzp_blitz/ValueMatrix.hpp"
+using namespace wuzp_blitz;  // NOLINT
+#endif
 
 using namespace wuzp;  // NOLINT
 
@@ -100,8 +101,13 @@ using namespace wuzp_units;  // NOLINT
 using namespace wuzp_boost;  // NOLINT
 #endif
 
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
 using namespace wuzp_eigen;  // NOLINT
+#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
+#include "wuzp_blitz/ValueMatrix.hpp"
+using namespace wuzp_blitz;  // NOLINT
+#endif
 
 using namespace wuzp;  // NOLINT
 
@@ -136,9 +142,11 @@ TEST(TestQuantity, Chain) {  // NOLINT
   EXPECT_EQ(TimeQuantity(1.0) + TimeQuantity(2.0) * DimensionlessQuantity(3.0), TimeQuantity(7.0));
 }
 
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 TEST(TestQuantity, Inverse) {  // NOLINT
   EXPECT_EQ(TimeQuantity(2.0).inverse(), FrequencyQuantity(0.5));
 }
+#endif
 
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
   const LengthQuantity radius(2.0);
@@ -151,5 +159,3 @@ TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
 #endif
       ;
 }
-
-#endif

@@ -31,6 +31,7 @@ class ValuesWrapper {
 
   template <int RowId, int ColId>
   auto get() const {
+    // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
     return implementation_(RowId, ColId);
   }
 
@@ -43,6 +44,7 @@ class ValuesWrapper {
 
   template <int RowId, int ColId, typename ValueT>
   ThisT& set(ValueT value) {
+    // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
     implementation_(RowId, ColId) = value;
     return *this;
   }
@@ -54,6 +56,7 @@ class ValuesWrapper {
 
   template <typename ValueT>
   ThisT& set(int rowId, int colId, ValueT value) {
+    // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
     implementation_(rowId, colId) = value;
     return *this;
   }
@@ -61,12 +64,14 @@ class ValuesWrapper {
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
   // NOLINTNEXTLINE(google-explicit-constructor)
   operator typename GetValue<ThisT>::type() const {
+    // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
     return implementation_(0, 0);
   }
 
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOther_>
   bool isApprox(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOther_>& other,
                 const ValueT precision = Precision<ValueT>::value()) const {
+    // TODO(remod): This is an assumption which works for Eigen, one could generalize it.
     return implementation_.isApprox(other.getImplementation(), precision);
   }
 
@@ -92,9 +97,18 @@ class ValuesWrapper {
                                                                                                                 other.getImplementation()));
   }
 
-  auto norm() const { return implementation_.norm(); }
-  auto squaredNorm() const { return implementation_.squaredNorm(); }
-  auto determinant() const { return implementation_.determinant(); }
+  auto norm() const {
+    // TODO(remod): This is an assumption which works for Eigen, one could generalize it.
+    return implementation_.norm();
+  }
+  auto squaredNorm() const {
+    // TODO(remod): This is an assumption which works for Eigen, one could generalize it.
+    return implementation_.squaredNorm();
+  }
+  auto determinant() const {
+    // TODO(remod): This is an assumption which works for Eigen, one could generalize it.
+    return implementation_.determinant();
+  }
 
   auto inverse() const { return typename Inverse<ThisT>::type(Inverse<AccessImplementation<ImplementationT>>::value(implementation_)); }
 
@@ -113,8 +127,10 @@ class ValuesWrapper {
   ValuesWrapper(FromSimilar /*tag*/, const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other)
       : implementation_(other.getImplementation()) {}
 
-  template <typename T0>
+  //! Constructor for non-arithmetic types, e.g. expressions.
+  template <typename T0, typename = std::enable_if_t<!std::is_arithmetic_v<T0>>>
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0) : implementation_(std::forward<T0>(t0)) {}
+  //! Constructor for a set of objects to initialize the values.
   template <typename T0, typename... Ts>
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0, Ts&&... ts) {
     Initialize<ImplementationT_, MatrixSizeT_, T0, Ts...>::run(implementation_, std::forward<T0>(t0), std::forward<Ts>(ts)...);
@@ -365,7 +381,8 @@ template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename Implementation
           typename ImplementationRhsT_>
 bool operator==(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs,
                 const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
-  return lhs.getImplementation() == rhs.getImplementation();
+  return Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::equal(lhs.getImplementation(),
+                                                                                                                 rhs.getImplementation());
 }
 
 template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
@@ -377,7 +394,7 @@ bool operator!=(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationL
 
 template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>
 std::ostream& operator<<(std::ostream& lhs, const ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>& rhs) {
-  lhs << rhs.getImplementation();
+  lhs << rhs.evaluate().getImplementation();
   return lhs;
 }
 

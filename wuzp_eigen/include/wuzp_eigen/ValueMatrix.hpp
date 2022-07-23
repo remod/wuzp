@@ -62,6 +62,11 @@ struct AccessValues<AccessImplementation<T>> {
   using ValueD = wuzp_eigen::ValueD;
 };
 
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static bool equal(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs) { return lhs == rhs; }
+};
+
 template <typename ImplementationT_>
 struct Transpose<AccessImplementation<ImplementationT_>> {
   static auto value(const ImplementationT_& impl) { return impl.transpose(); }

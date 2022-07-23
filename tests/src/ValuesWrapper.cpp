@@ -6,12 +6,10 @@ using namespace wuzp;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Value, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
+using namespace wuzp_eigen;  // NOLINT
 #elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
 #include "wuzp_blitz/ValueMatrix.hpp"
-template <typename Value, int Rows, int Cols>
-using ValueMatrix = wuzp_blitz::ValueMatrix<Value, Rows, Cols>;
+using namespace wuzp_blitz;  // NOLINT
 #endif
 
 TEST(TestValuesWrapper, Dimension) {  // NOLINT
@@ -54,9 +52,15 @@ TEST(TestValuesWrapper, LazyProduct) {  // NOLINT
   static_assert(!std::is_same<Product<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
-TEST(TestValuesWrapper, Initialize) {  // NOLINT
+TEST(TestValuesWrapper, InitializeMatrix) {  // NOLINT
   const ValueMatrix<int, 3, 2> matrix(1, 2, 3, 4, 5, 6);
   EXPECT_EQ((matrix.get<1, 0>()), 3);
+  EXPECT_EQ(matrix.get(1, 0), 3);
+}
+
+TEST(TestValuesWrapper, InitializeValue) {  // NOLINT
+  const Value<int> value(1);
+  EXPECT_EQ(value.get(), 1);
 }
 
 // TODO(remod): Compile-time check number of constructor arguments and test it.
