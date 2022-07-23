@@ -4,22 +4,8 @@
 #include "wuzp/core/traits.hpp"
 
 #include "test_compilation_error.hpp"
-
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
-#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
-#include "wuzp_blitz/ValueMatrix.hpp"
-using namespace wuzp_blitz;  // NOLINT
-#endif
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -52,21 +38,8 @@ TEST(TestQuantity, SumMixedQuantities) {  // NOLINT
   const std::string code = R"(
 #include "wuzp/core/Quantities.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
-#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
-#include "wuzp_blitz/ValueMatrix.hpp"
-using namespace wuzp_blitz;  // NOLINT
-#endif
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -93,21 +66,8 @@ TEST(TestQuantity, DifferenceMixedQuantities) {  // NOLINT
   const std::string code = R"(
 #include "wuzp/core/Quantities.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
-#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
-#include "wuzp_blitz/ValueMatrix.hpp"
-using namespace wuzp_blitz;  // NOLINT
-#endif
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
 

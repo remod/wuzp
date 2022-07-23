@@ -35,6 +35,7 @@ std::string getCMakeListsContent() {
 #endif
          "\n"
          "add_executable(tests test.cpp)\n"
+         "target_include_directories(tests PRIVATE " TO_STRING(REPO_DIR) "/tests/src)\n"
          "target_link_libraries(tests PRIVATE wuzp)\n"
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
          "target_link_libraries(tests PRIVATE wuzp_boost)\n"
