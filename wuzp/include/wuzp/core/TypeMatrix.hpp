@@ -64,23 +64,39 @@ template <typename Lhs, typename Rhs, typename IndexSequence>
 struct MultiplyTwoTuplesImpl;
 template <typename... TsLhs, typename... TsRhs, size_t... Is>
 struct MultiplyTwoTuplesImpl<std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::index_sequence<Is...>> {
-  using type = typename Sum<typename Product<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type,
-                                             typename std::tuple_element<Is, std::tuple<TsRhs...>>::type>::type...>::type;
+  using type = std::tuple<typename Product<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type,
+                                           typename std::tuple_element<Is, std::tuple<TsRhs...>>::type>::type...>;
 };
 
 template <typename Lhs, typename Rhs>
 struct MultiplyTwoTuples;
 template <typename... TsLhs, typename... TsRhs>
 struct MultiplyTwoTuples<std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
+  static_assert(sizeof...(TsLhs) == sizeof...(TsRhs), "Tuple sizes do not match.");
   using type = typename MultiplyTwoTuplesImpl<std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::make_index_sequence<sizeof...(TsLhs)>>::type;
 };
 
 template <typename Lhs, typename Rhs, typename IndexSequence>
-struct MultiplyTuples;
+struct ContractTwoTuplesImpl;
+template <typename... TsLhs, typename... TsRhs, size_t... Is>
+struct ContractTwoTuplesImpl<std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::index_sequence<Is...>> {
+  using type = typename Sum<typename Product<typename std::tuple_element<Is, std::tuple<TsLhs...>>::type,
+                                             typename std::tuple_element<Is, std::tuple<TsRhs...>>::type>::type...>::type;
+};
+
+template <typename Lhs, typename Rhs>
+struct ContractTwoTuples;
+template <typename... TsLhs, typename... TsRhs>
+struct ContractTwoTuples<std::tuple<TsLhs...>, std::tuple<TsRhs...>> {
+  using type = typename ContractTwoTuplesImpl<std::tuple<TsLhs...>, std::tuple<TsRhs...>, std::make_index_sequence<sizeof...(TsLhs)>>::type;
+};
+
+template <typename Lhs, typename Rhs, typename IndexSequence>
+struct ContractTuples;
 template <typename... TuplesLhs, typename... TuplesRhs, size_t... Is>
-struct MultiplyTuples<std::tuple<TuplesLhs...>, std::tuple<TuplesRhs...>, std::index_sequence<Is...>> {
+struct ContractTuples<std::tuple<TuplesLhs...>, std::tuple<TuplesRhs...>, std::index_sequence<Is...>> {
   using type = std::tuple<
-      typename MultiplyTwoTuples<typename std::tuple_element<Is / sizeof...(TuplesRhs), std::tuple<TuplesLhs...>>::type,
+      typename ContractTwoTuples<typename std::tuple_element<Is / sizeof...(TuplesRhs), std::tuple<TuplesLhs...>>::type,
                                  typename std::tuple_element<Is % sizeof...(TuplesRhs), std::tuple<TuplesRhs...>>::type>::type...>;
 };
 
@@ -208,27 +224,21 @@ template <int RowsLhs, int ColsLhs, typename Type0Lhs, typename Type1Lhs, typena
           typename Type1Rhs, typename... TypesRhs>
 struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<Type0Lhs, Type1Lhs, TypesLhs...>>,
                TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<Type0Rhs, Type1Rhs, TypesRhs...>>> {
-  static_assert(ColsLhs == RowsRhs, "Matrix sizes do not match and neither of the matrices is a scalar.");
+  static_assert(RowsLhs == RowsRhs, "Matrix sizes do not match.");
+  static_assert(ColsLhs == ColsRhs, "Matrix sizes do not match.");
+  using type = TypeMatrixImpl<
+      RowsLhs, ColsLhs,
+      typename MultiplyTwoTuples<std::tuple<Type0Lhs, Type1Lhs, TypesLhs...>, std::tuple<Type0Rhs, Type1Rhs, TypesRhs...>>::type>;
+};
+
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
+struct Contraction<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>,
+                   TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
+  static_assert(ColsLhs == RowsRhs, "Matrix sizes do not match.");
   using type = TypeMatrixImpl<RowsLhs, ColsRhs,
-                              typename MultiplyTuples<typename ToRows<ColsLhs, Type0Lhs, Type1Lhs, TypesLhs...>::type,
-                                                      typename ToCols<ColsRhs, Type0Rhs, Type1Rhs, TypesRhs...>::type,
+                              typename ContractTuples<typename ToRows<ColsLhs, TypesLhs...>::type,
+                                                      typename ToCols<ColsRhs, TypesRhs...>::type,
                                                       std::make_index_sequence<RowsLhs * ColsRhs>>::type>;
-};
-
-// Division of a type matrix by a type.
-template <int RowsLhs, int ColsLhs, typename... TypesLhs, typename TypeRhs>
-struct Division<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeRhs> {
-  using type = TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<typename Division<TypesLhs, TypeRhs>::type...>>;
-};
-// Division of a type matrix by a 1x1 type matrix.
-template <int RowsLhs, int ColsLhs, typename... TypesLhs, typename TypeRhs>
-struct Division<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<1, 1, std::tuple<TypeRhs>>> {
-  using type = typename Division<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeRhs>::type;
-};
-
-template <int Rows, int Cols, typename... Types>
-struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
-  using type = TypeMatrixImpl<Cols, Rows, typename ExtractAndApply<Cat, typename ToCols<Cols, Types...>::type>::type>;
 };
 
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
@@ -236,9 +246,8 @@ struct DotProduct<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, Typ
   static_assert(RowsLhs == RowsRhs, "Matrix sizes do not match.");
   static_assert(ColsLhs == 1, "Dot product is only defined for vectors.");
   static_assert(ColsRhs == 1, "Dot product is only defined for vectors.");
-  using type = typename Element<typename Product<typename Transpose<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>>::type,
-                                                 TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>>::type,
-                                0, 0>::type;
+  using type = typename Contraction<typename Transpose<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>>::type,
+                                                     TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>>::type;
 };
 
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
@@ -259,6 +268,22 @@ struct CrossProduct<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, T
                                                                      std::tuple_element_t<1, std::tuple<TypesRhs...>>>::type,
                                                     typename Product<std::tuple_element_t<1, std::tuple<TypesLhs...>>,
                                                                      std::tuple_element_t<0, std::tuple<TypesRhs...>>>::type>::type>>;
+};
+
+// Division of a type matrix by a type.
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, typename TypeRhs>
+struct Division<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeRhs> {
+  using type = TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<typename Division<TypesLhs, TypeRhs>::type...>>;
+};
+// Division of a type matrix by a 1x1 type matrix.
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, typename TypeRhs>
+struct Division<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<1, 1, std::tuple<TypeRhs>>> {
+  using type = typename Division<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeRhs>::type;
+};
+
+template <int Rows, int Cols, typename... Types>
+struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
+  using type = TypeMatrixImpl<Cols, Rows, typename ExtractAndApply<Cat, typename ToCols<Cols, Types...>::type>::type>;
 };
 
 template <int Size, typename ZeroType, typename OneType, typename IndexSequence>

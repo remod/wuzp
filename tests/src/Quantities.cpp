@@ -6,10 +6,7 @@
 #include "test_compilation_error.hpp"
 
 #include "Unit.hpp"
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
+#include "ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -82,12 +79,7 @@ TEST(TestQuantities2, ConstructImplicitlyFromValues){// NOLINT
 using namespace wuzp;  // NOLINT
 
 #include "Unit.hpp"
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename ValueT, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
-#endif
+#include "ValueMatrix.hpp"
 
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
@@ -159,12 +151,7 @@ TEST(TestQuantities2, ConstructFromBadQuantities) {  // NOLINT
 #include "wuzp/core/Unit.hpp"
 
 #include "Unit.hpp"
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename ValueT, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
-#endif
+#include "ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -225,12 +212,7 @@ TEST(TestQuantitiesStandalone, SetBadQuantity){// NOLINT
 #include "wuzp/core/Unit.hpp"
 
 #include "Unit.hpp"
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename ValueT, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
-#endif
+#include "ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -246,11 +228,11 @@ int main() {
                                                                                             "Units do not match.")}
 
 TEST_F(TestQuantitiesFixture, Sum) {  // NOLINT
-  EXPECT_EQ(getQuantities1() + getQuantities2(), MyQuantityMatrix(getValues1() + getValues2()));
+  EXPECT_EQ(getQuantities1() + getQuantities2(), MyQuantityMatrix(4, 3, 7, 5, 10, 15));
 }
 
 TEST_F(TestQuantitiesFixture, Difference) {  // NOLINT
-  EXPECT_EQ(getQuantities1() - getQuantities2(), MyQuantityMatrix(getValues1() - getValues2()));
+  EXPECT_EQ(getQuantities1() - getQuantities2(), MyQuantityMatrix(-2, 1, -1, 3, 0, -3));
 }
 
 TEST_F(TestQuantitiesFixture, EqualityOperator) {  // NOLINT
@@ -287,7 +269,9 @@ TEST(TestQuantities2, ProductQuantities) {  // NOLINT
   using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
   const MyValueMatrix values(1, 2, 3, 4);
   const MyQuantityMatrix quantities(values);
-  EXPECT_EQ(quantities * quantities, MyQuantityMatrixResult(values * values));
+  const MyQuantityMatrixResult result(7, 10, 15, 22);
+  EXPECT_EQ(product(quantities, quantities), result);
+  EXPECT_EQ(quantities * quantities, result);
 }
 
 TEST(TestQuantities2, ProductQuantity) {  // NOLINT
@@ -301,8 +285,11 @@ TEST(TestQuantities2, ProductQuantity) {  // NOLINT
   const MyQuantity quantity(value);
   const MyValueMatrix values(1, 2, 3, 4);
   const MyQuantityMatrix quantities(values);
-  EXPECT_EQ(quantities * quantity, MyQuantityMatrixResult(values * value));
-  EXPECT_EQ(quantity * quantities, MyQuantityMatrixResult(values * value));
+  const MyQuantityMatrixResult result(2, 4, 6, 8);
+  EXPECT_EQ(product(quantities, quantity), result);
+  EXPECT_EQ(product(quantity, quantities), result);
+  EXPECT_EQ(quantities * quantity, result);
+  EXPECT_EQ(quantity * quantities, result);
 }
 
 TEST(TestQuantities2, ProductValue) {  // NOLINT
@@ -313,8 +300,43 @@ TEST(TestQuantities2, ProductValue) {  // NOLINT
   const MyValue value{2};
   const MyValueMatrix values(1, 2, 3, 4);
   const MyQuantityMatrix quantities(values);
-  EXPECT_EQ(quantities * value, MyQuantityMatrix(values * value));
-  EXPECT_EQ(value * quantities, MyQuantityMatrix(values * value));
+  const MyQuantityMatrix result(2, 4, 6, 8);
+  EXPECT_EQ(product(quantities, value), result);
+  EXPECT_EQ(product(value, quantities), result);
+  EXPECT_EQ(quantities * value, result);
+  EXPECT_EQ(value * quantities, result);
+}
+
+TEST(TestQuantities2, DotProduct) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 4, 1>;
+  using MyUnitMatrix = TypeMatrix<4, 1, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  const MyQuantityMatrix lhs(1, 2, 3, 4);
+  const MyQuantityMatrix rhs(0, 3, -1, 2);
+  const AreaQuantityI result(11);
+  EXPECT_EQ(lhs.dotProduct(rhs), result);
+}
+
+TEST(TestQuantities2, DotProduct1x1Matrices) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 1, 1>;
+  using MyUnitMatrix = TypeMatrix<1, 1, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  const MyQuantityMatrix lhs(1);
+  const MyQuantityMatrix rhs(2);
+  const AreaQuantityI result(2);
+  EXPECT_EQ(lhs.dotProduct(rhs), result);
+}
+
+TEST(TestQuantities2, CrossProduct) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 3, 1>;
+  using MyUnitMatrix = TypeMatrix<3, 1, Length>;
+  using MyUnitMatrixResult = TypeMatrix<3, 1, Area>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  const MyQuantityMatrix lhs(1, 2, 3);
+  const MyQuantityMatrix rhs(-1, 3, 4);
+  const MyQuantityMatrixResult result(-1, -7, 5);
+  EXPECT_EQ(lhs.crossProduct(rhs), result);
 }
 
 TEST(TestQuantities2, DivisionQuantity) {  // NOLINT
@@ -328,7 +350,19 @@ TEST(TestQuantities2, DivisionQuantity) {  // NOLINT
   const LengthQuantityI quantity(value);
   const MyValueMatrix values(1, 2, 3, 4);
   const MyQuantityMatrix quantities(values);
-  EXPECT_EQ(quantities / quantity, MyQuantityMatrixResult(values / value));
+  EXPECT_EQ(division(quantities, quantity), MyQuantityMatrixResult(0, 1, 1, 2));
+  EXPECT_EQ(quantities / quantity, MyQuantityMatrixResult(0, 1, 1, 2));
+}
+
+TEST(TestQuantities2, DivisionWith1x1Matrix) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  const ValueI value{2};
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyQuantityMatrix quantities(values);
+  EXPECT_EQ(division(quantities, value), MyQuantityMatrix(values / value));
+  EXPECT_EQ(quantities / value, MyQuantityMatrix(values / value));
 }
 
 TEST(TestQuantities2, DivisionValue) {  // NOLINT
@@ -339,17 +373,8 @@ TEST(TestQuantities2, DivisionValue) {  // NOLINT
   const MyValue value{2};
   const MyValueMatrix values(1, 2, 3, 4);
   const MyQuantityMatrix quantities(values);
+  EXPECT_EQ(division(quantities, value), MyQuantityMatrix(values / value));
   EXPECT_EQ(quantities / value, MyQuantityMatrix(values / value));
-}
-
-TEST(TestQuantities2, Dot) {  // NOLINT
-  using MyValueMatrix = ValueMatrix<int, 4, 1>;
-  using MyUnitMatrix = TypeMatrix<4, 1, Length>;
-  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  using MyQuantityResult = AreaQuantityI;
-  const MyValueMatrix values1(1, 2, 3, 4);
-  const MyValueMatrix values2(0, 3, -1, 2);
-  EXPECT_EQ(MyQuantityMatrix(values1).dotProduct(MyQuantityMatrix(values2)), MyQuantityResult(11));
 }
 
 TEST(TestQuantities2, Chain) {  // NOLINT
@@ -363,9 +388,10 @@ TEST(TestQuantities2, Chain) {  // NOLINT
   const MyValueMatrix values(1, 2, 3, 4);
   const MyQuantityMatrix1 quantities1(values);
   const MyQuantityMatrix2 quantities2(values);
-  EXPECT_EQ(quantities2 + quantities1 * quantities1, MyQuantityMatrixResult(values + values * values));
+  EXPECT_EQ(quantities2 + quantities1 * quantities1, MyQuantityMatrixResult(8, 12, 18, 26));
 }
 
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 class TestQuantitiesInvertible : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrix<double, 2, 2>;
@@ -395,16 +421,16 @@ TEST(TestQuantities, Norm) {  // NOLINT
   using MyValueVector = ValueVector<int, 3>;
   using MyUnitVector = TypeVector<3, Length>;
   using MyQuantityMatrix = Quantities<MyValueVector, MyUnitVector>;
-  const MyQuantityMatrix quantities(-1, 2, 3);
-  EXPECT_EQ(quantities.norm(), LengthQuantityI(quantities.getValues().getImplementation().norm()));
+  const MyQuantityMatrix quantities(3, 0, 4);
+  EXPECT_EQ(quantities.norm(), LengthQuantityI(5));
 }
 
 TEST(TestQuantities, SquaredNorm) {  // NOLINT
   using MyValueVector = ValueVector<int, 3>;
   using MyUnitVector = TypeVector<3, Length>;
   using MyQuantityMatrix = Quantities<MyValueVector, MyUnitVector>;
-  const MyQuantityMatrix quantities(-1, 2, 3);
-  EXPECT_EQ(quantities.squaredNorm(), SquaredLengthQuantityI(quantities.getValues().getImplementation().squaredNorm()));
+  const MyQuantityMatrix quantities(3, 0, 4);
+  EXPECT_EQ(quantities.squaredNorm(), SquaredLengthQuantityI(25));
 }
 
 TEST(TestQuantities, Determinant) {  // NOLINT
@@ -412,7 +438,6 @@ TEST(TestQuantities, Determinant) {  // NOLINT
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   const MyQuantityMatrix quantities(-1, 2, 3, 1);
-  EXPECT_EQ(quantities.determinant(), LengthQuantityI(quantities.getValues().getImplementation().determinant()));
+  EXPECT_EQ(quantities.determinant(), LengthQuantityI(-5));
 }
-
 #endif

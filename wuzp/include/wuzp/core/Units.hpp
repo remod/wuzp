@@ -12,9 +12,9 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>..
   using type = typename Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<typename Inverse<Unit<UnitImplementations>>::type...>>>::type;
 
  private:
-  // Verify the candidate: If the candidate multiplied by itself is idempotent (A^2 == A), it is valid.
-  using Identity = typename Product<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>, type>::type;
-  static_assert(std::is_same<typename Product<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
+  // Verify the candidate: If the candidate contracted by itself is idempotent (A^2 == A), it is valid.
+  using Identity = typename Contraction<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>, type>::type;
+  static_assert(std::is_same<typename Contraction<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
 
   /* Proof:
 

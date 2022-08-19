@@ -41,30 +41,34 @@ struct Product<MatrixSize<1, 1>, MatrixSize<1, 1>> {
   using type = MatrixSize<1, 1>;
 };
 // Product of matrix and 1x1 matrix.
-template <int RowsLhs, int ColsLhs>
-struct Product<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<1, 1>> {
-  using type = MatrixSize<RowsLhs, ColsLhs>;
+template <int RowsLhsV_, int ColsLhsV_>
+struct Product<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<1, 1>> {
+  using type = MatrixSize<RowsLhsV_, ColsLhsV_>;
 };
 // Product of 1x1 matrix and matrix.
-template <int RowsRhs, int ColsRhs>
-struct Product<MatrixSize<1, 1>, MatrixSize<RowsRhs, ColsRhs>> {
-  using type = typename Product<MatrixSize<RowsRhs, ColsRhs>, MatrixSize<1, 1>>::type;
+template <int RowsRhsV_, int ColsRhsV_>
+struct Product<MatrixSize<1, 1>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
+  using type = typename Product<MatrixSize<RowsRhsV_, ColsRhsV_>, MatrixSize<1, 1>>::type;
 };
 // Product of matrix and matrix.
+template <int RowsLhsV_, int ColsLhsV_, int RowsRhsV_, int ColsRhsV_>
+struct Product<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
+  static_assert(RowsLhsV_ == RowsRhsV_, "Number of rows do not match.");
+  static_assert(ColsLhsV_ == ColsRhsV_, "Number of cols do not match.");
+  using type = MatrixSize<RowsLhsV_, ColsLhsV_>;
+};
+
+template <int RowsLhsV_, int ColsLhsV_, int RowsRhsV_, int ColsRhsV_>
+struct TensorProduct<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
+  static_assert(RowsLhsV_ == RowsRhsV_, "Number of rows do not match.");
+  static_assert(ColsLhsV_ == ColsRhsV_, "Number of cols do not match.");
+  using type = MatrixSize<RowsLhsV_, ColsLhsV_>;
+};
+
 template <int RowsLhs, int ColsLhs, int RowsRhs, int ColsRhs>
-struct Product<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> {
+struct Contraction<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> {
   static_assert(ColsLhs == RowsRhs, "Number of LHS cols does not match number of RHS rows.");
   using type = MatrixSize<RowsLhs, ColsRhs>;
-};
-
-template <int RowsLhs, int ColsLhs>
-struct Division<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<1, 1>> {
-  using type = MatrixSize<RowsLhs, ColsLhs>;
-};
-
-template <int RowsV_, int ColsV_>
-struct Transpose<MatrixSize<RowsV_, ColsV_>> {
-  using type = MatrixSize<ColsV_, RowsV_>;
 };
 
 template <int RowsLhs, int ColsLhs, int RowsRhs, int ColsRhs>
@@ -80,6 +84,22 @@ struct CrossProduct<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> 
   static_assert(RowsLhs == 3 && RowsRhs == 3 && ColsLhs == 1 && ColsRhs == 1,
                 "Cross product is only defined for three-dimensional vectors.");
   using type = MatrixSize<3, 1>;
+};
+
+template <int RowsLhsV_, int ColsLhsV_, int RowsRhsV_, int ColsRhsV_>
+struct Division<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
+  static_assert(RowsLhsV_ == RowsRhsV_, "Number of rows do not match.");
+  static_assert(ColsLhsV_ == ColsRhsV_, "Number of cols do not match.");
+  using type = MatrixSize<RowsLhsV_, ColsLhsV_>;
+};
+template <int RowsLhs, int ColsLhs>
+struct Division<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<1, 1>> {
+  using type = MatrixSize<RowsLhs, ColsLhs>;
+};
+
+template <int RowsV_, int ColsV_>
+struct Transpose<MatrixSize<RowsV_, ColsV_>> {
+  using type = MatrixSize<ColsV_, RowsV_>;
 };
 
 template <int RowsV_, int ColsV_>

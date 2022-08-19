@@ -36,6 +36,7 @@ struct SelectIf<false> {
   using type = std::tuple<>;
 };
 
+//! Trait to select one type or another depending on a boolean. Note that both types must be defined even if not selected.
 template <bool ChooseTypeA, typename TypeA, typename TypeB>
 struct IfThenElse;
 template <typename TypeA, typename TypeB>

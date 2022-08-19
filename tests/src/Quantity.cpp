@@ -3,9 +3,9 @@
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/traits.hpp"
 
-#include "test_compilation_error.hpp"
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
+#include "test_compilation_error.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -90,11 +90,12 @@ TEST(TestQuantity, EqualityOperator) {  // NOLINT
   EXPECT_EQ(TimeQuantity(1.0), TimeQuantity(1.0));
 }
 
-TEST(TestQuantity, InEqualityOperator) {  // NOLINT
+TEST(TestQuantity, InequalityOperator) {  // NOLINT
   EXPECT_NE(TimeQuantity(1.0), TimeQuantity(2.0));
 }
 
 TEST(TestQuantity, Product) {  // NOLINT
+  DimensionlessQuantity x{TimeQuantity(2.0) * FrequencyQuantity(3.0)};
   EXPECT_EQ(TimeQuantity(2.0) * FrequencyQuantity(3.0), DimensionlessQuantity(6.0));
 }
 
@@ -102,7 +103,7 @@ TEST(TestQuantity, Chain) {  // NOLINT
   EXPECT_EQ(TimeQuantity(1.0) + TimeQuantity(2.0) * DimensionlessQuantity(3.0), TimeQuantity(7.0));
 }
 
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantity, Inverse) {  // NOLINT
   EXPECT_EQ(TimeQuantity(2.0).inverse(), FrequencyQuantity(0.5));
 }

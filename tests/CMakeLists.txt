@@ -90,11 +90,11 @@ if(${ENABLE_TESTS})
         src/traits.cpp
         src/Rational.cpp
         src/Integer.cpp
-        src/Unit.cpp
         src/TypeMatrix.cpp
+        src/Unit.cpp
         src/Units.cpp
-        src/Quantity.cpp
         src/ValuesWrapper.cpp
+        src/Quantity.cpp
         src/Quantities.cpp
         src/Tensor.cpp
         src/ActiveTranslation.cpp
@@ -142,8 +142,8 @@ if(${ENABLE_FORMAT} OR ${ENABLE_TIDY})
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
         # A /*/ matches one or more levels of directories.
         ${REPO_DIR}/wuzp/include/*/*.hpp
-        ${REPO_DIR}/wuzp_boost/include/*/*.hpp
         ${REPO_DIR}/wuzp_blitz/include/*/*.hpp
+        ${REPO_DIR}/wuzp_boost/include/*/*.hpp
         ${REPO_DIR}/wuzp_eigen/include/*/*.hpp
         ${REPO_DIR}/tests/src/*.[ch]pp
     )

@@ -103,12 +103,6 @@ class Quantities {
     return getValues();
   }
 
-  //  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  //// NOLINTNEXTLINE(google-explicit-constructor)
-  //  operator typename Element<ThisT, 0, 0>::type() const {
-  //    return typename Element<ThisT, 0, 0>::type(values_(0, 0));
-  //  }
-
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   bool isApprox(const Quantities<ValuesOtherT_, UnitsOtherT_>& other, const ValueT precision = Precision<ValueT>::value()) const {
     // Note: Allow other value types to support lazy evaluation.
@@ -124,14 +118,19 @@ class Quantities {
 
   auto transpose() const { return typename Transpose<ThisT>::type(values_.transpose()); }
 
-  template <typename ValuesOtherT_, typename UnitsOther>
-  auto dotProduct(const Quantities<ValuesOtherT_, UnitsOther>& other) const {
-    return typename DotProduct<ThisT, Quantities<ValuesOtherT_, UnitsOther>>::type(values_.dotProduct(other.getValues()));
+  template <typename ValuesOtherT_, typename UnitsOtherT_>
+  auto tensorProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) {
+    return typename TensorProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type(values_.tensorProduct(other.getValues()));
   }
 
-  template <typename ValuesOtherT_, typename UnitsOther>
-  auto crossProduct(const Quantities<ValuesOtherT_, UnitsOther>& other) const {
-    return typename CrossProduct<ThisT, Quantities<ValuesOtherT_, UnitsOther>>::type(values_.crossProduct(other.getValues()));
+  template <typename ValuesOtherT_, typename UnitsOtherT_>
+  auto dotProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
+    return typename DotProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type(values_.dotProduct(other.getValues()));
+  }
+
+  template <typename ValuesOtherT_, typename UnitsOtherT_>
+  auto crossProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
+    return typename CrossProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type(values_.crossProduct(other.getValues()));
   }
 
   auto inverse() const { return typename Inverse<ThisT>::type(values_.inverse()); }
@@ -152,10 +151,10 @@ class Quantities {
   auto evaluate() const { return typename Evaluate<ThisT>::type(values_.evaluate()); }
 
  private:
-  template <typename ValuesOtherT_, typename UnitsOther>
+  template <typename ValuesOtherT_, typename UnitsOtherT_>
   // Allow other values types to support lazy evaluation.
-  Quantities(FromSimilar /*tag*/, const Quantities<ValuesOtherT_, UnitsOther>& other) : values_(other.getValues()) {
-    static_assert(std::is_same<UnitsT, UnitsOther>::value, "Units do not match.");
+  Quantities(FromSimilar /*tag*/, const Quantities<ValuesOtherT_, UnitsOtherT_>& other) : values_(other.getValues()) {
+    static_assert(std::is_same<UnitsT, UnitsOtherT_>::value, "Units do not match.");
   }
 
   /**
@@ -231,8 +230,28 @@ struct Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, Unit
   using type = Quantities<typename Product<ValuesLhsT_, ValuesRhsT_>::type, typename Product<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
-struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct TensorProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename TensorProduct<ValuesLhsT_, ValuesRhsT_>::type, typename TensorProduct<UnitsLhsT_, UnitsRhsT_>::type>;
+};
+
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct Contraction<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename Contraction<ValuesLhsT_, ValuesRhsT_>::type, typename Contraction<UnitsLhsT_, UnitsRhsT_>::type>;
+};
+
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct DotProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename DotProduct<ValuesLhsT_, ValuesRhsT_>::type, typename DotProduct<UnitsLhsT_, UnitsRhsT_>::type>;
+};
+
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct CrossProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename CrossProduct<ValuesLhsT_, ValuesRhsT_>::type, typename CrossProduct<UnitsLhsT_, UnitsRhsT_>::type>;
+};
+
+    template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+    struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
   using type =
       Quantities<typename Division<ValuesLhsT_, typename ValueRhsT_::ValueT>::type, typename Division<UnitsLhsT_, UnitRhsT_>::type>;
 };
@@ -245,16 +264,6 @@ struct Power<Quantity<ValueT_, UnitT_>, ExponentT> {
 template <typename ValuesT_, typename UnitsT_>
 struct Transpose<Quantities<ValuesT_, UnitsT_>> {
   using type = Quantities<typename Transpose<ValuesT_>::type, typename Transpose<UnitsT_>::type>;
-};
-
-template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-struct DotProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
-  using type = Quantity<typename DotProduct<ValuesLhsT_, ValuesRhsT_>::type, typename DotProduct<UnitsLhsT_, UnitsRhsT_>::type>;
-};
-
-template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-struct CrossProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
-  using type = Quantities<typename CrossProduct<ValuesLhsT_, ValuesRhsT_>::type, typename CrossProduct<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_, int ElementRowId, int ElementColId>
@@ -279,50 +288,93 @@ struct Evaluate<Quantities<ValuesT_, UnitsT_>> {
   using type = Quantities<typename Evaluate<ValuesT_>::type, UnitsT_>;
 };
 
-template <typename ValuesT_, typename UnitsT_>
-auto operator+(const Quantities<ValuesT_, UnitsT_>& rhs) {
-  return rhs;
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto sum(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return
+      typename Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(sum(lhs.getValues(), rhs.getValues()));
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto operator+(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return typename Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(lhs.getValues() + rhs.getValues());
+  return sum(lhs, rhs);
 }
 
-template <typename ValuesT_, typename UnitsT_>
-auto operator-(const Quantities<ValuesT_, UnitsT_>& rhs) {
-  return Quantities<ValuesT_, UnitsT_>(-rhs.getValues());
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto difference(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename Difference<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
+      difference(lhs.getValues(), rhs.getValues()));
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto operator-(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return typename Difference<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(lhs.getValues() -
-                                                                                                             rhs.getValues());
+  return difference(lhs, rhs);
 }
 
+template <typename ValuesT_, typename UnitsT_>
+auto negation(const Quantities<ValuesT_, UnitsT_>& rhs) {
+  return Quantities<ValuesT_, UnitsT_>(negation(rhs.getValues()));
+}
+template <typename ValuesT_, typename UnitsT_>
+auto operator-(const Quantities<ValuesT_, UnitsT_>& rhs) {
+  return negation(rhs);
+}
+
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
+      product(lhs.getValues(), rhs.getValues()));
+}
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
-auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
+auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
   // Evaluate to avoid returning an expression on a temporary object.
-  return (lhs * Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
-                         typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs))
+  return product(lhs, Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
+                               typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs))
       .evaluate();
 }
 template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-auto operator*(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return rhs * lhs;
+auto product(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return product(rhs, lhs);
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return
-      typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(lhs.getValues() * rhs.getValues());
+  return product(lhs, rhs);
+}
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
+auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
+  return product(lhs, rhs);
+}
+template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto operator*(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return product(lhs, rhs);
+}
+
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto tensorProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename TensorProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
+      lhs.getValues().tensorProduct(rhs.getValues()));
+}
+
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto contraction(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename Contraction<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
+      lhs.getValues().contraction(rhs.getValues()));
 }
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
-auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
+auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
   using Dimensionless = typename Identity<typename Element<UnitsLhsT_, 0, 0>::type>::type;
-  return lhs / Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>, Dimensionless>(rhs);
+  return division(lhs, Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>, Dimensionless>(rhs));
+}
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  return typename Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(
+      division(lhs.getValues(), rhs.getValue()));
+}
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
+auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
+  return division(lhs, rhs);
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
 auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
-  return typename Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getValues() / rhs.getValue());
+  return division(lhs, rhs);
 }
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>

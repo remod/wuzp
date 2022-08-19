@@ -15,8 +15,9 @@
 
 namespace wuzp_eigen {
 
+// TODO: Move this typedef into wuzp itself?
 template <typename ValueT, int Rows, int Cols>
-using ValueMatrix = wuzp::ValuesWrapper<wuzp::MatrixSize<Rows, Cols>, ValueT, Eigen::Matrix<ValueT, Rows, Cols>>;
+using ValueMatrix = wuzp::ValuesWrapper<wuzp::MatrixSize<Rows, Cols>, ValueT, Eigen::Array<ValueT, Rows, Cols>>;
 
 template <int Rows, int Cols>
 using ValueMatrixI = ValueMatrix<int, Rows, Cols>;
@@ -64,7 +65,7 @@ struct AccessValues<AccessImplementation<T>> {
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static bool equal(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs) { return lhs == rhs; }
+  static bool equal(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs) { return lhs.matrix() == rhs.matrix(); }
 };
 
 template <typename ImplementationT_>
@@ -75,10 +76,74 @@ struct Transpose<AccessImplementation<ImplementationT_>> {
 };
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs.cross(implRhs); }
+struct Sum<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs + implRhs; }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Difference<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs - implRhs; }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+
+template <typename ImplementationT_>
+struct Negation<AccessImplementation<ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return -impl; }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationLhsT_, typename ValueRhsT_>
+struct Product<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
+  static auto value(const ImplementationLhsT_& implLhs, const ValueRhsT_ valueRhs) { return implLhs * valueRhs; }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ValueRhsT_>()));
+};
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Product<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs * implRhs; }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
+    // TODO(remod): implement
+    return implLhs * implRhs;
+  }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs.matrix() * implRhs.matrix(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs.matrix().cross(implRhs.matrix()).array(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Division<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs / implRhs; }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+template <typename ImplementationLhsT_, typename ValueRhsT_>
+struct Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
+  static auto value(const ImplementationLhsT_& implLhs, const ValueRhsT_ valueRhs) { return implLhs / valueRhs; }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ValueRhsT_>()));
 };
 
 template <typename ImplementationT_>

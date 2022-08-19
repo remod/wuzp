@@ -69,7 +69,7 @@ struct Identity<Unit<wuzp_units::UnitImpl<Exponents...>>> {
 
 template <typename... Exponents>
 struct Inverse<Unit<wuzp_units::UnitImpl<Exponents...>>> {
-  using type = Unit<wuzp_units::UnitImpl<typename Negate<Exponents>::type...>>;
+  using type = Unit<wuzp_units::UnitImpl<typename Negation<Exponents>::type...>>;
 };
 
 template <typename T>
