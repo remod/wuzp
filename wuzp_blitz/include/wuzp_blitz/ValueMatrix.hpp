@@ -120,7 +120,7 @@ struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementa
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
-    // TODO(remod): implement
+    // TODO(remod): Implement.
     return implLhs * implRhs;
   }
   // Use decltype/declval to allow for lazy evaluation.
@@ -129,7 +129,12 @@ struct Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementati
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs.cross(implRhs); }
+  static auto value(const ImplementationLhsT_& /*implLhs*/, const ImplementationRhsT_& /*implRhs*/) {
+    // TODO(remod): Implement.
+    static_assert(
+        FailOnInstantiation<CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>>::value,
+        "Not implemented");
+  }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
 };
@@ -150,7 +155,13 @@ struct Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
 template <typename ImplementationT_>
 struct Inverse<AccessImplementation<ImplementationT_>> {
   static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value,
-                "Matrix inversion is not implemented for blitz.");
+                "Inverse is not implemented for blitz.");
+};
+
+template <typename ImplementationT_>
+struct TensorInverse<AccessImplementation<ImplementationT_>> {
+  static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value,
+                "Tensor inverse is not implemented for blitz.");
 };
 
 template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>

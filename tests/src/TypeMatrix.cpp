@@ -2,8 +2,8 @@
 
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/Rational.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Type.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 
 #include "test_compilation_error.hpp"
@@ -170,6 +170,13 @@ TEST(TestTypeMatrix, DivisionBy1x1TypeMatrix) {  // NOLINT
   static_assert(std::is_same<Division<A, B>::type, C>::value);
 }
 
+TEST(TestTypeMatrix, Division) {  // NOLINT
+  using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = TypeMatrix<1, 4, Integer<2>, Integer<2>, Integer<1>, Rational<1, 2>>;
+  using C = TypeMatrix<1, 4, Integer<0>, Rational<1, 2>, Integer<2>, Integer<6>>;
+  static_assert(std::is_same<Division<A, B>::type, C>::value);
+}
+
 TEST(TestTypeMatrix, DotProduct) {  // NOLINT
   using A = TypeMatrix<4, 1, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using B = TypeMatrix<4, 1, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
@@ -191,7 +198,13 @@ TEST(TestTypeMatrix, Transpose) {  // NOLINT
 }
 
 TEST(TestTypeMatrix, Inverse) {  // NOLINT
-  // The inverse is only implemented for unit matrices, not for rational/integer numbers.
+  using A = TypeMatrix<2, 3, Integer<1>, Integer<2>, Integer<3>, Integer<10>, Rational<1, 2>, Integer<5>>;
+  using B = TypeMatrix<2, 3, Integer<1>, Rational<1, 2>, Rational<1, 3>, Rational<1, 10>, Integer<2>, Rational<1, 5>>;
+  static_assert(std::is_same<Inverse<A>::type, B>::value);
+}
+
+TEST(TestTypeMatrix, TensorInverse) {  // NOLINT
+  // The tensor inverse is only implemented for unit matrices, not for rational/integer numbers.
   using MassLength = Product<Mass, Length>::type;
   using MassLength2 = Product<MassLength, Length>::type;
   using MassInverse = Inverse<Mass>::type;

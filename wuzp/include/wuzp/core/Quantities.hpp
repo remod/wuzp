@@ -100,7 +100,7 @@ class Quantities {
 
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
   ValueT getValue() const {
-    return getValues();
+    return getValues().get();
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
@@ -118,9 +118,15 @@ class Quantities {
 
   auto transpose() const { return typename Transpose<ThisT>::type(values_.transpose()); }
 
+  // TODO(remod): Either a) remove methods, or b) remove free functions or c) make them re-use each other.
   template <typename ValuesOtherT_, typename UnitsOtherT_>
-  auto tensorProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) {
+  auto tensorProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
     return typename TensorProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type(values_.tensorProduct(other.getValues()));
+  }
+
+  template <typename ValuesOtherT_, typename UnitsOtherT_>
+  auto contraction(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
+    return typename Contraction<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type(values_.contraction(other.getValues()));
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
@@ -134,6 +140,7 @@ class Quantities {
   }
 
   auto inverse() const { return typename Inverse<ThisT>::type(values_.inverse()); }
+  auto tensorInverse() const { return typename TensorInverse<ThisT>::type(values_.tensorInverse()); }
 
   auto norm() const { return typename GetType<ThisT>::type(values_.norm()); }
 
@@ -250,8 +257,8 @@ struct CrossProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_,
   using type = Quantities<typename CrossProduct<ValuesLhsT_, ValuesRhsT_>::type, typename CrossProduct<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-    template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
-    struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
   using type =
       Quantities<typename Division<ValuesLhsT_, typename ValueRhsT_::ValueT>::type, typename Division<UnitsLhsT_, UnitRhsT_>::type>;
 };
@@ -275,6 +282,11 @@ struct Element<Quantities<ValuesT_, UnitsT_>, ElementRowId, ElementColId> {
 template <typename ValuesT_, typename UnitsT_>
 struct Inverse<Quantities<ValuesT_, UnitsT_>> {
   using type = Quantities<typename Inverse<ValuesT_>::type, typename Inverse<UnitsT_>::type>;
+};
+
+template <typename ValuesT_, typename UnitsT_>
+struct TensorInverse<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantities<typename TensorInverse<ValuesT_>::type, typename TensorInverse<UnitsT_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
@@ -317,11 +329,6 @@ auto operator-(const Quantities<ValuesT_, UnitsT_>& rhs) {
   return negation(rhs);
 }
 
-template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
-      product(lhs.getValues(), rhs.getValues()));
-}
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
   // Evaluate to avoid returning an expression on a temporary object.
@@ -333,9 +340,23 @@ template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto product(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return product(rhs, lhs);
 }
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
+auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
+  // Evaluate to avoid returning an expression on a temporary object.
+  return product(lhs, Quantities<ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>,
+                                 TypeMatrix<Rows<MatrixSizeRhsT_>::value, Cols<MatrixSizeRhsT_>::value,
+                                            typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>>(rhs))
+      .evaluate();
+}
+template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto product(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return product(rhs, lhs);
+}
+// This specialization also covers the `Quantity` typedef.
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return product(lhs, rhs);
+auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
+      product(lhs.getValues(), rhs.getValues()));
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
@@ -343,6 +364,18 @@ auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ 
 }
 template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto operator*(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return product(lhs, rhs);
+}
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
+auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
+  return product(lhs, rhs);
+}
+template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto operator*(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return product(lhs, rhs);
+}
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return product(lhs, rhs);
 }
 
@@ -363,6 +396,11 @@ auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ r
   using Dimensionless = typename Identity<typename Element<UnitsLhsT_, 0, 0>::type>::type;
   return division(lhs, Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>, Dimensionless>(rhs));
 }
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
+auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
+  using Dimensionless = typename Identity<typename Element<UnitsLhsT_, 0, 0>::type>::type;
+  return division(lhs, Quantity<ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>, Dimensionless>(rhs));
+}
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
 auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
   return typename Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(
@@ -370,6 +408,10 @@ auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<Val
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
+  return division(lhs, rhs);
+}
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
+auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
   return division(lhs, rhs);
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>

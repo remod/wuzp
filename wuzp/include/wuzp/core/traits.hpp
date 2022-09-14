@@ -169,6 +169,11 @@ struct Inverse {
 };
 
 template <typename T>
+struct TensorInverse {
+  static_assert(FailOnInstantiation<TensorInverse<T>>::value, "'TensorInverse' trait not specialized for given type.");
+};
+
+template <typename T>
 struct Identity {
   static_assert(FailOnInstantiation<Identity<T>>::value, "'Identity' trait not specialized for given type.");
 };

@@ -357,7 +357,38 @@ TEST_F(TestTensorF, DifferenceAbsoluteAndAbsolute) {  // NOLINT
   EXPECT_EQ((tensor - tensor).getQuantities(), result);
 }
 
-TEST(TestTensor2, ProductQuantity) {  // NOLINT
+TEST(TestTensor2, ProductWithBuiltinValue) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MyValue = int;
+  const MyValue value{2};
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensor result(values * value);
+  EXPECT_EQ(product(tensor, value), result);
+  EXPECT_EQ(product(value, tensor), result);
+  EXPECT_EQ(tensor * value, result);
+  EXPECT_EQ(value * tensor, result);
+}
+
+TEST(TestTensor2, ProductWithValue) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  const ValueI value{2};
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensor result(values * value);
+  EXPECT_EQ(product(tensor, value), result);
+  EXPECT_EQ(product(value, tensor), result);
+  EXPECT_EQ(tensor * value, result);
+  EXPECT_EQ(value * tensor, result);
+}
+
+TEST(TestTensor2, ProductWithQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
@@ -377,7 +408,66 @@ TEST(TestTensor2, ProductQuantity) {  // NOLINT
   EXPECT_EQ(quantity * tensor, result);
 }
 
-TEST(TestTensor2, ProductValue) {  // NOLINT
+TEST(TestTensor2, ProductWithQuantities) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MyValue = int;
+  using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
+  const MyValue value{2};
+  const MyQuantityMatrix quantities(value);
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensorResult result(values * value);
+  EXPECT_EQ(product(tensor, quantities), result);
+  EXPECT_EQ(product(quantities, tensor), result);
+  EXPECT_EQ(tensor * quantities, result);
+  EXPECT_EQ(quantities * tensor, result);
+}
+
+TEST(TestTensor2, ProductWith1x1Tensor) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MyValueMatrix1x1 = ValueMatrix<int, 1, 1>;
+  using MyQuantity = Quantity<MyValueMatrix1x1, Length>;
+  using MyTensor1x1 = Tensor<1, 0, MyQuantity, CoordinateSystemA, Relative>;
+  using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
+  using MyValue = int;
+  const MyValue value{2};
+  const LengthQuantityI quantity(value);
+  const MyTensor1x1 tensor1x1(quantity);
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensorResult result(values * value);
+  EXPECT_EQ(product(tensor, tensor1x1), result);
+  EXPECT_EQ(product(tensor1x1, tensor), result);
+  EXPECT_EQ(tensor * tensor1x1, result);
+  EXPECT_EQ(tensor1x1 * tensor, result);
+}
+
+TEST(TestTensor2, ProductWithTensor) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensorResult result(values * values);
+  EXPECT_EQ(product(tensor, tensor), result);
+  EXPECT_EQ(tensor * tensor, result);
+}
+
+TEST(TestTensor2, DivisionWithBuiltinValue) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
@@ -386,35 +476,25 @@ TEST(TestTensor2, ProductValue) {  // NOLINT
   const MyValue value{2};
   const MyValueMatrix values(1, 2, 3, 4);
   const MyTensor tensor(values);
-  const MyTensor result(values * value);
-  EXPECT_EQ(product(tensor, value), result);
-  EXPECT_EQ(product(value, tensor), result);
-  EXPECT_EQ(tensor * value, result);
-  EXPECT_EQ(value * tensor, result);
+  const MyTensor result(values / value);
+  EXPECT_EQ(division(tensor, value), result);
+  EXPECT_EQ(tensor / value, result);
 }
 
-TEST(TestTensor2, DivisionWith1x1Tensor) {  // NOLINT
+TEST(TestTensor2, DivisionWithValue) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-  using MyValueMatrix1x1 = ValueMatrix<int, 1, 1>;
-  using MyUnitMatrix1x1 = TypeMatrix<1, 1, Length>;
-  using MyQuantityMatrix1x1 = Quantities<MyValueMatrix1x1, MyUnitMatrix1x1>;
-  using MyTensor1x1 = Tensor<1, 0, MyQuantityMatrix1x1, CoordinateSystemA, Relative>;
-  using MyUnitMatrixResult = TypeMatrix<2, 2, Dimensionless>;
-  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
-  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
-  const int value{2};
-  const MyTensor1x1 tensor1x1(value);
+  const ValueI value{2};
   const MyValueMatrix values(1, 2, 3, 4);
   const MyTensor tensor(values);
-  const MyTensorResult result(values / value);
-  EXPECT_EQ(division(tensor, tensor1x1), result);
-  EXPECT_EQ(tensor / tensor1x1, result);
+  const MyTensor result(values / value);
+  EXPECT_EQ(division(tensor, value), result);
+  EXPECT_EQ(tensor / value, result);
 }
 
-TEST(TestTensor2, DivisionQuantity) {  // NOLINT
+TEST(TestTensor2, DivisionWithQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
@@ -432,31 +512,24 @@ TEST(TestTensor2, DivisionQuantity) {  // NOLINT
   EXPECT_EQ(tensor / quantity, result);
 }
 
-TEST(TestTensor2, Division1x1Matrix) {  // NOLINT
+TEST(TestTensor2, DivisionWith1x1Tensor) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-  const ValueI value{2};
+  using MyValueMatrix1x1 = ValueMatrix<int, 1, 1>;
+  using MyQuantity = Quantity<MyValueMatrix1x1, Length>;
+  using MyTensor1x1 = Tensor<1, 0, MyQuantity, CoordinateSystemA, Relative>;
+  using MyUnitMatrixResult = TypeMatrix<2, 2, Dimensionless>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
+  const int value{2};
+  const MyTensor1x1 tensor1x1(value);
   const MyValueMatrix values(1, 2, 3, 4);
   const MyTensor tensor(values);
-  const MyTensor result(values / value);
-  EXPECT_EQ(division(tensor, value), result);
-  EXPECT_EQ(tensor / value, result);
-}
-
-TEST(TestTensor2, DivisionValue) {  // NOLINT
-  using MyValueMatrix = ValueMatrix<int, 2, 2>;
-  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
-  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-  using MyValue = int;
-  const MyValue value{2};
-  const MyValueMatrix values(1, 2, 3, 4);
-  const MyTensor tensor(values);
-  const MyTensor result(values / value);
-  EXPECT_EQ(division(tensor, value), result);
-  EXPECT_EQ(tensor / value, result);
+  const MyTensorResult result(values / value);
+  EXPECT_EQ(division(tensor, tensor1x1), result);
+  EXPECT_EQ(tensor / tensor1x1, result);
 }
 
 TEST(TestTensor2, DotProduct) {  // NOLINT
@@ -474,8 +547,8 @@ TEST(TestTensor2, CrossProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 3, 1>;
   using MyUnitMatrix = TypeMatrix<3, 1, Length>;
   using MyUnitMatrixResult = TypeMatrix<3, 1, Area>;
-  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrixResult>;
-  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
   using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
   const MyTensor lhs(1, 2, 3);
@@ -534,7 +607,7 @@ TEST(TestTensor2, Determinant) {  // NOLINT
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 1, MyQuantityMatrix, CoordinateSystemA, Relative>;
   const MyTensor tensor(-1, 2, 3, 1);
-  EXPECT_EQ(tensor.determinant(), LengthQuantityI(-5));
+  EXPECT_EQ(tensor.determinant(), LengthQuantityI(-7));
 }
 
 #endif

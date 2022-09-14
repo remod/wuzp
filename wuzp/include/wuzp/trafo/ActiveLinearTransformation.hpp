@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
@@ -54,7 +55,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
       const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
-    //    return transformation.getTensor() * object;
+    //    return contraction(transformation.getTensor(), object);
   }
 };
 
@@ -65,7 +66,8 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<0, 2, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
-    const auto result = transformation.getTensor().inverse().transpose() * object * transformation.getTensor().inverse();
+    const auto result =
+        contraction(transformation.getTensor().tensorInverse().transpose(), contraction(object, transformation.getTensor().inverse()));
     return evaluate(result);
   }
 };
@@ -79,9 +81,9 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
       const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     // If the object is absolute (point), make it relative (vector), transform it, and make it absolute again.
     if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
-      return (makeAbsolute(transformation.getTensor() * makeRelative(object))).evaluate();
+      return (makeAbsolute(contraction(transformation.getTensor(), makeRelative(object)))).evaluate();
     } else {
-      return (transformation.getTensor() * object).evaluate();
+      return (contraction(transformation.getTensor(), object)).evaluate();
     }
   }
 };
@@ -93,7 +95,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<1, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
-    return transformation.getTensor() * (object * transformation.getTensor().inverse());
+    return contraction(transformation.getTensor(), (contraction(object, transformation.getTensor().tensorInverse())));
   }
 };
 
@@ -104,7 +106,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
       const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
-    //    return transformation.getTensor() * object;
+    //    return contraction(transformation.getTensor(), object);
   }
 };
 

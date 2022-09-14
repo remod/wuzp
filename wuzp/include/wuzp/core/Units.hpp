@@ -6,7 +6,7 @@
 namespace wuzp {
 
 template <int Rows, int Cols, typename... UnitImplementations>
-struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
+struct TensorInverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
   static_assert(Rows == Cols, "Matrix is not square.");
   // Invert the types individually and transpose to get a candidate for the result of the inversion.
   using type = typename Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<typename Inverse<Unit<UnitImplementations>>::type...>>>::type;

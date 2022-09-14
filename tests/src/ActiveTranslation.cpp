@@ -2,7 +2,7 @@
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/trafo/ActiveRotation.hpp"
+#include "wuzp/trafo/ActiveSpatialRotation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
 
 #include "coordinate_systems.hpp"

@@ -121,14 +121,19 @@ struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementa
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs.matrix() * implRhs.matrix(); }
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
+    return (implLhs.matrix() * implRhs.matrix()).array();
+  }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
 };
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs.matrix().cross(implRhs.matrix()).array(); }
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
+    // Evaluate expression to avoid returning a temporary object.
+    return (implLhs.matrix().cross(implRhs.matrix())).array().eval();
+  }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
 };
@@ -149,6 +154,13 @@ struct Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
 template <typename ImplementationT_>
 struct Inverse<AccessImplementation<ImplementationT_>> {
   static auto value(const ImplementationT_& impl) { return impl.inverse(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationT_>
+struct TensorInverse<AccessImplementation<ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return impl.matrix().inverse().array(); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };

@@ -6,6 +6,7 @@
 namespace wuzp {
 
 // TODO(remod): When instantiating a spatial rotation, test for determinant == 1.
+// TODO(remod): Call "unitless rotation" or simply "rotation"?
 template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To,
           int Dimension>
 using PassiveSpatialRotation = PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension, Dimension,
