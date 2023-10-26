@@ -124,7 +124,7 @@ jobs:
       run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
     - if: matrix.CMAKE_C_CXX_COMPILER == 'clang_clang++'
       name: Upload Test to Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}_${{github.run_id}}
@@ -145,13 +145,13 @@ jobs:
       name: Merge Target Branch
       run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
     - name: Download Test 0 1 from Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_0_1_${{github.run_id}}
         path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_0_1
     - name: Download Test 1 1 from Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_1_1_${{github.run_id}}
@@ -211,13 +211,13 @@ jobs:
           PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
         run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
       - name: Upload Test Package to Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_test_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
       - name: Upload Ship Package to Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}
@@ -244,7 +244,7 @@ jobs:
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package wuzp from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_test_${{github.run_id}}
@@ -271,13 +271,13 @@ jobs:
           PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
         run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
       - name: Upload Test Package to Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_test_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
       - name: Upload Ship Package to Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}
@@ -308,19 +308,19 @@ jobs:
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package wuzp from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_test_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
       - name: Download Package wuzp_boost from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_boost_test_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_boost
       - name: Download Package wuzp_eigen from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_eigen_test_${{github.run_id}}
@@ -358,7 +358,7 @@ jobs:
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}

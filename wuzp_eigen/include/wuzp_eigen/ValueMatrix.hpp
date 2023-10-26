@@ -49,7 +49,7 @@ namespace wuzp {
 
 template <typename ImplementationT_, int... SizesV_>
 struct ReserveMemory<ImplementationT_, MatrixSize<SizesV_...>> {
-  static void run(ImplementationT_& impl) {}
+  static void run(ImplementationT_& /*impl*/) {}
 };
 
 template <typename ImplementationT_, typename Arg0, typename... Args>

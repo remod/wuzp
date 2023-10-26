@@ -9,8 +9,9 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 
-include(CMakeFindDependencyMacro)
+#include(CMakeFindDependencyMacro)
 #find_dependency(blitz REQUIRED)
+# find_package(blitz REQUIRED)
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE
