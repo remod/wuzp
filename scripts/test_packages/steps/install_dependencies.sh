@@ -10,6 +10,11 @@ if [ $# != 4 ]; then
   exit 1
 fi
 
+CMAKE_C_COMPILER=${1}
+CMAKE_CXX_COMPILER=${2}
+UNITS_IMPLEMENTATION=${3}
+VALUES_IMPLEMENTATION=${4}
+
 # Install dependencies.
 if [[ ${VALUES_IMPLEMENTATION} == "2" ]]; then
   if [[ ${CMAKE_C_COMPILER} == "clang" ]]; then
