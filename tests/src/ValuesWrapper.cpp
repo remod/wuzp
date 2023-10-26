@@ -230,7 +230,6 @@ TEST(TestValuesWrapper, DotProduct) {  // NOLINT
   const ValueWrapper<int> result(11);
   EXPECT_EQ(lhs.dotProduct(rhs), result);
 }
-#endif
 
 TEST(TestValuesWrapper, DotProduct1x1Matrices) {  // NOLINT
   const ValueMatrix<int, 1, 1> lhs(1);
@@ -238,6 +237,7 @@ TEST(TestValuesWrapper, DotProduct1x1Matrices) {  // NOLINT
   const ValueWrapper<int> result(2);
   EXPECT_EQ(lhs.dotProduct(rhs), result);
 }
+#endif
 
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, CrossProduct) {  // NOLINT
