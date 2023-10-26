@@ -313,6 +313,12 @@ jobs:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_test_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
+      - name: Download Package wuzp_blitz from Cache
+        uses: actions/cache@v3
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: wuzp_blitz_test_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_blitz
       - name: Download Package wuzp_boost from Cache
         uses: actions/cache@v3
         with:
