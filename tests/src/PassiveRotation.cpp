@@ -6,14 +6,10 @@
 
 #include "coordinate_systems.hpp"
 
-using namespace wuzp;  // NOLINT
-
 #include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Value, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
+using namespace wuzp;  // NOLINT
 
 TEST(TestPassiveRotation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
@@ -78,5 +74,3 @@ TEST(TestPassiveRotation, TransformPassiveTranslation) {  // NOLINT
 //  EXPECT_TRUE(transformation.transform(object).isApprox(transformedObject));
 //  // TODO(remod): Test converting an object with original and transformed transformation, and check whether they match.
 //}
-
-#endif

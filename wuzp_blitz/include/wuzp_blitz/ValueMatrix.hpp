@@ -45,10 +45,14 @@ using ValueD = Value<double>;
 
 namespace wuzp {
 
-template <typename ImplementationT_, int... SizesV_, typename Arg0, typename... Args>
-struct Initialize<ImplementationT_, MatrixSize<SizesV_...>, Arg0, Args...> {
+template <typename ImplementationT_, int... SizesV_>
+struct ReserveMemory<ImplementationT_, MatrixSize<SizesV_...>> {
+  static void run(ImplementationT_& impl) { impl.resize(SizesV_...); }
+};
+
+template <typename ImplementationT_, typename Arg0, typename... Args>
+struct Initialize<ImplementationT_, std::tuple<Arg0, Args...>> {
   static void run(ImplementationT_& impl, Arg0&& arg0, Args&&... args) {
-    impl.resize(SizesV_...);
     wuzp_blitz::internal::spliceCommas((impl = std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
   }
 };
@@ -120,8 +124,7 @@ struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementa
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
-    // TODO(remod): Implement.
-    return implLhs * implRhs;
+    return blitz::sum(implLhs(blitz::tensor::i, blitz::tensor::k) * implRhs(blitz::tensor::k, blitz::tensor::j), blitz::tensor::k);
   }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
@@ -129,11 +132,18 @@ struct Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementati
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& /*implLhs*/, const ImplementationRhsT_& /*implRhs*/) {
-    // TODO(remod): Implement.
-    static_assert(
-        FailOnInstantiation<CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>>::value,
-        "Not implemented");
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
+    static_assert(std::is_same_v<typename ImplementationLhsT_::T_numtype, typename ImplementationRhsT_::T_numtype>,
+                  "Numeric types do not match.");
+    assert(implLhs.length(0) == 3);
+    assert(implLhs.length(1) == 1);
+    assert(implRhs.length(0) == 3);
+    assert(implRhs.length(1) == 1);
+    blitz::Array<typename ImplementationLhsT_::T_numtype, 2> result{3, 1};
+    result(0, 0) = implLhs(1, 0) * implRhs(2, 0) - implLhs(2, 0) * implRhs(1, 0);
+    result(1, 0) = implLhs(2, 0) * implRhs(0, 0) - implLhs(0, 0) * implRhs(2, 0);
+    result(2, 0) = implLhs(0, 0) * implRhs(1, 0) - implLhs(1, 0) * implRhs(0, 0);
+    return result;
   }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
@@ -154,8 +164,7 @@ struct Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
 
 template <typename ImplementationT_>
 struct Inverse<AccessImplementation<ImplementationT_>> {
-  static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value,
-                "Inverse is not implemented for blitz.");
+  static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value, "Inverse is not implemented for blitz.");
 };
 
 template <typename ImplementationT_>

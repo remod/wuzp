@@ -47,8 +47,13 @@ using ValueD = Value<double>;
 
 namespace wuzp {
 
-template <typename ImplementationT_, int... SizesV_, typename Arg0, typename... Args>
-struct Initialize<ImplementationT_, MatrixSize<SizesV_...>, Arg0, Args...> {
+template <typename ImplementationT_, int... SizesV_>
+struct ReserveMemory<ImplementationT_, MatrixSize<SizesV_...>> {
+  static void run(ImplementationT_& impl) {}
+};
+
+template <typename ImplementationT_, typename Arg0, typename... Args>
+struct Initialize<ImplementationT_, std::tuple<Arg0, Args...>> {
   static void run(ImplementationT_& impl, Arg0&& arg0, Args&&... args) {
     wuzp_eigen::internal::spliceCommas((impl << std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
   }

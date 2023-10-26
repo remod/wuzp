@@ -232,7 +232,10 @@ auto castCoordinateSystem(T t) {
   return typename CastCoordinateSystem<T, To>::type(t.getValues());
 }
 
-template <typename ImplementationT_, typename MatrixSizeT_, typename Arg0, typename... Args>
+template <typename ImplementationT_, typename MatrixSizeT_>
+struct ReserveMemory;
+
+template <typename ImplementationT_, typename ArgsTupleT_>
 struct Initialize;
 
 template <typename UnitT>

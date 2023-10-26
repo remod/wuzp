@@ -8,13 +8,10 @@
 #include "coordinate_systems.hpp"
 #include "test_compilation_error.hpp"
 
-using namespace wuzp;  // NOLINT
-
 #include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
+using namespace wuzp;  // NOLINT
 
 template <int Rows, int Cols>
 using TestValues = ValueMatrix<double, Rows, Cols>;

@@ -6,9 +6,10 @@
 
 #include "coordinate_systems.hpp"
 
-using namespace wuzp;  // NOLINT
-
 #include "Unit.hpp"
+#include "ValueMatrix.hpp"
+
+using namespace wuzp;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
@@ -78,5 +79,3 @@ TEST(TestActiveRotation, TransformActiveTranslation) {  // NOLINT
 //  EXPECT_TRUE(transformation.transform(object).isApprox(transformedObject));
 //  // TODO(remod): Test converting an object with original and transformed transformation, and check whether they match.
 //}
-
-#endif

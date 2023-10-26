@@ -6,14 +6,10 @@
 
 #include "coordinate_systems.hpp"
 
-using namespace wuzp;  // NOLINT
-
 #include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Value, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
+using namespace wuzp;  // NOLINT
 
 using TimeQuantityD = QuantityD<Time>;
 using LengthQuantityD = QuantityD<Length>;
@@ -33,5 +29,3 @@ TEST(TestLorentzTransformation, TransformSpacetimePoint) {  // NOLINT
   //  EXPECT_TRUE((getInvariant<4, ValueMatrix, double, CoordinateSystemA>(object).isApprox(
   //      getInvariant<4, ValueMatrix, double, CoordinateSystemB>(transformation.transform(object)))));
 }
-
-#endif

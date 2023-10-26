@@ -5,16 +5,12 @@
 
 #include "coordinate_systems.hpp"
 
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
+
 using namespace wuzp;  // NOLINT
 
-#include "Unit.hpp"
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Value, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
-
-using AngleQuantity = wuzp::QuantityD<Angle>;
+using AngleQuantity = QuantityD<Angle>;
 
 // TODO(remod): Turn this into a proper function.
 TEST(TestRigidBodyKinematics, CalculateVelocity) {  // NOLINT
@@ -55,5 +51,3 @@ TEST(TestRigidBodyKinematics, CalculateAcceleration) {  // NOLINT
       ;
   EXPECT_EQ(actualAcceleration, expectedAcceleration);
 }
-
-#endif

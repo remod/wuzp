@@ -20,7 +20,7 @@ class ValuesWrapper {
   using ThisT = ValuesWrapper<MatrixSizeT, ValueT, ImplementationT>;
   // TODO(remod): Use member types instead of traits for value, dim, rows, cols, in all classes?
 
-  ValuesWrapper() = default;
+  ValuesWrapper() { ReserveMemory<ImplementationT_, MatrixSizeT_>::run(implementation_); }
 
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
@@ -145,15 +145,18 @@ class ValuesWrapper {
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
   // Allow other implementation types to support lazy evaluation.
   ValuesWrapper(FromSimilar /*tag*/, const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other)
-      : implementation_(other.getImplementation()) {}
+      : implementation_(other.getImplementation()) {
+    // TODO(remod): Should we assert that the matrix sizes match?
+  }
 
   //! Constructor for non-arithmetic types, e.g. expressions.
-  template <typename T0, typename = std::enable_if_t<!std::is_arithmetic_v<T0>>>
+  template <typename T0, typename = std::enable_if_t<!std::is_arithmetic_v<std::remove_const_t<std::remove_reference_t<T0>>>>>
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0) : implementation_(std::forward<T0>(t0)) {}
   //! Constructor for a set of objects to initialize the values.
   template <typename T0, typename... Ts>
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0, Ts&&... ts) {
-    Initialize<ImplementationT_, MatrixSizeT_, T0, Ts...>::run(implementation_, std::forward<T0>(t0), std::forward<Ts>(ts)...);
+    ReserveMemory<ImplementationT_, MatrixSizeT_>::run(implementation_);
+    Initialize<ImplementationT_, std::tuple<T0, Ts...>>::run(implementation_, std::forward<T0>(t0), std::forward<Ts>(ts)...);
   }
 
   ImplementationT implementation_;

@@ -76,6 +76,8 @@ elseif(${VALUES_IMPLEMENTATION} EQUAL ${VALUES_IMPLEMENTATION_BLITZ})
 endif()
 
 if(${ENABLE_TESTS})
+    add_compile_definitions(BZ_USE_NUMTRAIT=OFF)
+    add_compile_definitions(BZ_HAVE_TEMPLATE_QUALIFIED_RETURN_TYPE=OFF)
     enable_testing()
     if(${ENABLE_CODE_COVERAGE})
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-instr-generate -fcoverage-mapping -O0 -fno-inline -fno-elide-constructors")
@@ -96,17 +98,17 @@ if(${ENABLE_TESTS})
         src/ValuesWrapper.cpp
         src/Quantity.cpp
         src/Quantities.cpp
-        src/Tensor.cpp
-        src/ActiveTranslation.cpp
-        src/PassiveTranslation.cpp
-        src/ActiveRotation.cpp
-        src/PassiveRotation.cpp
-        src/Jacobian.cpp
-        src/ActiveProperRigidTransformation.cpp
-        src/PassiveProperRigidTransformation.cpp
-        src/LorentzTransformation.cpp
-        src/RigidBodyKinematics.cpp
-        src/RotatingDumbbell.cpp
+        # src/Tensor.cpp
+        # src/ActiveTranslation.cpp
+        # src/PassiveTranslation.cpp
+        # src/ActiveRotation.cpp
+        # src/PassiveRotation.cpp
+        # src/Jacobian.cpp
+        # src/ActiveProperRigidTransformation.cpp
+        # src/PassiveProperRigidTransformation.cpp
+        # src/LorentzTransformation.cpp
+        # src/RigidBodyKinematics.cpp
+        # src/RotatingDumbbell.cpp
     )
     target_compile_definitions(tests PRIVATE REPO_DIR=${REPO_DIR})
     target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)

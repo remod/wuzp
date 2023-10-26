@@ -96,7 +96,11 @@ class Quantities {
    * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
    * @return ValueMatrix of the quantities.
    */
-  const ValuesT& getValues() const { return values_; }
+  const ValuesT& getValues() const {
+    std::cout << "getValues" << std::endl;
+    std::cout << values_ << std::endl;
+    return values_;
+  }
 
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
   ValueT getValue() const {
