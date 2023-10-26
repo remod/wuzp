@@ -83,7 +83,7 @@ Value matrix:
 
 * Own matrix implementation
 * Dynamic sized matrices
-* No Clang support for Blitz++
+* No Clang support for Blitz++, see https://github.com/blitzpp/blitz/issues/177.
 
 UnitImplementations:
 
