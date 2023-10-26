@@ -81,7 +81,7 @@ fi
 
 # Check package versions.
 print_title "Checking package versions ..."
-for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
+for PACKAGE_NAME in "wuzp" "wuzp_blitz" "wuzp_boost" "wuzp_eigen"; do
   docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_package_version/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_NAME}
 done
 

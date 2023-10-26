@@ -25,7 +25,7 @@ jobs:
       VALUES_IMPLEMENTATION: 0
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -44,14 +44,14 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
+        PACKAGE_NAME: ["wuzp", "wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
     env:
       SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
       WRITABLE_REPO_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions
       WRITABLE_SOURCE_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions/${{matrix.PACKAGE_NAME}}
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -101,7 +101,7 @@ jobs:
       VALUES_IMPLEMENTATION: ${{matrix.VALUES_IMPLEMENTATION}}
     steps:
     - name: Prepare Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
         path: wuzp
@@ -137,7 +137,7 @@ jobs:
       CODE_COVERAGE_DIR: ${{github.workspace}}/tmp/wuzp/code_coverage
     steps:
     - name: Prepare Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
         path: wuzp
@@ -182,7 +182,7 @@ jobs:
       SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -227,7 +227,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        PACKAGE_NAME: ["wuzp_boost", "wuzp_eigen"]
+        PACKAGE_NAME: ["wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
     env:
       PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
       PACKAGE_SHIP_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
@@ -236,7 +236,7 @@ jobs:
       WUZP_PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -300,7 +300,7 @@ jobs:
       VALUES_IMPLEMENTATION: ${{matrix.VALUES_IMPLEMENTATION}}
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -342,7 +342,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
+        PACKAGE_NAME: ["wuzp", "wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
     env:
       DRY_RUN: ${{github.ref_name!='master'}}
       PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
@@ -350,7 +350,7 @@ jobs:
       SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
