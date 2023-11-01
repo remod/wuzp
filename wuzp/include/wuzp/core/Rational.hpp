@@ -24,7 +24,7 @@ struct Difference<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::
 };
 
 template <int Dividend, int Divisor>
-struct Negate<internal::ReducedRational<Dividend, Divisor>> {
+struct Negation<internal::ReducedRational<Dividend, Divisor>> {
   using type = Rational<-Dividend, Divisor>;
 };
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-if (DEFINED PACKAGE_VERSION)
+if(DEFINED PACKAGE_VERSION)
     project(wuzp_eigen
         VERSION ${PACKAGE_VERSION}
     )
@@ -9,8 +9,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 
-include(CMakeFindDependencyMacro)
-find_dependency(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE
@@ -20,7 +19,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 target_link_libraries(${PROJECT_NAME} INTERFACE Eigen3::Eigen)
 
 # The installation of this package is only supported when the version number is specified.
-if (DEFINED PACKAGE_VERSION)
+if(DEFINED PACKAGE_VERSION)
     include(CMakePackageConfigHelpers)
     write_basic_package_version_file(
         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"

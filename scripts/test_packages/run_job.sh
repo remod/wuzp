@@ -22,7 +22,7 @@ git config --global --add safe.directory '*'
 
 # Run all steps.
 ${REPO_DIR}/scripts/common_steps/upgrade.sh &&
-${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} &&
+${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGES_DIR} ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER} ${BUILD_TYPE} ON OFF OFF OFF ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} &&
 ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE} &&

@@ -1,25 +1,20 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/traits.hpp"
-#include "wuzp/trafo/ActiveRotation.hpp"
+#include "wuzp/trafo/ActiveSpatialRotation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
 
 #include "coordinate_systems.hpp"
 
-using namespace wuzp;  // NOLINT
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
+using namespace wuzp;  // NOLINT
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
+template <typename Value, int Rows, int Cols>
+using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
 
 TEST(TestActiveRotation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
@@ -84,5 +79,3 @@ TEST(TestActiveRotation, TransformActiveTranslation) {  // NOLINT
 //  EXPECT_TRUE(transformation.transform(object).isApprox(transformedObject));
 //  // TODO(remod): Test converting an object with original and transformed transformation, and check whether they match.
 //}
-
-#endif

@@ -3,19 +3,9 @@
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/traits.hpp"
 
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
 #include "test_compilation_error.hpp"
-
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
 
 using namespace wuzp;  // NOLINT
 
@@ -48,16 +38,8 @@ TEST(TestQuantity, SumMixedQuantities) {  // NOLINT
   const std::string code = R"(
 #include "wuzp/core/Quantities.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -84,16 +66,8 @@ TEST(TestQuantity, DifferenceMixedQuantities) {  // NOLINT
   const std::string code = R"(
 #include "wuzp/core/Quantities.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -116,11 +90,12 @@ TEST(TestQuantity, EqualityOperator) {  // NOLINT
   EXPECT_EQ(TimeQuantity(1.0), TimeQuantity(1.0));
 }
 
-TEST(TestQuantity, InEqualityOperator) {  // NOLINT
+TEST(TestQuantity, InequalityOperator) {  // NOLINT
   EXPECT_NE(TimeQuantity(1.0), TimeQuantity(2.0));
 }
 
 TEST(TestQuantity, Product) {  // NOLINT
+  DimensionlessQuantity x{TimeQuantity(2.0) * FrequencyQuantity(3.0)};
   EXPECT_EQ(TimeQuantity(2.0) * FrequencyQuantity(3.0), DimensionlessQuantity(6.0));
 }
 
@@ -128,9 +103,11 @@ TEST(TestQuantity, Chain) {  // NOLINT
   EXPECT_EQ(TimeQuantity(1.0) + TimeQuantity(2.0) * DimensionlessQuantity(3.0), TimeQuantity(7.0));
 }
 
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantity, Inverse) {  // NOLINT
   EXPECT_EQ(TimeQuantity(2.0).inverse(), FrequencyQuantity(0.5));
 }
+#endif
 
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
   const LengthQuantity radius(2.0);
@@ -143,5 +120,3 @@ TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
 #endif
       ;
 }
-
-#endif

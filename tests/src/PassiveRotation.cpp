@@ -1,25 +1,15 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/traits.hpp"
-#include "wuzp/trafo/PassiveRotation.hpp"
+#include "wuzp/trafo/PassiveSpatialRotation.hpp"
 #include "wuzp/trafo/PassiveTranslation.hpp"
 
 #include "coordinate_systems.hpp"
 
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
+
 using namespace wuzp;  // NOLINT
-
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 
 TEST(TestPassiveRotation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
@@ -84,5 +74,3 @@ TEST(TestPassiveRotation, TransformPassiveTranslation) {  // NOLINT
 //  EXPECT_TRUE(transformation.transform(object).isApprox(transformedObject));
 //  // TODO(remod): Test converting an object with original and transformed transformation, and check whether they match.
 //}
-
-#endif

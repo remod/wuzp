@@ -1,7 +1,7 @@
 #pragma once
 
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/trafo/ActiveRotation.hpp"
+#include "wuzp/trafo/ActiveSpatialRotation.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
 #include "wuzp/trafo/traits.hpp"
@@ -32,14 +32,14 @@ class ActiveProperRigidTransformationTemplate
   Translation translation_;
 };
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename CoordinateSystem, typename Scalar>
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename CoordinateSystem, typename Value>
 using ActiveProperRigidTransformation =
-    ActiveProperRigidTransformationTemplate<CoordinateSystem, ActiveSpatialRotation<ValuesT_, Scalar, CoordinateSystem, Dimension>,
-                                            ActiveSpatialTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem>>;
-template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename Scalar>
-using ActiveProperRigidTransformation2 = ActiveProperRigidTransformation<ValuesT_, 2, CoordinateSystem, Scalar>;
-template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename Scalar>
-using ActiveProperRigidTransformation3 = ActiveProperRigidTransformation<ValuesT_, 3, CoordinateSystem, Scalar>;
+    ActiveProperRigidTransformationTemplate<CoordinateSystem, ActiveSpatialRotation<ValuesT_, Value, CoordinateSystem, Dimension>,
+                                            ActiveSpatialTranslation<ValuesT_, Dimension, Value, CoordinateSystem>>;
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename Value>
+using ActiveProperRigidTransformation2 = ActiveProperRigidTransformation<ValuesT_, 2, CoordinateSystem, Value>;
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename Value>
+using ActiveProperRigidTransformation3 = ActiveProperRigidTransformation<ValuesT_, 3, CoordinateSystem, Value>;
 
 template <typename CoordinateSystem, typename Rotation, typename Translation, typename Object>
 struct TransformationTraits<ActiveProperRigidTransformationTemplate<CoordinateSystem, Rotation, Translation>, Object> {

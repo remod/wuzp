@@ -21,6 +21,8 @@ if [[ ${UNITS_IMPLEMENTATION} == "1" ]]; then
 fi
 if [[ ${VALUES_IMPLEMENTATION} == "1" ]]; then
   PACKAGES="${PACKAGES} ${PACKAGES_DIR}/wuzp_eigen/*.deb"
+elif [[ ${VALUES_IMPLEMENTATION} == "2" ]]; then
+  PACKAGES="${PACKAGES} ${PACKAGES_DIR}/wuzp_blitz/*.deb"
 fi
 # Unlike "dpkg --install", "apt install" automatically installs missing dependencies.
 apt install -y ${PACKAGES}

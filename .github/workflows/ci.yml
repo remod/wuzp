@@ -25,7 +25,7 @@ jobs:
       VALUES_IMPLEMENTATION: 0
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -44,14 +44,14 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
+        PACKAGE_NAME: ["wuzp", "wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
     env:
       SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
       WRITABLE_REPO_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions
       WRITABLE_SOURCE_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions/${{matrix.PACKAGE_NAME}}
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -91,7 +91,7 @@ jobs:
       matrix:
         CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
         UNITS_IMPLEMENTATION: [0, 1]
-        VALUES_IMPLEMENTATION: [1]
+        VALUES_IMPLEMENTATION: [1, 2]
     env:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}
       BUILD_TYPE: Debug
@@ -101,7 +101,7 @@ jobs:
       VALUES_IMPLEMENTATION: ${{matrix.VALUES_IMPLEMENTATION}}
     steps:
     - name: Prepare Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
         path: wuzp
@@ -111,7 +111,7 @@ jobs:
     - name: Upgrade
       run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
     - name: Install Dependencies
-      run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
+      run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
     - name: Create Build Environment
       run: |
         [ "${CMAKE_C_CXX_COMPILER}" = "clang_clang++" ] && ENABLE_CODE_COVERAGE=1 || ENABLE_CODE_COVERAGE=0
@@ -124,7 +124,7 @@ jobs:
       run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
     - if: matrix.CMAKE_C_CXX_COMPILER == 'clang_clang++'
       name: Upload Test to Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}_${{github.run_id}}
@@ -137,7 +137,7 @@ jobs:
       CODE_COVERAGE_DIR: ${{github.workspace}}/tmp/wuzp/code_coverage
     steps:
     - name: Prepare Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
         path: wuzp
@@ -145,13 +145,13 @@ jobs:
       name: Merge Target Branch
       run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
     - name: Download Test 0 1 from Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_0_1_${{github.run_id}}
         path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_0_1
     - name: Download Test 1 1 from Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # Note: It is not possible to reuse environment variables here.
         key: test_1_1_${{github.run_id}}
@@ -182,7 +182,7 @@ jobs:
       SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -211,13 +211,13 @@ jobs:
           PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
         run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
       - name: Upload Test Package to Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_test_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
       - name: Upload Ship Package to Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}
@@ -227,7 +227,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        PACKAGE_NAME: ["wuzp_boost", "wuzp_eigen"]
+        PACKAGE_NAME: ["wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
     env:
       PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
       PACKAGE_SHIP_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
@@ -236,7 +236,7 @@ jobs:
       WUZP_PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -244,7 +244,7 @@ jobs:
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package wuzp from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_test_${{github.run_id}}
@@ -271,13 +271,13 @@ jobs:
           PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
         run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
       - name: Upload Test Package to Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_test_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
       - name: Upload Ship Package to Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}
@@ -289,7 +289,7 @@ jobs:
       matrix:
         CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
         UNITS_IMPLEMENTATION: [0, 1]
-        VALUES_IMPLEMENTATION: [1]
+        VALUES_IMPLEMENTATION: [1, 2]
     env:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test_packages
       BUILD_TYPE: Debug
@@ -300,7 +300,7 @@ jobs:
       VALUES_IMPLEMENTATION: ${{matrix.VALUES_IMPLEMENTATION}}
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -308,19 +308,25 @@ jobs:
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package wuzp from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_test_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
+      - name: Download Package wuzp_blitz from Cache
+        uses: actions/cache@v3
+        with:
+          # Note: It is not possible to reuse environment variables here.
+          key: wuzp_blitz_test_${{github.run_id}}
+          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_blitz
       - name: Download Package wuzp_boost from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_boost_test_${{github.run_id}}
           path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_boost
       - name: Download Package wuzp_eigen from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: wuzp_eigen_test_${{github.run_id}}
@@ -328,7 +334,7 @@ jobs:
       - name: Upgrade
         run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
       - name: Install Dependencies
-        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
+        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
       - name: Install Packages
         run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGES_DIR} ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
       - name: Create Build Environment
@@ -342,7 +348,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        PACKAGE_NAME: ["wuzp", "wuzp_boost", "wuzp_eigen"]
+        PACKAGE_NAME: ["wuzp", "wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
     env:
       DRY_RUN: ${{github.ref_name!='master'}}
       PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
@@ -350,7 +356,7 @@ jobs:
       SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: wuzp
@@ -358,7 +364,7 @@ jobs:
         name: Merge Target Branch
         run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
       - name: Download Package from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: It is not possible to reuse environment variables here.
           key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}

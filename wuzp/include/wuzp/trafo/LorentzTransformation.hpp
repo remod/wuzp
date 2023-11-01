@@ -6,21 +6,21 @@
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To,
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To,
           int Dimension>
-using LorentzTransformation = PassiveLinearTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension, Dimension,
-                                                          typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using LorentzTransformation2 = LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, 2>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using LorentzTransformation3 = LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, 3>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To>
-using LorentzTransformation4 = LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, 4>;
+using LorentzTransformation = PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension, Dimension,
+                                                          typename AccessUnits<AccessImplementation<Value>>::Dimensionless>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To>
+using LorentzTransformation2 = LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, 2>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To>
+using LorentzTransformation3 = LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, 3>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To>
+using LorentzTransformation4 = LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, 4>;
 
 template <typename ValueT_>
 auto getSpeedOfLight() {
-  return Quantity<typename AccessValues<SpecializationDummy<ValueT_>>::template Value<ValueT_>,
-                  typename AccessUnits<SpecializationDummy<ValueT_>>::Velocity>(static_cast<ValueT_>(299792458));
+  return Quantity<typename AccessValues<AccessImplementation<ValueT_>>::template Value<ValueT_>,
+                  typename AccessUnits<AccessImplementation<ValueT_>>::Velocity>(static_cast<ValueT_>(299792458));
 }
 
 // TODO(remod): Why do we need to explicitly specialize the template arguments when using this function?
@@ -30,15 +30,15 @@ auto getInvariant(const SpacetimeVector<DimensionV, ValuesT, ValueT, CoordinateS
   return pow<2>(quantities.template get<0, 0>()) - quantities.template block<1, 0, DimensionV - 1, 1>().squaredNorm();
 }
 
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem, typename From, typename To,
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To,
           int Dimension>
-LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension> createBoostMatrix(
-    const VelocityVector<Dimension - 1, ValuesT_, Scalar, CoordinateSystem>& velocity) {
-  using QuantitiesT = typename LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension>::QuantitiesT;
-  using QuantityT = Quantity<typename AccessValues<SpecializationDummy<Scalar>>::template Value<Scalar>,
-                             typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless>;
+LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> createBoostMatrix(
+    const VelocityVector<Dimension - 1, ValuesT_, Value, CoordinateSystem>& velocity) {
+  using QuantitiesT = typename LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension>::QuantitiesT;
+  using QuantityT = Quantity<typename AccessValues<AccessImplementation<Value>>::template Value<Value>,
+                             typename AccessUnits<AccessImplementation<Value>>::Dimensionless>;
   const auto squaredNorm = velocity.squaredNorm();
-  const auto lorentzFactor = pow<-1, 2>(QuantityT(1.0) - squaredNorm / pow<2>(getSpeedOfLight<Scalar>()));
+  const auto lorentzFactor = pow<-1, 2>(QuantityT(1.0) - squaredNorm / pow<2>(getSpeedOfLight<Value>()));
   QuantitiesT quantities;
   // Set the lower left matrix inclusive the diagonal.
   for (int row = 0; row < Dimension; ++row) {
@@ -47,7 +47,7 @@ LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension> c
       if (row == 0 && col == 0) {
         quantity = lorentzFactor;
       } else if (col == 0) {
-        quantity = -lorentzFactor / getSpeedOfLight<Scalar>() * velocity.getQuantities().get(row - 1, 0);
+        quantity = -lorentzFactor / getSpeedOfLight<Value>() * velocity.getQuantities().get(row - 1, 0);
       } else if (col == row) {
         quantity = QuantityT(1.0) + (lorentzFactor - QuantityT(1.0)) * pow<2>(velocity.getQuantities().get(row - 1, 0)) / squaredNorm;
       } else {
@@ -63,7 +63,7 @@ LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension> c
       quantities.set(row, col, quantities.get(col, row));
     }
   }
-  return LorentzTransformation<ValuesT_, Scalar, CoordinateSystem, From, To, Dimension>(quantities);
+  return LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension>(quantities);
 }
 
 }  // namespace wuzp

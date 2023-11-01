@@ -2,25 +2,15 @@
 
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/PassiveProperRigidTransformation.hpp"
-#include "wuzp/trafo/PassiveRotation.hpp"
+#include "wuzp/trafo/PassiveSpatialRotation.hpp"
 #include "wuzp/trafo/PassiveTranslation.hpp"
 
 #include "coordinate_systems.hpp"
 
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
+
 using namespace wuzp;  // NOLINT
-
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 
 TEST(TestPassiveProperRigidTransformation2, TransformPosition) {  // NOLINT
   //  const Position2<double, FromCoordinateSystem> object(1.0, 2.0);
@@ -103,5 +93,3 @@ TEST(TestPassiveProperRigidTransformation3, TransformPassiveRotation) {  // NOLI
   const Transformation transformation(rotation, translation);
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
-
-#endif

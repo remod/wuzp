@@ -81,14 +81,14 @@ fi
 
 # Check package versions.
 print_title "Checking package versions ..."
-for PACKAGE_NAME in "wuzp" "wuzp_boost" "wuzp_eigen"; do
+for PACKAGE_NAME in "wuzp" "wuzp_blitz" "wuzp_boost" "wuzp_eigen"; do
   docker run --rm -ti -e DEBIAN_FRONTEND -v ${REPO_DIR}:${WORKSPACE_DIR}:ro ${DOCKER_IMAGE} /bin/bash ${WORKSPACE_DIR}/scripts/check_package_version/run_job.sh ${WORKSPACE_DIR} ${PACKAGE_NAME}
 done
 
 # Test.
 for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
-    for VALUES_IMPLEMENTATION in 1; do
+    for VALUES_IMPLEMENTATION in 1 2; do
       print_title "Testing with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} ..."
       TEST_DIR=${TESTS_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUES_IMPLEMENTATION}
       rm -rf ${TEST_DIR}
@@ -135,7 +135,7 @@ done
 # Test packages.
 for CMAKE_C_CXX_COMPILER in "clang_clang++" "gcc_g++"; do
   for UNITS_IMPLEMENTATION in 0 1; do
-    for VALUES_IMPLEMENTATION in 1; do
+    for VALUES_IMPLEMENTATION in 1 2; do
       print_title "Testing packages with ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION} ..."
       TEST_PACKAGE_DIR=${TEST_PACKAGES_DIR}/${CMAKE_C_CXX_COMPILER}_${UNITS_IMPLEMENTATION}_${VALUES_IMPLEMENTATION}
       rm -rf ${TEST_PACKAGE_DIR}

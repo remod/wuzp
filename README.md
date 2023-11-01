@@ -83,6 +83,9 @@ Value matrix:
 
 * Own matrix implementation
 * Dynamic sized matrices
+* Blitz++ cannot be installed with libblitz0-dev when compiled with Clang.
+  Instead, it needs to be cloned from GitHub and then built and installed manually.
+  https://github.com/blitzpp/blitz/issues/177.
 
 UnitImplementations:
 

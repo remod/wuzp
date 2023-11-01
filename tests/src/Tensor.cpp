@@ -8,19 +8,10 @@
 #include "coordinate_systems.hpp"
 #include "test_compilation_error.hpp"
 
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
+
 using namespace wuzp;  // NOLINT
-
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-using namespace wuzp_eigen;  // NOLINT
 
 template <int Rows, int Cols>
 using TestValues = ValueMatrix<double, Rows, Cols>;
@@ -93,13 +84,7 @@ TEST(TestTensor2, ConstructImplicitlyFromQuantities) {  // NOLINT
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
+#include "Unit.hpp"
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
@@ -141,13 +126,7 @@ TEST(TestTensor2, ConstructImplicitlyFromValues) {  // NOLINT
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
+#include "Unit.hpp"
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
@@ -262,19 +241,25 @@ TEST_F(TestTensorF, Transpose) {  // NOLINT
 }
 
 TEST_F(TestTensorF, Sum) {  // NOLINT
-  EXPECT_EQ((getTensor() + getTensor()).getQuantities(), getTensor().getQuantities() + getTensor().getQuantities());
+  const auto result{getTensor().getQuantities() + getTensor().getQuantities()};
+  EXPECT_EQ(sum(getTensor(), getTensor()).getQuantities(), result);
+  EXPECT_EQ((getTensor() + getTensor()).getQuantities(), result);
 }
 
 TEST_F(TestTensorF, SumRelativeAndAbsolute) {  // NOLINT
   using MyAbsoluteTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   const MyAbsoluteTensor tensor(1, 4, 2, 5, 3, 6);
-  EXPECT_EQ((getTensor() + tensor).getQuantities(), getTensor().getQuantities() + tensor.getQuantities());
+  const auto result{getTensor().getQuantities() + tensor.getQuantities()};
+  EXPECT_EQ(sum(getTensor(), tensor).getQuantities(), result);
+  EXPECT_EQ((getTensor() + tensor).getQuantities(), result);
 }
 
 TEST_F(TestTensorF, SumAbsoluteAndRelative) {  // NOLINT
   using MyAbsoluteTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   const MyAbsoluteTensor tensor(1, 4, 2, 5, 3, 6);
-  EXPECT_EQ((tensor + getTensor()).getQuantities(), getTensor().getQuantities() + tensor.getQuantities());
+  const auto result{getTensor().getQuantities() + tensor.getQuantities()};
+  EXPECT_EQ(sum(tensor, getTensor()).getQuantities(), result);
+  EXPECT_EQ((tensor + getTensor()).getQuantities(), result);
 }
 
 TEST(TestTensor, SumAbsoluteAndAbsolute) {  // NOLINT
@@ -285,13 +270,7 @@ TEST(TestTensor, SumAbsoluteAndAbsolute) {  // NOLINT
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Unit.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
+#include "Unit.hpp"
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
@@ -318,13 +297,17 @@ int main() {
 }
 
 TEST_F(TestTensorF, Difference) {  // NOLINT
-  EXPECT_EQ((getTensor() - getTensor()).getQuantities(), getTensor().getQuantities() - getTensor().getQuantities());
+  const auto result{getTensor().getQuantities() - getTensor().getQuantities()};
+  EXPECT_EQ(difference(getTensor(), getTensor()).getQuantities(), result);
+  EXPECT_EQ((getTensor() - getTensor()).getQuantities(), result);
 }
 
 TEST_F(TestTensorF, DifferenceAbsoluteAndRelative) {  // NOLINT
   using MyAbsoluteTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   const MyAbsoluteTensor tensor(1, 4, 2, 5, 3, 6);
-  EXPECT_EQ((tensor - getTensor()).getQuantities(), tensor.getQuantities() - getTensor().getQuantities());
+  const auto result{tensor.getQuantities() - getTensor().getQuantities()};
+  EXPECT_EQ(difference(tensor, getTensor()).getQuantities(), result);
+  EXPECT_EQ((tensor - getTensor()).getQuantities(), result);
 }
 
 TEST(TestTensor, DifferenceRelativeAndAbsolute) {  // NOLINT
@@ -335,13 +318,7 @@ TEST(TestTensor, DifferenceRelativeAndAbsolute) {  // NOLINT
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Unit.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
+#include "Unit.hpp"
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
@@ -372,10 +349,43 @@ int main() {
 TEST_F(TestTensorF, DifferenceAbsoluteAndAbsolute) {  // NOLINT
   using MyAbsoluteTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   const MyAbsoluteTensor tensor(1, 4, 2, 5, 3, 6);
-  EXPECT_EQ((tensor - tensor).getQuantities(), tensor.getQuantities() - tensor.getQuantities());
+  const auto result{tensor.getQuantities() - tensor.getQuantities()};
+  EXPECT_EQ(difference(tensor, tensor).getQuantities(), result);
+  EXPECT_EQ((tensor - tensor).getQuantities(), result);
 }
 
-TEST(TestTensor2, ProductQuantity) {  // NOLINT
+TEST(TestTensor2, ProductWithBuiltinValue) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MyValue = int;
+  const MyValue value{2};
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensor result(values * value);
+  EXPECT_EQ(product(tensor, value), result);
+  EXPECT_EQ(product(value, tensor), result);
+  EXPECT_EQ(tensor * value, result);
+  EXPECT_EQ(value * tensor, result);
+}
+
+TEST(TestTensor2, ProductWithValue) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  const ValueI value{2};
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensor result(values * value);
+  EXPECT_EQ(product(tensor, value), result);
+  EXPECT_EQ(product(value, tensor), result);
+  EXPECT_EQ(tensor * value, result);
+  EXPECT_EQ(value * tensor, result);
+}
+
+TEST(TestTensor2, ProductWithQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
@@ -388,11 +398,73 @@ TEST(TestTensor2, ProductQuantity) {  // NOLINT
   const LengthQuantityI quantity(value);
   const MyValueMatrix values(1, 2, 3, 4);
   const MyTensor tensor(values);
-  EXPECT_EQ(tensor * quantity, MyTensorResult(values * value));
-  EXPECT_EQ(quantity * tensor, MyTensorResult(values * value));
+  const MyTensorResult result(values * value);
+  EXPECT_EQ(product(tensor, quantity), result);
+  EXPECT_EQ(product(quantity, tensor), result);
+  EXPECT_EQ(tensor * quantity, result);
+  EXPECT_EQ(quantity * tensor, result);
 }
 
-TEST(TestTensor2, ProductValue) {  // NOLINT
+TEST(TestTensor2, ProductWithQuantities) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MyValue = int;
+  using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
+  const MyValue value{2};
+  const MyQuantityMatrix quantities(value);
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensorResult result(values * value);
+  EXPECT_EQ(product(tensor, quantities), result);
+  EXPECT_EQ(product(quantities, tensor), result);
+  EXPECT_EQ(tensor * quantities, result);
+  EXPECT_EQ(quantities * tensor, result);
+}
+
+TEST(TestTensor2, ProductWith1x1Tensor) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MyValueMatrix1x1 = ValueMatrix<int, 1, 1>;
+  using MyQuantity = Quantity<MyValueMatrix1x1, Length>;
+  using MyTensor1x1 = Tensor<1, 0, MyQuantity, CoordinateSystemA, Relative>;
+  using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
+  using MyValue = int;
+  const MyValue value{2};
+  const LengthQuantityI quantity(value);
+  const MyTensor1x1 tensor1x1(quantity);
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensorResult result(values * value);
+  EXPECT_EQ(product(tensor, tensor1x1), result);
+  EXPECT_EQ(product(tensor1x1, tensor), result);
+  EXPECT_EQ(tensor * tensor1x1, result);
+  EXPECT_EQ(tensor1x1 * tensor, result);
+}
+
+TEST(TestTensor2, ProductWithTensor) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MyUnitMatrixResult = TypeMatrix<2, 2, Area>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensorResult result(values * values);
+  EXPECT_EQ(product(tensor, tensor), result);
+  EXPECT_EQ(tensor * tensor, result);
+}
+
+TEST(TestTensor2, DivisionWithBuiltinValue) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
@@ -401,11 +473,25 @@ TEST(TestTensor2, ProductValue) {  // NOLINT
   const MyValue value{2};
   const MyValueMatrix values(1, 2, 3, 4);
   const MyTensor tensor(values);
-  EXPECT_EQ(tensor * value, MyTensor(values * value));
-  EXPECT_EQ(value * tensor, MyTensor(values * value));
+  const MyTensor result(values / value);
+  EXPECT_EQ(division(tensor, value), result);
+  EXPECT_EQ(tensor / value, result);
 }
 
-TEST(TestTensor2, DivisionQuantity) {  // NOLINT
+TEST(TestTensor2, DivisionWithValue) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  const ValueI value{2};
+  const MyValueMatrix values(1, 2, 3, 4);
+  const MyTensor tensor(values);
+  const MyTensor result(values / value);
+  EXPECT_EQ(division(tensor, value), result);
+  EXPECT_EQ(tensor / value, result);
+}
+
+TEST(TestTensor2, DivisionWithQuantity) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
@@ -418,27 +504,54 @@ TEST(TestTensor2, DivisionQuantity) {  // NOLINT
   const LengthQuantityI quantity(value);
   const MyValueMatrix values(1, 2, 3, 4);
   const MyTensor tensor(values);
-  EXPECT_EQ(tensor / quantity, MyTensorResult(values / value));
+  const MyTensorResult result(values / value);
+  EXPECT_EQ(division(tensor, quantity), result);
+  EXPECT_EQ(tensor / quantity, result);
 }
 
-TEST(TestTensor2, DivisionValue) {  // NOLINT
+TEST(TestTensor2, DivisionWith1x1Tensor) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-  using MyValue = int;
-  const MyValue value{2};
+  using MyValueMatrix1x1 = ValueMatrix<int, 1, 1>;
+  using MyQuantity = Quantity<MyValueMatrix1x1, Length>;
+  using MyTensor1x1 = Tensor<1, 0, MyQuantity, CoordinateSystemA, Relative>;
+  using MyUnitMatrixResult = TypeMatrix<2, 2, Dimensionless>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
+  const int value{2};
+  const MyTensor1x1 tensor1x1(value);
   const MyValueMatrix values(1, 2, 3, 4);
   const MyTensor tensor(values);
-  EXPECT_EQ(tensor / value, MyTensor(values / value));
+  const MyTensorResult result(values / value);
+  EXPECT_EQ(division(tensor, tensor1x1), result);
+  EXPECT_EQ(tensor / tensor1x1, result);
 }
 
-TEST(TestTensor2, Dot) {  // NOLINT
+TEST(TestTensor2, DotProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-  EXPECT_EQ(MyTensor(1, 2, 3, 4).dotProduct(MyTensor(0, 3, -1, 2)), AreaQuantityI(11));
+  const MyTensor lhs(1, 2, 3, 4);
+  const MyTensor rhs(0, 3, -1, 2);
+  const AreaQuantityI result(11);
+  EXPECT_EQ(lhs.dotProduct(rhs), result);
+}
+
+TEST(TestTensor2, CrossProduct) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 3, 1>;
+  using MyUnitMatrix = TypeMatrix<3, 1, Length>;
+  using MyUnitMatrixResult = TypeMatrix<3, 1, Area>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
+  using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
+  const MyTensor lhs(1, 2, 3);
+  const MyTensor rhs(-1, 3, 4);
+  const MyTensorResult result(-1, -7, 5);
+  EXPECT_EQ(lhs.crossProduct(rhs), result);
 }
 
 TEST(TestTensor2, DotBadFrames) {  // NOLINT
@@ -447,13 +560,7 @@ TEST(TestTensor2, DotBadFrames) {  // NOLINT
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
+#include "Unit.hpp"
 
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
 #include "wuzp_eigen/ValueMatrix.hpp"
@@ -482,13 +589,13 @@ int main() {
 }
 
 TEST(TestTensor2, Norm) {  // NOLINT
-  const PositionVector3<ValueMatrix, int, CoordinateSystemA> vector(-1, 2, 3);
-  EXPECT_EQ(vector.norm(), LengthQuantityI(vector.getValues().getImplementation().norm()));
+  const PositionVector3<ValueMatrix, int, CoordinateSystemA> vector(3, 0, 4);
+  EXPECT_EQ(vector.norm(), LengthQuantityI(5));
 }
 
 TEST(TestTensor2, SquaredNorm) {  // NOLINT
-  const PositionVector3<ValueMatrix, int, CoordinateSystemA> vector(-1, 2, 3);
-  EXPECT_EQ(vector.squaredNorm(), SquaredLengthQuantityI(vector.getValues().getImplementation().squaredNorm()));
+  const PositionVector3<ValueMatrix, int, CoordinateSystemA> vector(3, 0, 4);
+  EXPECT_EQ(vector.squaredNorm(), SquaredLengthQuantityI(25));
 }
 
 TEST(TestTensor2, Determinant) {  // NOLINT
@@ -497,7 +604,7 @@ TEST(TestTensor2, Determinant) {  // NOLINT
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 1, MyQuantityMatrix, CoordinateSystemA, Relative>;
   const MyTensor tensor(-1, 2, 3, 1);
-  EXPECT_EQ(tensor.determinant(), LengthQuantityI(tensor.getValues().getImplementation().determinant()));
+  EXPECT_EQ(tensor.determinant(), LengthQuantityI(-7));
 }
 
 #endif
