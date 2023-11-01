@@ -52,7 +52,7 @@ void createFile(const std::string& name, const std::string& content) {
   std::ofstream file;
   file.open(name);
   if (!file.is_open()) {
-    throw std::runtime_error("Failed to open file.");
+    throw std::runtime_error{"Failed to open file."};
   }
   file << content;
   file.close();
@@ -61,27 +61,27 @@ void createFile(const std::string& name, const std::string& content) {
 std::pair<int, std::string> exec(const char* cmd) {
   std::array<char, 128> buffer{};
   std::string stdOut;
-  FILE* pipe = popen(cmd, "r");
+  FILE* pipe{popen(cmd, "r")};
   if (pipe == nullptr) {
-    throw std::runtime_error("popen() failed.");
+    throw std::runtime_error{"popen() failed."};
   }
   while (feof(pipe) == 0) {
     if (fgets(buffer.data(), 128, pipe) != nullptr) {
       stdOut += buffer.data();
     }
   }
-  const int ret = pclose(pipe);
+  const int ret{pclose(pipe)};
   return {ret, stdOut};
 }
 
 std::pair<bool, std::string> compile(const std::string& code) {
-  const std::string directory = std::string{"test_compilation_"} + std::to_string(std::hash<std::string>()(code));
+  const std::string directory{std::string{"test_compilation_"} + std::to_string(std::hash<std::string>{}(code))};
   std::filesystem::create_directories(directory);
   createFile(directory + "/CMakeLists.txt", getCMakeListsContent());
   createFile(directory + "/test.cpp", code);
-  const auto result = exec((std::string{"cd "} + directory +
-                            " && cmake -D CMAKE_C_COMPILER=" TO_STRING(CMAKE_C_COMPILER) " -D CMAKE_CXX_COMPILER=" TO_STRING(
-                                CMAKE_CXX_COMPILER) " . && make 2>&1")
-                               .c_str());
+  const auto result{exec((std::string{"cd "} + directory +
+                          " && cmake -D CMAKE_C_COMPILER=" TO_STRING(CMAKE_C_COMPILER) " -D CMAKE_CXX_COMPILER=" TO_STRING(
+                              CMAKE_CXX_COMPILER) " . && make 2>&1")
+                             .c_str())};
   return {result.first == EXIT_SUCCESS, result.second};
 }

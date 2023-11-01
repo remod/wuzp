@@ -25,7 +25,7 @@ class ValuesWrapper {
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) ValuesWrapper(T0&& t0, Ts&&... ts)
-      : ValuesWrapper(typename GetTag<ThisT, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
+      : ValuesWrapper(typename GetTag<ThisT, T0, Ts...>::type{}, std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
   static ThisT zero() { return Zero<ThisT>::value(); }
   static ThisT random() { return Random<ThisT>::value(); }
@@ -83,7 +83,7 @@ class ValuesWrapper {
   }
 
   auto transpose() const {
-    return typename Transpose<ThisT>::type(Transpose<AccessImplementation<ImplementationT>>::value(implementation_));
+    return typename Transpose<ThisT>::type{Transpose<AccessImplementation<ImplementationT>>::value(implementation_)};
   }
 
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
@@ -127,9 +127,9 @@ class ValuesWrapper {
     return implementation_.matrix().determinant();
   }
 
-  auto inverse() const { return typename Inverse<ThisT>::type(Inverse<AccessImplementation<ImplementationT>>::value(implementation_)); }
+  auto inverse() const { return typename Inverse<ThisT>::type{Inverse<AccessImplementation<ImplementationT>>::value(implementation_)}; }
   auto tensorInverse() const {
-    return typename TensorInverse<ThisT>::type(TensorInverse<AccessImplementation<ImplementationT>>::value(implementation_));
+    return typename TensorInverse<ThisT>::type{TensorInverse<AccessImplementation<ImplementationT>>::value(implementation_)};
   }
 
   ThisT& setImplementation(const ImplementationT& implementation) {
@@ -139,7 +139,7 @@ class ValuesWrapper {
   ImplementationT& implementation() { return implementation_; }
   const ImplementationT& getImplementation() const { return implementation_; }
 
-  auto evaluate() const { return typename Evaluate<ThisT>::type(Evaluate<AccessImplementation<ImplementationT>>::value(implementation_)); }
+  auto evaluate() const { return typename Evaluate<ThisT>::type{Evaluate<AccessImplementation<ImplementationT>>::value(implementation_)}; }
 
  private:
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>

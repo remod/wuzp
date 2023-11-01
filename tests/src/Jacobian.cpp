@@ -25,9 +25,9 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
                                   AngleOverLength, AngleOverLength, Dimensionless, Dimensionless, Dimensionless, LengthOverAngle>;
   using TransformedObject =
       Vector<Quantities<ValueMatrix<double, ToDimension, 1>, TypeMatrix<ToDimension, 1, AngularVelocity, Velocity>>, CoordinateSystemB>;
-  const Object object(1.0, 2.0, 3.0);
-  const TransformedObject transformedObject(14.0, 32.0);
-  const Transformation transformation(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+  const Object object{1.0, 2.0, 3.0};
+  const TransformedObject transformedObject{14.0, 32.0};
+  const Transformation transformation{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
@@ -45,9 +45,9 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
                                    Quantities<ValueMatrix<double, ToDimension, ToDimension>,
                                               TypeMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>>,
                                    CoordinateSystemB, Relative>;
-  const Object object(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
-  const TransformedObject transformedObject(1.0, 2.0, 3.0, 4.0);
-  const Transformation transformation(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+  const Object object{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
+  const TransformedObject transformedObject{1.0, 2.0, 3.0, 4.0};
+  const Transformation transformation{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
   // TODO(remod): Jacobian::inverse() does not exist yet.
   //  EXPECT_EQ(transformation.transform(object), transformedObject);
 }
