@@ -229,7 +229,7 @@ struct CastCoordinateSystem {
 // TODO(remod): turn this (and other free functions?) into a member
 template <typename To, typename T>
 auto castCoordinateSystem(T t) {
-  return typename CastCoordinateSystem<T, To>::type(t.getValues());
+  return typename CastCoordinateSystem<T, To>::type{t.getValues()};
 }
 
 template <typename ImplementationT_, typename MatrixSizeT_>
