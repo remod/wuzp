@@ -59,11 +59,11 @@ struct TransformationTraits<PassiveTranslation<ValuesT_, Dimension, Value, Coord
           fromResult.template setQuantity(row, col, fromResult.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
         }
       }
-      const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(fromResult.getQuantities());
+      const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type{fromResult.getQuantities()};
       return toResult.evaluate();
     } else {
       const auto fromResult = object;
-      const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type(fromResult.getQuantities());
+      const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type{fromResult.getQuantities()};
       return toResult.evaluate();
     }
   }

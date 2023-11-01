@@ -36,7 +36,7 @@ class Quantities {
   template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) Quantities(T0&& t0, Ts&&... ts)
-      : Quantities(typename GetTag<ThisT, T0, Ts...>::type(), std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
+      : Quantities(typename GetTag<ThisT, T0, Ts...>::type{}, std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
   static ThisT zero() { return ThisT(ValuesT::zero()); }
   static ThisT random() { return ThisT(ValuesT::random()); }
@@ -48,12 +48,12 @@ class Quantities {
 
   template <int RowId, int ColId, int Dimension = Dimension<ThisT>::value>
   auto get() const {
-    return typename Element<ThisT, RowId, ColId>::type(values_.template get<RowId, ColId>());
+    return typename Element<ThisT, RowId, ColId>::type{values_.template get<RowId, ColId>()};
   }
 
   template <int Dimension = Dimension<ThisT>::value>
   auto get(const int rowId, const int colId) const {
-    return typename GetType<ThisT>::type(values_.get(rowId, colId));
+    return typename GetType<ThisT>::type{values_.get(rowId, colId)};
   }
 
   template <typename ValueT_, typename UnitT_, int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
@@ -96,11 +96,7 @@ class Quantities {
    * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
    * @return ValueMatrix of the quantities.
    */
-  const ValuesT& getValues() const {
-    std::cout << "getValues" << std::endl;
-    std::cout << values_ << std::endl;
-    return values_;
-  }
+  const ValuesT& getValues() const { return values_; }
 
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
   ValueT getValue() const {
@@ -120,35 +116,35 @@ class Quantities {
         values_.template getBlock<BlockRowId, BlockColId, BlockRows, BlockCols>());
   }
 
-  auto transpose() const { return typename Transpose<ThisT>::type(values_.transpose()); }
+  auto transpose() const { return typename Transpose<ThisT>::type{values_.transpose()}; }
 
   // TODO(remod): Either a) remove methods, or b) remove free functions or c) make them re-use each other.
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto tensorProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename TensorProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type(values_.tensorProduct(other.getValues()));
+    return typename TensorProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.tensorProduct(other.getValues())};
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto contraction(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename Contraction<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type(values_.contraction(other.getValues()));
+    return typename Contraction<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.contraction(other.getValues())};
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto dotProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename DotProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type(values_.dotProduct(other.getValues()));
+    return typename DotProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.dotProduct(other.getValues())};
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto crossProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename CrossProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type(values_.crossProduct(other.getValues()));
+    return typename CrossProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.crossProduct(other.getValues())};
   }
 
-  auto inverse() const { return typename Inverse<ThisT>::type(values_.inverse()); }
-  auto tensorInverse() const { return typename TensorInverse<ThisT>::type(values_.tensorInverse()); }
+  auto inverse() const { return typename Inverse<ThisT>::type{values_.inverse()}; }
+  auto tensorInverse() const { return typename TensorInverse<ThisT>::type{values_.tensorInverse()}; }
 
-  auto norm() const { return typename GetType<ThisT>::type(values_.norm()); }
+  auto norm() const { return typename GetType<ThisT>::type{values_.norm()}; }
 
-  auto squaredNorm() const { return typename Power<typename GetType<ThisT>::type, Integer<2>>::type(values_.squaredNorm()); }
+  auto squaredNorm() const { return typename Power<typename GetType<ThisT>::type, Integer<2>>::type{values_.squaredNorm()}; }
 
   /**
    * Get the determinant.
@@ -156,10 +152,10 @@ class Quantities {
    */
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 2>>
   auto determinant() const {
-    return typename GetType<ThisT>::type(values_.determinant());
+    return typename GetType<ThisT>::type{values_.determinant()};
   }
 
-  auto evaluate() const { return typename Evaluate<ThisT>::type(values_.evaluate()); }
+  auto evaluate() const { return typename Evaluate<ThisT>::type{values_.evaluate()}; }
 
  private:
   template <typename ValuesOtherT_, typename UnitsOtherT_>
@@ -307,7 +303,7 @@ struct Evaluate<Quantities<ValuesT_, UnitsT_>> {
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto sum(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return
-      typename Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(sum(lhs.getValues(), rhs.getValues()));
+      typename Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type{sum(lhs.getValues(), rhs.getValues())};
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto operator+(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
