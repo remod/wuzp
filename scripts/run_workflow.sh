@@ -12,7 +12,7 @@ set -e
 # Check arguments.
 if [ $# -lt 3 ] || [ $# -gt 5 ]; then
   echo "Number of arguments is incorrect: $*"
-  echo "Usage: ./run_workflow.sh GPG_SIGNING_KEY_FILE GPG_SIGNING_KEYGRIP GPG_SIGNING_KEY_PASSPHRASE [SKIP_CHECK_FORMAT=false] [DOCKER_IMAGE=ubuntu:20.04]"
+  echo "Usage: ./run_workflow.sh GPG_SIGNING_KEY_FILE GPG_SIGNING_KEYGRIP GPG_SIGNING_KEY_PASSPHRASE [SKIP_CHECK_FORMAT=false] [DOCKER_IMAGE=ubuntu:22.04]"
   exit 1
 fi
 
@@ -27,7 +27,7 @@ fi
 if [ $# -ge 5 ]; then
   DOCKER_IMAGE=${5}
 else
-  DOCKER_IMAGE="ubuntu:20.04"
+  DOCKER_IMAGE="ubuntu:22.04"
   docker pull ${DOCKER_IMAGE}
 fi
 

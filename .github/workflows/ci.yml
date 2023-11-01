@@ -15,7 +15,7 @@ env:  # Note: Nested environment variables are not supported.
 
 jobs:
   check_format:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       BUILD_DIR: ${{github.workspace}}/tmp/wuzp/check_format
       BUILD_TYPE: Debug
@@ -41,7 +41,7 @@ jobs:
       - name: Check Format
         run: ${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
   check_package_versions:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         PACKAGE_NAME: ["wuzp", "wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
@@ -86,7 +86,7 @@ jobs:
         name: Check Package Version
         run: ${REPO_DIR}/scripts/common_steps/check_package_version.sh ${{env.GH_MASTER_PACKAGE_VERSION}} ${{env.GH_BRANCH_PACKAGE_VERSION}}
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
@@ -131,7 +131,7 @@ jobs:
         path: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}
   merge_code_coverage:
     needs: test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       BUILDS_DIR: ${{github.workspace}}/tmp/wuzp/test
       CODE_COVERAGE_DIR: ${{github.workspace}}/tmp/wuzp/code_coverage
@@ -171,7 +171,7 @@ jobs:
         chmod +x codecov
         ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${CODE_COVERAGE_DIR}/coverage.txt
   package_wuzp:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         PACKAGE_NAME: ["wuzp"]
@@ -224,7 +224,7 @@ jobs:
           path: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
   package_extensions:
     needs: package_wuzp
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         PACKAGE_NAME: ["wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
@@ -284,7 +284,7 @@ jobs:
           path: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
   test_packages:
     needs: [package_wuzp, package_extensions]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
@@ -345,7 +345,7 @@ jobs:
         run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
   deliver:
     needs: [check_format, check_package_versions, test, test_packages]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         PACKAGE_NAME: ["wuzp", "wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
