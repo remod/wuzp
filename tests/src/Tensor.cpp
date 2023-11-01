@@ -284,7 +284,7 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 using namespace wuzp;
 
 struct CoordinateSystemAName {};
-using CoordinateSystemA = wuzp::CoordinateSystem<CoordinateSystemAName>;
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
@@ -332,7 +332,7 @@ using ValueMatrix = wuzp_eigen::ValueMatrix<ValueT, Rows, Cols>;
 using namespace wuzp;
 
 struct CoordinateSystemAName {};
-using CoordinateSystemA = wuzp::CoordinateSystem<CoordinateSystemAName>;
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
 using MyValueMatrix = ValueMatrix<int, 2, 3>;
 using MyUnitMatrix = TypeMatrix<2, 3, Length>;
 using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
@@ -418,7 +418,7 @@ TEST(TestTensor2, ProductWithQuantities) {  // NOLINT
   using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
   using MyTensorResult = Tensor<1, 0, MyQuantityMatrixResult, CoordinateSystemA, Relative>;
   const MyValue value{2};
-  const MyQuantityMatrix quantities{value};
+  const MyQuantityMatrix quantities{value, value, value, value};
   const MyValueMatrix values{1, 2, 3, 4};
   const MyTensor tensor{values};
   const MyTensorResult result{values * value};
@@ -584,7 +584,7 @@ using MyTensorLhs = Vector<MyQuantityMatrix, CoordinateSystemA>;
 using MyTensorRhs = Vector<MyQuantityMatrix, CoordinateSystemB>;
 
 int main() {
-  MyTensorLhs(1, 2, 3, 4).dotProduct(MyTensorRhs(0, 3, -1, 2));
+  MyTensorLhs{1, 2, 3, 4}.dotProduct(MyTensorRhs{0, 3, -1, 2});
   return 0;
 }
 )",

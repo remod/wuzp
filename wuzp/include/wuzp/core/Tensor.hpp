@@ -660,8 +660,8 @@ auto division(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, Quantit
               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
   return typename Division<
       Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
-      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>>::type{lhs.getValues(} /
-                                                                                                                         rhs.getValues());
+      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>>::type{lhs.getValues() /
+                                                                                                                         rhs.getValues()};
 }
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, typename ValueRhsT_>

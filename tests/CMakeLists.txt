@@ -98,17 +98,17 @@ if(${ENABLE_TESTS})
         src/ValuesWrapper.cpp
         src/Quantity.cpp
         src/Quantities.cpp
-        # src/Tensor.cpp
-        # src/ActiveTranslation.cpp
-        # src/PassiveTranslation.cpp
-        # src/ActiveRotation.cpp
-        # src/PassiveRotation.cpp
-        # src/Jacobian.cpp
-        # src/ActiveProperRigidTransformation.cpp
-        # src/PassiveProperRigidTransformation.cpp
-        # src/LorentzTransformation.cpp
-        # src/RigidBodyKinematics.cpp
-        # src/RotatingDumbbell.cpp
+        src/Tensor.cpp
+        src/ActiveTranslation.cpp
+        src/PassiveTranslation.cpp
+        src/ActiveRotation.cpp
+        src/PassiveRotation.cpp
+        src/Jacobian.cpp
+        src/ActiveProperRigidTransformation.cpp
+        src/PassiveProperRigidTransformation.cpp
+        src/LorentzTransformation.cpp
+        src/RigidBodyKinematics.cpp
+        src/RotatingDumbbell.cpp
     )
     target_compile_definitions(tests PRIVATE REPO_DIR=${REPO_DIR})
     target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)
