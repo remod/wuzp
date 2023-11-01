@@ -22,6 +22,7 @@ std::string getCMakeListsContent() {
          "add_compile_definitions(VALUES_IMPLEMENTATION=" TO_STRING(VALUES_IMPLEMENTATION) ")\n"
          "add_compile_definitions(VALUES_IMPLEMENTATION_WUZP=" TO_STRING(VALUES_IMPLEMENTATION_WUZP) ")\n"
          "add_compile_definitions(VALUES_IMPLEMENTATION_EIGEN=" TO_STRING(VALUES_IMPLEMENTATION_EIGEN) ")\n"
+         "add_compile_definitions(VALUES_IMPLEMENTATION_BLITZ=" TO_STRING(VALUES_IMPLEMENTATION_BLITZ) ")\n"
          "\n"
          "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp wuzp_build)\n"
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
@@ -29,15 +30,20 @@ std::string getCMakeListsContent() {
 #endif
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
          "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_eigen wuzp_eigen_build)\n"
+#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
+         "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_blitz wuzp_blitz_build)\n"
 #endif
          "\n"
          "add_executable(tests test.cpp)\n"
+         "target_include_directories(tests PRIVATE " TO_STRING(REPO_DIR) "/tests/src)\n"
          "target_link_libraries(tests PRIVATE wuzp)\n"
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
          "target_link_libraries(tests PRIVATE wuzp_boost)\n"
 #endif
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
          "target_link_libraries(tests PRIVATE wuzp_eigen)\n"
+#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
+         "target_link_libraries(tests PRIVATE wuzp_blitz)\n"
 #endif
       ;
 }

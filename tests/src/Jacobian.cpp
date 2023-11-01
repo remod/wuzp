@@ -7,20 +7,10 @@
 
 #include "coordinate_systems.hpp"
 
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
+
 using namespace wuzp;  // NOLINT
-
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 
 TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   constexpr int FromDimension = 3;
@@ -61,5 +51,3 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   // TODO(remod): Jacobian::inverse() does not exist yet.
   //  EXPECT_EQ(transformation.transform(object), transformedObject);
 }
-
-#endif

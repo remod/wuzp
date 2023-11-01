@@ -5,17 +5,8 @@
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-namespace units = wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-namespace units = wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-namespace values = wuzp_eigen;
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
 
 // From https://en.wikipedia.org/wiki/Mass_matrix#Rotating_dumbbell
 struct CartesianCoordinateSystemName {};
@@ -156,7 +147,7 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
                               massMatrix12, massMatrix22);
 
   const EnergyQuantity energyMinimalCoordinates2 =
-      0.5 * (minimalCoordinatesDt.transpose() * (massMatrix * minimalCoordinatesDt)).getQuantity();
+      0.5 * contraction(minimalCoordinatesDt.transpose(), contraction(massMatrix, minimalCoordinatesDt)).getQuantity();
 
   EXPECT_TRUE(energyCartesianCoordinates.isApprox(energyMinimalCoordinates1));
   EXPECT_TRUE(energyMinimalCoordinates1.isApprox(energyMinimalCoordinates2));

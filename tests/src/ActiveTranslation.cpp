@@ -2,25 +2,15 @@
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
-#include "wuzp/trafo/ActiveRotation.hpp"
+#include "wuzp/trafo/ActiveSpatialRotation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
 
 #include "coordinate_systems.hpp"
 
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
+
 using namespace wuzp;  // NOLINT
-
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
-
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Scalar, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Scalar, Rows, Cols>;
 
 TEST(TestActiveTranslation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
@@ -83,5 +73,3 @@ TEST(TestActiveTranslation, TransformActiveRotation) {  // NOLINT
   const Transformation transformation(0.0, 0.0, 1.0);  // Active translation of 1 along z.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
-
-#endif

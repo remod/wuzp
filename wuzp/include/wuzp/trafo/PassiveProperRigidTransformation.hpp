@@ -1,7 +1,7 @@
 #pragma once
 
 #include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/trafo/PassiveRotation.hpp"
+#include "wuzp/trafo/PassiveSpatialRotation.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
 #include "wuzp/trafo/PassiveTranslation.hpp"
 #include "wuzp/trafo/internal/intermediate_coordinate_system.hpp"
@@ -35,15 +35,15 @@ class PassiveProperRigidTransformationTemplate
 };
 
 template <template <typename, int, int> typename ValuesT_, int Dimension, typename CoordinateSystem, typename From, typename To,
-          typename Scalar>
+          typename Value>
 using PassiveProperRigidTransformation = PassiveProperRigidTransformationTemplate<
     CoordinateSystem, From, To,
-    PassiveSpatialRotation<ValuesT_, Scalar, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
-    PassiveSpatialTranslation<ValuesT_, Dimension, Scalar, CoordinateSystem, internal::Intermediate<From, To>, To>>;
-template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename From, typename To, typename Scalar>
-using PassiveProperRigidTransformation2 = PassiveProperRigidTransformation<ValuesT_, 2, CoordinateSystem, From, To, Scalar>;
-template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename From, typename To, typename Scalar>
-using PassiveProperRigidTransformation3 = PassiveProperRigidTransformation<ValuesT_, 3, CoordinateSystem, From, To, Scalar>;
+    PassiveSpatialRotation<ValuesT_, Value, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
+    PassiveSpatialTranslation<ValuesT_, Dimension, Value, CoordinateSystem, internal::Intermediate<From, To>, To>>;
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename From, typename To, typename Value>
+using PassiveProperRigidTransformation2 = PassiveProperRigidTransformation<ValuesT_, 2, CoordinateSystem, From, To, Value>;
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename From, typename To, typename Value>
+using PassiveProperRigidTransformation3 = PassiveProperRigidTransformation<ValuesT_, 3, CoordinateSystem, From, To, Value>;
 
 template <typename CoordinateSystem, typename From, typename To, typename Rotation, typename Translation, typename Object>
 struct TransformationTraits<PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>, Object> {

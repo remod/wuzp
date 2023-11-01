@@ -2,18 +2,13 @@
 
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/Rational.hpp"
+#include "wuzp/core/Type.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 
 #include "test_compilation_error.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
+#include "Unit.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -97,46 +92,68 @@ int main() {
 )",
                                                                                    "Type mismatch.")}
 
-TEST(TestTypeMatrix, Product1) {  // NOLINT
-  using A = TypeMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
-  using B = TypeMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
-  using C = TypeMatrix<2, 2, Integer<4>, Integer<2>, Integer<10>, Integer<12>>;
-  static_assert(std::is_same<Product<A, B>::type, C>::value);
-}
-
-TEST(TestTypeMatrix, Product2) {  // NOLINT
-  using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
-  using B = TypeMatrix<4, 1, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
-  using C = TypeMatrix<1, 1, Integer<17>>;
-  static_assert(std::is_same<Product<A, B>::type, C>::value);
-}
-
-TEST(TestTypeMatrix, Product3) {  // NOLINT
+TEST(TestTypeMatrix, ProductWithTypeOnRhs) {  // NOLINT
   using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using B = Integer<3>;
   using C = TypeMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
   static_assert(std::is_same<Product<A, B>::type, C>::value);
 }
 
-TEST(TestTypeMatrix, Product4) {  // NOLINT
+TEST(TestTypeMatrix, ProductWithTypeOnLhs) {  // NOLINT
   using A = Integer<3>;
   using B = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using C = TypeMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
   static_assert(std::is_same<Product<A, B>::type, C>::value);
 }
 
-TEST(TestTypeMatrix, Product5) {  // NOLINT
+TEST(TestTypeMatrix, ProductWith1x1TypeMatrixOnRhs) {  // NOLINT
   using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using B = TypeMatrix<1, 1, Integer<3>>;
   using C = TypeMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
   static_assert(std::is_same<Product<A, B>::type, C>::value);
 }
 
-TEST(TestTypeMatrix, Product6) {  // NOLINT
+TEST(TestTypeMatrix, ProductWith1x1TypeMatrixOnLhs) {  // NOLINT
   using A = TypeMatrix<1, 1, Integer<3>>;
   using B = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using C = TypeMatrix<1, 4, Integer<0>, Integer<3>, Integer<6>, Integer<9>>;
   static_assert(std::is_same<Product<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, ProductWith1x1TypeMatricesOnLhsAndRhs) {  // NOLINT
+  using A = TypeMatrix<1, 1, Integer<2>>;
+  using B = TypeMatrix<1, 1, Integer<3>>;
+  using C = TypeMatrix<1, 1, Integer<6>>;
+  static_assert(std::is_same<Product<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, Product) {  // NOLINT
+  using A = TypeMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = TypeMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
+  using C = TypeMatrix<2, 2, Integer<0>, Integer<3>, Integer<8>, Integer<6>>;
+  static_assert(std::is_same<Product<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, TensorProduct) {  // NOLINT
+                                       // TODO(remod): Implement
+  //  using A = TypeMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  //  using B = TypeMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
+  //  using C = TypeMatrix<2, 2, Integer<0>, Integer<3>, Integer<8>, Integer<6>>;
+  //  static_assert(std::is_same<TensorProduct<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, Contraction1) {  // NOLINT
+  using A = TypeMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = TypeMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
+  using C = TypeMatrix<2, 2, Integer<4>, Integer<2>, Integer<10>, Integer<12>>;
+  static_assert(std::is_same<Contraction<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, Contraction2) {  // NOLINT
+  using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = TypeMatrix<4, 1, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
+  using C = TypeMatrix<1, 1, Integer<17>>;
+  static_assert(std::is_same<Contraction<A, B>::type, C>::value);
 }
 
 TEST(TestTypeMatrix, DivisionByType) {  // NOLINT
@@ -153,10 +170,17 @@ TEST(TestTypeMatrix, DivisionBy1x1TypeMatrix) {  // NOLINT
   static_assert(std::is_same<Division<A, B>::type, C>::value);
 }
 
+TEST(TestTypeMatrix, Division) {  // NOLINT
+  using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
+  using B = TypeMatrix<1, 4, Integer<2>, Integer<2>, Integer<1>, Rational<1, 2>>;
+  using C = TypeMatrix<1, 4, Integer<0>, Rational<1, 2>, Integer<2>, Integer<6>>;
+  static_assert(std::is_same<Division<A, B>::type, C>::value);
+}
+
 TEST(TestTypeMatrix, DotProduct) {  // NOLINT
   using A = TypeMatrix<4, 1, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using B = TypeMatrix<4, 1, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
-  using C = Integer<17>;
+  using C = Type<Integer<17>>;
   static_assert(std::is_same<DotProduct<A, B>::type, C>::value);
 }
 
@@ -174,7 +198,13 @@ TEST(TestTypeMatrix, Transpose) {  // NOLINT
 }
 
 TEST(TestTypeMatrix, Inverse) {  // NOLINT
-  // The inverse is only implemented for unit matrices, not for rational/integer numbers.
+  using A = TypeMatrix<2, 3, Integer<1>, Integer<2>, Integer<3>, Integer<10>, Rational<1, 2>, Integer<5>>;
+  using B = TypeMatrix<2, 3, Integer<1>, Rational<1, 2>, Rational<1, 3>, Rational<1, 10>, Integer<2>, Rational<1, 5>>;
+  static_assert(std::is_same<Inverse<A>::type, B>::value);
+}
+
+TEST(TestTypeMatrix, TensorInverse) {  // NOLINT
+  // The tensor inverse is only implemented for unit matrices, not for rational/integer numbers.
   using MassLength = Product<Mass, Length>::type;
   using MassLength2 = Product<MassLength, Length>::type;
   using MassInverse = Inverse<Mass>::type;

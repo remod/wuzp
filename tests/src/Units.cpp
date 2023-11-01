@@ -3,13 +3,7 @@
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-#include "wuzp_units/Unit.hpp"
-using namespace wuzp_units;  // NOLINT
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-#include "wuzp_boost/Unit.hpp"
-using namespace wuzp_boost;  // NOLINT
-#endif
+#include "Unit.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -25,8 +19,8 @@ TEST(TestUnitMatrix, Difference) {  // NOLINT
   static_assert(std::is_same<Difference<MyUnitMatrix, MyUnitMatrix>::type, MyUnitMatrix>::value);
 }
 
-TEST(TestUnitMatrix, Product) {  // NOLINT
-  static_assert(std::is_same<Product<TypeMatrix<2, 2, Length>, TypeMatrix<2, 2, Length>>::type, TypeMatrix<2, 2, Area>>::value);
+TEST(TestUnitMatrix, Contraction) {  // NOLINT
+  static_assert(std::is_same<Contraction<TypeMatrix<2, 2, Length>, TypeMatrix<2, 2, Length>>::type, TypeMatrix<2, 2, Area>>::value);
 }
 
 TEST(TestUnitMatrix, Inverse) {  // NOLINT

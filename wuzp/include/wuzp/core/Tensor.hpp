@@ -172,6 +172,23 @@ class Tensor {
 
   auto transpose() const { return typename Transpose<ThisT>::type(quantities_.transpose()); }
 
+  // TODO(remod): Turn this to free functions? https://stackoverflow.com/a/8108821/2968115
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther,
+            typename AbsoluteOtherT>
+  auto tensorProduct(
+      const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, AbsoluteOtherT>& other) const {
+    return typename TensorProduct<ThisT, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther,
+                                                AbsoluteOtherT>>::type(quantities_.tensorProduct(other.getQuantities()));
+  }
+
+  template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther,
+            typename AbsoluteOtherT>
+  auto contraction(
+      const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, AbsoluteOtherT>& other) const {
+    return typename Contraction<ThisT, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther,
+                                              AbsoluteOtherT>>::type(quantities_.contraction(other.getQuantities()));
+  }
+
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther,
             typename AbsoluteOtherT>
   auto dotProduct(
@@ -189,6 +206,7 @@ class Tensor {
   }
 
   auto inverse() const { return typename Inverse<ThisT>::type(quantities_.inverse()); }
+  auto tensorInverse() const { return typename TensorInverse<ThisT>::type(quantities_.tensorInverse()); }
 
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0 || Dimension == 1>>
   auto norm() const {
@@ -212,6 +230,8 @@ class Tensor {
   }
 
   auto hyperdeterminant() const { static_assert(FailOnInstantiation<typeof(ThisT::hyperdeterminant())>::value, "Not implemented"); }
+
+  auto evaluate() const { return typename Evaluate<ThisT>::type(quantities_.evaluate()); }
 
  private:
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther,
@@ -286,46 +306,53 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Quantit
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
 struct Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
                Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
-  // TODO(remod): Do we need to add indices checks?
+  static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
+  static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
   using type =
-      Tensor<ContravariantIndicesLhs - CovariantIndicesRhs, CovariantIndicesLhs - ContravariantIndicesRhs,
-             typename Product<QuantitiesLhsT_, QuantitiesRhsT_>::type, typename Product<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type,
-             typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type>;
+      Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, typename Product<QuantitiesLhsT_, QuantitiesRhsT_>::type,
+             typename Product<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type, typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type>;
 };
+
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
-          typename AbsoluteLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+          typename AbsoluteLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 struct Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
-               Quantity<ValueRhsT_, UnitRhsT_>> {
+               Quantities<ValuesRhsT_, UnitsRhsT_>> {
   using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs,
-                      typename Product<QuantitiesLhsT_, Quantity<ValueRhsT_, UnitRhsT_>>::type, CoordinateSystemLhsT_, AbsoluteLhsT_>;
+                      typename Product<QuantitiesLhsT_, Quantities<ValuesRhsT_, UnitsRhsT_>>::type, CoordinateSystemLhsT_, AbsoluteLhsT_>;
 };
-template <typename ValueLhsT_, typename UnitLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+template <typename ValuesLhsT_, typename UnitsLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
-struct Product<Quantity<ValueLhsT_, UnitLhsT_>,
+struct Product<Quantities<ValuesLhsT_, UnitsLhsT_>,
                Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
   using type = typename Product<Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>,
-                                Quantity<ValueLhsT_, UnitLhsT_>>::type;
+                                Quantities<ValuesLhsT_, UnitsLhsT_>>::type;
 };
 
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
-          typename AbsoluteLhsT_, typename ValueRhsT_, typename UnitRhsT_>
-struct Division<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
-                Quantity<ValueRhsT_, UnitRhsT_>> {
-  using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs,
-                      typename Division<QuantitiesLhsT_, Quantity<ValueRhsT_, UnitRhsT_>>::type, CoordinateSystemLhsT_, AbsoluteLhsT_>;
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+struct TensorProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                     Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
+  static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
+  static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
+  using type =
+      Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, typename TensorProduct<QuantitiesLhsT_, QuantitiesRhsT_>::type,
+             typename Product<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type, typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type>;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
-struct Transpose<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
-  using type = Tensor<ContravariantIndices, CovariantIndices, typename Transpose<QuantitiesT_>::type, CoordinateSystemT_, AbsoluteT_>;
-};
-
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_,
-          int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct Block<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>, BlockRowId, BlockColId,
-             BlockRows, BlockCols> {
-  using type = Tensor<ContravariantIndices, CovariantIndices,
-                      typename Block<QuantitiesT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type, CoordinateSystemT_, AbsoluteT_>;
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+struct Contraction<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                   Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
+  static_assert(ContravariantIndicesLhs >= CovariantIndicesRhs,
+                "LHS contravariant indices must be larger or equal than RHS covariant indices.");
+  static_assert(CovariantIndicesLhs >= ContravariantIndicesRhs,
+                "LHS covariant indices must be larger or equal than RHS contravariant indices.");
+  using type =
+      Tensor<ContravariantIndicesLhs - CovariantIndicesRhs, CovariantIndicesLhs - ContravariantIndicesRhs,
+             typename Contraction<QuantitiesLhsT_, QuantitiesRhsT_>::type,
+             typename Product<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type, typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type>;
 };
 
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
@@ -352,10 +379,47 @@ struct CrossProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, Quantit
   using type = Tensor<1, 0, typename CrossProduct<QuantitiesLhsT_, QuantitiesRhsT_>::type, CoordinateSystemLhsT_, AbsoluteLhsT_>;
 };
 
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+struct Division<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
+  static_assert(ContravariantIndicesLhs == ContravariantIndicesRhs, "Contravariant indices do not match.");
+  static_assert(CovariantIndicesLhs == CovariantIndicesRhs, "Covariant indices do not match.");
+  using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, typename Division<QuantitiesLhsT_, QuantitiesRhsT_>::type,
+                      CoordinateSystemLhsT_, typename Division<AbsoluteLhsT_, AbsoluteRhsT_>::type>;
+};
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+struct Division<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                Quantity<ValueRhsT_, UnitRhsT_>> {
+  using type = Tensor<ContravariantIndicesLhs, CovariantIndicesLhs,
+                      typename Division<QuantitiesLhsT_, Quantity<ValueRhsT_, UnitRhsT_>>::type, CoordinateSystemLhsT_, AbsoluteLhsT_>;
+};
+
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
+struct Transpose<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
+  using type = Tensor<ContravariantIndices, CovariantIndices, typename Transpose<QuantitiesT_>::type, CoordinateSystemT_, AbsoluteT_>;
+};
+
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_,
+          int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+struct Block<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>, BlockRowId, BlockColId,
+             BlockRows, BlockCols> {
+  using type = Tensor<ContravariantIndices, CovariantIndices,
+                      typename Block<QuantitiesT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type, CoordinateSystemT_, AbsoluteT_>;
+};
+
 template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct Inverse<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
+  using type = Tensor<ContravariantIndices, CovariantIndices, typename Inverse<QuantitiesT_>::type, CoordinateSystemT_,
+                      typename Inverse<AbsoluteT_>::type>;
+};
+
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
+struct TensorInverse<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   // TODO(remod): Is this correct?
-  using type = Tensor<CovariantIndices, ContravariantIndices, typename Inverse<QuantitiesT_>::type, CoordinateSystemT_,
+  using type = Tensor<CovariantIndices, ContravariantIndices, typename TensorInverse<QuantitiesT_>::type, CoordinateSystemT_,
                       typename Inverse<AbsoluteT_>::type>;
 };
 
@@ -393,85 +457,228 @@ struct Evaluate<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, Coo
   using type = Tensor<ContravariantIndices, CovariantIndices, typename Evaluate<QuantitiesT_>::type, CoordinateSystemT_, AbsoluteT_>;
 };
 
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
-auto operator+(const Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& rhs) {
-  return rhs;
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto sum(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+         const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return typename Sum<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_,
+                             AbsoluteRhsT_>>::type(sum(lhs.getQuantities(), rhs.getQuantities()));
 }
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
 auto operator+(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
-  return typename Sum<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
-                      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_,
-                             AbsoluteRhsT_>>::type(lhs.getQuantities() + rhs.getQuantities());
+  return sum(lhs, rhs);
 }
 
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
-auto operator-(const Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& rhs) {
-  return Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>(-rhs.getQuantities());
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto difference(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return typename Difference<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                             Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_,
+                                    AbsoluteRhsT_>>::type(difference(lhs.getQuantities(), rhs.getQuantities()));
 }
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
 auto operator-(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
-  return typename Difference<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
-                             Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_,
-                                    AbsoluteRhsT_>>::type(lhs.getQuantities() - rhs.getQuantities());
+  return difference(lhs, rhs);
+}
+
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
+auto negation(const Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& rhs) {
+  return Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>(negation(rhs.getQuantities()));
+}
+template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
+auto operator-(const Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& rhs) {
+  return negation(rhs);
 }
 
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, typename ValueRhsT_>
+auto product(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+             const ValueRhsT_ rhs) {
+  // Evaluate to avoid returning an expression on a temporary object.
+  return product(lhs, Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
+                               typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs))
+      .evaluate();
+}
+template <typename ValueLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto product(const ValueLhsT_ lhs,
+             const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return product(rhs, lhs);
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
+auto product(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+             const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
+  // Evaluate to avoid returning an expression on a temporary object.
+  return product(lhs, Quantities<ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>,
+                                 TypeMatrix<Rows<MatrixSizeRhsT_>::value, Cols<MatrixSizeRhsT_>::value,
+                                            typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>>(rhs))
+      .evaluate();
+}
+template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs,
+          typename QuantitiesRhsT_, typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto product(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs,
+             const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return product(rhs, lhs);
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto product(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+             const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                          Quantities<ValuesRhsT_, UnitsRhsT_>>::type(product(lhs.getQuantities(), rhs));
+}
+template <typename ValuesLhsT_, typename UnitsLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs,
+             const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return product(rhs, lhs);
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto product(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+             const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return typename Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                          Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_,
+                                 AbsoluteRhsT_>>::type(product(lhs.getQuantities(), rhs.getQuantities()));
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, typename ValueRhsT_>
 auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const ValueRhsT_ rhs) {
-  // Evaluate to avoid returning an expression on a temporary object.
-  return evaluate(lhs * Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
-                                 typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs));
+  return product(lhs, rhs);
 }
 template <typename ValueLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
 auto operator*(const ValueLhsT_ lhs,
                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
-  return rhs * lhs;
+  return product(lhs, rhs);
 }
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
-          typename AbsoluteLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+          typename AbsoluteLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
 auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
-               const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
-  return typename Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
-                          Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getQuantities() * rhs);
+               const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
+  return product(lhs, rhs);
 }
-template <typename ValueLhsT_, typename UnitLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
-          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
-auto operator*(const Quantity<ValueLhsT_, UnitLhsT_>& lhs,
+template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs,
+          typename QuantitiesRhsT_, typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto operator*(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs,
                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
-  return rhs * lhs;
+  return product(lhs, rhs);
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+               const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return product(lhs, rhs);
+}
+template <typename ValuesLhsT_, typename UnitsLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs,
+               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return product(lhs, rhs);
 }
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
 auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
-  return typename Product<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
-                          Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_,
-                                 AbsoluteRhsT_>>::type(lhs.getQuantities() * rhs.getQuantities());
+  // TODO(remod): Introduce a macro to make the choice between contraction and tensor product configurable?
+  return product(lhs, rhs);
+}
+
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto tensorProduct(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+                   const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return typename TensorProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                                Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_,
+                                       AbsoluteRhsT_>>::type(lhs.getQuantities().tensorProduct(rhs.getQuantities()));
+}
+
+// TODO(remod): Contractions and other operators are recursive. Support multiple arguments?
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto contraction(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+                 const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return typename Contraction<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                              Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_,
+                                     AbsoluteRhsT_>>::type(lhs.getQuantities().contraction(rhs.getQuantities()));
 }
 
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, typename ValueRhsT_>
+auto division(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+              const ValueRhsT_ rhs) {
+  // Evaluate to avoid returning an expression on a temporary object.
+  return (lhs / Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
+                         typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs))
+      .evaluate();
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
+auto division(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+              const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
+  // Evaluate to avoid returning an expression on a temporary object.
+  return division(lhs, Quantities<ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>,
+                                  TypeMatrix<Rows<MatrixSizeRhsT_>::value, Cols<MatrixSizeRhsT_>::value,
+                                             typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>>(rhs))
+      .evaluate();
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, typename ValueRhsT_, typename UnitRhsT_>
+auto division(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+              const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
+  return typename Division<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                           Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getValues() / rhs.getValue());
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto division(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+              const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return typename Division<
+      Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>>::type(lhs.getValues() /
+                                                                                                                         rhs.getValues());
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, typename ValueRhsT_>
 auto operator/(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const ValueRhsT_ rhs) {
-  // Evaluate to avoid returning an expression on a temporary object.
-  return evaluate(lhs / Quantity<typename AccessValues<SpecializationDummy<ValueRhsT_>>::template Value<ValueRhsT_>,
-                                 typename AccessUnits<SpecializationDummy<ValueRhsT_>>::Dimensionless>(rhs));
+  return division(lhs, rhs);
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
+auto operator/(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+               const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
+  return division(lhs, rhs);
 }
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, typename ValueRhsT_, typename UnitRhsT_>
 auto operator/(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
-  return typename Division<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
-                           Quantity<ValueRhsT_, UnitRhsT_>>::type(lhs.getValues() / rhs.getValue());
+  return division(lhs, rhs);
+}
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto operator/(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+               const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return division(lhs, rhs);
 }
 
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
@@ -503,95 +710,94 @@ std::ostream& operator<<(std::ostream& lhs,
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Vector = Tensor<1, 0, QuantityVectorT_, CoordinateSystemT_, Relative>;
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename Unit, typename CoordinateSystemT_>
-using HomogeneousVector = Vector<Quantities<ValuesT_<Scalar, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename Unit, typename CoordinateSystemT_>
+using HomogeneousVector = Vector<Quantities<ValuesT_<Value, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>, CoordinateSystemT_>;
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Covector = Tensor<0, 1, QuantityVectorT_, CoordinateSystemT_, Relative>;
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename Unit, typename CoordinateSystemT_>
-using HomogeneousCovector = Covector<Quantities<ValuesT_<Scalar, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename Unit, typename CoordinateSystemT_>
+using HomogeneousCovector = Covector<Quantities<ValuesT_<Value, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>, CoordinateSystemT_>;
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Point = Tensor<1, 0, QuantityVectorT_, CoordinateSystemT_, Absolute>;
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename Unit, typename CoordinateSystemT_>
-using HomogeneousPoint = Point<Quantities<ValuesT_<Scalar, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename Unit, typename CoordinateSystemT_>
+using HomogeneousPoint = Point<Quantities<ValuesT_<Value, Dimension, 1>, TypeMatrix<Dimension, 1, Unit>>, CoordinateSystemT_>;
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Copoint = Tensor<0, 1, QuantityVectorT_, CoordinateSystemT_, Absolute>;
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename Unit, typename CoordinateSystemT_>
-using HomogeneousCopoint = Copoint<Quantities<ValuesT_<Scalar, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>, CoordinateSystemT_>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename Unit, typename CoordinateSystemT_>
+using HomogeneousCopoint = Copoint<Quantities<ValuesT_<Value, 1, Dimension>, TypeMatrix<1, Dimension, Unit>>, CoordinateSystemT_>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using DirectionVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Dimensionless, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using DirectionVector2 = DirectionVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using DirectionVector3 = DirectionVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Dimensionless, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using DirectionVector2 = DirectionVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using DirectionVector3 = DirectionVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using PositionPoint =
-    HomogeneousPoint<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Length, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using PositionPoint2 = PositionPoint<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using PositionPoint3 = PositionPoint<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousPoint<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Length, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using PositionPoint2 = PositionPoint<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using PositionPoint3 = PositionPoint<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using PositionVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Length, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using PositionVector2 = PositionVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using PositionVector3 = PositionVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Length, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using PositionVector2 = PositionVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using PositionVector3 = PositionVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using VelocityVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Velocity, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using VelocityVector2 = VelocityVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using VelocityVector3 = VelocityVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Velocity, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using VelocityVector2 = VelocityVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using VelocityVector3 = VelocityVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using AccelerationVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::Acceleration, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AccelerationVector2 = AccelerationVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AccelerationVector3 = AccelerationVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Acceleration, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AccelerationVector2 = AccelerationVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AccelerationVector3 = AccelerationVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using AngularVelocityVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::AngularVelocity, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AngularVelocityVector2 = AngularVelocityVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AngularVelocityVector3 = AngularVelocityVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::AngularVelocity, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AngularVelocityVector2 = AngularVelocityVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AngularVelocityVector3 = AngularVelocityVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using AngularAccelerationVector =
-    HomogeneousVector<Dimension, ValuesT_, Scalar, typename AccessUnits<SpecializationDummy<Scalar>>::AngularAcceleration,
-                      CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AngularAccelerationVector2 = AngularAccelerationVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using AngularAccelerationVector3 = AngularAccelerationVector<3, ValuesT_, Scalar, CoordinateSystem>;
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::AngularAcceleration, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AngularAccelerationVector2 = AngularAccelerationVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using AngularAccelerationVector3 = AngularAccelerationVector<3, ValuesT_, Value, CoordinateSystem>;
 
-template <int Dimension, template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimePoint = PositionPoint<Dimension, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimePoint2 = SpacetimePoint<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimePoint3 = SpacetimePoint<3, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimePoint4 = SpacetimePoint<4, ValuesT_, Scalar, CoordinateSystem>;
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimePoint = PositionPoint<Dimension, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimePoint2 = SpacetimePoint<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimePoint3 = SpacetimePoint<3, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimePoint4 = SpacetimePoint<4, ValuesT_, Value, CoordinateSystem>;
 template <int DimensionV, template <typename, int, int> typename ValuesT, typename ValueT, typename CoordinateSystemT>
 using SpacetimeVector = PositionVector<DimensionV, ValuesT, ValueT, CoordinateSystemT>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimeVector2 = SpacetimeVector<2, ValuesT_, Scalar, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Scalar, typename CoordinateSystem>
-using SpacetimeVector3 = SpacetimeVector<3, ValuesT_, Scalar, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimeVector2 = SpacetimeVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using SpacetimeVector3 = SpacetimeVector<3, ValuesT_, Value, CoordinateSystem>;
 template <template <typename, int, int> typename ValuesT, typename ValueT, typename CoordinateSystemT>
 using SpacetimeVector4 = SpacetimeVector<4, ValuesT, ValueT, CoordinateSystemT>;
 
