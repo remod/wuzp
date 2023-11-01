@@ -21,11 +21,14 @@ TEST(TestRigidBodyKinematics, CalculateVelocity) {  // NOLINT
   const TranslationVector translation{0.0, 0.0, 1.0};
   const RotationalVelocityVector rotationalVelocity{4.0, 1.0, 2.0};
   const VelocityVector expectedVelocity{2.0, -2.0, 3.0};
-  const VelocityVector actualVelocity{velocity + rotationalVelocity.crossProduct(translation)
+  const VelocityVector actualVelocity {
+    velocity + rotationalVelocity.crossProduct(translation)
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                                                       / AngleQuantity{1.0}
+                   / AngleQuantity {
+      1.0
+    }
 #endif
-   } ;
+  };
   EXPECT_EQ(actualVelocity, expectedVelocity);
 }
 
@@ -39,15 +42,18 @@ TEST(TestRigidBodyKinematics, CalculateAcceleration) {  // NOLINT
   const RotationalAccelerationVector rotationalAcceleration{2.0, -1.0, 3.0};
   const RotationalVelocityVector rotationalVelocity{4.0, 1.0, 2.0};
   const AccelerationVector expectedAcceleration{8.0, 2.0, -14.0};
-  const AccelerationVector actualAcceleration{acceleration +
-                                                rotationalAcceleration.crossProduct(translation)
+  const AccelerationVector actualAcceleration {
+    acceleration +
+        rotationalAcceleration.crossProduct(translation)
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                                                    / AngleQuantity{1.0}
+            / AngleQuantity{1.0}
 #endif
-                                                + rotationalVelocity.crossProduct(rotationalVelocity.crossProduct(translation))
+        + rotationalVelocity.crossProduct(rotationalVelocity.crossProduct(translation))
 #if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-                                                      / AngleQuantity{1.0} / AngleQuantity{1.0}
+              / AngleQuantity{1.0} / AngleQuantity {
+      1.0
+    }
 #endif
-};
+  };
   EXPECT_EQ(actualAcceleration, expectedAcceleration);
 }

@@ -80,8 +80,8 @@ std::pair<bool, std::string> compile(const std::string& code) {
   createFile(directory + "/CMakeLists.txt", getCMakeListsContent());
   createFile(directory + "/test.cpp", code);
   const auto result{exec((std::string{"cd "} + directory +
-                            " && cmake -D CMAKE_C_COMPILER=" TO_STRING(CMAKE_C_COMPILER) " -D CMAKE_CXX_COMPILER=" TO_STRING(
-                                CMAKE_CXX_COMPILER) " . && make 2>&1")
-                               .c_str())};
+                          " && cmake -D CMAKE_C_COMPILER=" TO_STRING(CMAKE_C_COMPILER) " -D CMAKE_CXX_COMPILER=" TO_STRING(
+                              CMAKE_CXX_COMPILER) " . && make 2>&1")
+                             .c_str())};
   return {result.first == EXIT_SUCCESS, result.second};
 }

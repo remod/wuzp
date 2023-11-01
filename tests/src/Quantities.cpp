@@ -68,7 +68,7 @@ TEST(TestQuantities2, ConstructImplicitlyFromQuantities) {  // NOLINT
   const MyQuantityMatrix quantities2;
   // Use = instead of {} to trigger implicit conversion.
   const MyQuantityMatrix quantities3 = quantities1 + quantities2;
-  const MyQuantityMatrix quantities= quantities3;
+  const MyQuantityMatrix quantities = quantities3;
   EXPECT_EQ(quantities, quantities3);
 }
 
@@ -143,7 +143,7 @@ TEST(TestQuantities2, ConstructFromGoodQuantities) {  // NOLINT
   using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   const MyQuantityMatrix quantities{Quantity<ValueI, Length>{1}, Quantity<ValueI, Area>{2}, Quantity<ValueI, Volume>{3},
-                              Quantity<ValueI, Mass>{4}};
+                                    Quantity<ValueI, Mass>{4}};
 }
 
 TEST(TestQuantities2, ConstructFromBadQuantities) {  // NOLINT
