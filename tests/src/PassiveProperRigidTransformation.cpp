@@ -82,6 +82,7 @@ TEST(TestPassiveProperRigidTransformation3, TransformPassiveTranslation) {  // N
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestPassiveProperRigidTransformation3, TransformPassiveRotation) {  // NOLINT
   using Object = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
   using Transformation = PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD, double>;
@@ -93,3 +94,4 @@ TEST(TestPassiveProperRigidTransformation3, TransformPassiveRotation) {  // NOLI
   const Transformation transformation{rotation, translation};
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
+#endif

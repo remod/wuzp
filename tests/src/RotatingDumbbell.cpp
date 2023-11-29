@@ -156,7 +156,11 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
                               massMatrix12, massMatrix02, massMatrix12, massMatrix22};
 
   const EnergyQuantity energyMinimalCoordinates2{
-      0.5 * contraction(minimalCoordinatesDt.transpose(), contraction(massMatrix, minimalCoordinatesDt)).getQuantity()};
+      0.5 * contraction(minimalCoordinatesDt.transpose(), contraction(massMatrix, minimalCoordinatesDt)
+      #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
+                        .evaluate()
+      #endif
+      ).getQuantity()};
 
   EXPECT_TRUE(energyCartesianCoordinates.isApprox(energyMinimalCoordinates1));
   EXPECT_TRUE(energyMinimalCoordinates1.isApprox(energyMinimalCoordinates2));

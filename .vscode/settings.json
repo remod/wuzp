@@ -7,7 +7,18 @@
         "optional": "cpp",
         "string_view": "cpp",
         "system_error": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "type_traits": "cpp",
+        "any": "cpp",
+        "array": "cpp",
+        "compare": "cpp",
+        "functional": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp",
+        "memory_resource": "cpp",
+        "iomanip": "cpp",
+        "stdexcept": "cpp"
     },
     "cmake.sourceDirectory": "/home/remo/workspaces/wuzp/tests"
 }

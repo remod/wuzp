@@ -92,8 +92,8 @@ if(${ENABLE_TESTS})
         src/traits.cpp
         src/Rational.cpp
         src/Integer.cpp
-        src/TypeMatrix.cpp
         src/Unit.cpp
+        src/TypeMatrix.cpp
         src/Units.cpp
         src/ValuesWrapper.cpp
         src/Quantity.cpp
@@ -111,6 +111,7 @@ if(${ENABLE_TESTS})
         src/RotatingDumbbell.cpp
     )
     target_compile_definitions(tests PRIVATE REPO_DIR=${REPO_DIR})
+    target_include_directories(tests PRIVATE src)
     target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)
     target_link_libraries(tests PRIVATE wuzp)
     if(${UNITS_IMPLEMENTATION} EQUAL ${UNITS_IMPLEMENTATION_BOOST})
