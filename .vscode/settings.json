@@ -8,5 +8,6 @@
         "string_view": "cpp",
         "system_error": "cpp",
         "variant": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/home/remo/workspaces/wuzp/tests"
 }
