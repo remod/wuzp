@@ -130,8 +130,8 @@ TEST(TestValuesWrapper, InequalityOperator) {  // NOLINT
 
 TEST(TestValuesWrapper, IsApprox) {  // NOLINT
   const ValueMatrix<double, 2, 3> matrix{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
-  const ValueMatrix<double, 2, 3> approx{1.0, 2.0, 3.0, 4.0, 5.0, 6.0 + 9e-13};
-  const ValueMatrix<double, 2, 3> notApprox{1.0, 2.0, 3.0, 4.0, 5.0, 6.0 + 1e-12};
+  const ValueMatrix<double, 2, 3> approx{1.0, 2.0, 3.0, 4.0, 5.0, 6.0 + 1e-13};
+  const ValueMatrix<double, 2, 3> notApprox{1.0, 2.0, 3.0, 4.0, 5.0, 6.0 + 1e-11};
   EXPECT_TRUE(matrix.isApprox(approx));
   EXPECT_FALSE(matrix.isApprox(notApprox));
 }

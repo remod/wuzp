@@ -73,13 +73,13 @@ struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementatio
   }
   static bool approxEqual(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs,
                           const typename ImplementationLhsT_::T_numtype tolerance) {
-    return blitz::all(blitz::abs(lhs - rhs) < tolerance);
+    return blitz::all(blitz::abs(lhs - rhs) <= tolerance);
   }
 };
 
 template <typename ImplementationT_>
 struct Transpose<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return impl.transpose(0, 1); }
+  static auto value(const ImplementationT_& impl) { return impl.transpose(1, 0); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
@@ -199,7 +199,7 @@ struct TensorInverse<AccessImplementation<ImplementationT_>> {
 template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   static auto value(const ImplementationT_& impl) {
-    return impl(blitz::Range(BlockRowId, BlockRowId + BlockRows), blitz::Range(BlockColId, BlockColId + BlockCols));
+    return impl(blitz::Range(BlockRowId, BlockRowId + BlockRows - 1), blitz::Range(BlockColId, BlockColId + BlockCols - 1));
   }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
