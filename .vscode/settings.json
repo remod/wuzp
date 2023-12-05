@@ -18,7 +18,9 @@
         "utility": "cpp",
         "memory_resource": "cpp",
         "iomanip": "cpp",
-        "stdexcept": "cpp"
+        "stdexcept": "cpp",
+        "cstddef": "cpp",
+        "limits": "cpp"
     },
     "cmake.sourceDirectory": "/home/remo/workspaces/wuzp/tests"
 }

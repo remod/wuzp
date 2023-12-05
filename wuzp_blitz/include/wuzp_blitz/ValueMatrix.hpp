@@ -71,7 +71,8 @@ struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementatio
   static bool equal(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs) {
     return blitz::all(blitz::Array<bool, 2>(lhs == rhs));
   }
-  static bool approxEqual(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs, const typename ImplementationLhsT_::T_numtype tolerance) {
+  static bool approxEqual(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs,
+                          const typename ImplementationLhsT_::T_numtype tolerance) {
     return blitz::all(blitz::abs(lhs - rhs) < tolerance);
   }
 };
@@ -119,7 +120,9 @@ struct Product<AccessImplementation<ImplementationLhsT_>, AccessImplementation<I
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static_assert(FailOnInstantiation<TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>>::value, "Tensor product is not implemented for blitz.");
+  static_assert(
+      FailOnInstantiation<TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>>::value,
+      "Tensor product is not implemented for blitz.");
 };
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
@@ -172,7 +175,7 @@ struct Norm<AccessImplementation<ImplementationT_>> {
 
 template <typename ImplementationT_>
 struct SquaredNorm<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return  blitz::sum(impl * impl); }
+  static auto value(const ImplementationT_& impl) { return blitz::sum(impl * impl); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };

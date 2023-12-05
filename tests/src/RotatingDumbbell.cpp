@@ -155,13 +155,17 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const MassMatrix massMatrix{massMatrix00, massMatrix01, massMatrix02, massMatrix01, massMatrix00,
                               massMatrix12, massMatrix02, massMatrix12, massMatrix22};
 
-  const EnergyQuantity energyMinimalCoordinates2{
-      0.5 * contraction(minimalCoordinatesDt.transpose(), contraction(massMatrix, minimalCoordinatesDt)
-      #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
-                        .evaluate()
-      #endif
-      ).getQuantity()};
+  const EnergyQuantity energyMinimalCoordinates2 {
+    0.5 * contraction(minimalCoordinatesDt.transpose(), contraction(massMatrix, minimalCoordinatesDt)
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
+                                                            .evaluate()
+#endif
+                          )
+              .getQuantity()
+  };
 
-  EXPECT_TRUE(energyCartesianCoordinates.isApprox(energyMinimalCoordinates1));
-  EXPECT_TRUE(energyMinimalCoordinates1.isApprox(energyMinimalCoordinates2));
+  EXPECT_TRUE(energyCartesianCoordinates.isApprox(energyMinimalCoordinates1))
+      << energyCartesianCoordinates << " is not approximately " << energyMinimalCoordinates1;
+  EXPECT_TRUE(energyMinimalCoordinates1.isApprox(energyMinimalCoordinates2))
+      << energyMinimalCoordinates1 << " is not approximately " << energyMinimalCoordinates2;
 }

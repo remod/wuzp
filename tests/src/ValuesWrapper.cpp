@@ -128,6 +128,14 @@ TEST(TestValuesWrapper, InequalityOperator) {  // NOLINT
   EXPECT_NE(lhs, rhs);
 }
 
+TEST(TestValuesWrapper, IsApprox) {  // NOLINT
+  const ValueMatrix<double, 2, 3> matrix{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+  const ValueMatrix<double, 2, 3> approx{1.0, 2.0, 3.0, 4.0, 5.0, 6.0 + 9e-13};
+  const ValueMatrix<double, 2, 3> notApprox{1.0, 2.0, 3.0, 4.0, 5.0, 6.0 + 1e-12};
+  EXPECT_TRUE(matrix.isApprox(approx));
+  EXPECT_FALSE(matrix.isApprox(notApprox));
+}
+
 TEST(TestValuesWrapper, Transpose) {  // NOLINT
   const ValueMatrix<int, 2, 3> matrix{1, 2, 3, 4, 5, 6};
   const ValueMatrix<int, 3, 2> result{1, 4, 2, 5, 3, 6};
