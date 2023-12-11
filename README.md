@@ -1,144 +1,146 @@
 # Wrong Unit? Zero Points!
 
-*wuzp* is a C++ library for compile time analysis of units and coordinate frames for linear algebra.
+*wuzp* is a C++20 library for compile time analysis of units and coordinate frames for linear algebra.
 
 [![CI](https://github.com/remod/wuzp/actions/workflows/ci.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/ci.yml)
 [![Code Coverage](https://codecov.io/gh/remod/wuzp/branch/master/graph/badge.svg?token=FVPNHZKXVX)](https://codecov.io/gh/remod/wuzp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Introduction
 
-When writing C++ code, it is often desirable to discover as many errors as possible already in the compilation stage.
-This helps to fix these errors early in the development phase, reduces the number of unit tests which have to be written or runtime sanity checks to be performed.
+Imagine a world where your IDE and compiler tell you when you are making a mistake like
 
-[Eigen](https://gitlab.com/libeigen/eigen) is a popular library to write linear algebra code.
-While it is extensible to use different scalar types, it is not possible to introduce physical quantities like the ones provided by libraries like [boost/units](https://github.com/boostorg/units) or [nholthaus/units](https://github.com/nholthaus/units) (TODO: source).
-
-This is where *wuzp* comes into play.
-
-## How to get wuzp
-
-There are two options to get *wuzp*, through Debian packages or through the git repository.
-The Debian option is recommended to always get the newest version when you upgrade your system.
-
-### Option 1: Debian package
-
+```cpp
+force = mass  // Error: Mismatching units!
+force = mass * acceleration  // OK.
 ```
+
+or
+
+```cpp
+velocity_in_frame_A + velocity_in_frame_B  // Error: Mismatching frames!
+velocity_in_frame_A + transformation_B_to_A.transform(velocity_in_frame_B)  // OK.
+```
+
+or
+
+```cpp
+time_point + time_point  // Error: Cannot add two absolute quantities!
+time_point + duration  // OK.
+```
+
+This speeds up development for two reasons:
+First, you get faster feedback on errors in your code, and second, you do not have to write unit tests to cover these cases.
+
+## Features
+
+*wuzp* provides the following features:
+
+* Compile time unit checks, including support for matrices with heterogeneous units (e.g. mass matrix).
+* Compile time coordinate frame checks, including transformations between coordinate frames.
+* Distinction between absolute and relative units.[^1]
+
+[^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample), but extended to coordinate frame transformations.
+
+## Installation & Usage
+
+*wuzp* integrates with the following unit and linear algebra libraries:
+
+**Units:** 
+
+* *wuzp*' own implementation
+* [Boost](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units.html)
+
+**Linear Algebra:**
+
+* [Eigen](http://eigen.tuxfamily.org/)
+* [Blitz++](https://github.com/blitzpp/blitz)
+
+To install *wuzp* globally and update it together with your operating system, install it through the provided Debian packages.
+This method will also implicitly install its 3rd-party dependencies.
+
+```bash
 sudo add-apt-repository ppa:remod/wuzp
 sudo apt update
-sudo apt install wuzp
+sudo apt install wuzp        # Includes wuzp's own unit implementation.
+sudo apt install wuzp_boost  # When using Boost units.
+sudo apt install wuzp_eigen  # When using Eigen.
+sudo apt install wuzp_blitz  # When using Blitz++.
 ```
 
-### Option 2: Git repository
+Alternatively, you can clone *wuzp* from GitHub and install its 3rd-party dependencies manually:
 
-```
-sudo apt install git cmake libboost-dev libeigen3-dev
+```bash
 git clone https://github.com/remod/wuzp.git
-cd wuzp
+sudo apt install libboost-dev   # When using Boost units.
+sudo apt install libeigen3-dev  # When using Eigen.
+sudo apt install libblitz0-dev  # When using Blitz++.
+```
+
+## Examples
+
+For examples, have a look at the unit tests in the `tests` folder.
+
+## Limitations
+
+Do not use `auto` when working with Eigen (see [documentation](https://eigen.tuxfamily.org/dox/TopicPitfalls.html)).
+
+Blitz++ cannot be installed with `libblitz0-dev` when compiled with Clang.
+Instead, it needs to be cloned from GitHub and then built and installed manually (see [GitHub issue](https://github.com/blitzpp/blitz/issues/177)).
+
+## Contributing
+
+**Unit tests**
+
+When adding a new feature, please make sure to add unit tests for it.
+In order to run the tests locally, perform the following steps:
+
+```bash
 mkdir build
 cd build
+cmake -DENABLE_TESTS=ON -DENABLE_CODE_COVERAGE=ON ..
+make -j
+ctest
 ```
 
-## Build
+**Formatting**
 
-```
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-make
-```
+The code is formatted using [clang-format](https://clang.llvm.org/docs/ClangFormat.html).
 
-## Tests
+In order to format the code, perform the following steps:
 
-```
-sudo apt install libgtest-dev llvm
-cmake -DENABLE_TESTS=ON ..
-make
-ctest ..
-```
-
-## Format
-
-```
+```bash
 sudo apt install clang-format
 cmake -DENABLE_FORMAT=ON ..
 make format
 ```
 
-## Tidy
+**Tidying**
 
-```
+The code is checked using [clang-tidy](https://clang.llvm.org/extra/clang-tidy/).
+
+In order to check the code, perform the following steps:
+
+```bash
 sudo apt install clang-tidy
 cmake -DENABLE_TIDY=ON ..
 make tidy
 ```
 
-## Roadmap
+**CI/CD**
 
-**TODOs before release**
+The CI/CD workflow is configured to run the following steps:
 
-* Restrict deploy tokens to master branch.
-* Enable merge queue or at strict PR checks.
+* Check format
+* Check tidy
+* Check package versions (to enforce version bumps if necessary)
+* Test source code
+* Package
+* Test packages
+* Deliver packages
 
-**Features**
+You can run an approximation of this workflow locally using the following script:
 
-Value matrix:
-
-* Own matrix implementation
-* Dynamic sized matrices
-* Blitz++ cannot be installed with libblitz0-dev when compiled with Clang.
-  Instead, it needs to be cloned from GitHub and then built and installed manually.
-  https://github.com/blitzpp/blitz/issues/177.
-
-UnitImplementations:
-
-* Run-time units
-* Support nholthaus/units
-
-Rotations:
-
-* Different rotations (quaternions, angle axis, etc.)
-
-Transformations:
-
-* Run-time frames
-
-Pipeline & packaging:
-
-* Migrate from macros to different submodules
-* Unit test coverage
-* ROS/ROS2 release
-* Downgrade C++ and CMake version as much as possible
-
-Documentation:  
-
-* Examples
-* Limitations
-  * In-place operations not supported if they change the type
-* Migration notes from kindr
-* Do not use auto when working with Eigen (https://eigen.tuxfamily.org/dox/TopicPitfalls.html)
-
-## Design Decisions
-
-### Order of methods
-
-1. Empty constructor
-1. Copy constructor
-1. Move constructor
-1. Constructor copying members
-1. Constructor moving members
-1. Destructor
-1. Others
-
-### Handling of Coordinate System Transformations
-
-Options:
-
-1. Handle coordinate system transformations on the level where the transformation objects operate.
-   The coordinate frame is assigned to the transformed object.
-1. Handle coordinate system transformations deeper using a matrix of coordinate system transformation objects.
-   A coordinate system transformation object has a "from" and a "to" coordinate system.
-   Whenever a coordinate system transformation object is applied to an object with a "from" coordinate system, it turns into a "to" coordinate system.
-
-Decision: 1.
-
-Transforming certain tensors, e.g. a mass matrix, requires left and right multiplication with a transformation object.
-This rules out option 2, as the two multiplications do not know about each other.
-The information that the new coordinate system needs to be applied is only available on the level of the transformation object.
+```bash
+./scripts/run_workflow.sh
+```
