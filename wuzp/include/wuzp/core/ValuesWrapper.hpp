@@ -72,8 +72,8 @@ class ValuesWrapper {
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOther_>
   bool isApprox(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOther_>& other,
                 const ValueT precision = Precision<ValueT>::value()) const {
-    // TODO(remod): This is an assumption which works for Eigen, one could generalize it.
-    return implementation_.isApprox(other.getImplementation(), precision);
+    return Comparison<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOther_>>::approxEqual(
+        implementation_, other.getImplementation(), precision);
   }
 
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
@@ -114,18 +114,9 @@ class ValuesWrapper {
                                                                                                                 other.getImplementation()));
   }
 
-  auto norm() const {
-    // TODO(remod): This is an assumption which works for Eigen, one could generalize it.
-    return implementation_.matrix().norm();
-  }
-  auto squaredNorm() const {
-    // TODO(remod): This is an assumption which works for Eigen, one could generalize it.
-    return implementation_.matrix().squaredNorm();
-  }
-  auto determinant() const {
-    // TODO(remod): This is an assumption which works for Eigen, one could generalize it.
-    return implementation_.matrix().determinant();
-  }
+  auto norm() const { return Norm<AccessImplementation<ImplementationT>>::value(implementation_); }
+  auto squaredNorm() const { return SquaredNorm<AccessImplementation<ImplementationT>>::value(implementation_); }
+  auto determinant() const { return Determinant<AccessImplementation<ImplementationT>>::value(implementation_); }
 
   auto inverse() const { return typename Inverse<ThisT>::type{Inverse<AccessImplementation<ImplementationT>>::value(implementation_)}; }
   auto tensorInverse() const {

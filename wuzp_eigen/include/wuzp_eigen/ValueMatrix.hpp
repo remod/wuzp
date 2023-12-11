@@ -71,6 +71,10 @@ struct AccessValues<AccessImplementation<T>> {
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static bool equal(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs) { return lhs.matrix() == rhs.matrix(); }
+  static bool approxEqual(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs,
+                          const typename ImplementationLhsT_::Scalar tolerance) {
+    return lhs.matrix().isApprox(rhs.matrix(), tolerance);
+  }
 };
 
 template <typename ImplementationT_>
@@ -116,12 +120,9 @@ struct Product<AccessImplementation<ImplementationLhsT_>, AccessImplementation<I
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
-    // TODO(remod): implement
-    return implLhs * implRhs;
-  }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+  static_assert(
+      FailOnInstantiation<TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>>::value,
+      "Tensor product is not implemented for eigen.");
 };
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
@@ -154,6 +155,27 @@ struct Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
   static auto value(const ImplementationLhsT_& implLhs, const ValueRhsT_ valueRhs) { return implLhs / valueRhs; }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ValueRhsT_>()));
+};
+
+template <typename ImplementationT_>
+struct Norm<AccessImplementation<ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return impl.matrix().norm(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationT_>
+struct SquaredNorm<AccessImplementation<ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return impl.matrix().squaredNorm(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationT_>
+struct Determinant<AccessImplementation<ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return impl.matrix().determinant(); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <typename ImplementationT_>

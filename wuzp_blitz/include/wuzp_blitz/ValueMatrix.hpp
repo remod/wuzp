@@ -71,11 +71,15 @@ struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementatio
   static bool equal(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs) {
     return blitz::all(blitz::Array<bool, 2>(lhs == rhs));
   }
+  static bool approxEqual(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs,
+                          const typename ImplementationLhsT_::T_numtype tolerance) {
+    return blitz::all(blitz::abs(lhs - rhs) <= tolerance);
+  }
 };
 
 template <typename ImplementationT_>
 struct Transpose<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return impl.transpose(0, 1); }
+  static auto value(const ImplementationT_& impl) { return impl.transpose(1, 0); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
@@ -116,9 +120,9 @@ struct Product<AccessImplementation<ImplementationLhsT_>, AccessImplementation<I
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs * implRhs; }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+  static_assert(
+      FailOnInstantiation<TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>>::value,
+      "Tensor product is not implemented for blitz.");
 };
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
@@ -163,6 +167,25 @@ struct Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
 };
 
 template <typename ImplementationT_>
+struct Norm<AccessImplementation<ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return std::sqrt(SquaredNorm<AccessImplementation<ImplementationT_>>::value(impl)); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationT_>
+struct SquaredNorm<AccessImplementation<ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return blitz::sum(impl * impl); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
+};
+
+template <typename ImplementationT_>
+struct Determinant<AccessImplementation<ImplementationT_>> {
+  static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value, "Determinant is not implemented for blitz.");
+};
+
+template <typename ImplementationT_>
 struct Inverse<AccessImplementation<ImplementationT_>> {
   static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value, "Inverse is not implemented for blitz.");
 };
@@ -176,7 +199,7 @@ struct TensorInverse<AccessImplementation<ImplementationT_>> {
 template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   static auto value(const ImplementationT_& impl) {
-    return impl(blitz::Range(BlockRowId, BlockRowId + BlockRows), blitz::Range(BlockColId, BlockColId + BlockCols));
+    return impl(blitz::Range(BlockRowId, BlockRowId + BlockRows - 1), blitz::Range(BlockColId, BlockColId + BlockCols - 1));
   }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));

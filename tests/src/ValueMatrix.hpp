@@ -6,4 +6,6 @@ using namespace wuzp_eigen;  // NOLINT
 #elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
 #include "wuzp_blitz/ValueMatrix.hpp"
 using namespace wuzp_blitz;  // NOLINT
+#else
+#error "Unknown VALUES_IMPLEMENTATION"
 #endif
