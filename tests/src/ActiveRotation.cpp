@@ -11,11 +11,6 @@
 
 using namespace wuzp;  // NOLINT
 
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-#include "wuzp_eigen/ValueMatrix.hpp"
-template <typename Value, int Rows, int Cols>
-using ValueMatrix = wuzp_eigen::ValueMatrix<Value, Rows, Cols>;
-
 TEST(TestActiveRotation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;

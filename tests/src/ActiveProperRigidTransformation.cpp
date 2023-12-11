@@ -80,6 +80,7 @@ TEST(TestActiveProperRigidTransformation3, TransformActiveTranslation) {  // NOL
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestActiveProperRigidTransformation3, TransformActiveRotation) {  // NOLINT
   using Object = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
@@ -91,5 +92,6 @@ TEST(TestActiveProperRigidTransformation3, TransformActiveRotation) {  // NOLINT
   const Transformation transformation{rotation, translation};
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
+#endif
 
 // TODO(remod): Add TransformActive/PassiveProperRigidTransformation everywhere

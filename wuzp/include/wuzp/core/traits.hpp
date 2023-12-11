@@ -68,7 +68,7 @@ struct Dimension {
 
 template <typename Lhs, typename Rhs>
 struct Comparison {
-  static_assert(FailOnInstantiation<Comparison<Lhs, Rhs>>::value, "'Random' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Comparison<Lhs, Rhs>>::value, "'Comparison' trait not specialized for given type.");
 };
 
 //! The sum is performed elementwise.
@@ -161,6 +161,21 @@ template <typename Object, int BlockRowId, int BlockColId, int BlockRows, int Bl
 struct Block {
   static_assert(FailOnInstantiation<Block<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value,
                 "'Block' trait not specialized for given type.");
+};
+
+template <typename T>
+struct Norm {
+  static_assert(FailOnInstantiation<Norm<T>>::value, "'Norm' trait not specialized for given type.");
+};
+
+template <typename T>
+struct SquaredNorm {
+  static_assert(FailOnInstantiation<SquaredNorm<T>>::value, "'SquaredNorm' trait not specialized for given type.");
+};
+
+template <typename T>
+struct Determinant {
+  static_assert(FailOnInstantiation<Determinant<T>>::value, "'Determinant' trait not specialized for given type.");
 };
 
 template <typename T>
