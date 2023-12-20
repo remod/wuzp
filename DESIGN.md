@@ -5,7 +5,7 @@
 Options:
 
 1. Handle coordinate system transformations on the level where the transformation objects operate.
-   The coordinate frame is assigned to the transformed object.
+   The coordinate system is assigned to the transformed object.
 1. Handle coordinate system transformations deeper using a matrix of coordinate system transformation objects.
    A coordinate system transformation object has a "from" and a "to" coordinate system.
    Whenever a coordinate system transformation object is applied to an object with a "from" coordinate system, it turns into a "to" coordinate system.

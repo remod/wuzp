@@ -1,6 +1,6 @@
 # Wrong Unit? Zero Points!
 
-*wuzp* is a C++20 library for compile time analysis of units and coordinate frames for linear algebra.
+*wuzp* is a C++20 library for compile time analysis of units and coordinate systems for linear algebra.
 
 [![CI](https://github.com/remod/wuzp/actions/workflows/ci.yml/badge.svg)](https://github.com/remod/wuzp/actions/workflows/ci.yml)
 [![Code Coverage](https://codecov.io/gh/remod/wuzp/branch/master/graph/badge.svg?token=FVPNHZKXVX)](https://codecov.io/gh/remod/wuzp)
@@ -37,10 +37,10 @@ First, you get faster feedback on errors in your code, and second, you do not ha
 *wuzp* provides the following features:
 
 * Compile time unit checks, including support for matrices with heterogeneous units (e.g. mass matrix).
-* Compile time coordinate frame checks, including transformations between coordinate frames.
+* Compile time coordinate system checks, including transformations between coordinate systems.
 * Distinction between absolute and relative units.[^1]
 
-[^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample), but extended to coordinate frame transformations.
+[^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample), but extended to coordinate system transformations.
 
 ## Installation & Usage
 

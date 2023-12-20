@@ -12,4 +12,4 @@ Package: wuzp
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Wrong Unit? Zero Points!
- C++ library for compile time analysis of units and coordinate frames for linear algebra.
+ C++ library for compile time analysis of units and coordinate systems for linear algebra.
