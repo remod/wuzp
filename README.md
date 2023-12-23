@@ -42,6 +42,13 @@ First, you get faster feedback on errors in your code, and second, you do not ha
 
 [^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample), but extended to coordinate system transformations.
 
+### Classes
+
+**Proper rigid transformations**
+
+![Passive Proper Rigid Transformation of Point](doc/passive_proper_rigid_transformation_of_point.svg)
+![Passive Proper Rigid Transformation of Vector](doc/passive_proper_rigid_transformation_of_vector.svg)
+
 ## Installation & Usage
 
 *wuzp* integrates with the following unit and linear algebra libraries:
