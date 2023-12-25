@@ -48,6 +48,7 @@ First, you get faster feedback on errors in your code, and second, you do not ha
 
 ![Passive Proper Rigid Transformation of Point](doc/passive_proper_rigid_transformation_of_point.svg)
 ![Passive Proper Rigid Transformation of Vector](doc/passive_proper_rigid_transformation_of_vector.svg)
+![Active Proper Rigid Transformation of Point](doc/active_proper_rigid_transformation_of_point.svg)
 
 ## Installation & Usage
 
