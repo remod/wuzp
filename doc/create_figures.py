@@ -236,7 +236,100 @@ def create_figure_of_active_proper_rigid_transformation_of_point():
     fig.savefig('active_proper_rigid_transformation_of_point.svg', format='svg', dpi=1200, bbox_inches='tight')
 
 
+def create_figure_of_active_proper_rigid_transformation_of_vector():
+    fig, ax = create_figure_of_coordinate_system_a((7, 7), 'k')
 
-create_figure_of_passive_proper_rigid_transformation_of_point()
-create_figure_of_passive_proper_rigid_transformation_of_vector()
-create_figure_of_active_proper_rigid_transformation_of_point()
+    # Point P
+    angleP = math.pi / 12
+    radiusP = 1
+    P = Coordinates(radiusP*math.cos(angleP), radiusP*math.sin(angleP))
+    ax.scatter(P.x, P.y, c='b', s=100)
+    ax.text(P.x + 0.1, P.y - 0.1, 'P', fontsize=14, c='b')
+
+    # Point Q
+    angleQ = math.pi / 8
+    radiusQ = 1.5
+    Q = Coordinates(radiusQ*math.cos(angleQ), radiusQ*math.sin(angleQ))
+    ax.scatter(Q.x, Q.y, c='b', s=100)
+    ax.text(Q.x + 0.1, Q.y - 0.1, 'Q', fontsize=14, c='b')
+
+    # Vector from P to Q
+    ax.arrow(P.x, P.y, Q.x - P.x, Q.y - P.y, width=arrow_width, head_width=arrow_head_width, head_length=arrow_head_length, fc='b', ec='b', length_includes_head=True)
+    ax.text(0.5*(P.x + Q.x), 0.5*(P.y + Q.y) - 0.1, '$\\vec{r}_{PQ}$', fontsize=14, c='b')
+
+    # Rotated P
+    angleP2 = angleP + rotation
+    P2 = Coordinates(radiusP*math.cos(angleP2), radiusP*math.sin(angleP2))
+    ax.scatter(P2.x, P2.y, c='lightgrey', s=100)
+
+    # Rotated Q
+    angleQ2 = angleQ + rotation
+    Q2 = Coordinates(radiusQ*math.cos(angleQ2), radiusQ*math.sin(angleQ2))
+    ax.scatter(Q2.x, Q2.y, c='lightgrey', s=100)
+
+    # Vector from P2 to Q2
+    ax.arrow(P2.x, P2.y, Q2.x - P2.x, Q2.y - P2.y, width=arrow_width, head_width=arrow_head_width, head_length=arrow_head_length, fc='lightgrey', ec='lightgrey', length_includes_head=True)
+
+    # Translated P
+    P3 = Coordinates(P2.x + translation.x, P2.y + translation.y)
+    ax.scatter(P3.x, P3.y, c='g', s=100)
+    ax.text(P3.x + 0.075, P3.y - 0.1, 'P\'', fontsize=14, c='g')
+
+    # Translated Q
+    Q3 = Coordinates(Q2.x + translation.x, Q2.y + translation.y)
+    ax.scatter(Q3.x, Q3.y, c='g', s=100)
+    ax.text(Q3.x + 0.1, Q3.y, 'Q\'', fontsize=14, c='g')
+    
+    # Vector from P3 to Q3
+    ax.arrow(P3.x, P3.y, Q3.x - P3.x, Q3.y - P3.y, width=arrow_width, head_width=arrow_head_width, head_length=arrow_head_length, fc='g', ec='g', length_includes_head=True)
+    ax.text(0.5*(P3.x + Q3.x) - 0.05, 0.5*(P3.y + Q3.y) - 0.15, '$\\vec{r}_{P\'Q\'}$', fontsize=14, c='g')
+
+    # Rotation from P to P2
+    style = "Simple, tail_width=1.5, head_width=10, head_length=14"
+    kw = dict(arrowstyle=style, color="k")
+    a3 = patches.FancyArrowPatch((P.x, P.y), (P2.x, P2.y),
+                                connectionstyle=f"arc3,rad={rotation / math.pi}", **kw)
+    ax.add_patch(a3)
+    ax.text(0.5*(P.x + P2.x) + 0.1, 0.5*(P.y + P2.y), '$\\alpha$', fontsize=14, c='k')
+
+    # Rotation from Q to Q2
+    style = "Simple, tail_width=1.5, head_width=10, head_length=14"
+    kw = dict(arrowstyle=style, color="k")
+    a3 = patches.FancyArrowPatch((Q.x, Q.y), (Q2.x, Q2.y),
+                                connectionstyle=f"arc3,rad={rotation / math.pi}", **kw)
+    ax.add_patch(a3)
+    ax.text(0.5*(Q.x + Q2.x) + 0.1, 0.5*(Q.y + Q2.y) + 0.05, '$\\alpha$', fontsize=14, c='k')
+
+    # Translation from P2 to P3
+    ax.arrow(P2.x, P2.y, translation.x, translation.y, width=arrow_width, head_width=arrow_head_width, head_length=arrow_head_length, fc='k', ec='k', length_includes_head=True)
+    ax.text(0.5*(P2.x + P3.x) + 0.1, 0.5*(P2.y + P3.y) - 0.05, '$\\vec{r}$', fontsize=14, c='k', horizontalalignment='center', verticalalignment='center')
+
+    # Translation from Q2 to Q3
+    ax.arrow(Q2.x, Q2.y, translation.x, translation.y, width=arrow_width, head_width=arrow_head_width, head_length=arrow_head_length, fc='k', ec='k', length_includes_head=True)
+    ax.text(0.5*(Q2.x + Q3.x), 0.5*(Q2.y + Q3.y) - 0.1, '$\\vec{r}$', fontsize=14, c='k', horizontalalignment='center', verticalalignment='center')
+
+    # Draw perpendicular lines from P to the axis of the coordinate system A
+    draw_perpendicular_line_from_point_to_line(ax, P, A, e_Ax, 'b')
+    draw_perpendicular_line_from_point_to_line(ax, P, A, e_Ay, 'b')
+
+    # Draw perpendicular lines from Q to the axis of the coordinate system A
+    draw_perpendicular_line_from_point_to_line(ax, Q, A, e_Ax, 'b')
+    draw_perpendicular_line_from_point_to_line(ax, Q, A, e_Ay, 'b')
+
+    # Draw perpendicular lines from P3 to the axis of the coordinate system A
+    draw_perpendicular_line_from_point_to_line(ax, P3, A, e_Ax, 'g')
+    draw_perpendicular_line_from_point_to_line(ax, P3, A, e_Ay, 'g')
+
+    # Draw perpendicular lines from Q3 to the axis of the coordinate system A
+    draw_perpendicular_line_from_point_to_line(ax, Q3, A, e_Ax, 'g')
+    draw_perpendicular_line_from_point_to_line(ax, Q3, A, e_Ay, 'g')
+
+    # To svg
+    fig.savefig('active_proper_rigid_transformation_of_vector.svg', format='svg', dpi=1200, bbox_inches='tight')
+
+
+if __name__ == '__main__':
+    create_figure_of_passive_proper_rigid_transformation_of_point()
+    create_figure_of_passive_proper_rigid_transformation_of_vector()
+    create_figure_of_active_proper_rigid_transformation_of_point()
+    create_figure_of_active_proper_rigid_transformation_of_vector()
