@@ -144,6 +144,7 @@ endif()
 if(${ENABLE_FORMAT} OR ${ENABLE_TIDY})
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
         # A /*/ matches one or more levels of directories.
+        ${REPO_DIR}/examples/*.cpp
         ${REPO_DIR}/wuzp/include/*/*.hpp
         ${REPO_DIR}/wuzp_blitz/include/*/*.hpp
         ${REPO_DIR}/wuzp_boost/include/*/*.hpp

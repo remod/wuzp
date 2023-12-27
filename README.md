@@ -16,7 +16,7 @@ Type safety speeds up development because your IDE, your compiler will report an
 
 *wuzp* provides compile time type safety for units and coordinate systems.
 
-It prevents errors like mixing units when operating on quantities:
+It prevents errors like mixing quantities with incompatible units ([code example](examples/quantity.cpp)):
 
 ```cpp
 force = mass  // Error: Mismatching units!
@@ -24,7 +24,7 @@ force = mass * acceleration  // OK.
 ```
 
 While relative quantities can be operated on freely, there are some restrictions for absolute quantities.[^1]
-For example, it does not make sense to add two absolute quantities:
+For example, it does not make sense to add two absolute quantities ([code example](examples/absolute_quantity.cpp)):
 
 ```cpp
 time_point + time_point  // Error: Cannot add two absolute quantities!
