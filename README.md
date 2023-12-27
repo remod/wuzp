@@ -60,11 +60,16 @@ These transformations are supported in their **active** and **passive** form.
 In the **active** case the object is transformed, resulting in a new object.
 In the **passive** case there is only a single object, but the coordinate system which it is expressed in is transformed.[^2]
 
+As mentioned above, *wuzp* distinguishes between absolute and relative quantities.
+In geometric terms, absolute positions can be interpreted as points, while relative positions can be interpreted as vectors.
+This distinction becomes important when transforming points and vectors:
+Unlike points, vectors are agnostic to their position and therefore unaffectd by translations.
+
 The following table visualizes how a proper rigid transformation transforms a point and a vector in the active and passive case:
 
 | | Target: Point | Target: Vector |
 | --- | --- | --- |
-| Type:<br>Active | <img src="doc/active_proper_rigid_transformation_of_point.svg" alt="Active Proper Rigid Transformation of Point" height="200"/><br>P is first rotated, then translated into P'. | <img src="doc/active_proper_rigid_transformation_of_vector.svg" alt="Active Proper Rigid Transformation of Vector" height="200"/><br>*r* is first rotated, then translated into r'. As a vector is agnostic to its position, only the rotational part of the transformation affects its components. |
+| Type:<br>Active | <img src="doc/active_proper_rigid_transformation_of_point.svg" alt="Active Proper Rigid Transformation of Point" height="200"/><br>P is first rotated, then translated into P'. | <img src="doc/active_proper_rigid_transformation_of_vector.svg" alt="Active Proper Rigid Transformation of Vector" height="200"/><br>*r* is first rotated, then translated into *r'*. As a vector is agnostic to its position, only the rotational part of the transformation affects its components. |
 | Type:<br>Passive | <img src="doc/passive_proper_rigid_transformation_of_point.svg" alt="Passive Proper Rigid Transformation of Point" height="200"/><br>P is expressed in coordinate system A, then in coordinate system B. | <img src="doc/passive_proper_rigid_transformation_of_vector.svg" alt="Active Proper Rigid Transformation of Vector" height="200"/><br>*r* is expressed in coordinate system A, then in coordinate system B. As a vector is agnostic to its position, only the rotational part of the transformation affects its components. |
 
 ## Installation & Usage
@@ -173,6 +178,6 @@ You can run an approximation of this workflow locally using the following script
 ```
 
 
-[^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample), but extended to coordinate system transformations.
+[^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample).
 
 [^2]: The difference between active and passive transformations is explained [here](https://en.wikipedia.org/wiki/Active_and_passive_transformation).
