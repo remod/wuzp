@@ -290,7 +290,7 @@ def create_figure_of_active_proper_rigid_transformation_of_vector():
     a3 = patches.FancyArrowPatch((P.x, P.y), (P2.x, P2.y),
                                 connectionstyle=f"arc3,rad={rotation / math.pi}", **kw)
     ax.add_patch(a3)
-    ax.text(0.5*(P.x + P2.x) + 0.1, 0.5*(P.y + P2.y), '$\\alpha$', fontsize=14, c='k')
+    ax.text(0.5*(P.x + P2.x) - 0.1, 0.5*(P.y + P2.y) - 0.05, '$\\alpha$', fontsize=14, c='k')
 
     # Rotation from Q to Q2
     style = "Simple, tail_width=1.5, head_width=10, head_length=14"
@@ -298,7 +298,12 @@ def create_figure_of_active_proper_rigid_transformation_of_vector():
     a3 = patches.FancyArrowPatch((Q.x, Q.y), (Q2.x, Q2.y),
                                 connectionstyle=f"arc3,rad={rotation / math.pi}", **kw)
     ax.add_patch(a3)
-    ax.text(0.5*(Q.x + Q2.x) + 0.1, 0.5*(Q.y + Q2.y) + 0.05, '$\\alpha$', fontsize=14, c='k')
+    ax.text(0.5*(Q.x + Q2.x) - 0.05, 0.5*(Q.y + Q2.y) - 0.1, '$\\alpha$', fontsize=14, c='k')
+
+    # Draw a 1 in a circle
+    circle1 = Coordinates(0.5*(P.x + P2.x) - 0.25, 0.5*(P.y + P2.y) - 0.025)
+    ax.add_patch(patches.Circle((circle1.x, circle1.y), 0.1, color='k', fill=False))
+    ax.text(circle1.x, circle1.y, '1', fontsize=14, c='k', horizontalalignment='center', verticalalignment='center')
 
     # Translation from P2 to P3
     ax.arrow(P2.x, P2.y, translation.x, translation.y, width=arrow_width, head_width=arrow_head_width, head_length=arrow_head_length, fc='k', ec='k', length_includes_head=True)
@@ -307,6 +312,11 @@ def create_figure_of_active_proper_rigid_transformation_of_vector():
     # Translation from Q2 to Q3
     ax.arrow(Q2.x, Q2.y, translation.x, translation.y, width=arrow_width, head_width=arrow_head_width, head_length=arrow_head_length, fc='k', ec='k', length_includes_head=True)
     ax.text(0.5*(Q2.x + Q3.x), 0.5*(Q2.y + Q3.y) - 0.1, '$\\vec{r}$', fontsize=14, c='k', horizontalalignment='center', verticalalignment='center')
+
+    # Draw a 2 in a circle
+    circle2 = Coordinates(0.5*(P2.x + P3.x) + 0.3, 0.5*(P2.y + P3.y) - 0.05)
+    ax.add_patch(patches.Circle((circle2.x, circle2.y), 0.1, color='k', fill=False))
+    ax.text(circle2.x, circle2.y, '2', fontsize=14, c='k', horizontalalignment='center', verticalalignment='center')
 
     # Draw perpendicular lines from P to the axis of the coordinate system A
     draw_perpendicular_line_from_point_to_line(ax, P, A, e_Ax, 'b')
