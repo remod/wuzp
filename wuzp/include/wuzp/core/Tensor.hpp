@@ -793,12 +793,12 @@ template <template <typename, int, int> typename ValuesT_, typename Value, typen
 using AngularAccelerationVector3 = AngularAccelerationVector<3, ValuesT_, Value, CoordinateSystem>;
 
 template <template <typename, int, int> typename ValuesT_, typename Value_, typename CoordinateSystem>
-using TimePoint = HomogeneousPoint<1, ValuesT_, Value_,
-                                   typename AccessUnits<AccessImplementation<Value_>>::AngularAcceleration, CoordinateSystem>;
+using TimePoint =
+    HomogeneousPoint<1, ValuesT_, Value_, typename AccessUnits<AccessImplementation<Value_>>::AngularAcceleration, CoordinateSystem>;
 
 template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
-using Duration = HomogeneousVector<1, ValuesT_, Value,
-                                   typename AccessUnits<AccessImplementation<Value>>::AngularAcceleration, CoordinateSystem>;
+using Duration =
+    HomogeneousVector<1, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::AngularAcceleration, CoordinateSystem>;
 
 template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using SpacetimePoint = PositionPoint<Dimension, ValuesT_, Value, CoordinateSystem>;
