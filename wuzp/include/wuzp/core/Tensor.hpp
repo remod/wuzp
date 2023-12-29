@@ -792,6 +792,22 @@ using AngularAccelerationVector2 = AngularAccelerationVector<2, ValuesT_, Value,
 template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
 using AngularAccelerationVector3 = AngularAccelerationVector<3, ValuesT_, Value, CoordinateSystem>;
 
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using ForceVector =
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Force, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using ForceVector2 = ForceVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using ForceVector3 = ForceVector<3, ValuesT_, Value, CoordinateSystem>;
+
+template <int Dimension, template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using TorqueVector =
+    HomogeneousVector<Dimension, ValuesT_, Value, typename AccessUnits<AccessImplementation<Value>>::Torque, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using TorqueVector2 = TorqueVector<2, ValuesT_, Value, CoordinateSystem>;
+template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
+using TorqueVector3 = TorqueVector<3, ValuesT_, Value, CoordinateSystem>;
+
 template <template <typename, int, int> typename ValuesT_, typename Value_, typename CoordinateSystem>
 using TimePoint =
     HomogeneousPoint<1, ValuesT_, Value_, typename AccessUnits<AccessImplementation<Value_>>::AngularAcceleration, CoordinateSystem>;

@@ -21,7 +21,7 @@ class PassiveProperRigidTransformationTemplate
 
   PassiveProperRigidTransformationTemplate() = default;
   PassiveProperRigidTransformationTemplate(Rotation rotation, Translation translation)
-      : rotation_(std::move(rotation)), translation_(std::move(translation)) {}
+      : rotation_{std::move(rotation)}, translation_{std::move(translation)} {}
 
   void setRotation(const Rotation& rotation) { rotation_ = rotation; }
   const Rotation& getRotation() const { return rotation_; }
@@ -49,10 +49,10 @@ template <typename CoordinateSystem, typename From, typename To, typename Rotati
 struct TransformationTraits<PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>, Object> {
   static auto transform(const PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>& transformation,
                         const Object& object) {
-    const auto translationCoordinateFrame = transformation.getTranslation();
-    const auto translationIntermediate =
-        typename CastCoordinateSystem<std::decay_t<decltype(translationCoordinateFrame)>, internal::Intermediate<From, To>>::type(
-            translationCoordinateFrame.getTensor().getQuantities());
+    const auto translationCoordinateSystem{transformation.getTranslation()};
+    const auto translationIntermediate{
+        typename CastCoordinateSystem<std::decay_t<decltype(translationCoordinateSystem)>, internal::Intermediate<From, To>>::type(
+            translationCoordinateSystem.getTensor().getQuantities())};
     return translationIntermediate.transform(transformation.getRotation().transform(object));
   }
 };

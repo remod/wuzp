@@ -43,7 +43,7 @@ This is required e.g. to represent mass matrices, which contain `kg` for transla
 
 ## Transformations
 
-In general, a transformation can be one or a combination of the following unit transformations:
+In general, a transformation can be one or a combination of the following base transformations:
 
 * Rotation
 * Translation
@@ -54,7 +54,9 @@ In general, a transformation can be one or a combination of the following unit t
 
 * Rotation
 * Translation
-* Proper rigid transformation (first rotation, then translation)
+* Proper rigid transformation (= first rotation, then translation)
+* Jacobian
+* Lorentz transformation
 
 These transformations are supported in their **active** and **passive** form.
 In the **active** case the object is transformed, resulting in a new object.
@@ -92,7 +94,7 @@ This method will also implicitly install its 3rd-party dependencies.
 ```bash
 sudo add-apt-repository ppa:remod/wuzp
 sudo apt update
-sudo apt install wuzp        # Includes wuzp's own unit implementation.
+sudo apt install wuzp        # wuzp, includes wuzp's own unit implementation.
 sudo apt install wuzp_boost  # When using Boost units.
 sudo apt install wuzp_eigen  # When using Eigen.
 sudo apt install wuzp_blitz  # When using Blitz++.
@@ -109,7 +111,20 @@ sudo apt install libblitz0-dev  # When using Blitz++.
 
 ## Examples
 
-For examples, have a look at the unit tests in the `tests` folder.
+Examples demonstrating how to use *wuzp* can be found in the `examples` folder.
+
+To compile the examples, navigate to the `examples` directory and perform the following steps:
+
+```bash
+mkdir build
+cd build
+cmake ..
+make -j
+```
+
+After that, you will find one executable for each example in the `build` directory.
+
+For more example code, have a look at the unit tests in the `tests` folder.
 
 ## Limitations
 
@@ -125,7 +140,7 @@ Instead, it needs to be cloned from GitHub and then built and installed manually
 **Unit tests**
 
 When adding a new feature, please make sure to add unit tests for it.
-In order to run the tests locally, perform the following steps:
+In order to run the tests locally, navigate to the `tests` directory and perform the following steps:
 
 ```bash
 mkdir build
@@ -139,7 +154,7 @@ ctest
 
 The code is formatted using [clang-format](https://clang.llvm.org/docs/ClangFormat.html).
 
-In order to format the code, navigate to the `build` directory and perform the following steps:
+In order to format the code, navigate to the `tests/build` directory and perform the following steps:
 
 ```bash
 sudo apt install clang-format
@@ -151,7 +166,7 @@ make format
 
 The code is tidied using [clang-tidy](https://clang.llvm.org/extra/clang-tidy/).
 
-In order to tidy the code, navigate to the `build` directory and perform the following steps:
+In order to tidy the code, navigate to the `tests/build` directory and perform the following steps:
 
 ```bash
 sudo apt install clang-tidy

@@ -101,8 +101,10 @@ if(${ENABLE_TESTS})
         src/Tensor.cpp
         src/ActiveTranslation.cpp
         src/PassiveTranslation.cpp
+        src/ActiveAndPassiveTranslation.cpp
         src/ActiveRotation.cpp
         src/PassiveRotation.cpp
+        src/ActiveAndPassiveRotation.cpp
         src/Jacobian.cpp
         src/ActiveProperRigidTransformation.cpp
         src/PassiveProperRigidTransformation.cpp

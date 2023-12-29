@@ -20,12 +20,12 @@ class ActiveLinearTransformation
   using TensorT = Tensor<1, 1, QuantitiesT, CoordinateSystemT, Relative>;
 
   template <typename... Args>
-  explicit ActiveLinearTransformation(Args... args) : tensor_(args...) {}
+  explicit ActiveLinearTransformation(Args&&... args) : tensor_{std::forward<Args>(args)...} {}
 
   const TensorT& getTensor() const { return tensor_; }
 
  private:
-  //! Tensor holding the orientation (= active rotation) of coordinate system To expressed in coordinate system From.
+  //! Tensor which transforms a vector by being contracted with it.
   TensorT tensor_;
 };
 

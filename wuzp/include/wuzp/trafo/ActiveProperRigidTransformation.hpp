@@ -20,7 +20,7 @@ class ActiveProperRigidTransformationTemplate
 
   ActiveProperRigidTransformationTemplate() = default;
   ActiveProperRigidTransformationTemplate(Rotation rotation, Translation translation)
-      : rotation_(std::move(rotation)), translation_(std::move(translation)) {}
+      : rotation_{std::move(rotation)}, translation_{std::move(translation)} {}
 
   void setRotation(const Rotation& rotation) { rotation_ = rotation; }
   const Rotation& getRotation() const { return rotation_; }

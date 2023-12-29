@@ -540,7 +540,7 @@ TEST(TestTensor2, CrossProduct) {  // NOLINT
   EXPECT_EQ(lhs.crossProduct(rhs), result);
 }
 
-TEST(TestTensor2, DotBadFrames) {  // NOLINT
+TEST(TestTensor2, DotBadCoordinateSystems) {  // NOLINT
   ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"

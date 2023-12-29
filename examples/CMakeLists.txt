@@ -25,10 +25,11 @@ else()
     find_package(wuzp_eigen REQUIRED)
 endif()
 
-add_executable(quantity quantity.cpp)
-target_link_libraries(quantity PRIVATE wuzp)
-target_link_libraries(quantity PRIVATE wuzp_eigen)
-
-add_executable(absolute_quantity absolute_quantity.cpp)
-target_link_libraries(absolute_quantity PRIVATE wuzp)
-target_link_libraries(absolute_quantity PRIVATE wuzp_eigen)
+# Add executables for all cpp files in this directory.
+file(GLOB EXAMPLES *.cpp)
+foreach(EXAMPLE ${EXAMPLES})
+    get_filename_component(EXAMPLE_NAME ${EXAMPLE} NAME_WE)
+    add_executable(${EXAMPLE_NAME} ${EXAMPLE})
+    target_link_libraries(${EXAMPLE_NAME} PRIVATE wuzp)
+    target_link_libraries(${EXAMPLE_NAME} PRIVATE wuzp_eigen)
+endforeach()
