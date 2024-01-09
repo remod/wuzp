@@ -8,10 +8,6 @@
 #include <wuzp_eigen/ValueMatrix.hpp>
 #include <wuzp_units/Unit.hpp>
 
-// using namespace wuzp;        // NOLINT
-// using namespace wuzp_eigen;  // NOLINT
-// using namespace wuzp_units;  // NOLINT
-
 struct A {};
 struct B {};
 using CoordinateSystemA = wuzp::CoordinateSystem<A>;

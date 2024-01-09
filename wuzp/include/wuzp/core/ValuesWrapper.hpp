@@ -94,17 +94,24 @@ class ValuesWrapper {
   }
 
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
-  auto contraction(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other) const {
-    return typename Contraction<ThisT, ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>>::type(
-        Contraction<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOtherT_>>::value(implementation_,
-                                                                                                               other.getImplementation()));
+  auto innerProduct(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other) const {
+    return typename InnerProduct<ThisT, ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>>::type(
+        InnerProduct<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOtherT_>>::value(implementation_,
+                                                                                                                other.getImplementation()));
+  }
+
+  template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
+  auto outerProduct(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other) const {
+    return typename OuterProduct<ThisT, ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>>::type(
+        OuterProduct<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOtherT_>>::value(implementation_,
+                                                                                                                other.getImplementation()));
   }
 
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
   auto dotProduct(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other) const {
-    // Reuse the contraction instead of delegating it to the implementation.
+    // Reuse the innerProduct instead of delegating it to the implementation.
     return typename DotProduct<ThisT, ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>>::type(
-        transpose().contraction(other));
+        transpose().innerProduct(other));
   }
 
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
@@ -146,6 +153,7 @@ class ValuesWrapper {
   //! Constructor for a set of objects to initialize the values.
   template <typename T0, typename... Ts>
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0, Ts&&... ts) {
+    static_assert(sizeof...(Ts) + 1 == MatrixSizeT::NumElementsV, "Number of arguments does not match size of matrix.");
     ReserveMemory<ImplementationT_, MatrixSizeT_>::run(implementation_);
     Initialize<ImplementationT_, std::tuple<T0, Ts...>>::run(implementation_, std::forward<T0>(t0), std::forward<Ts>(ts)...);
   }
@@ -289,20 +297,30 @@ struct TensorProduct<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLh
 
 template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
           typename ImplementationRhsT_>
-struct Contraction<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
-                   ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>> {
+struct InnerProduct<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
+                    ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>> {
   using type =
-      ValuesWrapper<typename Contraction<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
+      ValuesWrapper<typename InnerProduct<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
                     typename Product<ValueType<ValueLhsT_>, ValueType<ValueRhsT_>>::type,
-                    typename Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::type>;
+                    typename InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::type>;
+};
+
+template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
+          typename ImplementationRhsT_>
+struct OuterProduct<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
+                    ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>> {
+  using type =
+      ValuesWrapper<typename OuterProduct<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
+                    typename Product<ValueType<ValueLhsT_>, ValueType<ValueRhsT_>>::type,
+                    typename OuterProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::type>;
 };
 
 template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
           typename ImplementationRhsT_>
 struct DotProduct<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
                   ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>> {
-  using type = typename Contraction<typename Transpose<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>>::type,
-                                    ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>>::type;
+  using type = typename InnerProduct<typename Transpose<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>>::type,
+                                     ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>>::type;
 };
 
 template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
@@ -488,11 +506,21 @@ auto operator*(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLh
 
 template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
           typename ImplementationRhsT_>
-auto contraction(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs,
-                 const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
-  return typename Contraction<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
-                              ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>>::
-      type(Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::value(
+auto innerProduct(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs,
+                  const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
+  return typename InnerProduct<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
+                               ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>>::
+      type(InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::value(
+          lhs.getImplementation(), rhs.getImplementation()));
+}
+
+template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
+          typename ImplementationRhsT_>
+auto outerProduct(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs,
+                  const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
+  return typename OuterProduct<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
+                               ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>>::
+      type(OuterProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::value(
           lhs.getImplementation(), rhs.getImplementation()));
 }
 

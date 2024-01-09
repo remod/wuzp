@@ -9,6 +9,7 @@ namespace wuzp {
 template <int... SizesV_>
 struct MatrixSize {
   using SizesT = std::integer_sequence<int, SizesV_...>;
+  static constexpr int NumElementsV = std::integral_constant<int, (SizesV_ * ...)>::value;
 };
 
 template <int RowsV_, int ColsV_>
@@ -66,9 +67,18 @@ struct TensorProduct<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, Col
 };
 
 template <int RowsLhs, int ColsLhs, int RowsRhs, int ColsRhs>
-struct Contraction<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> {
+struct InnerProduct<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> {
   static_assert(ColsLhs == RowsRhs, "Number of LHS cols does not match number of RHS rows.");
   using type = MatrixSize<RowsLhs, ColsRhs>;
+};
+
+template <int RowsLhs, int ColsLhs, int RowsRhs, int ColsRhs>
+struct OuterProduct<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> {
+  static_assert(std::min(RowsLhs, RowsRhs) <= 1,
+                "Hypermatrices are not supported. At least one of the matrices must be a scalar or a vector.");
+  static_assert(std::min(ColsLhs, ColsRhs) <= 1,
+                "Hypermatrices are not supported. At least one of the matrices must be a scalar or a vector.");
+  using type = MatrixSize<RowsLhs + RowsRhs - 1, ColsLhs + ColsRhs - 1>;
 };
 
 template <int RowsLhs, int ColsLhs, int RowsRhs, int ColsRhs>

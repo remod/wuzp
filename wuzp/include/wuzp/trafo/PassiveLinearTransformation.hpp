@@ -57,7 +57,8 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Value, Coordin
   static auto transform(const PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, DimensionFrom, DimensionTo,
                                                           Units...>& /*transformation*/,
                         const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
-    //    return contraction(transformation.getTensor(), object);
+    // TODO(remod): Implement.
+    //    return innerProduct(transformation.getTensor(), object);
   }
 };
 
@@ -68,8 +69,9 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Value, Coordin
   static auto transform(
       const PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<0, 2, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
-    const auto fromResult{transformation.getTensor().tensorInverse().transpose() * object * transformation.getTensor().inverse()};
-    return evaluate(castCoordinateSystem<To>(fromResult.getTensor()));
+    return castCoordinateSystem<To>(innerProduct(transformation.getTensor().tensorInverse().transpose(),
+                                                 innerProduct(object, transformation.getTensor().tensorInverse())))
+        .evaluate();
   }
 };
 
@@ -82,9 +84,9 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Value, Coordin
       const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     // If the object is absolute (point), make it relative (vector), transform it, and make it absolute again.
     if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
-      return (castCoordinateSystem<To>(makeAbsolute(contraction(transformation.getTensor(), makeRelative(object))))).evaluate();
+      return (castCoordinateSystem<To>(makeAbsolute(innerProduct(transformation.getTensor(), makeRelative(object))))).evaluate();
     } else {
-      return (castCoordinateSystem<To>(contraction(transformation.getTensor(), object))).evaluate();
+      return (castCoordinateSystem<To>(innerProduct(transformation.getTensor(), object))).evaluate();
     }
   }
 };
@@ -97,7 +99,7 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Value, Coordin
       const PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<1, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     return castCoordinateSystem<To>(
-        contraction(transformation.getTensor(), contraction(object, transformation.getTensor().tensorInverse())));
+        innerProduct(transformation.getTensor(), innerProduct(object, transformation.getTensor().tensorInverse())));
   }
 };
 
@@ -108,7 +110,8 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Value, Coordin
   static auto transform(const PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, DimensionFrom, DimensionTo,
                                                           Units...>& /*transformation*/,
                         const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
-    //    return contraction(transformation.getTensor(), object);
+    // TODO(remod): Implement.
+    //    return innerProduct(transformation.getTensor(), object);
   }
 };
 

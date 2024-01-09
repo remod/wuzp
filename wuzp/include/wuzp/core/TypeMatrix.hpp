@@ -233,7 +233,7 @@ struct Product<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<Type0Lhs, Type1Lhs, T
 };
 
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
-struct Contraction<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
+struct InnerProduct<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
   static_assert(ColsLhs == RowsRhs, "Matrix sizes do not match.");
   using type =
       TypeMatrixImpl<RowsLhs, ColsRhs,
@@ -241,13 +241,46 @@ struct Contraction<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, Ty
                                              std::make_index_sequence<RowsLhs * ColsRhs>>::type>;
 };
 
+template <int N, typename T>
+struct CreateHomogeneousTupleImpl {
+  template <typename... Args>
+  using type = typename CreateHomogeneousTupleImpl<N - 1, T>::template type<T, Args...>;
+};
+
+template <typename T>
+struct CreateHomogeneousTupleImpl<0, T> {
+  template <typename... Args>
+  using type = std::tuple<Args...>;
+};
+
+template <int N, typename T>
+struct CreateHomogeneousTuple {
+  using type = typename CreateHomogeneousTupleImpl<N, T>::template type<>;
+};
+
+template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
+struct OuterProduct<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
+  static_assert(std::min(RowsLhs, RowsRhs) <= 1,
+                "Hypermatrices are not supported. At least one of the matrices must be a scalar or a vector.");
+  static_assert(std::min(ColsLhs, ColsRhs) <= 1,
+                "Hypermatrices are not supported. At least one of the matrices must be a scalar or a vector.");
+  using type = TypeMatrixImpl<
+      RowsLhs + RowsRhs - 1, ColsLhs + ColsRhs - 1,
+      typename IfThenElse<
+          RowsLhs == 1,
+          typename Cat<typename MultiplyTwoTuples<std::tuple<TypesLhs...>,
+                                                  typename CreateHomogeneousTuple<sizeof...(TypesLhs), TypesRhs>::type>::type...>::type,
+          typename Cat<typename MultiplyTwoTuples<
+              std::tuple<TypesRhs...>, typename CreateHomogeneousTuple<sizeof...(TypesRhs), TypesLhs>::type>::type...>::type>::type>;
+};
+
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
 struct DotProduct<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
   static_assert(RowsLhs == RowsRhs, "Matrix sizes do not match.");
   static_assert(ColsLhs == 1, "Dot product is only defined for vectors.");
   static_assert(ColsRhs == 1, "Dot product is only defined for vectors.");
-  using type = typename Contraction<typename Transpose<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>>::type,
-                                    TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>>::type;
+  using type = typename InnerProduct<typename Transpose<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>>::type,
+                                     TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>>::type;
 };
 
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
@@ -312,7 +345,7 @@ using DiagonalTypeMatrix = typename DiagonalTypeMatrixImpl<Size, ZeroType, OneTy
  * A matrix storing types at compile-time.
  * @tparam Rows Number of rows.
  * @tparam Cols Number of columns.
- * @tparam Types Types stored in the matrix, row-first. The number of types must match the number of elements the matrix can store.
+ * @tparam Types Types stored in the matrix, row-major order. The number of types must match the number of elements the matrix can store.
  */
 template <int Rows, int Cols, typename... Types>
 using TypeMatrix = typename CreateTypeMatrix<Rows, Cols, Types...>::type;

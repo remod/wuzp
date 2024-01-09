@@ -34,8 +34,8 @@ time_point + duration  // OK.
 When operating with different coordinate systems, it is crucial to prevent mixing them up:
 
 ```cpp
-velocity_in_A + velocity_in_B  // Error: Mismatching coordinate systems!
-velocity_in_A + transformation_B_to_A.transform(velocity_in_B)  // OK.
+force_in_A + force_in_B  // Error: Mismatching coordinate systems!
+force_in_A + transformation_B_to_A.transform(force_in_B)  // OK.
 ```
 
 **Note:** While a single object can only have a single coordinate system, it is possible to assign it a heterogeneous set of units.

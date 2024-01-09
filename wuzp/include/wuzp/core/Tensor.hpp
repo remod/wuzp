@@ -11,81 +11,6 @@
 
 namespace wuzp {
 
-// Tensor (3+) - Hypermatrix
-// Tensor (2)  - Matrix
-// Tensor (1)  - Vector
-// Tensor (0)  - Scalar
-
-// template <int ContravariantIndices, int CovariantIndices>
-// class Tensor;
-//
-// using Scalar = Tensor<0, 0>;
-// using EuclideanVector = Tensor<1, 0>;       // A * v
-// using PassiveLinearTransformation = Tensor<1, 1>;  // M' = A^-1 * M * A
-// using RotationMatrix = Tensor<1, 1>;        // M' = A^-1 * M * A
-// using InertiaTensor = Tensor<0, 2>;         // M' = A^T * M * A
-
-// n-m-Tensor:
-// n = contravariant
-// m = covariant
-
-// 1-1-Tensor aka linear transformation in our convention:
-// w = M * v
-// w' = M' * v'
-// w' = A * w = A * M * v = A * M * A^-1 * A * v = A * M * A^-1 * v'
-// M' = A * M * A^-1
-
-// 0-2-Tensor aka inertia tensor (aka mass matrix) in our convention:
-// E = v^T * M * v
-// E' = v^T' * M' * v'
-// E' = E
-// v^T * M * v = v^T * A^T * M' * A * v
-// M = A^T * M' * A
-// M' = (A^-1)^T * M * A^-1
-// Our convention is confusing as we have two times A^-1, which intuitively corresponds to 2 contravariant indices.
-// Probably this is due basis vectors being transformed actively while the measured quantities in these coordinate systems are transformed
-// passively.
-
-// 2-0-Tensor in our convention:
-// Should be invariant?
-
-// Einstein Summation
-
-// A = A^i_j
-// A^T = A_j^i
-
-// https://en.wikipedia.org/wiki/Change_of_basis
-
-// Note: Wiki uses the different convention "old = A * new", we use "new = A * old".
-
-// e^i = A^i_j * e^j' = A * e'
-// e^i' = (A^-1)^i_j * e^j = A^-1 * e
-// e_i' = e_j * (A^-1)_j^i = e^T * (A^-1)^T
-
-// https://en.wikipedia.org/wiki/Tensor
-
-// Basis vector (row vector!!!)
-// e_i' = e_j * A_i^j
-// e' = e * A
-
-// In our convention (column vector!!!), redefine f = e^T, f' = e^T', B = A^T:
-// f^T' = f^T * B^T
-// f' = B * f
-
-// Contravariant vector (or simply "vector"):
-// v^i, column vector
-// v^i' = (A^-1)^i_j * v^j
-// v' = A^-1 * v
-// In our convention: v' = A * v
-
-// Covariant:
-// w_i, row vector
-// w_i' = w_j * A_i^j
-// w' = w * A
-// In our convention: w' = w * A^-1
-
-// Orthogonal matrix / transformation: A^-1 == A^T
-
 // TODO(remod): Are two indices sufficient or do we need a boolean per dimension?
 template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 class Tensor {
@@ -98,8 +23,9 @@ class Tensor {
   using AbsoluteT = AbsoluteT_;
   using ThisT = Tensor<ContravariantIndices, CovariantIndices, QuantitiesT, CoordinateSystemT, AbsoluteT>;
 
-  static_assert(CovariantIndices >= 0, "Covariant index must not be negative.");
   static_assert(ContravariantIndices >= 0, "Contravariant index must not be negative.");
+  static_assert(CovariantIndices >= 0, "Covariant index must not be negative.");
+  static_assert(ContravariantIndices + CovariantIndices <= 2, "Tensors of rank 3 or more are not supported at the moment.");
 
   Tensor() = default;
 
@@ -184,11 +110,11 @@ class Tensor {
 
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther,
             typename AbsoluteOtherT>
-  auto contraction(
+  auto innerProduct(
       const Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, AbsoluteOtherT>& other) const {
-    return typename Contraction<
+    return typename InnerProduct<
         ThisT, Tensor<ContravariantIndicesOther, CovariantIndicesOther, QuantitiesOther, CoordinateSystemOther, AbsoluteOtherT>>::type{
-        quantities_.contraction(other.getQuantities())};
+        quantities_.innerProduct(other.getQuantities())};
   }
 
   template <int ContravariantIndicesOther, int CovariantIndicesOther, typename QuantitiesOther, typename CoordinateSystemOther,
@@ -250,7 +176,7 @@ class Tensor {
   }
 
   template <typename... Ts>
-  explicit Tensor(FromImplementationArgs /*tag*/, Ts&&... ts) : quantities_(std::forward<Ts>(ts)...) {}
+  explicit Tensor(FromImplementationArgs /*tag*/, Ts&&... ts) : quantities_{std::forward<Ts>(ts)...} {}
 
   QuantitiesT quantities_;
 };
@@ -347,15 +273,28 @@ struct TensorProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, Quanti
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
-struct Contraction<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
-                   Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
-  static_assert(ContravariantIndicesLhs >= CovariantIndicesRhs,
-                "LHS contravariant indices must be larger or equal than RHS covariant indices.");
-  static_assert(CovariantIndicesLhs >= ContravariantIndicesRhs,
-                "LHS covariant indices must be larger or equal than RHS contravariant indices.");
+struct InnerProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                    Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
+  static_assert(ContravariantIndicesLhs + ContravariantIndicesRhs >= 1, "Total contravariant indices must be at least 1.");
+  static_assert(CovariantIndicesLhs + CovariantIndicesRhs >= 1, "Total covariant indices must be at least 1.");
   using type =
-      Tensor<ContravariantIndicesLhs - CovariantIndicesRhs, CovariantIndicesLhs - ContravariantIndicesRhs,
-             typename Contraction<QuantitiesLhsT_, QuantitiesRhsT_>::type,
+      Tensor<ContravariantIndicesLhs + ContravariantIndicesRhs - 1, CovariantIndicesLhs + CovariantIndicesRhs - 1,
+             typename InnerProduct<QuantitiesLhsT_, QuantitiesRhsT_>::type,
+             typename Product<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type, typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type>;
+};
+
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+struct OuterProduct<Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+                    Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
+  static_assert(std::min(ContravariantIndicesLhs, ContravariantIndicesRhs) <= 1,
+                "Tensors with rank 3 or more are not supported. Smaller contravariant incides must be at most 1.");
+  static_assert(std::min(CovariantIndicesLhs, CovariantIndicesRhs) <= 1,
+                "Tensors with rank 3 or more are not supported. Smaller covariant incides must be at most 1.");
+  using type =
+      Tensor<ContravariantIndicesLhs + ContravariantIndicesRhs, CovariantIndicesLhs + CovariantIndicesRhs,
+             typename OuterProduct<QuantitiesLhsT_, QuantitiesRhsT_>::type,
              typename Product<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type, typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type>;
 };
 
@@ -416,7 +355,7 @@ struct Block<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, Coordi
 
 template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct Inverse<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
-  using type = Tensor<ContravariantIndices, CovariantIndices, typename Inverse<QuantitiesT_>::type, CoordinateSystemT_,
+  using type = Tensor<CovariantIndices, ContravariantIndices, typename Inverse<QuantitiesT_>::type, CoordinateSystemT_,
                       typename Inverse<AbsoluteT_>::type>;
 };
 
@@ -600,7 +539,7 @@ template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename Quantit
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
 auto operator*(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
-  // TODO(remod): Introduce a macro to make the choice between contraction and tensor product configurable?
+  // TODO(remod): Introduce a macro to make the choice between innerProduct and tensor product configurable?
   return product(lhs, rhs);
 }
 
@@ -615,16 +554,27 @@ auto tensorProduct(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, Qu
       lhs.getQuantities().tensorProduct(rhs.getQuantities())};
 }
 
-// TODO(remod): Contractions and other operators are recursive. Support multiple arguments?
+// Currently limited to taking the last index of the lhs and the first index of the rhs.
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
           typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
           typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
-auto contraction(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
-                 const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
-  return typename Contraction<
+auto innerProduct(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+                  const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return typename InnerProduct<
       Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
       Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>>::type{
-      lhs.getQuantities().contraction(rhs.getQuantities())};
+      lhs.getQuantities().innerProduct(rhs.getQuantities())};
+}
+
+template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
+          typename AbsoluteLhsT_, int ContravariantIndicesRhs, int CovariantIndicesRhs, typename QuantitiesRhsT_,
+          typename CoordinateSystemRhsT_, typename AbsoluteRhsT_>
+auto outerProduct(const Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
+                  const Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
+  return typename OuterProduct<
+      Tensor<ContravariantIndicesLhs, CovariantIndicesLhs, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>,
+      Tensor<ContravariantIndicesRhs, CovariantIndicesRhs, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>>::type{
+      lhs.getQuantities().outerProduct(rhs.getQuantities())};
 }
 
 template <int ContravariantIndicesLhs, int CovariantIndicesLhs, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,

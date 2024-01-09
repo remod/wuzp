@@ -126,9 +126,18 @@ struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementa
 };
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
     return blitz::sum(implLhs(blitz::tensor::i, blitz::tensor::k) * implRhs(blitz::tensor::k, blitz::tensor::j), blitz::tensor::k);
+  }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct OuterProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
+    return implLhs(blitz::tensor::i, blitz::tensor::j) * implRhs(blitz::tensor::i, blitz::tensor::j);
   }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));

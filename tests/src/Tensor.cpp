@@ -447,6 +447,101 @@ TEST(TestTensor2, ProductWithTensor) {  // NOLINT
   EXPECT_EQ(tensor * tensor, result);
 }
 
+TEST(TestTensor2, InnerProduct) {  // NOLINT
+  using ValueMatrixLhs = ValueMatrix<int, 3, 2>;
+  using UnitMatrixLhs = TypeMatrix<3, 2, Length>;
+  using QuantityMatrixLhs = Quantities<ValueMatrixLhs, UnitMatrixLhs>;
+  using TensorLhs = Tensor<1, 1, QuantityMatrixLhs, CoordinateSystemA, Relative>;
+  using ValueMatrixRhs = ValueMatrix<int, 2, 1>;
+  using UnitMatrixRhs = TypeMatrix<2, 1, Force>;
+  using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
+  using TensorRhs = Tensor<1, 0, QuantityMatrixRhs, CoordinateSystemA, Relative>;
+  using ValueMatrixResult = ValueMatrix<int, 3, 1>;
+  using UnitMatrixResult = TypeMatrix<3, 1, Torque>;
+  using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
+  using TensorResult = Tensor<1, 0, QuantityMatrixResult, CoordinateSystemA, Relative>;
+  const TensorLhs tensorLhs{1, 2, 3, 4, 5, 6};
+  const TensorRhs tensorRhs{-2, -1};
+  const TensorResult tensorResult{-4, -10, -16};
+  EXPECT_EQ(innerProduct(tensorLhs, tensorRhs), tensorResult);
+}
+
+TEST(TestTensor2, OuterProductOfScalars) {  // NOLINT
+  using ValueMatrixLhs = ValueMatrix<int, 1, 1>;
+  using UnitMatrixLhs = TypeMatrix<1, 1, Force>;
+  using QuantityMatrixLhs = Quantities<ValueMatrixLhs, UnitMatrixLhs>;
+  using TensorLhs = Tensor<0, 0, QuantityMatrixLhs, CoordinateSystemA, Relative>;
+  using ValueMatrixRhs = ValueMatrix<int, 1, 1>;
+  using UnitMatrixRhs = TypeMatrix<1, 1, Length>;
+  using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
+  using TensorRhs = Tensor<0, 0, QuantityMatrixRhs, CoordinateSystemA, Relative>;
+  using ValueMatrixResult = ValueMatrix<int, 1, 1>;
+  using UnitMatrixResult = TypeMatrix<1, 1, Torque>;
+  using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
+  using TensorResult = Tensor<0, 0, QuantityMatrixResult, CoordinateSystemA, Relative>;
+  const TensorLhs tensorLhs{2};
+  const TensorRhs tensorRhs{3};
+  const TensorResult tensorResult{6};
+  EXPECT_EQ(outerProduct(tensorLhs, tensorRhs), tensorResult);
+}
+
+TEST(TestTensor2, OuterProductOfCovectorAndVector) {  // NOLINT
+  using ValueMatrixLhs = ValueMatrix<int, 1, 2>;
+  using UnitMatrixLhs = TypeMatrix<1, 2, Force>;
+  using QuantityMatrixLhs = Quantities<ValueMatrixLhs, UnitMatrixLhs>;
+  using TensorLhs = Tensor<1, 0, QuantityMatrixLhs, CoordinateSystemA, Relative>;
+  using ValueMatrixRhs = ValueMatrix<int, 3, 1>;
+  using UnitMatrixRhs = TypeMatrix<3, 1, Length>;
+  using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
+  using TensorRhs = Tensor<0, 1, QuantityMatrixRhs, CoordinateSystemA, Relative>;
+  using ValueMatrixResult = ValueMatrix<int, 3, 2>;
+  using UnitMatrixResult = TypeMatrix<3, 2, Torque>;
+  using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
+  using TensorResult = Tensor<1, 1, QuantityMatrixResult, CoordinateSystemA, Relative>;
+  const TensorLhs tensorLhs{1, 2};
+  const TensorRhs tensorRhs{-1, 3, 4};
+  const TensorResult tensorResult{-1, -2, 3, 6, 4, 8};
+  EXPECT_EQ(outerProduct(tensorLhs, tensorRhs), tensorResult);
+}
+
+TEST(TestTensor2, OuterProductOfVectorAndCovector) {  // NOLINT
+  using ValueMatrixLhs = ValueMatrix<int, 3, 1>;
+  using UnitMatrixLhs = TypeMatrix<3, 1, Force>;
+  using QuantityMatrixLhs = Quantities<ValueMatrixLhs, UnitMatrixLhs>;
+  using TensorLhs = Tensor<1, 0, QuantityMatrixLhs, CoordinateSystemA, Relative>;
+  using ValueMatrixRhs = ValueMatrix<int, 1, 2>;
+  using UnitMatrixRhs = TypeMatrix<1, 2, Length>;
+  using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
+  using TensorRhs = Tensor<0, 1, QuantityMatrixRhs, CoordinateSystemA, Relative>;
+  using ValueMatrixResult = ValueMatrix<int, 3, 2>;
+  using UnitMatrixResult = TypeMatrix<3, 2, Torque>;
+  using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
+  using TensorResult = Tensor<1, 1, QuantityMatrixResult, CoordinateSystemA, Relative>;
+  const TensorLhs tensorLhs{-1, 3, 4};
+  const TensorRhs tensorRhs{1, 2};
+  const TensorResult tensorResult{-1, -2, 3, 6, 4, 8};
+  EXPECT_EQ(outerProduct(tensorLhs, tensorRhs), tensorResult);
+}
+
+TEST(TestTensor2, OuterProductOfScalarAndMatrix) {  // NOLINT
+  using ValueMatrixLhs = ValueMatrix<int, 1, 1>;
+  using UnitMatrixLhs = TypeMatrix<1, 1, Force>;
+  using QuantityMatrixLhs = Quantities<ValueMatrixLhs, UnitMatrixLhs>;
+  using TensorLhs = Tensor<0, 0, QuantityMatrixLhs, CoordinateSystemA, Relative>;
+  using ValueMatrixRhs = ValueMatrix<int, 2, 2>;
+  using UnitMatrixRhs = TypeMatrix<2, 2, Length>;
+  using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
+  using TensorRhs = Tensor<1, 1, QuantityMatrixRhs, CoordinateSystemA, Relative>;
+  using ValueMatrixResult = ValueMatrix<int, 2, 2>;
+  using UnitMatrixResult = TypeMatrix<2, 2, Torque>;
+  using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
+  using TensorResult = Tensor<1, 1, QuantityMatrixResult, CoordinateSystemA, Relative>;
+  const TensorLhs tensorLhs{2};
+  const TensorRhs tensorRhs{-1, 3, 4, 2};
+  const TensorResult tensorResult{-2, 6, 8, 4};
+  EXPECT_EQ(outerProduct(tensorLhs, tensorRhs), tensorResult);
+}
+
 TEST(TestTensor2, DivisionWithBuiltinValue) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
