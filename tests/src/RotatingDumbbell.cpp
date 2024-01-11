@@ -156,11 +156,11 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
                               massMatrix12, massMatrix02, massMatrix12, massMatrix22};
 
   const EnergyQuantity energyMinimalCoordinates2 {
-    0.5 * contraction(minimalCoordinatesDt.transpose(), contraction(massMatrix, minimalCoordinatesDt)
+    0.5 * innerProduct(minimalCoordinatesDt.transpose(), innerProduct(massMatrix, minimalCoordinatesDt)
 #if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
-                                                            .evaluate()
+                                                             .evaluate()
 #endif
-                          )
+                           )
               .getQuantity()
   };
 

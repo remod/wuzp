@@ -6,7 +6,7 @@ namespace wuzp {
 
 /**
  * Base class for all transformations.
- * Transformations can be one or a combination of the following base-transformations:
+ * Transformations can be one or a combination of the following base transformations:
  * Translation, rotation, reflection, dilation.
  */
 class Transformation {

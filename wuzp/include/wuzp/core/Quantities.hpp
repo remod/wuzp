@@ -125,8 +125,13 @@ class Quantities {
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
-  auto contraction(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename Contraction<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.contraction(other.getValues())};
+  auto innerProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
+    return typename InnerProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.innerProduct(other.getValues())};
+  }
+
+  template <typename ValuesOtherT_, typename UnitsOtherT_>
+  auto outerProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
+    return typename OuterProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.outerProduct(other.getValues())};
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
@@ -243,8 +248,13 @@ struct TensorProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_
 };
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-struct Contraction<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
-  using type = Quantities<typename Contraction<ValuesLhsT_, ValuesRhsT_>::type, typename Contraction<UnitsLhsT_, UnitsRhsT_>::type>;
+struct InnerProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename InnerProduct<ValuesLhsT_, ValuesRhsT_>::type, typename InnerProduct<UnitsLhsT_, UnitsRhsT_>::type>;
+};
+
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct OuterProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename OuterProduct<ValuesLhsT_, ValuesRhsT_>::type, typename OuterProduct<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
@@ -386,9 +396,15 @@ auto tensorProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantit
 }
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-auto contraction(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return typename Contraction<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
-      lhs.getValues().contraction(rhs.getValues()));
+auto innerProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename InnerProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
+      lhs.getValues().innerProduct(rhs.getValues()));
+}
+
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto outerProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename OuterProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
+      lhs.getValues().outerProduct(rhs.getValues()));
 }
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>

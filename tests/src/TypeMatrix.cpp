@@ -142,18 +142,46 @@ TEST(TestTypeMatrix, TensorProduct) {  // NOLINT
   //  static_assert(std::is_same<TensorProduct<A, B>::type, C>::value);
 }
 
-TEST(TestTypeMatrix, Contraction1) {  // NOLINT
+TEST(TestTypeMatrix, InnerProduct) {  // NOLINT
   using A = TypeMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using B = TypeMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
   using C = TypeMatrix<2, 2, Integer<4>, Integer<2>, Integer<10>, Integer<12>>;
-  static_assert(std::is_same<Contraction<A, B>::type, C>::value);
+  static_assert(std::is_same<InnerProduct<A, B>::type, C>::value);
 }
 
-TEST(TestTypeMatrix, Contraction2) {  // NOLINT
+TEST(TestTypeMatrix, InnerProductOfCovectorAndVector) {  // NOLINT
   using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using B = TypeMatrix<4, 1, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
   using C = TypeMatrix<1, 1, Integer<17>>;
-  static_assert(std::is_same<Contraction<A, B>::type, C>::value);
+  static_assert(std::is_same<InnerProduct<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, OuterProductOfScalars) {  // NOLINT
+  using A = TypeMatrix<1, 1, Integer<2>>;
+  using B = TypeMatrix<1, 1, Integer<3>>;
+  using C = TypeMatrix<1, 1, Integer<6>>;
+  static_assert(std::is_same<OuterProduct<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, OuterProductOfCovectorAndVector) {  // NOLINT
+  using A = TypeMatrix<1, 2, Integer<1>, Integer<2>>;
+  using B = TypeMatrix<3, 1, Integer<-1>, Integer<3>, Integer<4>>;
+  using C = TypeMatrix<3, 2, Integer<-1>, Integer<-2>, Integer<3>, Integer<6>, Integer<4>, Integer<8>>;
+  static_assert(std::is_same<OuterProduct<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, OuterProductOfVectorAndCovector) {  // NOLINT
+  using A = TypeMatrix<3, 1, Integer<-1>, Integer<3>, Integer<4>>;
+  using B = TypeMatrix<1, 2, Integer<1>, Integer<2>>;
+  using C = TypeMatrix<3, 2, Integer<-1>, Integer<-2>, Integer<3>, Integer<6>, Integer<4>, Integer<8>>;
+  static_assert(std::is_same<OuterProduct<A, B>::type, C>::value);
+}
+
+TEST(TestTypeMatrix, OuterProductOfScalarAndMatrix) {  // NOLINT
+  using A = TypeMatrix<1, 1, Integer<2>>;
+  using B = TypeMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
+  using C = TypeMatrix<2, 2, Integer<-2>, Integer<6>, Integer<8>, Integer<4>>;
+  static_assert(std::is_same<OuterProduct<A, B>::type, C>::value);
 }
 
 TEST(TestTypeMatrix, DivisionByType) {  // NOLINT

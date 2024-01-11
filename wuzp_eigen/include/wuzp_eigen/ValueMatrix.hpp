@@ -126,9 +126,26 @@ struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementa
 };
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct Contraction<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
     return (implLhs.matrix() * implRhs.matrix()).array();
+  }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
+};
+
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct OuterProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
+  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
+    if constexpr (ImplementationLhsT_::RowsAtCompileTime == 1 && ImplementationLhsT_::ColsAtCompileTime == 1) {
+      return implLhs(0, 0) * implRhs;
+    } else if constexpr (ImplementationRhsT_::RowsAtCompileTime == 1 && ImplementationRhsT_::ColsAtCompileTime == 1) {
+      return implLhs * implRhs(0, 0);
+    } else if constexpr (ImplementationLhsT_::RowsAtCompileTime == 1) {
+      return (implRhs.matrix() * implLhs.matrix()).array();
+    } else {
+      return (implLhs.matrix() * implRhs.matrix()).array();
+    }
   }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));

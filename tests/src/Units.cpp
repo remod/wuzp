@@ -19,8 +19,8 @@ TEST(TestUnitMatrix, Difference) {  // NOLINT
   static_assert(std::is_same<Difference<MyUnitMatrix, MyUnitMatrix>::type, MyUnitMatrix>::value);
 }
 
-TEST(TestUnitMatrix, Contraction) {  // NOLINT
-  static_assert(std::is_same<Contraction<TypeMatrix<2, 2, Length>, TypeMatrix<2, 2, Length>>::type, TypeMatrix<2, 2, Area>>::value);
+TEST(TestUnitMatrix, InnerProduct) {  // NOLINT
+  static_assert(std::is_same<InnerProduct<TypeMatrix<2, 2, Length>, TypeMatrix<2, 2, Length>>::type, TypeMatrix<2, 2, Area>>::value);
 }
 
 TEST(TestUnitMatrix, Inverse) {  // NOLINT

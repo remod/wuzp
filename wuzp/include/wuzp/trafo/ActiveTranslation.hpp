@@ -16,12 +16,12 @@ class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_
   using TensorT = Tensor<1, 0, QuantitiesT, CoordinateSystemT, Relative>;
 
   template <typename... Args>
-  explicit ActiveTranslation(Args&&... args) : tensor_(std::forward<Args>(args)...) {}
+  explicit ActiveTranslation(Args&&... args) : tensor_{std::forward<Args>(args)...} {}
 
   const TensorT& getTensor() const { return tensor_; }
 
  private:
-  //! Tensor holding the position (= active translation) of coordinate system To expressed in coordinate system From.
+  //! Vector which transforms another vector by being added to it.
   TensorT tensor_;
 };
 

@@ -10,6 +10,7 @@ namespace wuzp {
 
 // First rotate, then translate.
 // TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
+// TODO(remod): Add test which checks that active and passive transformation cancel each other (to proof order).
 template <typename CoordinateSystem, typename Rotation_, typename Translation_>
 class ActiveProperRigidTransformationTemplate
     : public ActiveTransformation<ActiveProperRigidTransformationTemplate<CoordinateSystem, Rotation_, Translation_>> {
@@ -19,7 +20,7 @@ class ActiveProperRigidTransformationTemplate
 
   ActiveProperRigidTransformationTemplate() = default;
   ActiveProperRigidTransformationTemplate(Rotation rotation, Translation translation)
-      : rotation_(std::move(rotation)), translation_(std::move(translation)) {}
+      : rotation_{std::move(rotation)}, translation_{std::move(translation)} {}
 
   void setRotation(const Rotation& rotation) { rotation_ = rotation; }
   const Rotation& getRotation() const { return rotation_; }

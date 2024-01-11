@@ -20,12 +20,12 @@ class ActiveLinearTransformation
   using TensorT = Tensor<1, 1, QuantitiesT, CoordinateSystemT, Relative>;
 
   template <typename... Args>
-  explicit ActiveLinearTransformation(Args... args) : tensor_(args...) {}
+  explicit ActiveLinearTransformation(Args&&... args) : tensor_{std::forward<Args>(args)...} {}
 
   const TensorT& getTensor() const { return tensor_; }
 
  private:
-  //! Tensor holding the orientation (= active rotation) of coordinate system To expressed in coordinate system From.
+  //! Tensor which transforms a vector by being contracted with it.
   TensorT tensor_;
 };
 
@@ -55,7 +55,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
       const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
-    //    return contraction(transformation.getTensor(), object);
+    //    return innerProduct(transformation.getTensor(), object);
   }
 };
 
@@ -66,9 +66,9 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<0, 2, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
-    const auto result =
-        contraction(transformation.getTensor().tensorInverse().transpose(), contraction(object, transformation.getTensor().inverse()));
-    return evaluate(result);
+    return innerProduct(transformation.getTensor().tensorInverse().transpose(),
+                        innerProduct(object, transformation.getTensor().tensorInverse()))
+        .evaluate();
   }
 };
 
@@ -81,9 +81,9 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
       const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     // If the object is absolute (point), make it relative (vector), transform it, and make it absolute again.
     if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
-      return (makeAbsolute(contraction(transformation.getTensor(), makeRelative(object)))).evaluate();
+      return (makeAbsolute(innerProduct(transformation.getTensor(), makeRelative(object)))).evaluate();
     } else {
-      return (contraction(transformation.getTensor(), object)).evaluate();
+      return (innerProduct(transformation.getTensor(), object)).evaluate();
     }
   }
 };
@@ -95,7 +95,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<1, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
-    return contraction(transformation.getTensor(), (contraction(object, transformation.getTensor().tensorInverse())));
+    return innerProduct(transformation.getTensor(), (innerProduct(object, transformation.getTensor().tensorInverse())));
   }
 };
 
@@ -106,7 +106,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
       const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
-    //    return contraction(transformation.getTensor(), object);
+    //    return innerProduct(transformation.getTensor(), object);
   }
 };
 

@@ -4,6 +4,7 @@
 #include "wuzp/core/traits.hpp"
 
 #include "ValueMatrix.hpp"
+#include "test_compilation_error.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -64,9 +65,9 @@ TEST(TestValuesWrapper, LazyTensorInverse) {  // NOLINT
 }
 #endif
 
-TEST(TestValuesWrapper, LazyContraction) {  // NOLINT
+TEST(TestValuesWrapper, LazyInnerProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 2, 2>;
-  static_assert(!std::is_same<Contraction<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
+  static_assert(!std::is_same<InnerProduct<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
 TEST(TestValuesWrapper, DefaultConstructionDoesThrow) {  // NOLINT
@@ -217,18 +218,46 @@ TEST(TestValuesWrapper, TensorProduct) {  // NOLINT
 // We could accept this as a result in this unit test, but unfortunately, the value matrix stores the value type itself too, which is still
 // an int.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
-TEST(TestValuesWrapper, ContractionTypeDerivation) {  // NOLINT
+TEST(TestValuesWrapper, InnerProductTypeDerivation) {  // NOLINT
   using A = ValueMatrix<int, 4, 3>;
   using B = ValueMatrix<int, 3, 2>;
-  static_assert(std::is_same_v<Evaluate<Contraction<A, B>::type>::type, ValueMatrix<int, 4, 2>>);
+  static_assert(std::is_same_v<Evaluate<InnerProduct<A, B>::type>::type, ValueMatrix<int, 4, 2>>);
 }
 #endif
 
-TEST(TestValuesWrapper, Contraction) {  // NOLINT
+TEST(TestValuesWrapper, InnerProduct) {  // NOLINT
   const ValueMatrix<int, 2, 3> lhs{1, 2, 3, 4, 5, 6};
   const ValueMatrix<int, 3, 2> rhs{1, 2, 3, 4, 5, 6};
   const ValueMatrix<int, 2, 2> result{22, 28, 49, 64};
-  EXPECT_EQ(contraction(lhs, rhs), result);
+  EXPECT_EQ(innerProduct(lhs, rhs), result);
+}
+
+TEST(TestValuesWrapper, OuterProductOfScalars) {  // NOLINT
+  const ValueMatrix<int, 1, 1> lhs{2};
+  const ValueMatrix<int, 1, 1> rhs{3};
+  const ValueMatrix<int, 1, 1> result{6};
+  EXPECT_EQ(outerProduct(lhs, rhs), result);
+}
+
+TEST(TestValuesWrapper, OuterProductOfCovectorAndVector) {  // NOLINT
+  const ValueMatrix<int, 1, 2> lhs{1, 2};
+  const ValueMatrix<int, 3, 1> rhs{-1, 3, 4};
+  const ValueMatrix<int, 3, 2> result{-1, -2, 3, 6, 4, 8};
+  EXPECT_EQ(outerProduct(lhs, rhs), result);
+}
+
+TEST(TestValuesWrapper, OuterProductOfVectorAndCovector) {  // NOLINT
+  const ValueMatrix<int, 3, 1> lhs{-1, 3, 4};
+  const ValueMatrix<int, 1, 2> rhs{1, 2};
+  const ValueMatrix<int, 3, 2> result{-1, -2, 3, 6, 4, 8};
+  EXPECT_EQ(outerProduct(lhs, rhs), result);
+}
+
+TEST(TestValuesWrapper, OuterProductOfScalarAndMatrix) {  // NOLINT
+  const ValueMatrix<int, 1, 1> lhs{2};
+  const ValueMatrix<int, 2, 2> rhs{-1, 3, 4, 2};
+  const ValueMatrix<int, 2, 2> result{-2, 6, 8, 4};
+  EXPECT_EQ(outerProduct(lhs, rhs), result);
 }
 
 // TODO(remod): This test with Blitz currently results in a segfault.
@@ -312,6 +341,18 @@ TEST(TestValuesWrapper, InitializeMatrix) {  // NOLINT
 TEST(TestValuesWrapper, InitializeValue) {  // NOLINT
   const Value<int> value{1};
   EXPECT_EQ(value.get(), 1);
+}
+
+TEST(TestTensor2, InitializeMatrixWithWrongNumberOfArguments) {  // NOLINT
+  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
+#include "ValueMatrix.hpp"
+
+int main() {
+  const ValueMatrix<int, 3, 2> matrix{1, 2, 3, 4, 5};
+  return 0;
+}
+)",
+                                               "Number of arguments does not match size of matrix.");
 }
 
 TEST(TestValuesWrapper, Evaluate) {  // NOLINT

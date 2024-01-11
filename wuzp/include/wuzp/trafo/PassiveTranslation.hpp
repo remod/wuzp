@@ -18,12 +18,13 @@ class PassiveTranslation
   using TensorT = Tensor<1, 0, QuantitiesT, CoordinateSystemT, Relative>;
 
   template <typename... Args>
-  explicit PassiveTranslation(Args&&... args) : tensor_(std::forward<Args>(args)...) {}
+  explicit PassiveTranslation(Args&&... args) : tensor_{std::forward<Args>(args)...} {}
 
   const TensorT& getTensor() const { return tensor_; }
 
  private:
-  //! Tensor holding the position (= active translation) of coordinate system To expressed in coordinate system From.
+  //! Vector from the origin of coordinate system To to the origin of coordinate system From, expressed in coordinate system
+  //! CoordinateSystemT_. Adding it to a vector in the coordinate system From transforms it into the coordinate system To.
   TensorT tensor_;
 };
 

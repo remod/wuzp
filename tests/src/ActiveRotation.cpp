@@ -53,6 +53,26 @@ TEST(TestActiveRotation, TransformPointCloud) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+TEST(TestActiveRotation, TransformMassMatrix) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<double, 3, 3>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 3, Mass>>;
+  using MassMatrix = Tensor<0, 2, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using VelocityVector = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+  const MassMatrix massMatrix{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
+  const VelocityVector velocityVector{1.0, 2.0, 3.0};
+  const QuantityD<Energy> energy{0.5 * innerProduct(velocityVector.transpose(), innerProduct(massMatrix, velocityVector)).getQuantity()};
+  const Transformation transformation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
+  const MassMatrix transformedMassMatrix{transformation.transform(massMatrix)};
+  const VelocityVector transformedVelocityVector{transformation.transform(velocityVector)};
+  const QuantityD<Energy> transformedEnergy{
+      0.5 *
+      innerProduct(transformedVelocityVector.transpose(), innerProduct(transformedMassMatrix, transformedVelocityVector)).getQuantity()};
+  EXPECT_EQ(transformedEnergy, energy);
+}
+#endif
+
 TEST(TestActiveRotation, TransformActiveTranslation) {  // NOLINT
   using Object = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
