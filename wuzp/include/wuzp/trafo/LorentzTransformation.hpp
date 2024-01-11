@@ -20,7 +20,7 @@ using LorentzTransformation4 = LorentzTransformation<ValuesT_, Value, Coordinate
 template <typename ValueT_>
 auto getSpeedOfLight() {
   return Quantity<typename AccessValues<AccessImplementation<ValueT_>>::template Value<ValueT_>,
-                  typename AccessUnits<AccessImplementation<ValueT_>>::Velocity>(static_cast<ValueT_>(299792458));
+                  typename AccessUnits<AccessImplementation<ValueT_>>::Velocity>{static_cast<ValueT_>(299792458)};
 }
 
 // TODO(remod): Why do we need to explicitly specialize the template arguments when using this function?
@@ -37,8 +37,8 @@ LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> cr
   using QuantitiesT = typename LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension>::QuantitiesT;
   using QuantityT = Quantity<typename AccessValues<AccessImplementation<Value>>::template Value<Value>,
                              typename AccessUnits<AccessImplementation<Value>>::Dimensionless>;
-  const auto squaredNorm = velocity.squaredNorm();
-  const auto lorentzFactor = pow<-1, 2>(QuantityT(1.0) - squaredNorm / pow<2>(getSpeedOfLight<Value>()));
+  const auto squaredNorm{velocity.squaredNorm()};
+  const auto lorentzFactor{pow<-1, 2>(QuantityT{1.0} - squaredNorm / pow<2>(getSpeedOfLight<Value>()))};
   QuantitiesT quantities;
   // Set the lower left matrix inclusive the diagonal.
   for (int row = 0; row < Dimension; ++row) {
@@ -49,9 +49,9 @@ LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> cr
       } else if (col == 0) {
         quantity = -lorentzFactor / getSpeedOfLight<Value>() * velocity.getQuantities().get(row - 1, 0);
       } else if (col == row) {
-        quantity = QuantityT(1.0) + (lorentzFactor - QuantityT(1.0)) * pow<2>(velocity.getQuantities().get(row - 1, 0)) / squaredNorm;
+        quantity = QuantityT{1.0} + (lorentzFactor - QuantityT{1.0}) * pow<2>(velocity.getQuantities().get(row - 1, 0)) / squaredNorm;
       } else {
-        quantity = (lorentzFactor - QuantityT(1.0)) * velocity.getQuantities().get(col - 1, 0) * velocity.getQuantities().get(row - 1, 0) /
+        quantity = (lorentzFactor - QuantityT{1.0}) * velocity.getQuantities().get(col - 1, 0) * velocity.getQuantities().get(row - 1, 0) /
                    squaredNorm;
       }
       quantities.set(row, col, quantity);
@@ -63,7 +63,7 @@ LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> cr
       quantities.set(row, col, quantities.get(col, row));
     }
   }
-  return LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension>(quantities);
+  return LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension>{quantities};
 }
 
 }  // namespace wuzp

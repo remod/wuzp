@@ -4,7 +4,6 @@
 
 namespace wuzp {
 
-// TODO(remod): Rename to Value?
 template <typename ValueT_>
 using ValueWrapper = typename AccessValues<AccessImplementation<ValueT_>>::template Value<ValueT_>;
 

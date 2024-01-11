@@ -101,8 +101,10 @@ if(${ENABLE_TESTS})
         src/Tensor.cpp
         src/ActiveTranslation.cpp
         src/PassiveTranslation.cpp
+        src/ActiveAndPassiveTranslation.cpp
         src/ActiveRotation.cpp
         src/PassiveRotation.cpp
+        src/ActiveAndPassiveRotation.cpp
         src/Jacobian.cpp
         src/ActiveProperRigidTransformation.cpp
         src/PassiveProperRigidTransformation.cpp
@@ -144,6 +146,7 @@ endif()
 if(${ENABLE_FORMAT} OR ${ENABLE_TIDY})
     file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
         # A /*/ matches one or more levels of directories.
+        ${REPO_DIR}/examples/*.cpp
         ${REPO_DIR}/wuzp/include/*/*.hpp
         ${REPO_DIR}/wuzp_blitz/include/*/*.hpp
         ${REPO_DIR}/wuzp_boost/include/*/*.hpp

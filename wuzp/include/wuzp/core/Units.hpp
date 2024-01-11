@@ -13,8 +13,8 @@ struct TensorInverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementati
 
  private:
   // Verify the candidate: If the candidate contracted by itself is idempotent (A^2 == A), it is valid.
-  using Identity = typename Contraction<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>, type>::type;
-  static_assert(std::is_same<typename Contraction<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
+  using Identity = typename InnerProduct<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>, type>::type;
+  static_assert(std::is_same<typename InnerProduct<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
 
   /* Proof:
 

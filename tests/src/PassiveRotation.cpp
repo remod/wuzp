@@ -53,6 +53,28 @@ TEST(TestPassiveRotation, TransformPointCloud) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+TEST(TestPassiveRotation, TransformMassMatrix) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<double, 3, 3>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 3, Mass>>;
+  using MassMatrix = Tensor<0, 2, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using VelocityVector = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using TransformedMassMatrix = Tensor<0, 2, MyQuantityMatrix, CoordinateSystemB, Relative>;
+  using TransformedVelocityVector = VelocityVector3<ValueMatrix, double, CoordinateSystemB>;
+  const MassMatrix massMatrix{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
+  const VelocityVector velocityVector{1.0, 2.0, 3.0};
+  const QuantityD<Energy> energy{0.5 * innerProduct(velocityVector.transpose(), innerProduct(massMatrix, velocityVector)).getQuantity()};
+  const Transformation transformation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const TransformedMassMatrix transformedMassMatrix{transformation.transform(massMatrix)};
+  const TransformedVelocityVector transformedVelocityVector{transformation.transform(velocityVector)};
+  const QuantityD<Energy> transformedEnergy{
+      0.5 *
+      innerProduct(transformedVelocityVector.transpose(), innerProduct(transformedMassMatrix, transformedVelocityVector)).getQuantity()};
+  EXPECT_EQ(transformedEnergy, energy);
+}
+#endif
+
 TEST(TestPassiveRotation, TransformPassiveTranslation) {  // NOLINT
   using Object = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
   using Transformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;

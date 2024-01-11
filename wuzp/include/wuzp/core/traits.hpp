@@ -114,9 +114,13 @@ WUZP_DEFINE_RECURSIVE_TRAIT(TensorProduct)
 template <typename Lhs, typename Rhs>
 auto tensorProduct(const Lhs& lhs, const Rhs& rhs);
 
-WUZP_DEFINE_RECURSIVE_TRAIT(Contraction)
+WUZP_DEFINE_RECURSIVE_TRAIT(InnerProduct)
 template <typename Lhs, typename Rhs>
-auto contraction(const Lhs& lhs, const Rhs& rhs);
+auto innerProduct(const Lhs& lhs, const Rhs& rhs);
+
+WUZP_DEFINE_RECURSIVE_TRAIT(OuterProduct)
+template <typename Lhs, typename Rhs>
+auto outerProduct(const Lhs& lhs, const Rhs& rhs);
 
 template <typename Lhs, typename Rhs>
 struct DotProduct {

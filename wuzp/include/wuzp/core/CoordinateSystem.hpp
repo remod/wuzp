@@ -5,7 +5,7 @@
 
 namespace wuzp {
 
-template <typename Name>
+template <typename UniqueIdentifier>
 struct CoordinateSystem {};
 
 template <typename Lhs, typename Rhs>

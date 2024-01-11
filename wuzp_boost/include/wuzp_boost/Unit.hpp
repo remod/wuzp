@@ -20,6 +20,7 @@ using Area = wuzp::Unit<boost::units::si::area>;
 using Dimensionless = wuzp::Unit<boost::units::si::dimensionless>;
 using Energy = wuzp::Unit<boost::units::si::energy>;
 using Force = wuzp::Unit<boost::units::si::force>;
+using Torque = wuzp::Unit<boost::units::si::torque>;
 using Frequency = wuzp::Unit<boost::units::si::frequency>;
 using Length = wuzp::Unit<boost::units::si::length>;
 using Mass = wuzp::Unit<boost::units::si::mass>;

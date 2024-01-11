@@ -24,6 +24,7 @@ using Area = wuzp::Unit<CreateIntegerUnitImpl<0, 2, 0, 0, 0, 0, 0>>;
 using Dimensionless = wuzp::Unit<CreateIntegerUnitImpl<0, 0, 0, 0, 0, 0, 0>>;
 using Energy = wuzp::Unit<CreateIntegerUnitImpl<-2, 2, 1, 0, 0, 0, 0>>;
 using Force = wuzp::Unit<CreateIntegerUnitImpl<-2, 1, 1, 0, 0, 0, 0>>;
+using Torque = wuzp::Unit<CreateIntegerUnitImpl<-2, 2, 1, 0, 0, 0, 0>>;
 using Frequency = wuzp::Unit<CreateIntegerUnitImpl<-1, 0, 0, 0, 0, 0, 0>>;
 using Length = wuzp::Unit<CreateIntegerUnitImpl<0, 1, 0, 0, 0, 0, 0>>;
 using Mass = wuzp::Unit<CreateIntegerUnitImpl<0, 0, 1, 0, 0, 0, 0>>;
