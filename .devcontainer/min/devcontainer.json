@@ -1,0 +1,25 @@
+{
+  // min: Ubuntu 22.04, the oldest supported dependencies.
+  // The image is the one CI uses: ci/image.sh pulls it, or builds it if the Dockerfile changed.
+  "name": "wuzp (min, Ubuntu 22.04)",
+  "initializeCommand": "ci/image.sh ensure min --tag wuzp-dev:min",
+  "image": "wuzp-dev:min",
+  "remoteUser": "dev",
+  "updateRemoteUserUID": true,
+  "mounts": [
+    "source=wuzp-ccache-min,target=/ccache,type=volume"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "llvm-vs-code-extensions.vscode-clangd",
+        "ms-vscode.cmake-tools"
+      ],
+      "settings": {
+        "cmake.useCMakePresets": "always",
+        "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+        "C_Cpp.intelliSenseEngine": "disabled"
+      }
+    }
+  }
+}
