@@ -1,390 +1,109 @@
-name: Continuous Integration
+name: CI
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
   pull_request:
-    branches:
-      - master
+  workflow_dispatch:
 
-env:  # Note: Nested environment variables are not supported.
-  DEBIAN_FRONTEND: noninteractive
-  REPO_DIR: ${{github.workspace}}/wuzp
-  TARGET_BRANCH: ${{github.event.pull_request.base.ref}}
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Container jobs default to sh; the steps use bash features.
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  check_format:
-    runs-on: ubuntu-22.04
-    env:
-      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/check_format
-      BUILD_TYPE: Debug
-      CMAKE_C_CXX_COMPILER: "clang_clang++"
-      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
-      UNITS_IMPLEMENTATION: 0
-      VALUES_IMPLEMENTATION: 0
+  format:
+    runs-on: ubuntu-24.04
+    # clang-format output differs between versions; the code is formatted with the version of the oldest supported LTS.
+    container: ubuntu:22.04
     steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          path: wuzp
-      - if: github.event_name == 'pull_request'
-        name: Merge Target Branch
-        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
-      - name: Upgrade
-        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
-      - name: Install Dependencies
-        run: sudo ${REPO_DIR}/scripts/check_format/steps/install_dependencies.sh
-      - name: Create Build Environment
-        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} OFF OFF ON OFF ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
-      - name: Check Format
-        run: ${REPO_DIR}/scripts/common_steps/check_format.sh ${REPO_DIR} ${BUILD_DIR}
-  check_package_versions:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        PACKAGE_NAME: ["wuzp", "wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
-    env:
-      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
-      WRITABLE_REPO_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions
-      WRITABLE_SOURCE_DIR: ${{github.workspace}}/tmp/wuzp/check_package_versions/${{matrix.PACKAGE_NAME}}
-    steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          path: wuzp
-      - if: github.event_name == 'pull_request'
-        name: Merge Target Branch
-        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
-      - name: Upgrade
-        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
-      - name: Install Dependencies
-        run: sudo ${REPO_DIR}/scripts/check_package_version/steps/install_dependencies.sh
-      - name: Check If Package Changed
-        run: |
-          source ${REPO_DIR}/scripts/common_steps/folder_changed.sh ${REPO_DIR} ${SOURCE_DIR}
-          echo "GH_FOLDER_CHANGED=${FOLDER_CHANGED}" >> $GITHUB_ENV
-      - if: env.GH_FOLDER_CHANGED == '1'
-        name: Copy Repository
-        run: ${REPO_DIR}/scripts/common_steps/copy_folder.sh ${REPO_DIR} ${WRITABLE_REPO_DIR}
-      - if: env.GH_FOLDER_CHANGED == '1'
-        name: Parse Branch Package Version
-        run: |
-          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${WRITABLE_SOURCE_DIR}
-          echo "GH_BRANCH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
-      - if: env.GH_FOLDER_CHANGED == '1'
-        name: Checkout Master
-        run: ${REPO_DIR}/scripts/common_steps/checkout_branch.sh ${WRITABLE_REPO_DIR} master
-      - if: env.GH_FOLDER_CHANGED == '1'
-        name: Parse Master Package Version
-        run: |
-          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${WRITABLE_SOURCE_DIR}
-          echo "GH_MASTER_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
-      - if: env.GH_FOLDER_CHANGED == '1'
-        name: Check Package Version
-        run: ${REPO_DIR}/scripts/common_steps/check_package_version.sh ${{env.GH_MASTER_PACKAGE_VERSION}} ${{env.GH_BRANCH_PACKAGE_VERSION}}
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: ci/install_dependencies.sh gcc format
+      - name: Check format
+        run: find examples tests/src wuzp*/include -name '*.[ch]pp' -print0 | xargs -0 clang-format --dry-run --Werror --style=file
+
   test:
-    runs-on: ubuntu-22.04
+    name: test (${{ matrix.image }}, ${{ matrix.compiler }}, ${{ matrix.units }} units, ${{ matrix.values }} values)
+    runs-on: ubuntu-24.04
+    container: ${{ matrix.image }}
     strategy:
+      fail-fast: false
       matrix:
-        CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
-        UNITS_IMPLEMENTATION: [0, 1]
-        VALUES_IMPLEMENTATION: [1, 2]
+        # The oldest and the newest supported Ubuntu LTS, i.e. the oldest and the newest supported dependency versions.
+        image: ["ubuntu:22.04", "ubuntu:26.04"]
+        compiler: [gcc, clang]
+        # Every backend combination is tested to prove that wuzp generalizes across implementations.
+        units: [wuzp, boost]
+        values: [eigen, blitz]
     env:
-      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}
-      BUILD_TYPE: Debug
-      CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
-      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
-      UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
-      VALUES_IMPLEMENTATION: ${{matrix.VALUES_IMPLEMENTATION}}
+      PRESET: ${{ matrix.compiler }}-${{ matrix.units }}-${{ matrix.values }}
     steps:
-    - name: Prepare Repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        path: wuzp
-    - if: github.event_name == 'pull_request'
-      name: Merge Target Branch
-      run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
-    - name: Upgrade
-      run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
-    - name: Install Dependencies
-      run: sudo ${REPO_DIR}/scripts/test/steps/install_dependencies.sh ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
-    - name: Create Build Environment
-      run: |
-        [ "${CMAKE_C_CXX_COMPILER}" = "clang_clang++" ] && ENABLE_CODE_COVERAGE=1 || ENABLE_CODE_COVERAGE=0
-        ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} ON ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON ${ENABLE_CODE_COVERAGE} OFF ON ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
-    - name: Build
-      run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
-    - name: Test
-      run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
-    - name: Tidy
-      run: ${REPO_DIR}/scripts/common_steps/tidy.sh ${BUILD_DIR}
-    - if: matrix.CMAKE_C_CXX_COMPILER == 'clang_clang++'
-      name: Upload Test to Cache
-      uses: actions/cache@v3
-      with:
-        # Note: It is not possible to reuse environment variables here.
-        key: test_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test/${{matrix.CMAKE_C_CXX_COMPILER}}_${{matrix.UNITS_IMPLEMENTATION}}_${{matrix.VALUES_IMPLEMENTATION}}
-  merge_code_coverage:
-    needs: test
-    runs-on: ubuntu-22.04
-    env:
-      BUILDS_DIR: ${{github.workspace}}/tmp/wuzp/test
-      CODE_COVERAGE_DIR: ${{github.workspace}}/tmp/wuzp/code_coverage
-    steps:
-    - name: Prepare Repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        path: wuzp
-    - if: github.event_name == 'pull_request'
-      name: Merge Target Branch
-      run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
-    - name: Download Test 0 1 from Cache
-      uses: actions/cache@v3
-      with:
-        # Note: It is not possible to reuse environment variables here.
-        key: test_0_1_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_0_1
-    - name: Download Test 1 1 from Cache
-      uses: actions/cache@v3
-      with:
-        # Note: It is not possible to reuse environment variables here.
-        key: test_1_1_${{github.run_id}}
-        path: ${{github.workspace}}/tmp/wuzp/test/clang_clang++_1_1
-    - name: Upgrade
-      run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
-    - name: Install Dependencies
-      run: sudo ${REPO_DIR}/scripts/merge_code_coverage/steps/install_dependencies.sh
-    - name: LS
-      run: sudo apt install tree && tree ${BUILDS_DIR}
-    - name: Merge Code Coverage
-      run: ${REPO_DIR}/scripts/common_steps/merge_code_coverage.sh ${BUILDS_DIR} ${CODE_COVERAGE_DIR}
-    - name: Upload Code Coverage to Codecov.io  # Note: The GitHub action does not find the coverage file, invoke codecov directly.
-      run: |
-        sudo apt install curl
-        curl -Os https://uploader.codecov.io/latest/linux/codecov
-        chmod +x codecov
-        ./codecov -t ${{secrets.CODECOV_TOKEN}} -f ${CODE_COVERAGE_DIR}/coverage.txt
-  package_wuzp:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        PACKAGE_NAME: ["wuzp"]
-    env:
-      PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
-      PACKAGE_SHIP_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
-      PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
-      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
-    steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          path: wuzp
-      - if: github.event_name == 'pull_request'
-        name: Merge Target Branch
-        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
-      - name: Upgrade
-        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
-      - name: Install Dependencies
-        run: sudo ${REPO_DIR}/scripts/package/steps/install_dependencies.sh
-      - name: Configure GPG Key
-        env:
-          GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
-        run: |
-          source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
-          echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
-      - name: Parse Package Version
-        run: |
-          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
-          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
-      - name: Package
-        env:
-          GNUPGHOME: ${{env.GH_GNUPGHOME}}
-          GPG_SIGNING_KEYGRIP: ${{secrets.GPG_SIGNING_KEYGRIP}}
-          GPG_SIGNING_KEY_PASSPHRASE: ${{secrets.GPG_SIGNING_KEY_PASSPHRASE}}
-          PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
-        run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
-      - name: Upload Test Package to Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: ${{matrix.PACKAGE_NAME}}_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
-      - name: Upload Ship Package to Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
-  package_extensions:
-    needs: package_wuzp
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        PACKAGE_NAME: ["wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
-    env:
-      PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
-      PACKAGE_SHIP_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
-      PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
-      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
-      WUZP_PACKAGE_TEST_DIR: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
-    steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          path: wuzp
-      - if: github.event_name == 'pull_request'
-        name: Merge Target Branch
-        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
-      - name: Download Package wuzp from Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: wuzp_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
-      - name: Upgrade
-        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
-      - name: Install Dependencies
-        run: sudo ${REPO_DIR}/scripts/package/steps/install_dependencies.sh ${WUZP_PACKAGE_TEST_DIR}
-      - name: Configure GPG Key
-        env:
-          GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
-        run: |
-          source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
-          echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
-      - name: Parse Package Version
-        run: |
-          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
-          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
-      - name: Package
-        env:
-          GNUPGHOME: ${{env.GH_GNUPGHOME}}
-          GPG_SIGNING_KEYGRIP: ${{secrets.GPG_SIGNING_KEYGRIP}}
-          GPG_SIGNING_KEY_PASSPHRASE: ${{secrets.GPG_SIGNING_KEY_PASSPHRASE}}
-          PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
-        run: ${REPO_DIR}/scripts/common_steps/package.sh ${SOURCE_DIR} ${PACKAGE_TEST_DIR} ${PACKAGE_SHIP_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION}
-      - name: Upload Test Package to Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: ${{matrix.PACKAGE_NAME}}_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test/${{matrix.PACKAGE_NAME}}
-      - name: Upload Ship Package to Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
-  test_packages:
-    needs: [package_wuzp, package_extensions]
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        CMAKE_C_CXX_COMPILER: ["clang_clang++", "gcc_g++"]
-        UNITS_IMPLEMENTATION: [0, 1]
-        VALUES_IMPLEMENTATION: [1, 2]
-    env:
-      BUILD_DIR: ${{github.workspace}}/tmp/wuzp/test_packages
-      BUILD_TYPE: Debug
-      CMAKE_C_CXX_COMPILER: ${{matrix.CMAKE_C_CXX_COMPILER}}
-      PACKAGES_DIR: ${{github.workspace}}/tmp/wuzp/package/test
-      SOURCE_DIR: ${{github.workspace}}/wuzp/tests
-      UNITS_IMPLEMENTATION: ${{matrix.UNITS_IMPLEMENTATION}}
-      VALUES_IMPLEMENTATION: ${{matrix.VALUES_IMPLEMENTATION}}
-    steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          path: wuzp
-      - if: github.event_name == 'pull_request'
-        name: Merge Target Branch
-        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
-      - name: Download Package wuzp from Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: wuzp_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp
-      - name: Download Package wuzp_blitz from Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: wuzp_blitz_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_blitz
-      - name: Download Package wuzp_boost from Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: wuzp_boost_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_boost
-      - name: Download Package wuzp_eigen from Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: wuzp_eigen_test_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/test/wuzp_eigen
-      - name: Upgrade
-        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
-      - name: Install Dependencies
-        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_dependencies.sh ${CMAKE_C_CXX_COMPILER//_/ } ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
-      - name: Install Packages
-        run: sudo ${REPO_DIR}/scripts/test_packages/steps/install_packages.sh ${PACKAGES_DIR} ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
-      - name: Create Build Environment
-        run: ${REPO_DIR}/scripts/common_steps/create_build_environment.sh ${SOURCE_DIR} ${BUILD_DIR} OFF ${CMAKE_C_CXX_COMPILER//_/ } ${BUILD_TYPE} ON OFF OFF OFF ${UNITS_IMPLEMENTATION} ${VALUES_IMPLEMENTATION}
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: ci/install_dependencies.sh ${{ matrix.compiler }} ${{ matrix.values }} ${{ matrix.units == 'boost' && 'boost' || '' }}
+      - name: Configure
+        run: cmake --preset ${PRESET}
       - name: Build
-        run: ${REPO_DIR}/scripts/common_steps/build.sh ${BUILD_DIR} ${BUILD_TYPE}
+        run: cmake --build --preset ${PRESET}
       - name: Test
-        run: ${REPO_DIR}/scripts/common_steps/test.sh ${BUILD_DIR} ${BUILD_TYPE}
-  deliver:
-    needs: [check_format, check_package_versions, test, test_packages]
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        PACKAGE_NAME: ["wuzp", "wuzp_blitz", "wuzp_boost", "wuzp_eigen"]
-    env:
-      DRY_RUN: ${{github.ref_name!='master'}}
-      PACKAGE_DIR: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
-      PACKAGE_NAME: ${{matrix.PACKAGE_NAME}}
-      SOURCE_DIR: ${{github.workspace}}/wuzp/${{matrix.PACKAGE_NAME}}
+        run: ctest --preset ${PRESET} --parallel $(nproc)
+
+  coverage:
+    runs-on: ubuntu-24.04
+    container: ubuntu:26.04
     steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          path: wuzp
-      - if: github.event_name == 'pull_request'
-        name: Merge Target Branch
-        run: ${REPO_DIR}/scripts/common_steps/merge_branch.sh ${REPO_DIR} ${TARGET_BRANCH}
-      - name: Download Package from Cache
-        uses: actions/cache@v3
-        with:
-          # Note: It is not possible to reuse environment variables here.
-          key: ${{matrix.PACKAGE_NAME}}_ship_${{github.run_id}}
-          path: ${{github.workspace}}/tmp/wuzp/package/ship/${{matrix.PACKAGE_NAME}}
-      - name: Upgrade
-        run: sudo ${REPO_DIR}/scripts/common_steps/upgrade.sh
-      - name: Install Dependencies
-        run: sudo ${REPO_DIR}/scripts/deliver/steps/install_dependencies.sh
-      - name: Configure GPG Key
-        env:
-          GPG_SIGNING_KEY: ${{secrets.GPG_SIGNING_KEY}}
+      # The Codecov action needs git (also for a real checkout with history) and gpg to verify its uploader.
+      - name: Install git and gpg
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends ca-certificates curl git gpg
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: ci/install_dependencies.sh clang eigen blitz boost coverage
+      - name: Build and test all backend combinations
         run: |
-          source ${REPO_DIR}/scripts/common_steps/configure_gpg_key.sh
-          echo "GH_GNUPGHOME=${GNUPGHOME}" >> $GITHUB_ENV
-      - name: Parse Package Version
+          OBJECTS=()
+          for PRESET in clang-wuzp-eigen clang-wuzp-blitz clang-boost-eigen clang-boost-blitz; do
+            cmake --preset ${PRESET} -D WUZP_ENABLE_COVERAGE=ON
+            cmake --build --preset ${PRESET}
+            LLVM_PROFILE_FILE="${PWD}/build/profiles/${PRESET}-%p.profraw" ctest --preset ${PRESET} --parallel $(nproc)
+            OBJECTS+=(--object "build/${PRESET}/tests/wuzp_tests")
+          done
+          llvm-profdata merge --sparse build/profiles/*.profraw -o build/coverage.profdata
+          llvm-cov report --instr-profile build/coverage.profdata --ignore-filename-regex '(tests|/usr)/' "${OBJECTS[@]}"
+          llvm-cov export --format lcov --instr-profile build/coverage.profdata --ignore-filename-regex '(tests|/usr)/' "${OBJECTS[@]}" > build/coverage.lcov
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        with:
+          files: build/coverage.lcov
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  install:
+    name: install and consume
+    runs-on: ubuntu-24.04
+    container: ubuntu:26.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: ci/install_dependencies.sh gcc eigen blitz boost
+      - name: Install wuzp
         run: |
-          source ${REPO_DIR}/scripts/common_steps/parse_package_version.sh ${SOURCE_DIR}
-          echo "GH_PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
-      - name: Deliver
-        env:
-          GNUPGHOME: ${{env.GH_GNUPGHOME}}
-          PACKAGE_VERSION: ${{env.GH_PACKAGE_VERSION}}
-        run: ${REPO_DIR}/scripts/common_steps/deliver.sh ${PACKAGE_DIR} ${PACKAGE_NAME} ${PACKAGE_VERSION} ${DRY_RUN}
+          cmake -S . -B build/install -G Ninja -D WUZP_WITH_EIGEN=ON -D WUZP_WITH_BLITZ=ON -D WUZP_WITH_BOOST=ON \
+            -D WUZP_BUILD_TESTS=OFF -D WUZP_BUILD_EXAMPLES=OFF -D CMAKE_INSTALL_PREFIX=${PWD}/build/prefix
+          cmake --install build/install
+      - name: Test the installed package
+        run: |
+          cmake -S tests -B build/tests -G Ninja -D CMAKE_PREFIX_PATH=${PWD}/build/prefix -D WUZP_TEST_UNITS=boost -D WUZP_TEST_VALUES=eigen
+          cmake --build build/tests
+          ctest --test-dir build/tests --output-on-failure --no-tests=error --parallel $(nproc)
+      - name: Build the examples against the installed package
+        run: |
+          cmake -S examples -B build/examples -G Ninja -D CMAKE_PREFIX_PATH=${PWD}/build/prefix
+          cmake --build build/examples
