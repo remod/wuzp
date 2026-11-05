@@ -28,10 +28,10 @@ For a linear transformation with component matrix `A` (contravariant components 
 | --- | --- | --- | --- |
 | Vector | (1,0) | `v' = A v` | yes |
 | Point | (1,0), absolute | `p' = A p` (via a relative intermediate) | yes |
-| Covector | (0,1) | `w' = w A^-1` | **no** (#52) |
+| Covector | (0,1) | `w' = w A^-1` | yes (Eigen only) |
 | Linear map | (1,1) | `T' = A T A^-1` | yes (Eigen only) |
 | Bilinear form, e.g. mass matrix | (0,2) | `M' = A^-T M A^-1` | yes (Eigen only) |
-| E.g. covariance matrix | (2,0) | `T' = A T A^T` | **no** (#52) |
+| E.g. covariance matrix | (2,0) | `T' = A T A^T` | yes |
 
 `A^-1` appears twice in the rule for (0,2) tensors because `A` transforms components, so covariant indices transform with `A^-1`.
 Equivalently, `A^-1` is the change-of-basis matrix `P` used by Wikipedia ("old = P new").
@@ -39,7 +39,8 @@ The notes at the end of this document start with the opposite convention (`M' = 
 
 Translations move points and leave vectors unchanged.
 A proper rigid transformation first rotates, then translates.
-In the passive case, the translation is expressed in an intermediate coordinate system with the axes of `To`, after the rotation.
+In the passive case, the rotation transforms from `From` into an intermediate coordinate system with the origin of `From` and the axes of `To`, and the translation from there into `To`; the translation is therefore expressed in `To`.
+A translation must be expressed in the coordinate system of the objects it moves (active), or in `From` or `To` (passive), which have the same axes.
 Active and passive transformations with the same parameters cancel each other.
 
 `transformation.transform(otherTransformation)` re-expresses the other transformation in another coordinate system (conjugation); it does not compose them.
@@ -87,21 +88,25 @@ The library was reviewed for mathematical and physical soundness, with claims ve
 * The passive Lorentz boost matrix (standard form, `x^0 = c t` in length units, signature `(+,-,-,-)`, `Λ_0i = -γ β_i`).
 * The rigid body kinematics in the tests (`v + ω × r`, `a + α × r + ω × (ω × r)` for a body-fixed point), and the kinetic energy and mass matrix of the rotating dumbbell.
 
-**Defects** (to be fixed before 1.0):
+**Defects** found by the review and while writing the compile tests, all fixed:
 
 | Defect | Issue |
 | --- | --- |
-| `determinant()` returns the element unit instead of `u^N` | #47 |
-| `TimePoint` and `Duration` use `AngularAcceleration` instead of `Time` | #48 |
-| `TorqueVector` cannot be instantiated | #49 |
-| `getInvariant` returns a dangling Eigen expression (garbage at runtime) | #50 |
-| The Lorentz boost matrix is NaN for zero velocity | #51 |
-| Transforming covectors and (2,0) tensors compiles and returns `void` | #52 |
-| Points and vectors convert implicitly into each other | #53 |
-| Translations do not check coordinate systems | #54 |
-| `Rational` `Power` specializations are wrong (`4^(1/4) = 1`); `ReduceRational` recursion is too deep | #55 |
-| `Tensor::isApprox` does not check the covariant indices | fixed |
-| `Tensor::hyperdeterminant` reports a confusing error instead of "Not implemented", and uses the non-standard `typeof` | fixed |
+| `determinant()` returned the element unit instead of `u^N` | #47 |
+| `TimePoint` and `Duration` used `AngularAcceleration` instead of `Time` | #48 |
+| `TorqueVector` could not be instantiated | #49 |
+| `getInvariant` returned a dangling Eigen expression (garbage at runtime) | #50 |
+| The Lorentz boost matrix was NaN for zero velocity | #51 |
+| Transforming covectors and (2,0) tensors compiled and returned `void` | #52 |
+| Points and vectors converted implicitly into each other | #53 |
+| Translations did not check coordinate systems | #54 |
+| `Rational` `Power` specializations were wrong (`4^(1/4) = 1`); `ReduceRational` recursion was too deep | #55 |
+| `Tensor::isApprox` did not check the covariant indices | - |
+| `Tensor::hyperdeterminant` reported a confusing error instead of "Not implemented", and used the non-standard `typeof` | - |
+| The checks "Quantities are not homogeneous." could never fail | - |
+| `ActiveTranslation.hpp` and `PassiveTranslation.hpp` did not include what they use | - |
+| `isApprox` was relative with Eigen, but absolute with Blitz++ | - |
+| `zero()` and `random()` never compiled | - |
 
 ## Open design questions
 
