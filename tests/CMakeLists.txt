@@ -70,6 +70,8 @@ add_executable(wuzp_tests
     src/Quantity.cpp
     src/Quantities.cpp
     src/Tensor.cpp
+    src/ActiveLinearTransformation.cpp
+    src/PassiveLinearTransformation.cpp
     src/ActiveTranslation.cpp
     src/PassiveTranslation.cpp
     src/ActiveAndPassiveTranslation.cpp

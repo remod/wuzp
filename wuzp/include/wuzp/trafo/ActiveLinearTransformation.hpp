@@ -53,9 +53,15 @@ template <template <typename, int, int> typename ValuesT_, typename Value, typen
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>,
                             Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto transform(
-      const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
-      const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
-    //    return innerProduct(transformation.getTensor(), object);
+      const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
+      const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
+    // A covector transforms with the inverse: w' = w A^-1.
+    // If the object is absolute, make it relative, transform it, and make it absolute again.
+    if constexpr (IsAbsolute<Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
+      return ((makeAbsolute(innerProduct(makeRelative(object), transformation.getTensor().tensorInverse())))).evaluate();
+    } else {
+      return ((innerProduct(object, transformation.getTensor().tensorInverse()))).evaluate();
+    }
   }
 };
 
@@ -95,7 +101,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, Coordina
   static auto transform(
       const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<1, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
-    return innerProduct(transformation.getTensor(), (innerProduct(object, transformation.getTensor().tensorInverse())));
+    return innerProduct(transformation.getTensor(), innerProduct(object, transformation.getTensor().tensorInverse())).evaluate();
   }
 };
 
@@ -104,9 +110,11 @@ template <template <typename, int, int> typename ValuesT_, typename Value, typen
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>,
                             Tensor<2, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto transform(
-      const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& /*transformation*/,
-      const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& /*object*/) {
-    //    return innerProduct(transformation.getTensor(), object);
+      const ActiveLinearTransformation<ValuesT_, Value, CoordinateSystem, DimensionFrom, DimensionTo, Units...>& transformation,
+      const Tensor<2, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
+    // A tensor with two contravariant indices, e.g. a covariance matrix, transforms like T' = A T A^T.
+    // The first product is evaluated, since Blitz++ cannot nest products.
+    return ((innerProduct(innerProduct(transformation.getTensor(), object).evaluate(), transformation.getTensor().transpose()))).evaluate();
   }
 };
 
