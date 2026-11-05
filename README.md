@@ -88,41 +88,51 @@ The following table visualizes how a proper rigid transformation transforms a po
 * [Eigen](http://eigen.tuxfamily.org/)
 * [Blitz++](https://github.com/blitzpp/blitz)
 
-To install *wuzp* globally and update it together with your operating system, install it through the provided Debian packages.
-This method will also implicitly install its 3rd-party dependencies.
+*wuzp* is header-only and requires a C++20 compiler and CMake 3.22 or newer.
+Each backend is an optional component with its own dependency:
 
-```bash
-sudo add-apt-repository ppa:remod/wuzp
-sudo apt update
-sudo apt install wuzp        # wuzp, includes wuzp's own unit implementation.
-sudo apt install wuzp_boost  # When using Boost units.
-sudo apt install wuzp_eigen  # When using Eigen.
-sudo apt install wuzp_blitz  # When using Blitz++.
+| Component | Target | Dependency (minimum version) |
+| --- | --- | --- |
+| core, including *wuzp*' own units | `wuzp::wuzp` | none |
+| `eigen` | `wuzp::eigen` | Eigen 3.4 |
+| `blitz` | `wuzp::blitz` | Blitz++ 1.0.2 |
+| `boost` | `wuzp::boost` | Boost 1.74 |
+
+**Using CMake's FetchContent:**
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(wuzp GIT_REPOSITORY https://github.com/remod/wuzp.git GIT_TAG master)
+FetchContent_MakeAvailable(wuzp)
+target_link_libraries(my_target PRIVATE wuzp::wuzp wuzp::eigen)
 ```
 
-Alternatively, you can clone *wuzp* from GitHub and install its 3rd-party dependencies manually:
+**Installing and using `find_package`:**
 
 ```bash
 git clone https://github.com/remod/wuzp.git
-sudo apt install libboost-dev   # When using Boost units.
-sudo apt install libeigen3-dev  # When using Eigen.
-sudo apt install libblitz0-dev  # When using Blitz++.
+cmake -S wuzp -B wuzp/build
+cmake --install wuzp/build  # Installs the components whose dependencies were found.
 ```
+
+```cmake
+find_package(wuzp CONFIG REQUIRED COMPONENTS eigen)
+target_link_libraries(my_target PRIVATE wuzp::wuzp wuzp::eigen)
+```
+
+By default, a backend is enabled if its dependency is found.
+Use `-DWUZP_WITH_EIGEN=ON|OFF` (and likewise `BLITZ`, `BOOST`) to require or disable one.
 
 ## Examples
 
 Examples demonstrating how to use *wuzp* can be found in the `examples` folder.
-
-To compile the examples, navigate to the `examples` directory and perform the following steps:
+They are built together with the project if the Eigen backend is enabled, e.g.:
 
 ```bash
-mkdir build
-cd build
-cmake ..
-make -j
+cmake --preset gcc-wuzp-eigen
+cmake --build --preset gcc-wuzp-eigen
+./build/gcc-wuzp-eigen/examples/example_transformation
 ```
-
-After that, you will find one executable for each example in the `build` directory.
 
 For more example code, have a look at the unit tests in the `tests` folder.
 
@@ -137,61 +147,32 @@ Instead, it needs to be cloned from GitHub and then built and installed manually
 
 ## Contributing
 
-**Unit tests**
+**Building and testing**
 
-When adding a new feature, please make sure to add unit tests for it.
-In order to run the tests locally, navigate to the `tests` directory and perform the following steps:
-
-```bash
-mkdir build
-cd build
-cmake -DENABLE_TESTS=ON -DENABLE_CODE_COVERAGE=ON ..
-make -j
-ctest
-```
-
-**Formatting**
-
-The code is formatted using [clang-format](https://clang.llvm.org/docs/ClangFormat.html).
-
-In order to format the code, navigate to the `tests/build` directory and perform the following steps:
+The test suite runs against every combination of units backend and value matrix backend, to make sure *wuzp* does not depend on one particular implementation.
+Each combination has a CMake preset named `<compiler>-<units>-<values>`, e.g. `gcc-wuzp-eigen` or `clang-boost-blitz` (see `cmake --list-presets`):
 
 ```bash
-sudo apt install clang-format
-cmake -DENABLE_FORMAT=ON ..
-make format
+ci/install_dependencies.sh gcc eigen  # On Ubuntu; installs the compiler and dependencies.
+cmake --preset gcc-wuzp-eigen
+cmake --build --preset gcc-wuzp-eigen
+ctest --preset gcc-wuzp-eigen
 ```
 
-**Tidying**
+When adding a new feature, please make sure to add unit tests for it, including tests verifying that invalid code does not compile.
 
-The code is tidied using [clang-tidy](https://clang.llvm.org/extra/clang-tidy/).
+**Formatting and tidying**
 
-In order to tidy the code, navigate to the `tests/build` directory and perform the following steps:
+The code is formatted using [clang-format](https://clang.llvm.org/docs/ClangFormat.html) and checked with [clang-tidy](https://clang.llvm.org/extra/clang-tidy/):
 
 ```bash
-sudo apt install clang-tidy
-cmake -DENABLE_TIDY=ON ..
-make tidy
+cmake --build --preset gcc-wuzp-eigen --target wuzp_format
+cmake --build --preset gcc-wuzp-eigen --target wuzp_tidy
 ```
 
-**CI/CD**
+**Continuous integration**
 
-The CI/CD workflow is configured to run the following steps:
-
-* Check format
-* Check tidy
-* Check package versions (to enforce version bumps if necessary)
-* Test source code
-* Package
-* Test packages
-* Deliver packages
-
-You can run an approximation of this workflow locally using the following script:
-
-```bash
-./scripts/run_workflow.sh
-```
-
+The CI workflow checks the format, runs the tests for all backend combinations with GCC and Clang on the oldest supported and a recent Ubuntu LTS, measures code coverage, and tests the installed package.
 
 [^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample).
 

@@ -1,52 +1,15 @@
 #include "test_compilation_error.hpp"
 
+#include <array>
+#include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <functional>
+#include <iterator>
+#include <stdexcept>
 
-// Note: The double expansion is required to turn the value of the compiler definition into a string.
-#define _TO_STRING(ARG) #ARG
-#define TO_STRING(ARG) _TO_STRING(ARG)
-
-std::string getCMakeListsContent() {
-  return "cmake_minimum_required(VERSION 3.12)\n"
-         "project(test_compilation)\n"
-         "\n"
-         "set(CMAKE_CXX_STANDARD 20)\n"
-         "\n"
-         "add_compile_options(-Wall -Wextra -Wpedantic)\n"
-         "\n"
-         "add_compile_definitions(UNITS_IMPLEMENTATION=" TO_STRING(UNITS_IMPLEMENTATION) ")\n"
-         "add_compile_definitions(UNITS_IMPLEMENTATION_WUZP=" TO_STRING(UNITS_IMPLEMENTATION_WUZP) ")\n"
-         "add_compile_definitions(UNITS_IMPLEMENTATION_BOOST=" TO_STRING(UNITS_IMPLEMENTATION_BOOST) ")\n"
-         "add_compile_definitions(VALUES_IMPLEMENTATION=" TO_STRING(VALUES_IMPLEMENTATION) ")\n"
-         "add_compile_definitions(VALUES_IMPLEMENTATION_WUZP=" TO_STRING(VALUES_IMPLEMENTATION_WUZP) ")\n"
-         "add_compile_definitions(VALUES_IMPLEMENTATION_EIGEN=" TO_STRING(VALUES_IMPLEMENTATION_EIGEN) ")\n"
-         "add_compile_definitions(VALUES_IMPLEMENTATION_BLITZ=" TO_STRING(VALUES_IMPLEMENTATION_BLITZ) ")\n"
-         "\n"
-         "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp wuzp_build)\n"
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-         "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_boost wuzp_boost_build)\n"
-#endif
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-         "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_eigen wuzp_eigen_build)\n"
-#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
-         "add_subdirectory(" TO_STRING(REPO_DIR) "/wuzp_blitz wuzp_blitz_build)\n"
-#endif
-         "\n"
-         "add_executable(tests test.cpp)\n"
-         "target_include_directories(tests PRIVATE " TO_STRING(REPO_DIR) "/tests/src)\n"
-         "target_link_libraries(tests PRIVATE wuzp)\n"
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-         "target_link_libraries(tests PRIVATE wuzp_boost)\n"
-#endif
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_EIGEN
-         "target_link_libraries(tests PRIVATE wuzp_eigen)\n"
-#elif VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
-         "target_link_libraries(tests PRIVATE wuzp_blitz)\n"
-#endif
-      ;
-}
+#include "compile_test_config.hpp"
 
 void createFile(const std::string& name, const std::string& content) {
   std::ofstream file;
@@ -74,14 +37,48 @@ std::pair<int, std::string> exec(const char* cmd) {
   return {ret, stdOut};
 }
 
+namespace {
+
+// Quotes an argument for the POSIX shell.
+std::string quote(const std::string& argument) {
+  std::string quoted{"'"};
+  for (const char c : argument) {
+    if (c == '\'') {
+      quoted += "'\\''";
+    } else {
+      quoted += c;
+    }
+  }
+  return quoted + "'";
+}
+
+std::string readFile(const std::string& name) {
+  std::ifstream file{name};
+  if (!file.is_open()) {
+    throw std::runtime_error{"Failed to open file '" + name + "'."};
+  }
+  return {std::istreambuf_iterator<char>{file}, std::istreambuf_iterator<char>{}};
+}
+
+}  // namespace
+
 std::pair<bool, std::string> compile(const std::string& code) {
+  using namespace compile_test_config;  // NOLINT
   const std::string directory{std::string{"test_compilation_"} + std::to_string(std::hash<std::string>{}(code))};
+  const std::string buildDirectory{directory + "/build"};
   std::filesystem::create_directories(directory);
-  createFile(directory + "/CMakeLists.txt", getCMakeListsContent());
+  createFile(directory + "/CMakeLists.txt", readFile(kCMakeListsFile));
   createFile(directory + "/test.cpp", code);
-  const auto result{exec((std::string{"cd "} + directory +
-                          " && cmake -D CMAKE_C_COMPILER=" TO_STRING(CMAKE_C_COMPILER) " -D CMAKE_CXX_COMPILER=" TO_STRING(
-                              CMAKE_CXX_COMPILER) " . && make 2>&1")
-                             .c_str())};
+
+  std::string configure{quote(kCMakeCommand) + " -S " + quote(directory) + " -B " + quote(buildDirectory) + " -G " + quote(kGenerator) +
+                        " -D CMAKE_CXX_COMPILER=" + quote(kCxxCompiler)};
+  if (std::string{kMakeProgram}.length() > 0) {
+    configure += " -D CMAKE_MAKE_PROGRAM=" + quote(kMakeProgram);
+  }
+  if (std::string{kToolchainFile}.length() > 0) {
+    configure += " -D CMAKE_TOOLCHAIN_FILE=" + quote(kToolchainFile);
+  }
+  const std::string build{quote(kCMakeCommand) + " --build " + quote(buildDirectory)};
+  const auto result{exec((configure + " 2>&1 && " + build + " 2>&1").c_str())};
   return {result.first == EXIT_SUCCESS, result.second};
 }
