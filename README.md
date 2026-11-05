@@ -147,13 +147,30 @@ Instead, it needs to be cloned from GitHub and then built and installed manually
 
 ## Contributing
 
+**Development environment**
+
+Development happens in a [dev container](https://containers.dev/), the same container image that CI uses, so local builds and CI see the same compilers, libraries and tools.
+There are two variants:
+
+* `min`: Ubuntu 22.04 with the oldest supported dependency versions (GCC 11, Clang 14, CMake 3.22, Eigen 3.4, Boost 1.74).
+* `latest`: Ubuntu 26.04 with the newest supported dependency versions (GCC 15, Clang 21, CMake 4.2, Boost 1.90).
+
+Open the repository in VS Code or CLion and choose *Reopen in Container*, or use the [Dev Container CLI](https://github.com/devcontainers/cli):
+
+```bash
+devcontainer up --workspace-folder . --config .devcontainer/latest/devcontainer.json
+devcontainer exec --workspace-folder . --config .devcontainer/latest/devcontainer.json bash
+```
+
+The images are published by CI.
+If the Dockerfile was changed locally, the image is built locally instead.
+
 **Building and testing**
 
 The test suite runs against every combination of units backend and value matrix backend, to make sure *wuzp* does not depend on one particular implementation.
 Each combination has a CMake preset named `<compiler>-<units>-<values>`, e.g. `gcc-wuzp-eigen` or `clang-boost-blitz` (see `cmake --list-presets`):
 
 ```bash
-ci/install_dependencies.sh gcc eigen  # On Ubuntu; installs the compiler and dependencies.
 cmake --preset gcc-wuzp-eigen
 cmake --build --preset gcc-wuzp-eigen
 ctest --preset gcc-wuzp-eigen
@@ -163,16 +180,26 @@ When adding a new feature, please make sure to add unit tests for it, including 
 
 **Formatting and tidying**
 
-The code is formatted using [clang-format](https://clang.llvm.org/docs/ClangFormat.html) and checked with [clang-tidy](https://clang.llvm.org/extra/clang-tidy/):
+The code is formatted using [clang-format](https://clang.llvm.org/docs/ClangFormat.html), with the version pinned in the dev container, and checked with [clang-tidy](https://clang.llvm.org/extra/clang-tidy/):
 
 ```bash
 cmake --build --preset gcc-wuzp-eigen --target wuzp_format
 cmake --build --preset gcc-wuzp-eigen --target wuzp_tidy
 ```
 
+To format the code automatically before each commit, enable the [pre-commit](https://pre-commit.com/) hook with `pre-commit install`.
+
 **Continuous integration**
 
-The CI workflow checks the format, runs the tests for all backend combinations with GCC and Clang on the oldest and the newest supported Ubuntu LTS (22.04 and 26.04), measures code coverage, and tests the installed package.
+The CI workflow checks the format, runs the tests for all backend combinations with GCC and Clang in both dev container variants, measures code coverage, and tests the installed package.
+Each job is a script in `ci/`, and `ci/local.sh` runs the same jobs locally in the same containers (requires Docker):
+
+```bash
+ci/local.sh                 # All jobs.
+ci/local.sh format test-min # Selected jobs: format, test-min, test-latest, coverage, install.
+```
+
+By default, `ci/local.sh` uses half of the CPU cores; set `WUZP_JOBS` to change this.
 
 [^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample).
 

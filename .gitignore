@@ -16,3 +16,6 @@ llvm-cov/
 
 # Personal Claude Code settings
 .claude/settings.local.json
+
+# Compilation database copied by the IDE
+compile_commands.json
