@@ -39,18 +39,11 @@ struct Division<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::Re
 };
 
 // The result of an arbitrary rational powered by another arbitrary rational can be a real number which cannot be expressed as rational.
-// Therefore, we limit ourselves here to combinations which stay within the rational world.
+// Therefore, only powers that are exact are defined.
 template <int DividendExponent, int DivisorExponent>
 struct Power<internal::ReducedRational<0, 1>, internal::ReducedRational<DividendExponent, DivisorExponent>> {
+  static_assert(DividendExponent > 0, "Zero raised to a non-positive power is not defined.");
   using type = Rational<0, 1>;
-};
-template <int InverseExponent>
-struct Power<internal::ReducedRational<InverseExponent, 1>, internal::ReducedRational<1, InverseExponent>> {
-  using type = Rational<1, 1>;
-};
-template <int InverseExponent>
-struct Power<internal::ReducedRational<-InverseExponent, 1>, internal::ReducedRational<1, InverseExponent>> {
-  using type = Rational<-1, 1>;
 };
 
 template <int Dividend, int Divisor>

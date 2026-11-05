@@ -1,3 +1,5 @@
+#include <type_traits>
+
 #include <gtest/gtest.h>
 
 #include "wuzp/core/Rational.hpp"
@@ -83,4 +85,21 @@ TEST(TestRational, Division) {  // NOLINT
 
 TEST(TestRational, Inverse) {  // NOLINT
   static_assert(std::is_same<typename Inverse<Rational<-3, 2>>::type, Rational<-2, 3>>::value);
+}
+
+TEST(TestRational, LargeDivisor) {  // NOLINT
+  // The reduction must not depend on the size of the numbers.
+  static_assert(std::is_same<Rational<1, 1000>, Rational<1, 1000>>::value);
+  static_assert(std::is_same<Rational<2000, 1000>, Rational<2, 1>>::value);
+  static_assert(std::is_same<Rational<-1000000, 3000000>, Rational<-1, 3>>::value);
+}
+
+TEST(TestRational, NegativeDivisor) {  // NOLINT
+  static_assert(std::is_same<Rational<4, -6>, Rational<-2, 3>>::value);
+  static_assert(std::is_same<Rational<-4, -6>, Rational<2, 3>>::value);
+}
+
+TEST(TestRational, PowerOfZero) {  // NOLINT
+  static_assert(std::is_same<Power<Rational<0, 1>, Rational<1, 2>>::type, Rational<0, 1>>::value);
+  static_assert(std::is_same<Power<Rational<0, 1>, Rational<3, 1>>::type, Rational<0, 1>>::value);
 }

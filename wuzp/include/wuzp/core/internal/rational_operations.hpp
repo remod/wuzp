@@ -1,5 +1,7 @@
 #pragma once
 
+#include <numeric>
+
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
@@ -15,42 +17,18 @@ struct ReducedRational {
   }
 };
 
-template <int Dividend, int Divisor, int Reduction, int DividendRemainder, int DivisorRemainder>
-struct ReduceRationalImpl {
-  static constexpr int NewReduction = Reduction - 1;
-  using type = typename ReduceRationalImpl<Dividend, Divisor, NewReduction, Dividend % NewReduction, Divisor % NewReduction>::type;
-};
-
-template <int Dividend, int Divisor>
-struct ReduceRationalImpl<Dividend, Divisor, 1, 0, 0> {
-  using type = ReducedRational<Dividend, Divisor>;
-};
-
-template <int Dividend, int Divisor, int Reduction>
-struct ReduceRationalImpl<Dividend, Divisor, Reduction, 0, 0> {
- private:
-  static constexpr int NewDividend = Dividend / Reduction;
-  static constexpr int NewDivisor = Divisor / Reduction;
-  static constexpr int NewReduction = NewDivisor;
-
- public:
-  using type =
-      typename ReduceRationalImpl<NewDividend, NewDivisor, NewReduction, NewDividend % NewReduction, NewDivisor % NewReduction>::type;
-};
-
 template <int Dividend, int Divisor>
 struct ReduceRational {
   static_assert(Divisor != 0, "The divisor must not be zero.");
 
  private:
-  // Always use a positive divisor.
+  // Always use a positive divisor, and divide by the greatest common divisor. Avoid dividing by zero in case of a zero divisor,
+  // which is already reported above.
   static constexpr int Sign = Divisor > 0 ? 1 : -1;
-  static constexpr int NewDividend = Dividend / Sign;
-  static constexpr int NewDivisor = Divisor / Sign;
-  static constexpr int NewReduction = NewDivisor;
+  static constexpr int GreatestCommonDivisor = Divisor == 0 ? 1 : std::gcd(Dividend, Divisor);
 
  public:
-  using type = typename ReduceRationalImpl<NewDividend, NewDivisor, NewReduction, Dividend % Divisor, 0>::type;
+  using type = ReducedRational<Sign * Dividend / GreatestCommonDivisor, Sign * Divisor / GreatestCommonDivisor>;
 };
 
 }  // namespace internal
