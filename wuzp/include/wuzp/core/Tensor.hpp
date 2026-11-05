@@ -56,7 +56,7 @@ class Tensor {
       const ValueT precision = Precision<ValueT>::value()) const {
     // Note: Allow other tensor types to support lazy evaluation.
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
-    static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
+    static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
     static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
     static_assert(std::is_same_v<AbsoluteT, AbsoluteOtherT>, "Absolute/relative mismatch.");
     return quantities_.isApprox(other.getQuantities(), precision);
