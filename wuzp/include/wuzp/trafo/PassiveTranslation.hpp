@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
@@ -53,6 +55,10 @@ struct TransformationTraits<PassiveTranslation<ValuesT_, Dimension, Value, Coord
                             Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto transform(const PassiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, From, To, Units...>& transformation,
                         const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
+    // From and To have the same axes, so the translation has the same components in both. In any other coordinate system, its
+    // components would have to be transformed first.
+    static_assert(std::is_same_v<CoordinateSystem, From> || std::is_same_v<CoordinateSystem, To>,
+                  "The translation must be expressed in the coordinate system From or To.");
     if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
       auto fromResult = object;
       // TODO(remod): Improve efficiency by performing this addition at compile time.

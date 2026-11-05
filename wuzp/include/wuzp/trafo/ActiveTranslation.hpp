@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
@@ -49,6 +51,7 @@ struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Value, Coordi
                             Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto transform(const ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>& transformation,
                         const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
+    static_assert(std::is_same_v<CoordinateSystem, CoordinateSystemT_>, "Coordinate systems do not match.");
     if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
       auto result = object;
       // TODO(remod): Improve efficiency by performing this addition at compile time.

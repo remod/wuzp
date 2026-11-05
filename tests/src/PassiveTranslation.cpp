@@ -73,3 +73,11 @@ TEST(TestPassiveTranslation, TransformPassiveRotation) {  // NOLINT
   const Transformation transformation{0.0, 0.0, -1.0};  // Passive translation of 1 along z.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
+
+TEST(TestPassiveTranslation, TranslationExpressedInTo) {  // NOLINT
+  // From and To have the same axes, so a translation has the same components in both.
+  using TranslationInFrom = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using TranslationInTo = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemB, CoordinateSystemA, CoordinateSystemB>;
+  const PositionPoint3<ValueMatrix, double, CoordinateSystemA> point{1.0, 2.0, 3.0};
+  EXPECT_EQ(TranslationInTo(0.0, 0.0, -1.0).transform(point), TranslationInFrom(0.0, 0.0, -1.0).transform(point));
+}

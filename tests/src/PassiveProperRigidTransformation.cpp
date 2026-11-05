@@ -1,3 +1,5 @@
+#include <type_traits>
+
 #include <gtest/gtest.h>
 
 #include "wuzp/core/traits.hpp"
@@ -95,3 +97,9 @@ TEST(TestPassiveProperRigidTransformation3, TransformPassiveRotation) {  // NOLI
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 #endif
+
+TEST(TestPassiveProperRigidTransformation, TranslationIsExpressedInTo) {  // NOLINT
+  // The rotation transforms into an intermediate coordinate system with the axes of To, so the translation is expressed in To.
+  using Transformation = PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, double>;
+  EXPECT_TRUE((std::is_same_v<GetCoordinateSystem<Transformation::Translation>::type, CoordinateSystemB>));
+}

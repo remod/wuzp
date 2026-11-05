@@ -9,7 +9,8 @@
 
 namespace wuzp {
 
-// First rotate, then translate.
+// First rotate, then translate. The rotation transforms from From to an intermediate coordinate system with the origin of From and
+// the axes of To, the translation from there to To. The translation is therefore expressed in To.
 // TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
 template <typename CoordinateSystem, typename From, typename To, typename Rotation_, typename Translation_>
 class PassiveProperRigidTransformationTemplate
@@ -39,7 +40,7 @@ template <template <typename, int, int> typename ValuesT_, int Dimension, typena
 using PassiveProperRigidTransformation = PassiveProperRigidTransformationTemplate<
     CoordinateSystem, From, To,
     PassiveSpatialRotation<ValuesT_, Value, CoordinateSystem, From, internal::Intermediate<From, To>, Dimension>,
-    PassiveSpatialTranslation<ValuesT_, Dimension, Value, CoordinateSystem, internal::Intermediate<From, To>, To>>;
+    PassiveSpatialTranslation<ValuesT_, Dimension, Value, To, internal::Intermediate<From, To>, To>>;
 template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename From, typename To, typename Value>
 using PassiveProperRigidTransformation2 = PassiveProperRigidTransformation<ValuesT_, 2, CoordinateSystem, From, To, Value>;
 template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename From, typename To, typename Value>
@@ -49,11 +50,7 @@ template <typename CoordinateSystem, typename From, typename To, typename Rotati
 struct TransformationTraits<PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>, Object> {
   static auto transform(const PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation, Translation>& transformation,
                         const Object& object) {
-    const auto translationCoordinateSystem{transformation.getTranslation()};
-    const auto translationIntermediate{
-        typename CastCoordinateSystem<std::decay_t<decltype(translationCoordinateSystem)>, internal::Intermediate<From, To>>::type(
-            translationCoordinateSystem.getTensor().getQuantities())};
-    return translationIntermediate.transform(transformation.getRotation().transform(object));
+    return transformation.getTranslation().transform(transformation.getRotation().transform(object));
   }
 };
 
