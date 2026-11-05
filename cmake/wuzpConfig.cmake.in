@@ -1,0 +1,38 @@
+@PACKAGE_INIT@
+
+# Usage: find_package(wuzp CONFIG REQUIRED COMPONENTS eigen boost)
+# The core target wuzp::wuzp is always available. Each component provides the target wuzp::<component>.
+
+include(CMakeFindDependencyMacro)
+include("${CMAKE_CURRENT_LIST_DIR}/wuzpTargets.cmake")
+
+set(_wuzp_installed_components @WUZP_COMPONENTS@)
+set(_wuzp_installed_components_text "${_wuzp_installed_components}")
+if(NOT _wuzp_installed_components_text)
+    set(_wuzp_installed_components_text "none")
+endif()
+
+foreach(_wuzp_component IN LISTS ${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS)
+    if(NOT _wuzp_component IN_LIST _wuzp_installed_components)
+        set(${CMAKE_FIND_PACKAGE_NAME}_${_wuzp_component}_FOUND FALSE)
+        set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE
+            "Component '${_wuzp_component}' is not installed. Installed components: ${_wuzp_installed_components_text}")
+        continue()
+    endif()
+
+    # Dependencies are only searched for the requested components.
+    if(_wuzp_component STREQUAL "eigen")
+        find_dependency(Eigen3 @WUZP_EIGEN_MIN_VERSION@ NO_MODULE)
+    elseif(_wuzp_component STREQUAL "boost")
+        find_dependency(Boost @WUZP_BOOST_MIN_VERSION@ CONFIG)
+    elseif(_wuzp_component STREQUAL "blitz")
+        list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+        find_dependency(Blitz)
+        list(POP_FRONT CMAKE_MODULE_PATH)
+    endif()
+
+    include("${CMAKE_CURRENT_LIST_DIR}/wuzp_${_wuzp_component}Targets.cmake")
+    set(${CMAKE_FIND_PACKAGE_NAME}_${_wuzp_component}_FOUND TRUE)
+endforeach()
+
+check_required_components(${CMAKE_FIND_PACKAGE_NAME})
