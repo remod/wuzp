@@ -152,12 +152,13 @@ class Quantities {
   auto squaredNorm() const { return typename Power<typename GetType<ThisT>::type, Integer<2>>::type{values_.squaredNorm()}; }
 
   /**
-   * Get the determinant.
+   * Get the determinant. Its unit is the product of the units on the diagonal, e.g. u^n for a matrix with a single unit u.
    * @tparam Dimension Do not use this.
    */
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 2>>
   auto determinant() const {
-    return typename GetType<ThisT>::type{values_.determinant()};
+    using ValueWrapperT = typename AccessValues<AccessImplementation<ValuesT>>::template Value<ValueT>;
+    return Quantity<ValueWrapperT, typename Determinant<UnitsT>::type>{values_.determinant()};
   }
 
   auto evaluate() const { return typename Evaluate<ThisT>::type{values_.evaluate()}; }

@@ -431,6 +431,19 @@ TEST(TestQuantities, Determinant) {  // NOLINT
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   const MyQuantityMatrix quantities{-1, 2, 3, 1};
-  EXPECT_EQ(quantities.determinant(), LengthQuantityI{-7});
+  EXPECT_EQ(quantities.determinant(), AreaQuantityI{-7});
+}
+
+TEST(TestQuantities, DeterminantOfMassMatrix) {  // NOLINT
+  // A mass matrix with a translational and a rotational degree of freedom: [[kg, kg m], [kg m, kg m^2]]. Its units describe
+  // a linear map (from accelerations to forces and torques), so its determinant has a well-defined unit: kg^2 m^2.
+  using MassLength = Product<Mass, Length>::type;
+  using MassArea = Product<Mass, Area>::type;
+  using MyValueMatrix = ValueMatrix<int, 2, 2>;
+  using MyUnitMatrix = TypeMatrix<2, 2, Mass, MassLength, MassLength, MassArea>;
+  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+  using DeterminantQuantity = QuantityI<Product<Power<Mass, Integer<2>>::type, Area>::type>;
+  const MyQuantityMatrix quantities{2, 3, 3, 5};
+  EXPECT_EQ(quantities.determinant(), DeterminantQuantity{1});
 }
 #endif

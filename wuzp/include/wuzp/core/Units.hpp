@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstddef>
+#include <tuple>
+#include <utility>
+
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Unit.hpp"
 
@@ -45,6 +49,33 @@ struct TensorInverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementati
      1/m  1/ml  * m  ml  = 1   l
      1/ml 1/mll * ml mll = 1/l 1
   */
+};
+
+template <typename Matrix, typename IndexSequence>
+struct DiagonalProduct;
+template <typename Matrix, size_t... Is>
+struct DiagonalProduct<Matrix, std::index_sequence<Is...>> {
+  using type = typename Product<typename Element<Matrix, static_cast<int>(Is), static_cast<int>(Is)>::type...>::type;
+};
+
+/**
+ * The unit of the determinant of a matrix.
+ *
+ * Only matrices whose units describe a linear map (M_ij = a_i / b_j) have a determinant with a well-defined unit: every
+ * term of the determinant then has the unit (a_0 * ... * a_n-1) / (b_0 * ... * b_n-1), which is the product of the units
+ * on the diagonal. For a matrix with a single unit u, this is u^n.
+ */
+template <int Rows, int Cols, typename... UnitImplementations>
+struct Determinant<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
+  static_assert(Rows == Cols, "Matrix is not square.");
+
+ private:
+  using MatrixT = TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>;
+  // Inverting the units checks that they describe a linear map.
+  using InverseT = typename TensorInverse<MatrixT>::type;
+
+ public:
+  using type = typename DiagonalProduct<MatrixT, std::make_index_sequence<Rows>>::type;
 };
 
 }  // namespace wuzp

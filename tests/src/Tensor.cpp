@@ -565,6 +565,6 @@ TEST(TestTensor2, Determinant) {  // NOLINT
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 1, MyQuantityMatrix, CoordinateSystemA, Relative>;
   const MyTensor tensor{-1, 2, 3, 1};
-  EXPECT_EQ(tensor.determinant(), LengthQuantityI{-7});
+  EXPECT_EQ(tensor.determinant(), AreaQuantityI{-7});
 }
 #endif
