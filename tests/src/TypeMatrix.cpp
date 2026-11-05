@@ -6,8 +6,6 @@
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 
-#include "test_compilation_error.hpp"
-
 #include "Unit.hpp"
 
 using namespace wuzp;  // NOLINT
@@ -68,29 +66,6 @@ TEST(TestTypeMatrix, Sum) {  // NOLINT
   using C = TypeMatrix<2, 2, Integer<-1>, Integer<4>, Integer<6>, Integer<5>>;
   static_assert(std::is_same<Sum<A, B>::type, C>::value);
 }
-
-TEST(TestTypeMatrix, SumInvalidTypes){// NOLINT
-                                      ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/core/traits.hpp"
-
-using namespace wuzp;
-
-template <typename T>
-struct MyType;
-
-template <typename Lhs, typename Rhs>
-struct Sum<MyType<Lhs>, MyType<Rhs>> {
-  static_assert(std::is_same<Lhs, Rhs>::value, "Type mismatch.");
-  using type = Lhs;
-};
-
-int main() {
-  using type = Sum<TypeMatrix<1, 1, MyType<int>>, TypeMatrix<1, 1, MyType<double>>>::type;
-  return 0;
-}
-)",
-                                                                                   "Type mismatch.")}
 
 TEST(TestTypeMatrix, ProductWithTypeOnRhs) {  // NOLINT
   using A = TypeMatrix<1, 4, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;

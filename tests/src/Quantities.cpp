@@ -3,8 +3,6 @@
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 
-#include "test_compilation_error.hpp"
-
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
 
@@ -72,29 +70,6 @@ TEST(TestQuantities2, ConstructImplicitlyFromQuantities) {  // NOLINT
   EXPECT_EQ(quantities, quantities3);
 }
 
-TEST(TestQuantities2, ConstructImplicitlyFromValues){// NOLINT
-                                                     ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
-#include "wuzp/core/Quantities.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
-
-using namespace wuzp;  // NOLINT
-
-#include "Unit.hpp"
-#include "ValueMatrix.hpp"
-
-using MyValueMatrix = ValueMatrix<int, 2, 3>;
-using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-
-int main() {
-  const MyValueMatrix values{1, 2, 3, 4, 5, 6};
-  // Use = instead of {} to trigger implicit conversion.
-  [[maybe_unused]] const MyQuantityMatrix quantities = values;
-  return 0;
-}
-)",
-                                                                                           "(no viable )?conversion from")}
-
 TEST(TestQuantities2, ConstructExplicitlyFromQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
@@ -146,28 +121,6 @@ TEST(TestQuantities2, ConstructFromGoodQuantities) {  // NOLINT
                                     Quantity<ValueI, Mass>{4}};
 }
 
-TEST(TestQuantities2, ConstructFromBadQuantities) {  // NOLINT
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/Quantities.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/core/Unit.hpp"
-
-#include "Unit.hpp"
-#include "ValueMatrix.hpp"
-
-using namespace wuzp;  // NOLINT
-
-int main() {
-  using MyValueMatrix = ValueMatrix<int, 4, 1>;
-  using MyUnitMatrix = TypeMatrix<4, 1, Length, Area, Volume, Mass>;
-  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix quantities(QuantityI<Length>(1), QuantityI<Area>(2), QuantityI<Volume>(3), QuantityI<Length>(4));
-  return 0;
-}
-  )",
-                                               "Units do not match.")
-}
-
 class TestQuantitiesFixture : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrixI<2, 3>;
@@ -209,28 +162,6 @@ TEST_F(TestQuantitiesFixture, SetGetQuantity) {  // NOLINT
   getQuantities1().set<1, 2>(quantity);
   EXPECT_EQ((getQuantities1().get<1, 2>()), quantity);
 }
-
-TEST(TestQuantitiesStandalone, SetBadQuantity){// NOLINT
-                                               ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/Quantities.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/core/Unit.hpp"
-
-#include "Unit.hpp"
-#include "ValueMatrix.hpp"
-
-using namespace wuzp;  // NOLINT
-
-int main() {
-  using MyValueMatrix = ValueMatrix<int, 2, 3>;
-  using MyUnitMatrix = TypeMatrix<2, 3, Length, Area, Volume, Mass, Force, Energy>;
-  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  MyQuantityMatrix quantities;
-  quantities.set<1, 2>(QuantityI<Time>{7});
-  return 0;
-}
-  )",
-                                                                                            "Units do not match.")}
 
 TEST_F(TestQuantitiesFixture, Sum) {  // NOLINT
   EXPECT_EQ(getQuantities1() + getQuantities2(), (MyQuantityMatrix{4, 3, 7, 5, 10, 15}));

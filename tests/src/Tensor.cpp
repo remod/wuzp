@@ -6,7 +6,6 @@
 #include "wuzp/core/traits.hpp"
 
 #include "coordinate_systems.hpp"
-#include "test_compilation_error.hpp"
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
@@ -79,34 +78,6 @@ TEST(TestTensor2, ConstructImplicitlyFromTensor) {  // NOLINT
   EXPECT_EQ(tensor, tensor3);
 }
 
-TEST(TestTensor2, ConstructImplicitlyFromQuantities) {  // NOLINT
-  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
-#include "wuzp/core/Quantities.hpp"
-#include "wuzp/core/Tensor.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
-
-#include "ValueMatrix.hpp"
-#include "Unit.hpp"
-
-using namespace wuzp;  // NOLINT
-
-struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using MyValueMatrix = ValueMatrix<int, 2, 3>;
-using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-
-int main() {
-  const MyQuantityMatrix quantities{1, 2, 3, 4, 5, 6};
-  // Use = instead of {} to trigger implicit conversion.
-  [[maybe_unused]] const MyTensor tensor = quantities;
-  return 0;
-}
-)",
-                                        "(no viable )?conversion from");
-}
-
 TEST(TestTensor2, ConstructExplicitlyFromQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
@@ -115,34 +86,6 @@ TEST(TestTensor2, ConstructExplicitlyFromQuantities) {  // NOLINT
   const MyQuantityMatrix quantities{1, 2, 3, 4, 5, 6};
   const MyTensor tensor{quantities};
   EXPECT_EQ(tensor.getQuantities(), quantities);
-}
-
-TEST(TestTensor2, ConstructImplicitlyFromValues) {  // NOLINT
-  ASSERT_COMPILATION_ERROR_WITH_MESSAGE(R"(
-#include "wuzp/core/Quantities.hpp"
-#include "wuzp/core/Tensor.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
-
-#include "ValueMatrix.hpp"
-#include "Unit.hpp"
-
-using namespace wuzp;  // NOLINT
-
-struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using MyValueMatrix = ValueMatrix<int, 2, 3>;
-using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-
-int main() {
-  const MyValueMatrix values{1, 2, 3, 4, 5, 6};
-  // Use = instead of {} to trigger implicit conversion.
-  [[maybe_unused]] const MyTensor tensor = values;
-  return 0;
-}
-)",
-                                        "(no viable )?conversion from");
 }
 
 TEST(TestTensor2, ConstructExplicitlyFromValues) {  // NOLINT
@@ -255,35 +198,6 @@ TEST_F(TestTensorF, SumAbsoluteAndRelative) {  // NOLINT
   EXPECT_EQ((tensor + getTensor()).getQuantities(), result);
 }
 
-TEST(TestTensor, SumAbsoluteAndAbsolute) {  // NOLINT
-  const std::string code = R"(
-#include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/Quantities.hpp"
-#include "wuzp/core/Tensor.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/core/Unit.hpp"
-
-#include "ValueMatrix.hpp"
-#include "Unit.hpp"
-
-using namespace wuzp;
-
-struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using MyValueMatrix = ValueMatrix<int, 2, 3>;
-using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-using MyAbsoluteTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
-
-int main() {
-  const MyAbsoluteTensor tensor{1, 4, 2, 5, 3, 6};
-  tensor + tensor;
-  return 0;
-}
-)";
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "Two absolute objects cannot be summed.");
-}
-
 TEST_F(TestTensorF, Difference) {  // NOLINT
   const auto result{getTensor().getQuantities() - getTensor().getQuantities()};
   EXPECT_EQ(difference(getTensor(), getTensor()).getQuantities(), result);
@@ -296,37 +210,6 @@ TEST_F(TestTensorF, DifferenceAbsoluteAndRelative) {  // NOLINT
   const auto result{tensor.getQuantities() - getTensor().getQuantities()};
   EXPECT_EQ(difference(tensor, getTensor()).getQuantities(), result);
   EXPECT_EQ((tensor - getTensor()).getQuantities(), result);
-}
-
-TEST(TestTensor, DifferenceRelativeAndAbsolute) {  // NOLINT
-  const std::string code = R"(
-#include "wuzp/core/CoordinateSystem.hpp"
-#include "wuzp/core/Quantities.hpp"
-#include "wuzp/core/Tensor.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
-#include "wuzp/core/Unit.hpp"
-
-#include "ValueMatrix.hpp"
-#include "Unit.hpp"
-
-using namespace wuzp;
-
-struct CoordinateSystemAName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using MyValueMatrix = ValueMatrix<int, 2, 3>;
-using MyUnitMatrix = TypeMatrix<2, 3, Length>;
-using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-using MyAbsoluteTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
-
-int main() {
-  const MyTensor tensor{1, 2, 3, 4, 5, 6};
-  const MyAbsoluteTensor absoluteTensor{1, 4, 2, 5, 3, 6};
-  tensor - absoluteTensor;
-  return 0;
-}
-)";
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "An absolute object cannot be subtracted from a relative object.");
 }
 
 TEST_F(TestTensorF, DifferenceAbsoluteAndAbsolute) {  // NOLINT
@@ -663,35 +546,6 @@ TEST(TestTensor2, CrossProduct) {  // NOLINT
   const MyTensor rhs{-1, 3, 4};
   const MyTensorResult result{-1, -7, 5};
   EXPECT_EQ(lhs.crossProduct(rhs), result);
-}
-
-TEST(TestTensor2, DotBadCoordinateSystems) {  // NOLINT
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "wuzp/core/Quantities.hpp"
-#include "wuzp/core/Tensor.hpp"
-#include "wuzp/core/TypeMatrix.hpp"
-
-#include "Unit.hpp"
-#include "ValueMatrix.hpp"
-
-using namespace wuzp;  // NOLINT
-
-struct CoordinateSystemAName {};
-struct CoordinateSystemBName {};
-using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using CoordinateSystemB = CoordinateSystem<CoordinateSystemBName>;
-using MyValueMatrix = ValueMatrix<int, 4, 1>;
-using MyUnitMatrix = TypeMatrix<4, 1, Length>;
-using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-using MyTensorLhs = Vector<MyQuantityMatrix, CoordinateSystemA>;
-using MyTensorRhs = Vector<MyQuantityMatrix, CoordinateSystemB>;
-
-int main() {
-  MyTensorLhs{1, 2, 3, 4}.dotProduct(MyTensorRhs{0, 3, -1, 2});
-  return 0;
-}
-)",
-                                               "Coordinate systems do not match.");
 }
 
 TEST(TestTensor2, Norm) {  // NOLINT

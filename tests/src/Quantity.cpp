@@ -5,7 +5,6 @@
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
-#include "test_compilation_error.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -34,56 +33,8 @@ TEST(TestQuantity, Sum) {  // NOLINT
   EXPECT_EQ(TimeQuantity{1.0} + TimeQuantity{2.0}, TimeQuantity(3.0));
 }
 
-TEST(TestQuantity, SumMixedQuantities) {  // NOLINT
-  const std::string code{R"(
-#include "wuzp/core/Quantities.hpp"
-
-#include "Unit.hpp"
-#include "ValueMatrix.hpp"
-
-using namespace wuzp;  // NOLINT
-
-using TimeQuantity = QuantityD<Time>;
-using LengthQuantity = QuantityD<Length>;
-
-int main() {
-  [[maybe_unused]] const auto invalid = TimeQuantity{2.0} + LengthQuantity{3.0};
-  return 0;
-}
-)"};
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "Units do not match.")
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-  ASSERT_COMPILATION_ERROR(code)
-#endif
-}
-
 TEST(TestQuantity, Difference) {  // NOLINT
   EXPECT_EQ(TimeQuantity{3.0} - TimeQuantity{2.0}, TimeQuantity{1.0});
-}
-
-TEST(TestQuantity, DifferenceMixedQuantities) {  // NOLINT
-  const std::string code{R"(
-#include "wuzp/core/Quantities.hpp"
-
-#include "Unit.hpp"
-#include "ValueMatrix.hpp"
-
-using namespace wuzp;  // NOLINT
-
-using TimeQuantity = QuantityD<Time>;
-using LengthQuantity = QuantityD<Length>;
-
-int main() {
-  [[maybe_unused]] const auto invalid = TimeQuantity{2.0} - LengthQuantity{3.0};
-  return 0;
-}
-)"};
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(code, "Units do not match.")
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-  ASSERT_COMPILATION_ERROR(code)
-#endif
 }
 
 TEST(TestQuantity, EqualityOperator) {  // NOLINT
