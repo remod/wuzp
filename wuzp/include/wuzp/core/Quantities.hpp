@@ -204,6 +204,12 @@ struct GetTag<Quantities<ValuesT_, UnitsT_>, Ts...> {
       typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromImplementation, FromImplementationArgs>::type>::type;
 };
 
+// Quantities are homogeneous if all elements have the same unit.
+template <typename ValuesT_, typename UnitsT_>
+struct IsHomogeneous<Quantities<ValuesT_, UnitsT_>> {
+  static constexpr bool value = IsHomogeneous<UnitsT_>::value;
+};
+
 template <typename ValuesT_, typename UnitsT_>
 struct GetType<Quantities<ValuesT_, UnitsT_>> {
   static_assert(IsHomogeneous<Quantities<ValuesT_, UnitsT_>>::value, "Quantities are not homogeneous.");
