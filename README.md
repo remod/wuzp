@@ -178,6 +178,27 @@ ctest --preset gcc-wuzp-eigen
 
 When adding a new feature, please make sure to add unit tests for it, including tests verifying that invalid code does not compile.
 
+**Compile tests**
+
+Type safety means that invalid code must not compile, and the error must explain why.
+Compile tests verify this: each file in `tests/compile_tests/cases` is a small program, annotated with the outcome it expects:
+
+```cpp
+// wuzp-expect: error
+// wuzp-static-assert: Units do not match\.
+
+#include "wuzp/core/Quantities.hpp"
+// ...
+```
+
+A case that must fail to compile always names the expected error, as a regex (`wuzp-error`) or as a `static_assert` message (`wuzp-static-assert`).
+Expectations can depend on the configuration, e.g. `// wuzp-error(units=boost,compiler=clang): ...`, and `// wuzp-requires: values=eigen` limits a case to some configurations.
+See `tests/compile_tests/CompileTest.cmake` for the details.
+Compile tests are labelled `compile`, so `ctest --preset <preset> -L compile` runs only them.
+
+Every `static_assert` message in the headers needs a compile test.
+The test `compile.diagnostics_coverage` enforces this; messages that are not tested yet are listed in `tests/compile_tests/untested_diagnostics.txt`, and that list must only shrink.
+
 **Formatting and tidying**
 
 The code is formatted using [clang-format](https://clang.llvm.org/docs/ClangFormat.html), with the version pinned in the dev container, and checked with [clang-tidy](https://clang.llvm.org/extra/clang-tidy/):

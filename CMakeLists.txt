@@ -127,15 +127,17 @@ if(PROJECT_IS_TOP_LEVEL)
         ${PROJECT_SOURCE_DIR}/tests/src/*.cpp
         ${PROJECT_SOURCE_DIR}/tests/src/*.hpp
     )
+    # The compile test cases are formatted, but not tidied: they are not part of the compilation database.
+    file(GLOB WUZP_COMPILE_TEST_CASE_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/tests/compile_tests/cases/*.cpp)
     find_program(WUZP_CLANG_FORMAT clang-format)
     if(WUZP_CLANG_FORMAT)
         add_custom_target(wuzp_format
-            COMMAND ${WUZP_CLANG_FORMAT} -i --style=file ${WUZP_ALL_CXX_FILES}
+            COMMAND ${WUZP_CLANG_FORMAT} -i --style=file ${WUZP_ALL_CXX_FILES} ${WUZP_COMPILE_TEST_CASE_FILES}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Formatting the code."
         )
         add_custom_target(wuzp_check_format
-            COMMAND ${WUZP_CLANG_FORMAT} --dry-run --Werror --style=file ${WUZP_ALL_CXX_FILES}
+            COMMAND ${WUZP_CLANG_FORMAT} --dry-run --Werror --style=file ${WUZP_ALL_CXX_FILES} ${WUZP_COMPILE_TEST_CASE_FILES}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Checking the code format."
         )

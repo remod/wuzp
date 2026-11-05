@@ -6,3 +6,5 @@ DerivePointerAlignment: false
 PointerAlignment: Left
 AllowShortFunctionsOnASingleLine: Inline
 IncludeBlocks: Preserve
+# Compile test annotations ("// wuzp-...") must never be reflowed.
+CommentPragmas: "^ (IWYU pragma:|wuzp-)"

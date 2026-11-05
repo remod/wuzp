@@ -4,7 +4,6 @@
 #include "wuzp/core/traits.hpp"
 
 #include "ValueMatrix.hpp"
-#include "test_compilation_error.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -341,18 +340,6 @@ TEST(TestValuesWrapper, InitializeMatrix) {  // NOLINT
 TEST(TestValuesWrapper, InitializeValue) {  // NOLINT
   const Value<int> value{1};
   EXPECT_EQ(value.get(), 1);
-}
-
-TEST(TestTensor2, InitializeMatrixWithWrongNumberOfArguments) {  // NOLINT
-  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(R"(
-#include "ValueMatrix.hpp"
-
-int main() {
-  const ValueMatrix<int, 3, 2> matrix{1, 2, 3, 4, 5};
-  return 0;
-}
-)",
-                                               "Number of arguments does not match size of matrix.");
 }
 
 TEST(TestValuesWrapper, Evaluate) {  // NOLINT

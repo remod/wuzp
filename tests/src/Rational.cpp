@@ -2,8 +2,6 @@
 
 #include "wuzp/core/Rational.hpp"
 
-#include "test_compilation_error.hpp"
-
 using namespace wuzp;  // NOLINT
 
 TEST(TestRational, AccessMembers) {  // NOLINT
@@ -15,20 +13,6 @@ TEST(TestRational, Value) {  // NOLINT
   EXPECT_EQ((Rational<3, 12>::value<double>()), 0.25);
   EXPECT_EQ((Rational<3, 12>::value<int>()), 0);
 }
-
-TEST(TestRational, Infinity){// NOLINT
-                             ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(
-                                 R"(
-#include "wuzp/core/Rational.hpp"
-
- using namespace wuzp;
-
- int main() {
-  using type = Rational<3, 0>;
-  return 0;
-}
-)",
-                                 "The divisor must not be zero.")}
 
 TEST(TestRational, OneToInfinity) {  // NOLINT
   static_assert(std::is_same<Rational<3, 1>, Rational<3, 1>>::value);
@@ -72,20 +56,6 @@ TEST(TestRational, MinusInfinityToMinusOne) {  // NOLINT
   static_assert(std::is_same<Rational<6, -4>, Rational<3, -2>>::value);
   static_assert(std::is_same<Rational<-9, 6>, Rational<-3, 2>>::value);
 }
-
-TEST(TestRational, MinusInfinity){// NOLINT
-                                  ASSERT_STATIC_ASSERTION_FAILURE_WITH_MESSAGE(
-                                      R"(
-#include "wuzp/core/Rational.hpp"
-
- using namespace wuzp;
-
- int main() {
-  using type = Rational<3, -0>;
-  return 0;
-}
-)",
-                                      "The divisor must not be zero.")}
 
 TEST(TestRational, Identity) {  // NOLINT
   static_assert(std::is_same<typename Identity<Rational<-3, 2>>::type, Rational<1, 1>>::value);
