@@ -13,6 +13,11 @@ concurrency:
 permissions:
   contents: read
 
+# Container jobs default to sh; the steps use bash features.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   format:
     runs-on: ubuntu-24.04
