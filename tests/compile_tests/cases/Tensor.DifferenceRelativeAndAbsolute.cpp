@@ -1,0 +1,28 @@
+// wuzp-expect: error
+// wuzp-static-assert: An absolute object cannot be subtracted from a relative object\.
+
+#include "wuzp/core/Tensor.hpp"
+#include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/Quantities.hpp"
+#include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/Unit.hpp"
+
+#include "Unit.hpp"
+#include "ValueMatrix.hpp"
+
+using namespace wuzp;
+
+struct CoordinateSystemAName {};
+using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
+using MyValueMatrix = ValueMatrix<int, 2, 3>;
+using MyUnitMatrix = TypeMatrix<2, 3, Length>;
+using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
+using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
+using MyAbsoluteTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
+
+int main() {
+  const MyTensor tensor{1, 2, 3, 4, 5, 6};
+  const MyAbsoluteTensor absoluteTensor{1, 4, 2, 5, 3, 6};
+  tensor - absoluteTensor;
+  return 0;
+}

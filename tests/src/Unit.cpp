@@ -3,8 +3,6 @@
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/traits.hpp"
 
-#include "test_compilation_error.hpp"
-
 #include "Unit.hpp"
 
 using namespace wuzp;  // NOLINT

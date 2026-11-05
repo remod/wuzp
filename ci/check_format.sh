@@ -12,5 +12,5 @@ if [[ ${IMAGE_VERSION} != "${HOOK_VERSION}" ]]; then
 fi
 
 clang-format --version
-find examples tests/src wuzp*/include -name '*.[ch]pp' -print0 | xargs -0 clang-format --dry-run --Werror --style=file
+find examples tests/src tests/compile_tests/cases wuzp*/include -name '*.[ch]pp' -print0 | xargs -0 clang-format --dry-run --Werror --style=file
 echo "The code is formatted correctly."

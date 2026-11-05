@@ -42,11 +42,13 @@ run_in() {
       ${command}"
 }
 
+# Tests all presets, like the CI matrix: a failing preset does not stop the others.
 test_command() {
-  local command=""
+  local command="failed=''; "
   for preset in ${PRESETS}; do
-    command+="echo '=== ${preset}'; ci/test.sh ${preset}; "
+    command+="echo '=== ${preset}'; ci/test.sh ${preset} || failed+=' ${preset}'; "
   done
+  command+="if [[ -n \${failed} ]]; then echo \"Failed presets:\${failed}\"; exit 1; fi"
   echo "${command}"
 }
 
