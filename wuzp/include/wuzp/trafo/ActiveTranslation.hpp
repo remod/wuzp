@@ -53,7 +53,7 @@ struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Value, Coordi
       // TODO(remod): Improve efficiency by performing this addition at compile time.
       for (int row = 0; row < Rows<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value; ++row) {
         for (int col = 0; col < Cols<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value; ++col) {
-          result.template setQuantity(row, col, result.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
+          result.setQuantity(row, col, result.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
         }
       }
       return result.evaluate();

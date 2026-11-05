@@ -57,7 +57,7 @@ struct TransformationTraits<PassiveTranslation<ValuesT_, Dimension, Value, Coord
       // TODO(remod): Improve efficiency by performing this addition at compile time.
       for (int row = 0; row < Rows<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value; ++row) {
         for (int col = 0; col < Cols<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value; ++col) {
-          fromResult.template setQuantity(row, col, fromResult.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
+          fromResult.setQuantity(row, col, fromResult.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
         }
       }
       const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type{fromResult.getQuantities()};
