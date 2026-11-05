@@ -159,7 +159,7 @@ class Tensor {
     return quantities_.determinant();
   }
 
-  auto hyperdeterminant() const { static_assert(FailOnInstantiation<typeof(ThisT::hyperdeterminant())>::value, "Not implemented"); }
+  void hyperdeterminant() const { static_assert(FailOnInstantiation<ThisT>::value, "Not implemented"); }
 
   auto evaluate() const { return typename Evaluate<ThisT>::type{quantities_.evaluate()}; }
 
