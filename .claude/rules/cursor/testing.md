@@ -1,0 +1,14 @@
+---
+paths:
+  - "tests/**"
+  - "wuzp*/include/**"
+---
+
+<!-- Generated from .cursor/rules/testing.mdc by .claude/sync-from-cursor.py. Edit the source, then rerun the script. -->
+
+- Tests are deterministic. Do not use `random()` values unless the test checks a property that holds for every value.
+- Every test runs against all backend combinations. Write tests against the backend-agnostic test headers (`tests/src/Unit.hpp`, `ValueMatrix.hpp`); use `#if UNITS_IMPLEMENTATION == ...` only where the backends really differ, and explain why.
+- Every check that rejects invalid code (`static_assert`) needs a compile test in `tests/compile_tests/cases/` that names the expected message. See `tests/compile_tests/CompileTest.cmake` for the annotations. `compile.diagnostics_coverage` enforces this.
+- Bug fixes come with a test that fails without the fix.
+- Compare floating point results with `isApprox` and an explicit precision, exact values with `EXPECT_EQ`.
+- Never lower a coverage threshold, add a coverage exclusion, or weaken or delete a test without asking the user first.

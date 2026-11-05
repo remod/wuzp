@@ -1,0 +1,7 @@
+<!-- Generated from .cursor/rules/cpu-usage.mdc by .claude/sync-from-cursor.py. Edit the source, then rerun the script. -->
+
+Never use all CPU cores of the developer's machine for builds, tests or containers.
+
+- Run CI jobs with `ci/local.sh`, which uses half of the cores by default and caps its containers (`WUZP_JOBS` overrides it).
+- For ad-hoc builds or containers, always pass a limit: `cmake --build --parallel N`, `ctest --parallel N`, `docker run --cpus N`. Ninja's default uses all cores.
+- Never run two test suites at the same time.

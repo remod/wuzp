@@ -1,0 +1,1 @@
+../../.cursor/commands/ensure-high-code-coverage.md

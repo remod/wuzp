@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Don't explicitly call `bash` to run scripts, because it is not in the allowlist. The scripts in `ci/` are executable: run them directly, e.g. `ci/local.sh`.

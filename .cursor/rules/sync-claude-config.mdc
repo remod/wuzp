@@ -1,0 +1,7 @@
+---
+description: Keep Claude Code's copy of the agent config in sync with .cursor/
+globs: .cursor/**
+alwaysApply: false
+---
+
+After adding, changing, renaming or deleting anything in `.cursor/` (rules, commands, skills, mcp.json), run `python3 .claude/sync-from-cursor.py` and commit the regenerated `.claude/` files together with the change. Never edit `.claude/rules/cursor/` by hand.

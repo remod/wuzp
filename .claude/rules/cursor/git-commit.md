@@ -1,0 +1,7 @@
+<!-- Generated from .cursor/rules/git-commit.mdc by .claude/sync-from-cursor.py. Edit the source, then rerun the script. -->
+
+Never commit or push changes without the user explicitly asking for it.
+
+Before committing code changes, run the `polish` skill (its "When" section says when to skip it).
+
+Commit messages follow the repository's style: a first line that is one sentence in the imperative and ends with a period, then a body that explains why.

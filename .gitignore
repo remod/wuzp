@@ -19,3 +19,6 @@ llvm-cov/
 
 # Compilation database copied by the IDE
 compile_commands.json
+
+# Claude Code worktrees
+.claude/worktrees/

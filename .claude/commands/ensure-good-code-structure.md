@@ -1,0 +1,1 @@
+../../.cursor/commands/ensure-good-code-structure.md

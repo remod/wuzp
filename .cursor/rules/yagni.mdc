@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Follow the YAGNI principle. Don't add features that are not needed.

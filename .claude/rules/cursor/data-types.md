@@ -1,0 +1,12 @@
+---
+paths:
+  - "**/*.hpp"
+  - "**/*.cpp"
+---
+
+<!-- Generated from .cursor/rules/data-types.mdc by .claude/sync-from-cursor.py. Edit the source, then rerun the script. -->
+
+- Use the library's own types in tests and examples: quantities with units, tensors with coordinate systems, points vs. vectors. Avoid raw value matrices where a typed quantity exists.
+- Prefer explicit types over `auto` for results of operations: with Eigen, `auto` can hold an expression that refers to a temporary and dangles. If a function returns a result computed from local variables, evaluate it (`.evaluate()`) before returning.
+- Make invalid states unrepresentable at compile time: reject them with a `static_assert` and a clear message (and a compile test), rather than at runtime.
+- Name template parameters after their meaning (`CoordinateSystemT_`, `UnitsT_`), not `T`, `U`.
