@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+#include <cmath>
 #include <type_traits>
 #include <utility>
 
@@ -71,9 +73,13 @@ struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementatio
   static bool equal(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs) {
     return blitz::all(blitz::Array<bool, 2>(lhs == rhs));
   }
+  // Relative comparison, like Eigen's isApprox: |lhs - rhs| <= tolerance * min(|lhs|, |rhs|), with the Frobenius norm.
   static bool approxEqual(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs,
                           const typename ImplementationLhsT_::T_numtype tolerance) {
-    return blitz::all(blitz::abs(lhs - rhs) <= tolerance);
+    const auto differenceNorm = std::sqrt(blitz::sum(blitz::pow2(lhs - rhs)));
+    const auto lhsNorm = std::sqrt(blitz::sum(blitz::pow2(lhs)));
+    const auto rhsNorm = std::sqrt(blitz::sum(blitz::pow2(rhs)));
+    return differenceNorm <= tolerance * std::min(lhsNorm, rhsNorm);
   }
 };
 

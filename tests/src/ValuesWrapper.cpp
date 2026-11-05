@@ -136,6 +136,16 @@ TEST(TestValuesWrapper, IsApprox) {  // NOLINT
   EXPECT_FALSE(matrix.isApprox(notApprox));
 }
 
+TEST(TestValuesWrapper, IsApproxIsRelative) {  // NOLINT
+  // The precision is relative to the magnitude of the values, with every backend.
+  const ValueMatrix<double, 2, 1> large{1.0e6, 2.0e6};
+  const ValueMatrix<double, 2, 1> largeApprox{1.0e6 + 1.0, 2.0e6};
+  EXPECT_TRUE(large.isApprox(largeApprox, 1.0e-5));
+  const ValueMatrix<double, 2, 1> small{1.0e-6, 2.0e-6};
+  const ValueMatrix<double, 2, 1> smallNotApprox{2.0e-6, 2.0e-6};
+  EXPECT_FALSE(small.isApprox(smallNotApprox, 1.0e-3));
+}
+
 TEST(TestValuesWrapper, Transpose) {  // NOLINT
   const ValueMatrix<int, 2, 3> matrix{1, 2, 3, 4, 5, 6};
   const ValueMatrix<int, 3, 2> result{1, 4, 2, 5, 3, 6};
