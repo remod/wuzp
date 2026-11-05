@@ -12,72 +12,83 @@ concurrency:
 
 permissions:
   contents: read
+  packages: read
 
-# Container jobs default to sh; the steps use bash features.
 defaults:
   run:
     shell: bash
 
+# All jobs run in the dev container images (.devcontainer/Dockerfile) and call the scripts in ci/, so that
+# ci/local.sh can run exactly the same jobs locally.
 jobs:
-  format:
+  image:
+    name: dev container images
     runs-on: ubuntu-24.04
-    # clang-format output differs between versions; the code is formatted with the version of the oldest supported LTS.
-    container: ubuntu:22.04
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      min: ${{ steps.publish.outputs.min }}
+      latest: ${{ steps.publish.outputs.latest }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: ci/install_dependencies.sh gcc format
-      - name: Check format
-        run: find examples tests/src wuzp*/include -name '*.[ch]pp' -print0 | xargs -0 clang-format --dry-run --Werror --style=file
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish the images if the Dockerfile changed
+        id: publish
+        run: |
+          for VARIANT in min latest; do
+            echo "${VARIANT}=$(ci/image.sh publish ${VARIANT})" >> "${GITHUB_OUTPUT}"
+          done
+
+  format:
+    needs: image
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.image.outputs.latest }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/check_format.sh
 
   test:
-    name: test (${{ matrix.image }}, ${{ matrix.compiler }}, ${{ matrix.units }} units, ${{ matrix.values }} values)
+    name: test (${{ matrix.variant }}, ${{ matrix.compiler }}, ${{ matrix.units }} units, ${{ matrix.values }} values)
+    needs: image
     runs-on: ubuntu-24.04
-    container: ${{ matrix.image }}
+    container:
+      image: ${{ needs.image.outputs[matrix.variant] }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
-        # The oldest and the newest supported Ubuntu LTS, i.e. the oldest and the newest supported dependency versions.
-        image: ["ubuntu:22.04", "ubuntu:26.04"]
+        # min: the oldest supported dependency versions (Ubuntu 22.04), latest: the newest (Ubuntu 26.04).
+        variant: [min, latest]
         compiler: [gcc, clang]
         # Every backend combination is tested to prove that wuzp generalizes across implementations.
         units: [wuzp, boost]
         values: [eigen, blitz]
-    env:
-      PRESET: ${{ matrix.compiler }}-${{ matrix.units }}-${{ matrix.values }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: ci/install_dependencies.sh ${{ matrix.compiler }} ${{ matrix.values }} ${{ matrix.units == 'boost' && 'boost' || '' }}
-      - name: Configure
-        run: cmake --preset ${PRESET}
-      - name: Build
-        run: cmake --build --preset ${PRESET}
-      - name: Test
-        run: ctest --preset ${PRESET} --parallel $(nproc)
+      - run: ci/test.sh ${{ matrix.compiler }}-${{ matrix.units }}-${{ matrix.values }}
 
   coverage:
+    needs: image
     runs-on: ubuntu-24.04
-    container: ubuntu:26.04
+    container:
+      image: ${{ needs.image.outputs.latest }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      # The Codecov action needs git (also for a real checkout with history) and gpg to verify its uploader.
-      - name: Install git and gpg
-        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends ca-certificates curl git gpg
       - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: ci/install_dependencies.sh clang eigen blitz boost coverage
-      - name: Build and test all backend combinations
-        run: |
-          OBJECTS=()
-          for PRESET in clang-wuzp-eigen clang-wuzp-blitz clang-boost-eigen clang-boost-blitz; do
-            cmake --preset ${PRESET} -D WUZP_ENABLE_COVERAGE=ON
-            cmake --build --preset ${PRESET}
-            LLVM_PROFILE_FILE="${PWD}/build/profiles/${PRESET}-%p.profraw" ctest --preset ${PRESET} --parallel $(nproc)
-            OBJECTS+=(--object "build/${PRESET}/tests/wuzp_tests")
-          done
-          llvm-profdata merge --sparse build/profiles/*.profraw -o build/coverage.profdata
-          llvm-cov report --instr-profile build/coverage.profdata --ignore-filename-regex '(tests|/usr)/' "${OBJECTS[@]}"
-          llvm-cov export --format lcov --instr-profile build/coverage.profdata --ignore-filename-regex '(tests|/usr)/' "${OBJECTS[@]}" > build/coverage.lcov
+      - run: ci/coverage.sh
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
@@ -87,23 +98,13 @@ jobs:
 
   install:
     name: install and consume
+    needs: image
     runs-on: ubuntu-24.04
-    container: ubuntu:26.04
+    container:
+      image: ${{ needs.image.outputs.latest }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: ci/install_dependencies.sh gcc eigen blitz boost
-      - name: Install wuzp
-        run: |
-          cmake -S . -B build/install -G Ninja -D WUZP_WITH_EIGEN=ON -D WUZP_WITH_BLITZ=ON -D WUZP_WITH_BOOST=ON \
-            -D WUZP_BUILD_TESTS=OFF -D WUZP_BUILD_EXAMPLES=OFF -D CMAKE_INSTALL_PREFIX=${PWD}/build/prefix
-          cmake --install build/install
-      - name: Test the installed package
-        run: |
-          cmake -S tests -B build/tests -G Ninja -D CMAKE_PREFIX_PATH=${PWD}/build/prefix -D WUZP_TEST_UNITS=boost -D WUZP_TEST_VALUES=eigen
-          cmake --build build/tests
-          ctest --test-dir build/tests --output-on-failure --no-tests=error --parallel $(nproc)
-      - name: Build the examples against the installed package
-        run: |
-          cmake -S examples -B build/examples -G Ninja -D CMAKE_PREFIX_PATH=${PWD}/build/prefix
-          cmake --build build/examples
+      - run: ci/install_and_consume.sh

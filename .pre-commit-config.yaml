@@ -1,0 +1,8 @@
+# Formats C++ code before each commit. Enable with: pre-commit install
+# The clang-format version must match CLANG_FORMAT_VERSION in .devcontainer/Dockerfile (checked by ci/check_format.sh).
+repos:
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v21.1.8
+    hooks:
+      - id: clang-format
+        types_or: [c++]
