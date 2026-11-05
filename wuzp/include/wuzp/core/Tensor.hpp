@@ -173,6 +173,8 @@ class Tensor {
     static_assert(ContravariantIndices == ContravariantIndicesOther, "Contravariant indices do not match.");
     static_assert(CovariantIndices == CovariantIndicesOther, "Covariant indices do not match.");
     static_assert(std::is_same_v<CoordinateSystemT, CoordinateSystemOther>, "Coordinate systems do not match.");
+    // Points and vectors must not be converted into each other implicitly; use makeRelative() and makeAbsolute() instead.
+    static_assert(std::is_same_v<AbsoluteT, AbsoluteOtherT>, "Absolute/relative mismatch.");
   }
 
   template <typename... Ts>
