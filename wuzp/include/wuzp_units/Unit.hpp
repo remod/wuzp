@@ -87,6 +87,7 @@ struct AccessUnits<AccessImplementation<T>> {
   using Length = wuzp_units::Length;
   using Mass = wuzp_units::Mass;
   using Time = wuzp_units::Time;
+  using Torque = wuzp_units::Torque;
   using Velocity = wuzp_units::Velocity;
   using Volume = wuzp_units::Volume;
 };

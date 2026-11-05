@@ -1,3 +1,5 @@
+#include <type_traits>
+
 #include <gtest/gtest.h>
 
 #include "wuzp/core/CoordinateSystem.hpp"
@@ -25,6 +27,27 @@ using LengthQuantityI = QuantityI<Length>;
 using SquaredLengthQuantityI = QuantityI<Power<Length, Integer<2>>::type>;
 using MassQuantityI = QuantityI<Mass>;
 using AreaQuantityI = QuantityI<Area>;
+
+template <typename TensorT>
+using UnitOf = typename GetType<typename TensorT::UnitsT>::type;
+
+// Every named tensor alias has the unit its name promises.
+TEST(TestTensor, UnitsOfAliases) {  // NOLINT
+  using CS = CoordinateSystemA;
+  EXPECT_TRUE((std::is_same_v<UnitOf<DirectionVector3<ValueMatrix, double, CS>>, Dimensionless>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<PositionPoint3<ValueMatrix, double, CS>>, Length>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<PositionVector3<ValueMatrix, double, CS>>, Length>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<VelocityVector3<ValueMatrix, double, CS>>, Velocity>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<AccelerationVector3<ValueMatrix, double, CS>>, Acceleration>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<AngularVelocityVector3<ValueMatrix, double, CS>>, AngularVelocity>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<AngularAccelerationVector3<ValueMatrix, double, CS>>, AngularAcceleration>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<ForceVector3<ValueMatrix, double, CS>>, Force>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<TorqueVector3<ValueMatrix, double, CS>>, Torque>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<TimePoint<ValueMatrix, double, CS>>, Time>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<Duration<ValueMatrix, double, CS>>, Time>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<SpacetimePoint4<ValueMatrix, double, CS>>, Length>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<SpacetimeVector4<ValueMatrix, double, CS>>, Length>));
+}
 
 TEST(TestTensor2, Dimension) {  // NOLINT
   static_assert(Dimension<TestTensor<1, 1>>::value == 0);
