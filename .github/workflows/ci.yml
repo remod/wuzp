@@ -60,6 +60,9 @@ jobs:
     runs-on: ubuntu-24.04
     container: ubuntu:24.04
     steps:
+      # The Codecov action needs git (also for a real checkout with history) and gpg to verify its uploader.
+      - name: Install git and gpg
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends ca-certificates curl git gpg
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: ci/install_dependencies.sh clang eigen blitz boost coverage
