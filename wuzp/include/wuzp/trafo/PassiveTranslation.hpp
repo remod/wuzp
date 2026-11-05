@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
 #include "wuzp/trafo/traits.hpp"
