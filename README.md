@@ -172,7 +172,7 @@ cmake --build --preset gcc-wuzp-eigen --target wuzp_tidy
 
 **Continuous integration**
 
-The CI workflow checks the format, runs the tests for all backend combinations with GCC and Clang on the oldest supported and a recent Ubuntu LTS, measures code coverage, and tests the installed package.
+The CI workflow checks the format, runs the tests for all backend combinations with GCC and Clang on the oldest and the newest supported Ubuntu LTS (22.04 and 26.04), measures code coverage, and tests the installed package.
 
 [^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample).
 

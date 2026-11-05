@@ -61,7 +61,8 @@ if [[ ${BUILD_BLITZ_FROM_SOURCE} == true ]]; then
   WORK_DIR=$(mktemp -d)
   curl -fsSL "https://github.com/blitzpp/blitz/archive/refs/tags/${BLITZ_VERSION}.tar.gz" | tar -xz -C "${WORK_DIR}"
   cmake -S "${WORK_DIR}/blitz-${BLITZ_VERSION}" -B "${WORK_DIR}/build" -G Ninja \
-    -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++
+    -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ \
+    -D CMAKE_POLICY_VERSION_MINIMUM=3.5  # Blitz++ 1.0.2 declares a CMake minimum that CMake 4 no longer accepts.
   cmake --build "${WORK_DIR}/build" --target lib blitz-static
   ${SUDO} cmake --install "${WORK_DIR}/build"
   rm -rf "${WORK_DIR}"

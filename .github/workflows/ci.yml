@@ -37,8 +37,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # ubuntu:22.04 provides the oldest supported dependency versions.
-        image: ["ubuntu:22.04", "ubuntu:24.04"]
+        # The oldest and the newest supported Ubuntu LTS, i.e. the oldest and the newest supported dependency versions.
+        image: ["ubuntu:22.04", "ubuntu:26.04"]
         compiler: [gcc, clang]
         # Every backend combination is tested to prove that wuzp generalizes across implementations.
         units: [wuzp, boost]
@@ -58,7 +58,7 @@ jobs:
 
   coverage:
     runs-on: ubuntu-24.04
-    container: ubuntu:24.04
+    container: ubuntu:26.04
     steps:
       # The Codecov action needs git (also for a real checkout with history) and gpg to verify its uploader.
       - name: Install git and gpg
@@ -88,7 +88,7 @@ jobs:
   install:
     name: install and consume
     runs-on: ubuntu-24.04
-    container: ubuntu:24.04
+    container: ubuntu:26.04
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
