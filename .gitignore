@@ -1,3 +1,18 @@
-build
-cmake-build-debug
-files
+# Build directories
+build/
+cmake-build-*/
+
+# Personal CMake presets
+CMakeUserPresets.json
+
+# IDE settings (use the dev container configuration instead)
+.idea/
+.vscode/
+
+# Coverage reports
+*.profraw
+*.profdata
+llvm-cov/
+
+# Personal Claude Code settings
+.claude/settings.local.json

@@ -1,0 +1,267 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "WUZP_BUILD_TESTS": "ON",
+        "WUZP_BUILD_EXAMPLES": "ON",
+        "WUZP_WITH_EIGEN": "OFF",
+        "WUZP_WITH_BLITZ": "OFF",
+        "WUZP_WITH_BOOST": "OFF"
+      }
+    },
+    {
+      "name": "gcc",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+    {
+      "name": "clang",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "gcc-wuzp-eigen",
+      "displayName": "gcc, wuzp units, eigen values",
+      "inherits": [
+        "base",
+        "gcc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "wuzp",
+        "WUZP_TEST_VALUES": "eigen",
+        "WUZP_WITH_EIGEN": "ON"
+      }
+    },
+    {
+      "name": "gcc-wuzp-blitz",
+      "displayName": "gcc, wuzp units, blitz values",
+      "inherits": [
+        "base",
+        "gcc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "wuzp",
+        "WUZP_TEST_VALUES": "blitz",
+        "WUZP_WITH_BLITZ": "ON",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
+      "name": "gcc-boost-eigen",
+      "displayName": "gcc, boost units, eigen values",
+      "inherits": [
+        "base",
+        "gcc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "boost",
+        "WUZP_TEST_VALUES": "eigen",
+        "WUZP_WITH_EIGEN": "ON",
+        "WUZP_WITH_BOOST": "ON"
+      }
+    },
+    {
+      "name": "gcc-boost-blitz",
+      "displayName": "gcc, boost units, blitz values",
+      "inherits": [
+        "base",
+        "gcc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "boost",
+        "WUZP_TEST_VALUES": "blitz",
+        "WUZP_WITH_BLITZ": "ON",
+        "WUZP_WITH_BOOST": "ON",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
+      "name": "clang-wuzp-eigen",
+      "displayName": "clang, wuzp units, eigen values",
+      "inherits": [
+        "base",
+        "clang"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "wuzp",
+        "WUZP_TEST_VALUES": "eigen",
+        "WUZP_WITH_EIGEN": "ON"
+      }
+    },
+    {
+      "name": "clang-wuzp-blitz",
+      "displayName": "clang, wuzp units, blitz values",
+      "inherits": [
+        "base",
+        "clang"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "wuzp",
+        "WUZP_TEST_VALUES": "blitz",
+        "WUZP_WITH_BLITZ": "ON",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
+      "name": "clang-boost-eigen",
+      "displayName": "clang, boost units, eigen values",
+      "inherits": [
+        "base",
+        "clang"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "boost",
+        "WUZP_TEST_VALUES": "eigen",
+        "WUZP_WITH_EIGEN": "ON",
+        "WUZP_WITH_BOOST": "ON"
+      }
+    },
+    {
+      "name": "clang-boost-blitz",
+      "displayName": "clang, boost units, blitz values",
+      "inherits": [
+        "base",
+        "clang"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "boost",
+        "WUZP_TEST_VALUES": "blitz",
+        "WUZP_WITH_BLITZ": "ON",
+        "WUZP_WITH_BOOST": "ON",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "gcc-wuzp-eigen",
+      "configurePreset": "gcc-wuzp-eigen"
+    },
+    {
+      "name": "gcc-wuzp-blitz",
+      "configurePreset": "gcc-wuzp-blitz"
+    },
+    {
+      "name": "gcc-boost-eigen",
+      "configurePreset": "gcc-boost-eigen"
+    },
+    {
+      "name": "gcc-boost-blitz",
+      "configurePreset": "gcc-boost-blitz"
+    },
+    {
+      "name": "clang-wuzp-eigen",
+      "configurePreset": "clang-wuzp-eigen"
+    },
+    {
+      "name": "clang-wuzp-blitz",
+      "configurePreset": "clang-wuzp-blitz"
+    },
+    {
+      "name": "clang-boost-eigen",
+      "configurePreset": "clang-boost-eigen"
+    },
+    {
+      "name": "clang-boost-blitz",
+      "configurePreset": "clang-boost-blitz"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "gcc-wuzp-eigen",
+      "configurePreset": "gcc-wuzp-eigen",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "gcc-wuzp-blitz",
+      "configurePreset": "gcc-wuzp-blitz",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "gcc-boost-eigen",
+      "configurePreset": "gcc-boost-eigen",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "gcc-boost-blitz",
+      "configurePreset": "gcc-boost-blitz",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "clang-wuzp-eigen",
+      "configurePreset": "clang-wuzp-eigen",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "clang-wuzp-blitz",
+      "configurePreset": "clang-wuzp-blitz",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "clang-boost-eigen",
+      "configurePreset": "clang-boost-eigen",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "clang-boost-blitz",
+      "configurePreset": "clang-boost-blitz",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    }
+  ]
+}
