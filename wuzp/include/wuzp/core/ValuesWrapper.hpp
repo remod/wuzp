@@ -1,5 +1,8 @@
 #pragma once
 
+#include <type_traits>
+#include <utility>
+
 #include "wuzp/core/MatrixSize.hpp"
 
 namespace wuzp {
@@ -27,8 +30,20 @@ class ValuesWrapper {
   explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) ValuesWrapper(T0&& t0, Ts&&... ts)
       : ValuesWrapper(typename GetTag<ThisT, T0, Ts...>::type{}, std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
-  static ThisT zero() { return Zero<ThisT>::value(); }
-  static ThisT random() { return Random<ThisT>::value(); }
+  //! Values that are all zero.
+  static ThisT zero() {
+    ThisT result;
+    Zero<AccessImplementation<ImplementationT>>::run(result.implementation_);
+    return result;
+  }
+
+  //! Random values, uniformly distributed in [-1, 1].
+  static ThisT random() {
+    static_assert(std::is_floating_point_v<ValueT>, "Random values are only supported for floating point types.");
+    ThisT result;
+    Random<AccessImplementation<ImplementationT>>::run(result.implementation_);
+    return result;
+  }
 
   template <int RowId, int ColId>
   auto get() const {
@@ -375,16 +390,6 @@ template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_, in
 struct Block<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
   using type = ValuesWrapper<typename Block<MatrixSizeT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type, ValueT_,
                              typename Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
-};
-
-template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>
-struct Zero<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
-  static auto value() { return ValuesWrapper(Zero<AccessImplementation<ImplementationT_>>::value()); }
-};
-
-template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>
-struct Random<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
-  static auto value() { return ValuesWrapper(Random<AccessImplementation<ImplementationT_>>::value()); }
 };
 
 template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>

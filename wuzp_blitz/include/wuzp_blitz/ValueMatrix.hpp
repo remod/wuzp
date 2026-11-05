@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <type_traits>
 #include <utility>
 
@@ -222,16 +223,21 @@ struct Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, Blo
 
 template <typename ImplementationT_>
 struct Zero<AccessImplementation<ImplementationT_>> {
-  static auto value() { return ImplementationT_::Zero(); }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationT_>()));
+  static void run(ImplementationT_& impl) { impl = 0; }
 };
 
 template <typename ImplementationT_>
 struct Random<AccessImplementation<ImplementationT_>> {
-  static auto value() { return ImplementationT_::Random(); }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationT_>()));
+  // Uniformly distributed in [-1, 1], like Eigen's setRandom().
+  static void run(ImplementationT_& impl) {
+    using ValueT = typename ImplementationT_::T_numtype;
+    for (int row = 0; row < impl.rows(); ++row) {
+      for (int col = 0; col < impl.cols(); ++col) {
+        impl(row, col) =
+            static_cast<ValueT>(-1) + static_cast<ValueT>(2) * static_cast<ValueT>(std::rand()) / static_cast<ValueT>(RAND_MAX);
+      }
+    }
+  }
 };
 
 template <typename ImplementationT_>

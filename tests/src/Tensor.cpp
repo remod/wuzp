@@ -1,3 +1,4 @@
+#include <cmath>
 #include <type_traits>
 
 #include <gtest/gtest.h>
@@ -30,6 +31,16 @@ using AreaQuantityI = QuantityI<Area>;
 
 template <typename TensorT>
 using UnitOf = typename GetType<typename TensorT::UnitsT>::type;
+
+TEST(TestTensor, Zero) {  // NOLINT
+  const PositionVector3<ValueMatrix, double, CoordinateSystemA> expected{0.0, 0.0, 0.0};
+  EXPECT_EQ((PositionVector3<ValueMatrix, double, CoordinateSystemA>::zero()), expected);
+}
+
+TEST(TestTensor, Random) {  // NOLINT
+  const auto vector = PositionVector3<ValueMatrix, double, CoordinateSystemA>::random();
+  EXPECT_LE(vector.norm().getValue(), std::sqrt(3.0));
+}
 
 // Every named tensor alias has the unit its name promises.
 TEST(TestTensor, UnitsOfAliases) {  // NOLINT

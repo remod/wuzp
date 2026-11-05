@@ -136,6 +136,25 @@ TEST(TestValuesWrapper, IsApprox) {  // NOLINT
   EXPECT_FALSE(matrix.isApprox(notApprox));
 }
 
+TEST(TestValuesWrapper, Zero) {  // NOLINT
+  const ValueMatrix<double, 2, 3> expected{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  EXPECT_EQ((ValueMatrix<double, 2, 3>::zero()), expected);
+  const ValueMatrix<int, 2, 1> expectedIntegers{0, 0};
+  EXPECT_EQ((ValueMatrix<int, 2, 1>::zero()), expectedIntegers);
+}
+
+TEST(TestValuesWrapper, Random) {  // NOLINT
+  // The values are uniformly distributed in [-1, 1]: with many of them, all are in the range and they are not all equal.
+  const auto values = ValueMatrix<double, 10, 10>::random();
+  for (int row = 0; row < 10; ++row) {
+    for (int col = 0; col < 10; ++col) {
+      EXPECT_GE(values.get(row, col), -1.0);
+      EXPECT_LE(values.get(row, col), 1.0);
+    }
+  }
+  EXPECT_NE(values.get(0, 0), values.get(9, 9));
+}
+
 TEST(TestValuesWrapper, IsApproxIsRelative) {  // NOLINT
   // The precision is relative to the magnitude of the values, with every backend.
   const ValueMatrix<double, 2, 1> large{1.0e6, 2.0e6};

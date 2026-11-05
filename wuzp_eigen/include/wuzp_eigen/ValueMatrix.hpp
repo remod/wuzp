@@ -218,16 +218,13 @@ struct Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, Blo
 
 template <typename ImplementationT_>
 struct Zero<AccessImplementation<ImplementationT_>> {
-  static auto value() { return ImplementationT_::Zero(); }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationT_>()));
+  static void run(ImplementationT_& impl) { impl.setZero(); }
 };
 
 template <typename ImplementationT_>
 struct Random<AccessImplementation<ImplementationT_>> {
-  static auto value() { return ImplementationT_::Random(); }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationT_>()));
+  // Uniformly distributed in [-1, 1].
+  static void run(ImplementationT_& impl) { impl.setRandom(); }
 };
 
 template <typename ImplementationT_>
