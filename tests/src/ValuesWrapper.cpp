@@ -1,3 +1,5 @@
+#include <cstdlib>
+
 #include <gtest/gtest.h>
 
 #include "wuzp/core/ValueWrapper.hpp"
@@ -145,6 +147,8 @@ TEST(TestValuesWrapper, Zero) {  // NOLINT
 
 TEST(TestValuesWrapper, Random) {  // NOLINT
   // The values are uniformly distributed in [-1, 1]: with many of them, all are in the range and they are not all equal.
+  // The backends use std::rand, so a fixed seed makes the test repeatable.
+  std::srand(1);
   const auto values = ValueMatrix<double, 10, 10>::random();
   for (int row = 0; row < 10; ++row) {
     for (int col = 0; col < 10; ++col) {

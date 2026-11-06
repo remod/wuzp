@@ -36,7 +36,7 @@ TEST(TestLorentzTransformation, TransformSpacetimeVector) {  // NOLINT
 TEST(TestLorentzTransformation, BoostWithZeroVelocityIsIdentity) {  // NOLINT
   const LorentzBoost transformation{createBoost(Velocity3{0.0, 0.0, 0.0})};
   const LorentzBoost identity{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-  EXPECT_TRUE(transformation.getTensor().isApprox(identity.getTensor()));
+  EXPECT_TRUE(transformation.getTensor().isApprox(identity.getTensor(), 1e-12));
 }
 
 TEST(TestLorentzTransformation, BoostWithSmallVelocity) {  // NOLINT

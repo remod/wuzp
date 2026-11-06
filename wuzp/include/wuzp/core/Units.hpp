@@ -2,10 +2,12 @@
 
 #include <cstddef>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Unit.hpp"
+#include "wuzp/core/traits.hpp"
 
 namespace wuzp {
 
@@ -52,9 +54,9 @@ struct TensorInverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementati
 };
 
 template <typename Matrix, typename IndexSequence>
-struct DiagonalProduct;
+struct DiagonalProductImpl;
 template <typename Matrix, size_t... Is>
-struct DiagonalProduct<Matrix, std::index_sequence<Is...>> {
+struct DiagonalProductImpl<Matrix, std::index_sequence<Is...>> {
   using type = typename Product<typename Element<Matrix, static_cast<int>(Is), static_cast<int>(Is)>::type...>::type;
 };
 
@@ -75,7 +77,7 @@ struct Determinant<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementation
   using InverseT = typename TensorInverse<MatrixT>::type;
 
  public:
-  using type = typename DiagonalProduct<MatrixT, std::make_index_sequence<Rows>>::type;
+  using type = typename DiagonalProductImpl<MatrixT, std::make_index_sequence<Rows>>::type;
 };
 
 }  // namespace wuzp

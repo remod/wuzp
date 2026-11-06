@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "wuzp/core/MatrixSize.hpp"
+#include "wuzp/core/traits.hpp"
 
 namespace wuzp {
 

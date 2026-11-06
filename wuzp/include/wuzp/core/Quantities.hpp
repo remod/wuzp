@@ -157,8 +157,7 @@ class Quantities {
    */
   template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 2>>
   auto determinant() const {
-    using ValueWrapperT = typename AccessValues<AccessImplementation<ValuesT>>::template Value<ValueT>;
-    return Quantity<ValueWrapperT, typename Determinant<UnitsT>::type>{values_.determinant()};
+    return typename Determinant<ThisT>::type{values_.determinant()};
   }
 
   auto evaluate() const { return typename Evaluate<ThisT>::type{values_.evaluate()}; }
@@ -304,6 +303,12 @@ struct Inverse<Quantities<ValuesT_, UnitsT_>> {
 template <typename ValuesT_, typename UnitsT_>
 struct TensorInverse<Quantities<ValuesT_, UnitsT_>> {
   using type = Quantities<typename TensorInverse<ValuesT_>::type, typename TensorInverse<UnitsT_>::type>;
+};
+
+template <typename ValuesT_, typename UnitsT_>
+struct Determinant<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantity<typename AccessValues<AccessImplementation<ValuesT_>>::template Value<typename ValuesT_::ValueT>,
+                        typename Determinant<UnitsT_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>

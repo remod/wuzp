@@ -190,7 +190,7 @@ Recommendation: document this clearly; consider dedicated twist and wrench types
 
 ### TODO: Backend support for inverses
 
-Blitz++ provides neither inverses nor determinants, so transformations of (1,1) and (0,2) tensors only work with Eigen.
+Blitz++ provides neither inverses nor determinants, so transformations of (0,1), (1,1) and (0,2) tensors only work with Eigen.
 This weakens the goal that every feature works with every backend.
 Recommendation: implement small fixed-size inverses for Blitz++ in *wuzp*, or document the restriction per backend.
 
@@ -208,6 +208,7 @@ Recommendation: constrain the parameters with C++20 concepts (see #36).
 ### TODO: Unreachable invertibility check
 
 The check "Matrix is not invertible." (`Units.hpp`) can probably never fail: for matrices whose units do not describe a linear map, computing the candidate inverse already fails with "Units do not match.", and for all others, the check passes.
+The unit of `determinant()` relies on the same computation to reject such matrices, and reports the same message (with Boost.Units, an error without a `static_assert`).
 Recommendation: verify, then replace it with a check that runs first and reports a clear message, such as "The units of the matrix do not describe a linear map."
 
 ## Notes on tensor calculus

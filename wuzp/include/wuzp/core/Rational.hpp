@@ -39,7 +39,7 @@ struct Division<internal::ReducedRational<DividendLhs, DivisorLhs>, internal::Re
 };
 
 // The result of an arbitrary rational powered by another arbitrary rational can be a real number which cannot be expressed as rational.
-// Therefore, only powers that are exact are defined.
+// Therefore, only powers of zero are defined, which are zero for every positive exponent.
 template <int DividendExponent, int DivisorExponent>
 struct Power<internal::ReducedRational<0, 1>, internal::ReducedRational<DividendExponent, DivisorExponent>> {
   static_assert(DividendExponent > 0, "Zero raised to a non-positive power is not defined.");
