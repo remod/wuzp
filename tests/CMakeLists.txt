@@ -119,7 +119,8 @@ gtest_discover_tests(wuzp_tests DISCOVERY_TIMEOUT 60)
 
 # Every public header compiles on its own, without warnings even if users enable stricter ones. The check covers the core
 # and the backends of this configuration. It is a build target, so it runs with every build.
-set(WUZP_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../wuzp/include)
+set(WUZP_CORE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../wuzp/include)
+set(WUZP_HEADER_DIRS ${WUZP_CORE_INCLUDE_DIR})
 foreach(_component IN LISTS WUZP_TEST_COMPONENTS)
     list(APPEND WUZP_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../wuzp_${_component}/include)
 endforeach()
@@ -137,6 +138,18 @@ add_library(wuzp_header_check OBJECT ${WUZP_HEADER_CHECK_SOURCES})
 target_compile_features(wuzp_header_check PRIVATE cxx_std_20)
 target_compile_options(wuzp_header_check PRIVATE ${WUZP_STRICT_WARNING_OPTIONS})
 target_link_libraries(wuzp_header_check PRIVATE ${WUZP_TEST_LINK_LIBRARIES})
+
+# <wuzp/wuzp.hpp> includes every header of the core and the transformations.
+file(READ ${WUZP_CORE_INCLUDE_DIR}/wuzp/wuzp.hpp _umbrella_header)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${WUZP_CORE_INCLUDE_DIR}/wuzp/wuzp.hpp)
+file(GLOB _headers RELATIVE ${WUZP_CORE_INCLUDE_DIR} CONFIGURE_DEPENDS ${WUZP_CORE_INCLUDE_DIR}/wuzp/core/*.hpp
+    ${WUZP_CORE_INCLUDE_DIR}/wuzp/trafo/*.hpp)
+foreach(_header IN LISTS _headers)
+    string(FIND "${_umbrella_header}" "#include \"${_header}\"" _position)
+    if(_position EQUAL -1)
+        message(FATAL_ERROR "wuzp/wuzp.hpp does not include ${_header}.")
+    endif()
+endforeach()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Compile tests

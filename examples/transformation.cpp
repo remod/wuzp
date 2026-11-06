@@ -2,9 +2,7 @@
 
 #include <iostream>
 
-#include <wuzp/core/CoordinateSystem.hpp>
-#include <wuzp/core/Tensor.hpp>
-#include <wuzp/trafo/PassiveProperRigidTransformation.hpp>
+#include <wuzp/wuzp.hpp>
 #include <wuzp_eigen/ValueMatrix.hpp>
 #include <wuzp_units/Unit.hpp>
 

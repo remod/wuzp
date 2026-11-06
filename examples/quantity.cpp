@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <wuzp/core/Quantities.hpp>
+#include <wuzp/wuzp.hpp>
 #include <wuzp_eigen/ValueMatrix.hpp>
 #include <wuzp_units/Unit.hpp>
 

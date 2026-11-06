@@ -123,6 +123,14 @@ target_link_libraries(my_target PRIVATE wuzp::wuzp wuzp::eigen)
 By default, a backend is enabled if its dependency is found.
 Use `-DWUZP_WITH_EIGEN=ON|OFF` (and likewise `BLITZ`, `BOOST`) to require or disable one.
 
+In the code, include `<wuzp/wuzp.hpp>` (the core and the transformations), a units backend and a value matrix backend:
+
+```cpp
+#include <wuzp/wuzp.hpp>
+#include <wuzp_eigen/ValueMatrix.hpp>  // Or <wuzp_blitz/ValueMatrix.hpp>.
+#include <wuzp_units/Unit.hpp>         // Or <wuzp_boost/Unit.hpp>.
+```
+
 ## Examples
 
 Examples demonstrating how to use *wuzp* can be found in the `examples` folder.
