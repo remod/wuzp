@@ -62,12 +62,13 @@ TEST(TestQuantities2, ConstructImplicitlyFromQuantities) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  const MyQuantityMatrix quantities1;
-  const MyQuantityMatrix quantities2;
+  const MyQuantityMatrix quantities1{1, 2, 3, 4, 5, 6};
+  const MyQuantityMatrix quantities2{6, 5, 4, 3, 2, 1};
   // Use = instead of {} to trigger implicit conversion.
   const MyQuantityMatrix quantities3 = quantities1 + quantities2;
   const MyQuantityMatrix quantities = quantities3;
   EXPECT_EQ(quantities, quantities3);
+  EXPECT_EQ(quantities, (MyQuantityMatrix{7, 7, 7, 7, 7, 7}));
 }
 
 TEST(TestQuantities2, ConstructExplicitlyFromQuantities) {  // NOLINT

@@ -104,12 +104,13 @@ TEST(TestTensor2, ConstructImplicitlyFromTensor) {  // NOLINT
   using MyUnitMatrix = TypeMatrix<2, 3, Length>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
   using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-  const MyTensor tensor1;
-  const MyTensor tensor2;
+  const MyTensor tensor1{1, 2, 3, 4, 5, 6};
+  const MyTensor tensor2{6, 5, 4, 3, 2, 1};
   // Use = instead of {} to trigger implicit conversion.
   const MyTensor tensor3 = tensor1 + tensor2;
   const MyTensor tensor = tensor3;
   EXPECT_EQ(tensor, tensor3);
+  EXPECT_EQ(tensor, (MyTensor{7, 7, 7, 7, 7, 7}));
 }
 
 TEST(TestTensor2, ConstructExplicitlyFromQuantities) {  // NOLINT

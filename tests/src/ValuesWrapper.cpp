@@ -79,12 +79,13 @@ TEST(TestValuesWrapper, DefaultConstructionDoesThrow) {  // NOLINT
 
 TEST(TestValuesWrapper, ConstructImplicityFromValuesWrapper) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;
-  const MyValueMatrix matrix1;
-  const MyValueMatrix matrix2;
+  const MyValueMatrix matrix1{1, 2, 3, 4, 5, 6};
+  const MyValueMatrix matrix2{6, 5, 4, 3, 2, 1};
   // Use = instead of {} to trigger implicit conversion.
   const MyValueMatrix matrix3 = matrix1 + matrix2;
   const MyValueMatrix matrix4 = matrix3;
   EXPECT_EQ(matrix4, matrix3);
+  EXPECT_EQ(matrix4, (MyValueMatrix{7, 7, 7, 7, 7, 7}));
 }
 
 TEST(TestValuesWrapper, ConstructExplicitlyFromValues) {  // NOLINT
