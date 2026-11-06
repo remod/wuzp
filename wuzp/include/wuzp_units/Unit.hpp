@@ -1,5 +1,8 @@
 #pragma once
 
+#include <tuple>
+#include <type_traits>
+
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/Rational.hpp"
 #include "wuzp/core/Unit.hpp"

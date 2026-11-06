@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "wuzp/trafo/Transformation.hpp"
 #include "wuzp/trafo/traits.hpp"
 

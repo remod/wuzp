@@ -590,6 +590,7 @@ TEST(TestTensor2, SquaredNorm) {  // NOLINT
   EXPECT_EQ(vector.squaredNorm(), SquaredLengthQuantityI{25});
 }
 
+// The Blitz++ backend implements neither inverses nor determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestTensor2, Determinant) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;

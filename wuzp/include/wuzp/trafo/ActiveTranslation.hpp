@@ -1,6 +1,8 @@
 #pragma once
 
+#include <ostream>
 #include <type_traits>
+#include <utility>
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"

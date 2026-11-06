@@ -1,5 +1,8 @@
 #pragma once
 
+#include <ostream>
+#include <utility>
+
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"

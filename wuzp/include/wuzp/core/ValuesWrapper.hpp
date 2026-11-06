@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 

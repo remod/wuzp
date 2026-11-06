@@ -223,6 +223,9 @@ ci/local.sh format test-min # Selected jobs: format, test-min, test-latest, cove
 
 By default, `ci/local.sh` uses half of the CPU cores; set `WUZP_JOBS` to change this.
 
+Codecov checks that the coverage does not drop and that new code is covered (`codecov.yml`).
+Pushing a tag `v<version>` that matches the version in `CMakeLists.txt` creates a GitHub release.
+
 [^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample).
 
 [^2]: The difference between active and passive transformations is explained [here](https://en.wikipedia.org/wiki/Active_and_passive_transformation).

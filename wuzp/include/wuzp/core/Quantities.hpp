@@ -2,7 +2,9 @@
 
 #include <cmath>
 #include <ostream>
+#include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/Quantity.hpp"

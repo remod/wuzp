@@ -285,7 +285,6 @@ TEST(TestQuantities2, ProductWithQuantities) {  // NOLINT
   EXPECT_EQ(quantities * quantities, result);
 }
 
-// TODO(remod): This test with Blitz currently results in a segfault.
 TEST(TestQuantities2, DotProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
@@ -370,6 +369,7 @@ TEST(TestQuantities2, Chain) {  // NOLINT
   EXPECT_EQ(quantities2 + quantities1 * quantities1, (MyQuantityMatrixResult{2, 6, 12, 20}));
 }
 
+// The Blitz++ backend implements neither inverses nor determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantities, Inverse) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
@@ -425,6 +425,7 @@ TEST(TestQuantities, SquaredNorm) {  // NOLINT
   EXPECT_EQ(quantities.squaredNorm(), SquaredLengthQuantityI{25});
 }
 
+// The Blitz++ backend implements neither inverses nor determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantities, Determinant) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;

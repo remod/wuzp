@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "wuzp/core/helpers.hpp"
 
 namespace wuzp {

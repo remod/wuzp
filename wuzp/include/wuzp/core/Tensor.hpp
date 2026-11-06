@@ -1,6 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <ostream>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 #include "wuzp/core/Absolute.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"

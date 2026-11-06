@@ -1,7 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <tuple>
+#include <utility>
 
 #include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
@@ -166,7 +168,7 @@ template <int Rows, int Cols, typename... Types, int ElementRowId, int ElementCo
 struct Element<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, ElementRowId, ElementColId> {
   static_assert(ElementRowId >= 0 && ElementRowId < Rows, "Element row id is out of range.");
   static_assert(ElementColId >= 0 && ElementColId < Cols, "Element columns id is out of range.");
-  using type = typename std::tuple_element<static_cast<std::size_t>(ElementRowId* Cols + ElementColId), std::tuple<Types...>>::type;
+  using type = typename std::tuple_element<std::size_t{ElementRowId * Cols + ElementColId}, std::tuple<Types...>>::type;
 };
 
 template <int Cols, int BlockRowId, int BlockColId, int BlockRows, int BlockCols, typename Tuple, typename IndexSequence>
@@ -184,7 +186,7 @@ struct Block<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>, BlockRowId, Block
   static_assert(BlockRowId + BlockRows <= Rows && BlockColId + BlockCols <= Cols, "Block bottom right corner is out of range.");
   using type = TypeMatrixImpl<BlockRows, BlockCols,
                               typename BlockImpl<Cols, BlockRowId, BlockColId, BlockRows, BlockCols, std::tuple<Types...>,
-                                                 std::make_index_sequence<static_cast<std::size_t>(BlockRows)>>::type>;
+                                                 std::make_index_sequence<std::size_t{BlockRows}>>::type>;
 };
 
 template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsRhs, typename... TypesRhs>
@@ -237,9 +239,9 @@ template <int RowsLhs, int ColsLhs, typename... TypesLhs, int RowsRhs, int ColsR
 struct InnerProduct<TypeMatrixImpl<RowsLhs, ColsLhs, std::tuple<TypesLhs...>>, TypeMatrixImpl<RowsRhs, ColsRhs, std::tuple<TypesRhs...>>> {
   static_assert(ColsLhs == RowsRhs, "Matrix sizes do not match.");
   using type = TypeMatrixImpl<RowsLhs, ColsRhs,
-                              typename ContractTuples<typename ToRows<static_cast<std::size_t>(ColsLhs), TypesLhs...>::type,
-                                                      typename ToCols<static_cast<std::size_t>(ColsRhs), TypesRhs...>::type,
-                                                      std::make_index_sequence<static_cast<std::size_t>(RowsLhs* ColsRhs)>>::type>;
+                              typename ContractTuples<typename ToRows<std::size_t{ColsLhs}, TypesLhs...>::type,
+                                                      typename ToCols<std::size_t{ColsRhs}, TypesRhs...>::type,
+                                                      std::make_index_sequence<std::size_t{RowsLhs * ColsRhs}>>::type>;
 };
 
 template <int N, typename T>
@@ -329,8 +331,7 @@ struct Inverse<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
 
 template <int Rows, int Cols, typename... Types>
 struct Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<Types...>>> {
-  using type =
-      TypeMatrixImpl<Cols, Rows, typename ExtractAndApply<Cat, typename ToCols<static_cast<std::size_t>(Cols), Types...>::type>::type>;
+  using type = TypeMatrixImpl<Cols, Rows, typename ExtractAndApply<Cat, typename ToCols<std::size_t{Cols}, Types...>::type>::type>;
 };
 
 template <int Size, typename ZeroType, typename OneType, typename IndexSequence>
@@ -342,7 +343,7 @@ struct DiagonalTypeMatrixImpl<Size, ZeroType, OneType, std::index_sequence<Is...
 
 template <int Size, typename ZeroType, typename OneType>
 using DiagonalTypeMatrix =
-    typename DiagonalTypeMatrixImpl<Size, ZeroType, OneType, std::make_index_sequence<static_cast<std::size_t>(Size* Size)>>::type;
+    typename DiagonalTypeMatrixImpl<Size, ZeroType, OneType, std::make_index_sequence<std::size_t{Size * Size}>>::type;
 
 /**
  * A matrix storing types at compile-time.

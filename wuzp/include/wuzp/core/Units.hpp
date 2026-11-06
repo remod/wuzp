@@ -77,7 +77,7 @@ struct Determinant<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementation
   using InverseT = typename TensorInverse<MatrixT>::type;
 
  public:
-  using type = typename DiagonalProductImpl<MatrixT, std::make_index_sequence<static_cast<std::size_t>(Rows)>>::type;
+  using type = typename DiagonalProductImpl<MatrixT, std::make_index_sequence<std::size_t{Rows}>>::type;
 };
 
 }  // namespace wuzp

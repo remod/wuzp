@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <ostream>
+#include <tuple>
 #include <type_traits>
 
 #include "wuzp/core/Integer.hpp"

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstdlib>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -135,9 +137,9 @@ struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementa
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
-    // Blitz++ widens sums (e.g. of int to long). Keep the type of the products, like Eigen.
+    // Blitz++ widens sums (e.g. of int to long). Keep the value type that ValuesWrapper declares for products, like Eigen.
     using ValueT =
-        decltype(std::declval<typename ImplementationLhsT_::T_numtype>() * std::declval<typename ImplementationRhsT_::T_numtype>());
+        typename Product<ValueType<typename ImplementationLhsT_::T_numtype>, ValueType<typename ImplementationRhsT_::T_numtype>>::type;
     return blitz::cast<ValueT>(
         blitz::sum(implLhs(blitz::tensor::i, blitz::tensor::k) * implRhs(blitz::tensor::k, blitz::tensor::j), blitz::tensor::k));
   }

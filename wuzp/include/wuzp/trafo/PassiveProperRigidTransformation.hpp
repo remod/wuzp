@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/trafo/PassiveSpatialRotation.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"

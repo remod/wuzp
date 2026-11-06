@@ -54,6 +54,7 @@ TEST(TestValuesWrapper, LazyDivision) {  // NOLINT
   static_assert(!std::is_same<Division<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
+// The Blitz++ backend implements neither inverses nor determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, LazyInverse) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 2, 2>;
@@ -247,13 +248,14 @@ TEST(TestValuesWrapper, TensorProduct) {  // NOLINT
   //  EXPECT_EQ(tensorProduct(lhs, rhs), result);
 }
 
-// Blitz promotes two ints which are summed to a long.
-// We could accept this as a result in this unit test, but unfortunately, the value matrix stores the value type itself too, which is still
-// an int.
+// The inner product keeps the value type, also with Blitz++, which widens sums (e.g. of int to long, and of float to double).
 TEST(TestValuesWrapper, InnerProductTypeDerivation) {  // NOLINT
   using A = ValueMatrix<int, 4, 3>;
   using B = ValueMatrix<int, 3, 2>;
   static_assert(std::is_same_v<Evaluate<InnerProduct<A, B>::type>::type, ValueMatrix<int, 4, 2>>);
+  using AF = ValueMatrix<float, 4, 3>;
+  using BF = ValueMatrix<float, 3, 2>;
+  static_assert(std::is_same_v<Evaluate<InnerProduct<AF, BF>::type>::type, ValueMatrix<float, 4, 2>>);
 }
 
 TEST(TestValuesWrapper, InnerProduct) {  // NOLINT
@@ -261,6 +263,13 @@ TEST(TestValuesWrapper, InnerProduct) {  // NOLINT
   const ValueMatrix<int, 3, 2> rhs{1, 2, 3, 4, 5, 6};
   const ValueMatrix<int, 2, 2> result{22, 28, 49, 64};
   EXPECT_EQ(innerProduct(lhs, rhs), result);
+}
+
+TEST(TestValuesWrapper, InnerProductOfFloats) {  // NOLINT
+  const ValueMatrix<float, 2, 3> lhs{1.f, 2.f, 3.f, 4.f, 5.f, 6.f};
+  const ValueMatrix<float, 3, 2> rhs{1.f, 2.f, 3.f, 4.f, 5.f, 6.f};
+  const ValueMatrix<float, 2, 2> result{22.f, 28.f, 49.f, 64.f};
+  EXPECT_TRUE(innerProduct(lhs, rhs).isApprox(result, 1e-6f));
 }
 
 TEST(TestValuesWrapper, OuterProductOfScalars) {  // NOLINT
@@ -291,7 +300,12 @@ TEST(TestValuesWrapper, OuterProductOfScalarAndMatrix) {  // NOLINT
   EXPECT_EQ(outerProduct(lhs, rhs), result);
 }
 
-// TODO(remod): This test with Blitz currently results in a segfault.
+// The dot product is evaluated, so it does not refer to the temporary transpose of the left-hand side (e.g. with Blitz++).
+TEST(TestValuesWrapper, DotProductTypeDerivation) {  // NOLINT
+  using A = ValueMatrix<int, 4, 1>;
+  static_assert(std::is_same_v<DotProduct<A, A>::type, ValueMatrix<int, 1, 1>>);
+}
+
 TEST(TestValuesWrapper, DotProduct) {  // NOLINT
   const ValueMatrix<int, 4, 1> lhs{1, 2, 3, 4};
   const ValueMatrix<int, 4, 1> rhs{0, 3, -1, 2};
@@ -345,6 +359,7 @@ TEST(TestValuesWrapper, Division) {  // NOLINT
   EXPECT_EQ(lhs / rhs, result);
 }
 
+// The Blitz++ backend implements neither inverses nor determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, Inverse) {  // NOLINT
   const ValueMatrix<double, 3, 2> matrix{1.0, 2.0, 4.0, 0.5, 10.0, 0.2};

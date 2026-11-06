@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/traits.hpp"
 

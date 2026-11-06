@@ -11,4 +11,6 @@ PRESET=$1
 shift
 cmake --preset "${PRESET}" "$@"
 cmake --build --preset "${PRESET}"
-ctest --preset "${PRESET}"
+# WUZP_CTEST_ARGS adds arguments to ctest, e.g. "--label-exclude compile" to skip the compile tests.
+# shellcheck disable=SC2086
+ctest --preset "${PRESET}" ${WUZP_CTEST_ARGS:-}
