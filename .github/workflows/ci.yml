@@ -57,8 +57,14 @@ jobs:
       - run: ci/check_format.sh
 
   tidy:
+    name: tidy (${{ matrix.units }} units, ${{ matrix.values }} values)
     needs: image
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        units: [wuzp, boost]
+        values: [eigen, blitz]
     container:
       image: ${{ needs.image.outputs.latest }}
       credentials:
@@ -66,7 +72,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-      - run: ci/tidy.sh
+      - run: ci/tidy.sh clang-${{ matrix.units }}-${{ matrix.values }}
 
   test:
     name: test (${{ matrix.variant }}, ${{ matrix.compiler }}, ${{ matrix.units }} units, ${{ matrix.values }} values)
