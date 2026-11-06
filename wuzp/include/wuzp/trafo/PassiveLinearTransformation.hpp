@@ -8,6 +8,7 @@
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
+#include "wuzp/trafo/internal/map_relative.hpp"
 #include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
@@ -62,13 +63,9 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Value, Coordin
       const PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     // A covector transforms with the inverse: w' = w A^-1.
-    // If the object is absolute, make it relative, transform it, and make it absolute again.
-    if constexpr (IsAbsolute<Tensor<0, 1, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
-      return (castCoordinateSystem<To>(makeAbsolute(innerProduct(makeRelative(object), transformation.getTensor().tensorInverse()))))
-          .evaluate();
-    } else {
-      return (castCoordinateSystem<To>(innerProduct(object, transformation.getTensor().tensorInverse()))).evaluate();
-    }
+    return castCoordinateSystem<To>(internal::mapRelative(object, [&transformation](const auto& relative) {
+      return innerProduct(relative, transformation.getTensor().tensorInverse()).evaluate();
+    }));
   }
 };
 
@@ -92,12 +89,8 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, Value, Coordin
   static auto transform(
       const PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, DimensionFrom, DimensionTo, Units...>& transformation,
       const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
-    // If the object is absolute (point), make it relative (vector), transform it, and make it absolute again.
-    if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
-      return (castCoordinateSystem<To>(makeAbsolute(innerProduct(transformation.getTensor(), makeRelative(object))))).evaluate();
-    } else {
-      return (castCoordinateSystem<To>(innerProduct(transformation.getTensor(), object))).evaluate();
-    }
+    return castCoordinateSystem<To>(internal::mapRelative(
+        object, [&transformation](const auto& relative) { return innerProduct(transformation.getTensor(), relative).evaluate(); }));
   }
 };
 
