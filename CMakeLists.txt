@@ -29,7 +29,7 @@ foreach(_backend EIGEN BLITZ BOOST)
     set_property(CACHE WUZP_WITH_${_backend} PROPERTY STRINGS AUTO ON OFF)
 endforeach()
 
-# Oldest supported dependency versions. Policy: the versions packaged in the oldest supported Ubuntu LTS.
+# Oldest supported dependency versions, see the versioning policy in CONTRIBUTING.md.
 set(WUZP_EIGEN_MIN_VERSION 3.4)
 set(WUZP_BOOST_MIN_VERSION 1.74)
 
@@ -182,10 +182,15 @@ if(WUZP_INSTALL)
         ${PROJECT_BINARY_DIR}/wuzpConfig.cmake
         INSTALL_DESTINATION ${WUZP_INSTALL_CMAKEDIR}
     )
-    # Before 1.0, minor versions may contain breaking changes.
+    # Semantic versioning: versions with the same major version are compatible. Before 1.0, minor versions may break.
+    if(PROJECT_VERSION_MAJOR EQUAL 0)
+        set(_compatibility SameMinorVersion)
+    else()
+        set(_compatibility SameMajorVersion)
+    endif()
     write_basic_package_version_file(
         ${PROJECT_BINARY_DIR}/wuzpConfigVersion.cmake
-        COMPATIBILITY SameMinorVersion
+        COMPATIBILITY ${_compatibility}
         ARCH_INDEPENDENT
     )
     install(

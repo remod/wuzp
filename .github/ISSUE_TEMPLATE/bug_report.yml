@@ -1,0 +1,55 @@
+name: Bug report
+description: Something does not work as documented, or code does not compile although it should (or the other way round).
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Minimal example
+      description: A small program that shows the problem, and the compiler output if it does not compile.
+      render: cpp
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: wuzp version or commit
+    validations:
+      required: true
+  - type: input
+    id: compiler
+    attributes:
+      label: Compiler and version
+      placeholder: e.g. GCC 13.3, Clang 18.1
+    validations:
+      required: true
+  - type: dropdown
+    id: units
+    attributes:
+      label: Units backend
+      options:
+        - wuzp
+        - Boost.Units
+    validations:
+      required: true
+  - type: dropdown
+    id: values
+    attributes:
+      label: Value matrix backend
+      options:
+        - Eigen
+        - Blitz++
+    validations:
+      required: true
+  - type: input
+    id: dependencies
+    attributes:
+      label: Dependency versions
+      placeholder: e.g. Eigen 3.4.0, Boost 1.83

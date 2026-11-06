@@ -6,4 +6,4 @@ Review recent changes against this project's layout and rules (`.cursor/rules/`)
 - Rules that reject invalid code use `static_assert` with a clear message, close to where the user's mistake happens.
 - Tests in `tests/src/` (unit tests) and `tests/compile_tests/cases/` (compile tests), reusing the shared test headers.
 
-Ensure the change fits existing patterns before introducing new abstractions. Check that `README.md` and `DESIGN.md` still describe the code.
+Ensure the change fits existing patterns before introducing new abstractions. Check that `README.md`, `CONTRIBUTING.md` and `DESIGN.md` still describe the code, and that `CHANGELOG.md` lists changes users notice.
