@@ -17,6 +17,7 @@ set(WUZP_TEST_VALUES eigen CACHE STRING "Value matrix backend to test against (e
 set_property(CACHE WUZP_TEST_UNITS PROPERTY STRINGS wuzp boost)
 set_property(CACHE WUZP_TEST_VALUES PROPERTY STRINGS eigen blitz)
 option(WUZP_ENABLE_COVERAGE "Instrument the tests for source-based code coverage (Clang only)." OFF)
+option(WUZP_ENABLE_SANITIZERS "Build the tests with AddressSanitizer and UndefinedBehaviorSanitizer (GCC and Clang)." OFF)
 
 # The test sources select the backends using these preprocessor definitions.
 set(WUZP_TEST_DEFINITIONS UNITS_IMPLEMENTATION_WUZP=0 UNITS_IMPLEMENTATION_BOOST=1 VALUES_IMPLEMENTATION_EIGEN=1
@@ -55,6 +56,7 @@ else()
     endforeach()
 endif()
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WuzpWarnings.cmake)
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
@@ -86,7 +88,7 @@ add_executable(wuzp_tests
     src/RotatingDumbbell.cpp
 )
 target_compile_features(wuzp_tests PRIVATE cxx_std_20)
-target_compile_options(wuzp_tests PRIVATE -Wall -Wextra -Wpedantic)
+wuzp_set_warnings(wuzp_tests)
 target_compile_definitions(wuzp_tests PRIVATE ${WUZP_TEST_DEFINITIONS})
 if(WUZP_TEST_VALUES STREQUAL "blitz")
     target_compile_definitions(wuzp_tests PRIVATE BZ_USE_NUMTRAIT=OFF BZ_HAVE_TEMPLATE_QUALIFIED_RETURN_TYPE=OFF)
@@ -103,7 +105,38 @@ if(WUZP_ENABLE_COVERAGE)
     target_link_options(wuzp_tests PRIVATE ${_coverage_flags})
 endif()
 
+if(WUZP_ENABLE_SANITIZERS)
+    set(_sanitizer_flags -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer)
+    target_compile_options(wuzp_tests PRIVATE ${_sanitizer_flags})
+    target_link_options(wuzp_tests PRIVATE ${_sanitizer_flags})
+endif()
+
 gtest_discover_tests(wuzp_tests DISCOVERY_TIMEOUT 60)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Header check
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Every public header compiles on its own, without warnings even if users enable stricter ones. The check covers the core
+# and the backends of this configuration. It is a build target, so it runs with every build.
+set(WUZP_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../wuzp/include)
+foreach(_component IN LISTS WUZP_TEST_COMPONENTS)
+    list(APPEND WUZP_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../wuzp_${_component}/include)
+endforeach()
+set(WUZP_HEADER_CHECK_SOURCES "")
+foreach(_dir IN LISTS WUZP_HEADER_DIRS)
+    file(GLOB_RECURSE _headers RELATIVE ${_dir} CONFIGURE_DEPENDS ${_dir}/*.hpp)
+    foreach(_header IN LISTS _headers)
+        string(MAKE_C_IDENTIFIER "${_header}" _name)
+        set(_source ${CMAKE_CURRENT_BINARY_DIR}/header_check/${_name}.cpp)
+        file(CONFIGURE OUTPUT ${_source} CONTENT "#include \"@_header@\"\n" @ONLY)
+        list(APPEND WUZP_HEADER_CHECK_SOURCES ${_source})
+    endforeach()
+endforeach()
+add_library(wuzp_header_check OBJECT ${WUZP_HEADER_CHECK_SOURCES})
+target_compile_features(wuzp_header_check PRIVATE cxx_std_20)
+target_compile_options(wuzp_header_check PRIVATE ${WUZP_STRICT_WARNING_OPTIONS})
+target_link_libraries(wuzp_header_check PRIVATE ${WUZP_TEST_LINK_LIBRARIES})
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Compile tests

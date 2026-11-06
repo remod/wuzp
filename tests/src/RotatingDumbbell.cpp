@@ -100,6 +100,9 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const MassQuantity mass2{3.0};
 
   const std::pair<PositionPoint, PositionPoint> cartesianCoordinates{minimalToCartesian(minimalCoordinates, radius)};
+  // The dumbbell is rigid: the masses are always two radii apart.
+  const RadiusQuantity distance{(cartesianCoordinates.first - cartesianCoordinates.second).norm()};
+  EXPECT_TRUE(distance.isApprox(RadiusQuantity{4.0}, 1e-12));
   const std::pair<VelocityVector, VelocityVector> cartesianCoordinatesDt{
       minimalToCartesian(minimalCoordinates, minimalCoordinatesDt, radius)};
 

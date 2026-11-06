@@ -18,7 +18,16 @@
         "WUZP_BUILD_EXAMPLES": "ON",
         "WUZP_WITH_EIGEN": "OFF",
         "WUZP_WITH_BLITZ": "OFF",
-        "WUZP_WITH_BOOST": "OFF"
+        "WUZP_WITH_BOOST": "OFF",
+        "WUZP_WARNINGS_AS_ERRORS": "ON"
+      },
+      "warnings": {
+        "dev": true,
+        "deprecated": true
+      },
+      "errors": {
+        "dev": true,
+        "deprecated": true
       }
     },
     {
