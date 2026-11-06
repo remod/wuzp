@@ -8,7 +8,7 @@ Versions before 1.0 were distributed as Debian packages through a Launchpad PPA 
 
 ### Changed
 
-- **Breaking:** One CMake project and one installable package with the components `eigen`, `blitz` and `boost`, used as `find_package(wuzp CONFIG REQUIRED COMPONENTS eigen)` and `wuzp::wuzp`, `wuzp::eigen`, etc. It replaces the four separately packaged projects. *wuzp* can also be used through `FetchContent`.
+- **Breaking:** One CMake project and one installable package with the components `eigen`, `blitz`, `boost` and `mp_units`, used as `find_package(wuzp CONFIG REQUIRED COMPONENTS eigen)` and `wuzp::wuzp`, `wuzp::eigen`, etc. It replaces the four separately packaged projects. *wuzp* can also be used through `FetchContent`.
 - **Breaking:** The Debian packages and the Launchpad PPA are discontinued.
 - **Breaking:** Points and vectors (absolute and relative tensors) no longer convert into each other implicitly. Use `makeRelative()` and `makeAbsolute()`.
 - **Breaking:** Translations check coordinate systems: an active translation only moves points expressed in its coordinate system, and the vector of a passive translation from `From` to `To` is expressed in `From` or `To`. A passive proper rigid transformation declares its translation in `To`.
@@ -18,6 +18,7 @@ Versions before 1.0 were distributed as Debian packages through a Launchpad PPA 
 
 ### Added
 
+- An [mp-units](https://mpusz.github.io/mp-units/) units backend, the `mp_units` component, for mp-units 2.5 or newer.
 - Support for Eigen 5, besides Eigen 3.4.
 - Support for macOS (Apple Clang) and, on a best-effort basis, Windows (MSVC), both tested in CI.
 - `<wuzp/wuzp.hpp>` includes all headers of the core and the transformations.

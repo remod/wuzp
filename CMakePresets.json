@@ -19,6 +19,7 @@
         "WUZP_WITH_EIGEN": "OFF",
         "WUZP_WITH_BLITZ": "OFF",
         "WUZP_WITH_BOOST": "OFF",
+        "WUZP_WITH_MP_UNITS": "OFF",
         "WUZP_WARNINGS_AS_ERRORS": "ON"
       },
       "warnings": {
@@ -250,6 +251,64 @@
         "WUZP_WITH_BOOST": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
+    },
+    {
+      "name": "gcc-mp_units-eigen",
+      "displayName": "gcc, mp-units, eigen values",
+      "inherits": [
+        "base",
+        "gcc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "mp_units",
+        "WUZP_TEST_VALUES": "eigen",
+        "WUZP_WITH_EIGEN": "ON",
+        "WUZP_WITH_MP_UNITS": "ON"
+      }
+    },
+    {
+      "name": "gcc-mp_units-blitz",
+      "displayName": "gcc, mp-units, blitz values",
+      "inherits": [
+        "base",
+        "gcc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "mp_units",
+        "WUZP_TEST_VALUES": "blitz",
+        "WUZP_WITH_BLITZ": "ON",
+        "WUZP_WITH_MP_UNITS": "ON",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
+      "name": "clang-mp_units-eigen",
+      "displayName": "clang, mp-units, eigen values",
+      "inherits": [
+        "base",
+        "clang"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "mp_units",
+        "WUZP_TEST_VALUES": "eigen",
+        "WUZP_WITH_EIGEN": "ON",
+        "WUZP_WITH_MP_UNITS": "ON"
+      }
+    },
+    {
+      "name": "clang-mp_units-blitz",
+      "displayName": "clang, mp-units, blitz values",
+      "inherits": [
+        "base",
+        "clang"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "mp_units",
+        "WUZP_TEST_VALUES": "blitz",
+        "WUZP_WITH_BLITZ": "ON",
+        "WUZP_WITH_MP_UNITS": "ON",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -308,6 +367,22 @@
     {
       "name": "msvc-boost-blitz",
       "configurePreset": "msvc-boost-blitz"
+    },
+    {
+      "name": "gcc-mp_units-eigen",
+      "configurePreset": "gcc-mp_units-eigen"
+    },
+    {
+      "name": "gcc-mp_units-blitz",
+      "configurePreset": "gcc-mp_units-blitz"
+    },
+    {
+      "name": "clang-mp_units-eigen",
+      "configurePreset": "clang-mp_units-eigen"
+    },
+    {
+      "name": "clang-mp_units-blitz",
+      "configurePreset": "clang-mp_units-blitz"
     }
   ],
   "testPresets": [
@@ -424,6 +499,46 @@
     {
       "name": "msvc-boost-blitz",
       "configurePreset": "msvc-boost-blitz",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "gcc-mp_units-eigen",
+      "configurePreset": "gcc-mp_units-eigen",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "gcc-mp_units-blitz",
+      "configurePreset": "gcc-mp_units-blitz",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "clang-mp_units-eigen",
+      "configurePreset": "clang-mp_units-eigen",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "clang-mp_units-blitz",
+      "configurePreset": "clang-mp_units-blitz",
       "output": {
         "outputOnFailure": true
       },

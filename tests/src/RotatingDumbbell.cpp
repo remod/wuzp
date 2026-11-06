@@ -81,7 +81,7 @@ std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordi
   const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2, 0>()};
   const VelocityVector velocityVector{radius * minimalCoordinatesDt.getQuantity<2, 0>() *
                                       DirectionVector(-sin(relativeAngle), cos(relativeAngle))
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#if !ANGLES_ARE_DIMENSIONLESS
                                       / AngleQuantity{1.0}
 #endif
   };
@@ -117,12 +117,12 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const EnergyQuantity energyMinimalCoordinates1{
       0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantity<0, 0>()) + pow<2>(minimalCoordinatesDt.getQuantity<1, 0>()) +
                         pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantity<2, 0>()
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#if !ANGLES_ARE_DIMENSIONLESS
                                                 / AngleQuantity{1.0}
 #endif
                                                 )) +
              2.0 * radius * massDifference * minimalCoordinatesDt.getQuantity<2, 0>()
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#if !ANGLES_ARE_DIMENSIONLESS
                  / AngleQuantity{1.0}
 #endif
                  * (cos(relativeAngle) * minimalCoordinatesDt.getQuantity<1, 0>() -
@@ -131,17 +131,17 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const MassQuantity massMatrix00{massSum};
   const MassQuantity massMatrix01{0.0};
   const MassLengthQuantity massMatrix02{-radius * massDifference * sin(relativeAngle)
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#if !ANGLES_ARE_DIMENSIONLESS
                                         / AngleQuantity{1.0}
 #endif
   };
   const MassLengthQuantity massMatrix12{radius * massDifference * cos(relativeAngle)
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#if !ANGLES_ARE_DIMENSIONLESS
                                         / AngleQuantity{1.0}
 #endif
   };
   const MassLength2Quantity massMatrix22{pow<2>(radius) * massSum
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#if !ANGLES_ARE_DIMENSIONLESS
                                          / pow<2>(AngleQuantity{1.0})
 #endif
   };

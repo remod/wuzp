@@ -68,7 +68,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        units: [wuzp, boost]
+        units: [wuzp, boost, mp_units]
         values: [eigen, blitz]
     container:
       image: ${{ needs.image.outputs.latest }}
@@ -95,8 +95,12 @@ jobs:
         variant: [min, latest]
         compiler: [gcc, clang]
         # Every backend combination is tested to prove that wuzp generalizes across implementations.
-        units: [wuzp, boost]
+        units: [wuzp, boost, mp_units]
         values: [eigen, blitz]
+        exclude:
+          # mp-units needs GCC 12 or Clang 16, newer than those of the min variant.
+          - variant: min
+            units: mp_units
     steps:
       - uses: actions/checkout@v4
       - run: ci/test.sh ${{ matrix.compiler }}-${{ matrix.units }}-${{ matrix.values }}
@@ -157,7 +161,8 @@ jobs:
       # Only checks that the benchmarks build and run: the times on shared runners are too noisy to compare.
       - run: ci/benchmarks.sh --benchmark_min_time=0.01s
 
-  # macOS is fully supported: every backend combination, with Apple Clang and the Homebrew packages.
+  # macOS is fully supported, with Apple Clang and the Homebrew packages: every backend combination except mp-units, since
+  # Apple Clang 17 has a compiler bug that mp-units cannot work around.
   # The macOS and Windows jobs only run by themselves once the repository is public: for private repositories, GitHub
   # bills their minutes at 10 and 2 times the Linux rate. Run the workflow manually with "platforms" to test them before.
   macos:
@@ -174,7 +179,8 @@ jobs:
       - run: brew install blitz boost eigen googletest ninja
       - run: ci/test.sh clang-${{ matrix.units }}-${{ matrix.values }}
 
-  # MSVC is supported on a best-effort basis, with the vcpkg packages.
+  # MSVC is supported on a best-effort basis, with the vcpkg packages. mp-units is not tested here: its MSVC support is
+  # limited (see its compiler support documentation).
   windows:
     name: windows (${{ matrix.units }} units, ${{ matrix.values }} values)
     if: ${{ !github.event.repository.private || inputs.platforms }}

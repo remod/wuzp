@@ -82,6 +82,7 @@ The following table visualizes how a proper rigid transformation transforms a po
 
 * *wuzp*' own implementation
 * [Boost](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units.html)
+* [mp-units](https://mpusz.github.io/mp-units/)
 
 **Linear Algebra:**
 
@@ -89,7 +90,7 @@ The following table visualizes how a proper rigid transformation transforms a po
 * [Blitz++](https://github.com/blitzpp/blitz)
 
 *wuzp* is header-only and requires a C++20 compiler and CMake 3.22 or newer.
-It is tested on Linux with GCC 11 to 15 and Clang 14 to 21, on macOS with Apple Clang, and on Windows with MSVC (on a best-effort basis).
+It is tested on Linux with GCC 11 to 15 and Clang 14 to 21, on macOS with Apple Clang, and on Windows with MSVC (on a best-effort basis); the `mp_units` component only on Linux, with GCC 15 and Clang 21.
 Each backend is an optional component with its own dependency:
 
 | Component | Target | Dependency (supported versions) |
@@ -98,6 +99,7 @@ Each backend is an optional component with its own dependency:
 | `eigen` | `wuzp::eigen` | Eigen 3.4 and 5 |
 | `blitz` | `wuzp::blitz` | Blitz++ 1.0.2 or newer |
 | `boost` | `wuzp::boost` | Boost 1.74 or newer |
+| `mp_units` | `wuzp::mp_units` | mp-units 2.5 or newer, which needs GCC 12, Clang 16 (but not 19) or newer |
 
 **Using CMake's FetchContent:**
 
@@ -122,14 +124,14 @@ target_link_libraries(my_target PRIVATE wuzp::wuzp wuzp::eigen)
 ```
 
 By default, a backend is enabled if its dependency is found.
-Use `-DWUZP_WITH_EIGEN=ON|OFF` (and likewise `BLITZ`, `BOOST`) to require or disable one.
+Use `-DWUZP_WITH_EIGEN=ON|OFF` (and likewise `BLITZ`, `BOOST`, `MP_UNITS`) to require or disable one.
 
 In the code, include `<wuzp/wuzp.hpp>` (the core and the transformations), a units backend and a value matrix backend:
 
 ```cpp
 #include <wuzp/wuzp.hpp>
 #include <wuzp_eigen/ValueMatrix.hpp>  // Or <wuzp_blitz/ValueMatrix.hpp>.
-#include <wuzp_units/Unit.hpp>         // Or <wuzp_boost/Unit.hpp>.
+#include <wuzp_units/Unit.hpp>         // Or <wuzp_boost/Unit.hpp>, <wuzp_mp_units/Unit.hpp>.
 ```
 
 ## Examples

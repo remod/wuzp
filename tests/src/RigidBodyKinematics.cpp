@@ -22,7 +22,7 @@ TEST(TestRigidBodyKinematics, CalculateVelocity) {  // NOLINT
   const RotationalVelocityVector rotationalVelocity{4.0, 1.0, 2.0};
   const VelocityVector expectedVelocity{2.0, -2.0, 3.0};
   const VelocityVector actualVelocity{velocity + rotationalVelocity.crossProduct(translation)
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#if !ANGLES_ARE_DIMENSIONLESS
                                                      / AngleQuantity{1.0}
 #endif
   };
@@ -41,11 +41,11 @@ TEST(TestRigidBodyKinematics, CalculateAcceleration) {  // NOLINT
   const AccelerationVector expectedAcceleration{8.0, 2.0, -14.0};
   const AccelerationVector actualAcceleration{acceleration +
                                               rotationalAcceleration.crossProduct(translation)
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#if !ANGLES_ARE_DIMENSIONLESS
                                                   / AngleQuantity{1.0}
 #endif
                                               + rotationalVelocity.crossProduct(rotationalVelocity.crossProduct(translation))
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#if !ANGLES_ARE_DIMENSIONLESS
                                                     / AngleQuantity{1.0} / AngleQuantity{1.0}
 #endif
   };

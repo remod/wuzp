@@ -13,7 +13,7 @@
 #       A static assertion that must fail, with a message matching <regex>.
 #
 # Conditions are comma-separated key=value pairs, all of which must hold. A value may list alternatives with "|".
-# Keys: units (wuzp, boost), values (eigen, blitz), compiler (gnu, clang, appleclang, msvc).
+# Keys: units (wuzp, boost, mp_units), values (eigen, blitz), compiler (gnu, clang, appleclang, msvc).
 #
 # A case that must fail needs at least one expected error that applies to the configuration, so that a case can never
 # pass because it fails for an unrelated reason. Annotations must not contain ";", since CMake uses it as list separator.
@@ -25,7 +25,7 @@ function(wuzp_compile_test_conditions_hold conditions out_var)
     string(REPLACE "," ";" _conditions "${conditions}")
     foreach(_condition IN LISTS _conditions)
         string(STRIP "${_condition}" _condition)
-        if(NOT _condition MATCHES "^([a-z]+)=([a-z|]+)$")
+        if(NOT _condition MATCHES "^([a-z]+)=([a-z_|]+)$")
             message(FATAL_ERROR "Invalid condition '${_condition}', expected <key>=<value>[|<value>...].")
         endif()
         set(_key ${CMAKE_MATCH_1})

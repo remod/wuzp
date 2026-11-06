@@ -37,6 +37,7 @@ body:
       options:
         - wuzp
         - Boost.Units
+        - mp-units
     validations:
       required: true
   - type: dropdown

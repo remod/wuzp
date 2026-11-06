@@ -10,13 +10,18 @@ export CTEST_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}
 
 PREFIX=${PWD}/build/prefix
 cmake -S . -B build/install -G Ninja -D WUZP_WITH_EIGEN=ON -D WUZP_WITH_BLITZ=ON -D WUZP_WITH_BOOST=ON \
-  -D WUZP_BUILD_TESTS=OFF -D WUZP_BUILD_EXAMPLES=OFF -D CMAKE_INSTALL_PREFIX="${PREFIX}"
+  -D WUZP_WITH_MP_UNITS=ON -D WUZP_BUILD_TESTS=OFF -D WUZP_BUILD_EXAMPLES=OFF -D CMAKE_INSTALL_PREFIX="${PREFIX}"
 cmake --install build/install
 
-cmake -S tests -B build/consume-tests -G Ninja -D CMAKE_PREFIX_PATH="${PREFIX}" -D WUZP_TEST_UNITS=boost -D WUZP_TEST_VALUES=eigen \
-  -D WUZP_WARNINGS_AS_ERRORS=ON
-cmake --build build/consume-tests
-ctest --test-dir build/consume-tests --output-on-failure --no-tests=error
+# Two builds of the tests, which together use every component of the installed package.
+for BACKENDS in "boost eigen" "mp_units blitz"; do
+  read -r UNITS VALUES <<< "${BACKENDS}"
+  BUILD_DIR="build/consume-tests-${UNITS}-${VALUES}"
+  cmake -S tests -B "${BUILD_DIR}" -G Ninja -D CMAKE_PREFIX_PATH="${PREFIX}" -D WUZP_TEST_UNITS="${UNITS}" \
+    -D WUZP_TEST_VALUES="${VALUES}" -D WUZP_WARNINGS_AS_ERRORS=ON
+  cmake --build "${BUILD_DIR}"
+  ctest --test-dir "${BUILD_DIR}" --output-on-failure --no-tests=error
+done
 
 cmake -S examples -B build/consume-examples -G Ninja -D CMAKE_PREFIX_PATH="${PREFIX}" -D WUZP_WARNINGS_AS_ERRORS=ON
 cmake --build build/consume-examples

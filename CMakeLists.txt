@@ -26,13 +26,15 @@ option(WUZP_INSTALL "Generate the install target." ${PROJECT_IS_TOP_LEVEL})
 set(WUZP_WITH_EIGEN AUTO CACHE STRING "Eigen value matrix backend (AUTO, ON, OFF).")
 set(WUZP_WITH_BLITZ AUTO CACHE STRING "Blitz++ value matrix backend (AUTO, ON, OFF).")
 set(WUZP_WITH_BOOST AUTO CACHE STRING "Boost.Units units backend (AUTO, ON, OFF).")
-foreach(_backend EIGEN BLITZ BOOST)
+set(WUZP_WITH_MP_UNITS AUTO CACHE STRING "mp-units units backend (AUTO, ON, OFF).")
+foreach(_backend EIGEN BLITZ BOOST MP_UNITS)
     set_property(CACHE WUZP_WITH_${_backend} PROPERTY STRINGS AUTO ON OFF)
 endforeach()
 
 # Oldest supported dependency versions, see the versioning policy in CONTRIBUTING.md.
 set(WUZP_EIGEN_MIN_VERSION 3.4)
 set(WUZP_BOOST_MIN_VERSION 1.74)
+set(WUZP_MP_UNITS_MIN_VERSION 2.5)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Targets
@@ -109,6 +111,14 @@ if(_enabled)
     endif()
 endif()
 
+wuzp_backend_mode(MP_UNITS _enabled _mode)
+if(_enabled)
+    find_package(mp-units ${WUZP_MP_UNITS_MIN_VERSION} ${_mode} CONFIG)
+    if(TARGET mp-units::mp-units)
+        wuzp_add_backend(mp_units mp-units::mp-units)
+    endif()
+endif()
+
 message(STATUS "wuzp ${PROJECT_VERSION}, enabled backends: ${WUZP_COMPONENTS}")
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -137,6 +147,7 @@ if(PROJECT_IS_TOP_LEVEL)
         ${PROJECT_SOURCE_DIR}/wuzp_blitz/include/*.hpp
         ${PROJECT_SOURCE_DIR}/wuzp_boost/include/*.hpp
         ${PROJECT_SOURCE_DIR}/wuzp_eigen/include/*.hpp
+        ${PROJECT_SOURCE_DIR}/wuzp_mp_units/include/*.hpp
         ${PROJECT_SOURCE_DIR}/tests/src/*.cpp
         ${PROJECT_SOURCE_DIR}/tests/src/*.hpp
         ${PROJECT_SOURCE_DIR}/tests/compile_tests/cases/*.cpp

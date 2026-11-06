@@ -13,8 +13,9 @@
 set -uo pipefail
 
 REPO_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-ALL_PRESETS="gcc-wuzp-eigen gcc-wuzp-blitz gcc-boost-eigen gcc-boost-blitz clang-wuzp-eigen clang-wuzp-blitz clang-boost-eigen clang-boost-blitz"
-PRESETS=${WUZP_PRESETS:-${ALL_PRESETS}}
+MIN_PRESETS="gcc-wuzp-eigen gcc-wuzp-blitz gcc-boost-eigen gcc-boost-blitz clang-wuzp-eigen clang-wuzp-blitz clang-boost-eigen clang-boost-blitz"
+# mp-units needs newer compilers than those of the min variant.
+LATEST_PRESETS="${MIN_PRESETS} gcc-mp_units-eigen gcc-mp_units-blitz clang-mp_units-eigen clang-mp_units-blitz"
 CORES=$(getconf _NPROCESSORS_ONLN)
 CPUS=${WUZP_JOBS:-$(( CORES > 1 ? CORES / 2 : 1 ))}
 echo "Using ${CPUS} of ${CORES} CPU cores (set WUZP_JOBS to change)."
@@ -46,7 +47,7 @@ run_in() {
 # Tests all presets, like the CI matrix: a failing preset does not stop the others.
 test_command() {
   local command="failed=''; "
-  for preset in ${PRESETS}; do
+  for preset in ${WUZP_PRESETS:-$1}; do
     command+="echo '=== ${preset}'; ci/test.sh ${preset} || failed+=' ${preset}'; "
   done
   command+="if [[ -n \${failed} ]]; then echo \"Failed presets:\${failed}\"; exit 1; fi"
@@ -60,8 +61,8 @@ for job in "${JOBS[@]}"; do
   case ${job} in
     format) run_in latest "ci/check_format.sh" ;;
     tidy) run_in latest "ci/tidy.sh" ;;
-    test-min) run_in min "$(test_command)" ;;
-    test-latest) run_in latest "$(test_command)" ;;
+    test-min) run_in min "$(test_command "${MIN_PRESETS}")" ;;
+    test-latest) run_in latest "$(test_command "${LATEST_PRESETS}")" ;;
     coverage) run_in latest "ci/coverage.sh" ;;
     sanitizers) run_in latest "ci/sanitizers.sh" ;;
     install) run_in latest "ci/install_and_consume.sh" ;;

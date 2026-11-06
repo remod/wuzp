@@ -9,7 +9,7 @@ Open questions are marked with **TODO** and must be decided before 1.0.
 
 * **Units.** Every element of a matrix has its own unit, so heterogeneous matrices (e.g. mass matrices with `kg` and `kg m^2` entries) are supported.
   Elementwise operations combine units elementwise, matrix products require all summands of an element to have the same unit.
-  Units are either *wuzp*'s own implementation (seven SI exponents as reduced rationals) or Boost.Units.
+  Units are either *wuzp*'s own implementation (seven SI exponents as reduced rationals), Boost.Units or mp-units.
 * **Tensors.** `Tensor<Contravariant, Covariant, Quantities, CoordinateSystem, Absolute>` has up to rank 2.
   The number of indices is independent of the shape of the matrix storing the components.
   `innerProduct` contracts one index (the result has `c1 + c2 - 1` contravariant and `k1 + k2 - 1` covariant indices), `outerProduct` adds the indices.
@@ -151,10 +151,11 @@ Recommendation: a separate Jacobian type that rejects points and provides the pu
 
 *wuzp*'s own units treat angles as dimensionless, so angular velocity equals frequency and torque equals energy, and `rad/s` cannot be distinguished from `Hz`.
 Boost.Units treats the radian as a dimension (e.g. torque is `N m / rad`), so `v + ω × r` does not compile with Boost (`m/s` vs `m rad/s`).
-The tests contain workarounds for this (`#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST ... / AngleQuantity{1.0}`), and user code is not portable between the units backends, which contradicts the goal that the backends prove the concept generalizes.
+mp-units keeps the radian as a unit of its own too (`rad/s` is not `1/s`), so its backend behaves like Boost here; its torque is `N m`, though.
+The tests contain workarounds for this (`#if !ANGLES_ARE_DIMENSIONLESS ... / AngleQuantity{1.0}`), and user code is not portable between the units backends, which contradicts the goal that the backends prove the concept generalizes.
 
-Options: (a) define angles as dimensionless in all backends (configure Boost accordingly, or provide conversions); (b) treat angles as a dimension in all backends and provide the conversions needed for `ω × r`; (c) document the difference.
-Recommendation: decide together with the mp-units backend (#40), which has its own model of angles.
+Options: (a) define angles as dimensionless in all backends (configure Boost.Units and mp-units accordingly, or provide conversions); (b) treat angles as a dimension in all backends and provide the conversions needed for `ω × r`; (c) document the difference.
+Recommendation: (b), since Boost.Units and mp-units, the basis of the proposed standard units library, both keep the radian as a unit of its own; *wuzp*'s own units would follow them.
 
 ### TODO: Metric
 

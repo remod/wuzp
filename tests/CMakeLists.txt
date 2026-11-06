@@ -12,22 +12,25 @@ else()
 endif()
 
 # Each test build runs the whole test suite against one units backend and one value matrix backend.
-set(WUZP_TEST_UNITS wuzp CACHE STRING "Units backend to test against (wuzp, boost).")
+set(WUZP_TEST_UNITS wuzp CACHE STRING "Units backend to test against (wuzp, boost, mp_units).")
 set(WUZP_TEST_VALUES eigen CACHE STRING "Value matrix backend to test against (eigen, blitz).")
-set_property(CACHE WUZP_TEST_UNITS PROPERTY STRINGS wuzp boost)
+set_property(CACHE WUZP_TEST_UNITS PROPERTY STRINGS wuzp boost mp_units)
 set_property(CACHE WUZP_TEST_VALUES PROPERTY STRINGS eigen blitz)
 option(WUZP_ENABLE_COVERAGE "Instrument the tests for source-based code coverage (Clang only)." OFF)
 option(WUZP_ENABLE_SANITIZERS "Build the tests with AddressSanitizer and UndefinedBehaviorSanitizer (GCC and Clang)." OFF)
 
 # The test sources select the backends using these preprocessor definitions.
-set(WUZP_TEST_DEFINITIONS UNITS_IMPLEMENTATION_WUZP=0 UNITS_IMPLEMENTATION_BOOST=1 VALUES_IMPLEMENTATION_EIGEN=1
-    VALUES_IMPLEMENTATION_BLITZ=2)
+set(WUZP_TEST_DEFINITIONS UNITS_IMPLEMENTATION_WUZP=0 UNITS_IMPLEMENTATION_BOOST=1 UNITS_IMPLEMENTATION_MP_UNITS=2
+    VALUES_IMPLEMENTATION_EIGEN=1 VALUES_IMPLEMENTATION_BLITZ=2)
 set(WUZP_TEST_COMPONENTS)
 if(WUZP_TEST_UNITS STREQUAL "wuzp")
     list(APPEND WUZP_TEST_DEFINITIONS UNITS_IMPLEMENTATION=0)
 elseif(WUZP_TEST_UNITS STREQUAL "boost")
     list(APPEND WUZP_TEST_DEFINITIONS UNITS_IMPLEMENTATION=1)
     list(APPEND WUZP_TEST_COMPONENTS boost)
+elseif(WUZP_TEST_UNITS STREQUAL "mp_units")
+    list(APPEND WUZP_TEST_DEFINITIONS UNITS_IMPLEMENTATION=2)
+    list(APPEND WUZP_TEST_COMPONENTS mp_units)
 else()
     message(FATAL_ERROR "Unknown WUZP_TEST_UNITS '${WUZP_TEST_UNITS}'.")
 endif()

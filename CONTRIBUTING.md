@@ -23,7 +23,8 @@ Development happens in a [dev container](https://containers.dev/), the same cont
 There are two variants:
 
 * `min`: Ubuntu 22.04 with the oldest supported dependency versions (GCC 11, Clang 14, CMake 3.22, Eigen 3.4, Boost 1.74).
-* `latest`: Ubuntu 26.04 with the newest supported dependency versions (GCC 15, Clang 21, CMake 4.2, Eigen 5.0, Boost 1.90).
+* `latest`: Ubuntu 26.04 with the newest supported dependency versions (GCC 15, Clang 21, CMake 4.2, Eigen 5.0, Boost 1.90, mp-units 2.5).
+  mp-units is only tested here: it needs newer compilers than those of `min`.
 
 Open the repository in VS Code or CLion and choose *Reopen in Container*, or use the [Dev Container CLI](https://github.com/devcontainers/cli):
 
@@ -84,8 +85,8 @@ To format the code automatically before each commit, enable the [pre-commit](htt
 
 ## Continuous integration
 
-The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants, runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, tests the installed package and the use through `FetchContent`, and builds and runs the [benchmarks](benchmarks/README.md).
-It also tests every backend combination on macOS with Apple Clang (Homebrew packages) and on Windows with MSVC (vcpkg packages).
+The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants (mp-units only in `latest`), runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, tests the installed package and the use through `FetchContent`, and builds and runs the [benchmarks](benchmarks/README.md).
+It also tests every backend combination except mp-units on macOS with Apple Clang (Homebrew packages) and on Windows with MSVC (vcpkg packages).
 While the repository is private, these two jobs only run when the workflow is started manually with the `platforms` input, since GitHub bills their minutes at 10 and 2 times the Linux rate.
 Warnings are errors in CI (`WUZP_WARNINGS_AS_ERRORS`, on in all presets), and every public header is compiled on its own with strict warnings.
 Each job is a script in `ci/`, and `ci/local.sh` runs the Linux jobs locally in the same containers (requires Docker):
@@ -102,10 +103,11 @@ Codecov checks that the coverage does not drop and that new code is covered (`co
 ## Versioning
 
 *wuzp* follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-The public API consists of the headers in `wuzp/include/`, `wuzp_eigen/include/`, `wuzp_blitz/include/` and `wuzp_boost/include/`, except those in `internal/` directories, and of the CMake package and targets.
+The public API consists of the headers in `wuzp/include/`, `wuzp_eigen/include/`, `wuzp_blitz/include/`, `wuzp_boost/include/` and `wuzp_mp_units/include/`, except those in `internal/` directories, and of the CMake package and targets.
 Breaking changes need a new major version, and are listed as such in [CHANGELOG.md](CHANGELOG.md).
 
 The oldest supported dependency versions are those of the oldest Ubuntu LTS release in standard support, currently Ubuntu 22.04 (see the `min` dev container).
+mp-units is an exception: Ubuntu does not package it, and it needs newer compilers than those of Ubuntu 22.04. It is supported from version 2.5, the one in the `latest` dev container.
 When that release reaches the end of its standard support, the next minor version raises the minimum versions.
 
 ## Releasing

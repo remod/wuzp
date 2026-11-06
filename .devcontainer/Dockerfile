@@ -2,7 +2,7 @@
 #
 # One Dockerfile, two variants:
 #   min:    Ubuntu 22.04, the oldest supported dependency versions.
-#   latest: Ubuntu 26.04, the newest supported dependency versions, with Eigen 5 built from source.
+#   latest: Ubuntu 26.04, the newest supported dependency versions, with Eigen 5 and mp-units built from source.
 #
 # ci/image.sh sets the build arguments of each variant. CI publishes the images to GHCR, tagged with a hash of this file
 # and the build arguments. Local builds reuse the published layers, so local development and CI run in the same
@@ -64,6 +64,23 @@ RUN if [ "${EIGEN_FROM_SOURCE}" = true ]; then \
         apt-get update \
         && apt-get install -y --no-install-recommends libeigen3-dev \
         && rm -rf /var/lib/apt/lists/*; \
+    fi
+
+# mp-units with MP_UNITS=true, built from source since Ubuntu does not package it. It needs GCC 12 or Clang 16 and CMake 3.25,
+# so only the latest variant has it. It is header-only, and needs no other libraries without contract checks.
+ARG MP_UNITS=false
+ARG MP_UNITS_VERSION=2.5.0
+ARG MP_UNITS_SHA256=a6bd48bee699f11f0ed5b04b8c5006d15f76e6d898e058db3880554d2e47a400
+RUN if [ "${MP_UNITS}" = true ]; then \
+        work_dir=$(mktemp -d) \
+        && curl -fsSL -o "${work_dir}/mp-units.tar.gz" \
+            "https://github.com/mpusz/mp-units/archive/refs/tags/v${MP_UNITS_VERSION}.tar.gz" \
+        && echo "${MP_UNITS_SHA256}  ${work_dir}/mp-units.tar.gz" | sha256sum --check --quiet \
+        && tar -xzf "${work_dir}/mp-units.tar.gz" -C "${work_dir}" \
+        && cmake -S "${work_dir}/mp-units-${MP_UNITS_VERSION}/src" -B "${work_dir}/build" -G Ninja \
+            -D CMAKE_CXX_STANDARD=20 -D MP_UNITS_API_CONTRACTS=NONE > /dev/null \
+        && cmake --install "${work_dir}/build" > /dev/null \
+        && rm -rf "${work_dir}"; \
     fi
 
 # Blitz++ is built from source: the Ubuntu package lacks the configuration header for Clang

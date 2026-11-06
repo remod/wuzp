@@ -1,6 +1,6 @@
 Review recent changes against this project's layout and rules (`.cursor/rules/`):
 
-- Core logic in `wuzp/include/wuzp/core/` and `trafo/`, independent of any backend; backends (`wuzp_eigen/`, `wuzp_blitz/`, `wuzp_boost/`, `wuzp_units/`) only adapt another library to the core's traits.
+- Core logic in `wuzp/include/wuzp/core/` and `trafo/`, independent of any backend; backends (`wuzp_eigen/`, `wuzp_blitz/`, `wuzp_boost/`, `wuzp_mp_units/`, `wuzp_units/`) only adapt another library to the core's traits.
 - Every header includes what it uses and compiles on its own.
 - Behavior that differs per backend is selected through trait specializations, not `#if`.
 - Rules that reject invalid code use `static_assert` with a clear message, close to where the user's mistake happens.

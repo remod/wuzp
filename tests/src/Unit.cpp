@@ -38,10 +38,10 @@ TEST(TestUnit, Identity) {  // NOLINT
 }
 
 TEST(TestUnit, AreAnglesDimensionless) {  // NOLINT
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_WUZP
+#if ANGLES_ARE_DIMENSIONLESS
   static_assert(std::is_same<Angle, Dimensionless>::value);
   static_assert(std::is_same<Product<Angle, Length>::type, Length>::value);
-#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
+#else
   static_assert(!std::is_same<Angle, Dimensionless>::value);
   static_assert(!std::is_same<Product<Angle, Length>::type, Length>::value);
 #endif
