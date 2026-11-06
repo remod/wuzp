@@ -555,8 +555,6 @@ TEST(TestTensor2, DivisionWith1x1Tensor) {  // NOLINT
   EXPECT_EQ(tensor / tensor1x1, result);
 }
 
-// TODO(remod): This test with Blitz currently results in a segfault.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestTensor2, DotProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
@@ -567,7 +565,6 @@ TEST(TestTensor2, DotProduct) {  // NOLINT
   const AreaQuantityI result{11};
   EXPECT_EQ(lhs.dotProduct(rhs), result);
 }
-#endif
 
 TEST(TestTensor2, CrossProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 3, 1>;

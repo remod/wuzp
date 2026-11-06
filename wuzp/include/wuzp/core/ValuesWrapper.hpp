@@ -125,9 +125,10 @@ class ValuesWrapper {
 
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
   auto dotProduct(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other) const {
-    // Reuse the innerProduct instead of delegating it to the implementation.
+    // Reuse the innerProduct instead of delegating it to the implementation. Evaluate the result, which could otherwise refer to
+    // the temporary transpose after returning (e.g. with Blitz++).
     return typename DotProduct<ThisT, ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>>::type(
-        transpose().innerProduct(other));
+        transpose().innerProduct(other).evaluate());
   }
 
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
@@ -335,8 +336,9 @@ template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename Implementation
           typename ImplementationRhsT_>
 struct DotProduct<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
                   ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>> {
-  using type = typename InnerProduct<typename Transpose<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>>::type,
-                                     ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>>::type;
+  using type =
+      typename Evaluate<typename InnerProduct<typename Transpose<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>>::type,
+                                              ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>>::type>::type;
 };
 
 template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
