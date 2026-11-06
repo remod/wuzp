@@ -46,6 +46,10 @@ cmake --build --preset gcc-wuzp-eigen
 ctest --preset gcc-wuzp-eigen
 ```
 
+On macOS, the `clang-*` presets use Apple Clang.
+On Windows, the `msvc-*` presets use MSVC from a developer command prompt.
+The `macos` and `windows` jobs in `.github/workflows/ci.yml` show how to get the dependencies with Homebrew and vcpkg.
+
 ## Compile tests
 
 Type safety means that invalid code must not compile, and the error must explain why.
@@ -60,7 +64,7 @@ Compile tests verify this: each file in `tests/compile_tests/cases` is a small p
 ```
 
 A case that must fail to compile always names the expected error, as a regex (`wuzp-error`) or as a `static_assert` message (`wuzp-static-assert`).
-Expectations can depend on the configuration, e.g. `// wuzp-error(units=boost,compiler=clang): ...`, and `// wuzp-requires: values=eigen` limits a case to some configurations.
+Expectations can depend on the configuration, e.g. `// wuzp-error(units=boost,compiler=clang|appleclang): ...`, and `// wuzp-requires: values=eigen` limits a case to some configurations.
 See `tests/compile_tests/CompileTest.cmake` for the details.
 Compile tests are labelled `compile`, so `ctest --preset <preset> -L compile` runs only them.
 
@@ -81,8 +85,10 @@ To format the code automatically before each commit, enable the [pre-commit](htt
 ## Continuous integration
 
 The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants, runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, tests the installed package and the use through `FetchContent`, and builds and runs the [benchmarks](benchmarks/README.md).
+It also tests every backend combination on macOS with Apple Clang (Homebrew packages) and on Windows with MSVC (vcpkg packages).
+While the repository is private, these two jobs only run when the workflow is started manually with the `platforms` input, since GitHub bills their minutes at 10 and 2 times the Linux rate.
 Warnings are errors in CI (`WUZP_WARNINGS_AS_ERRORS`, on in all presets), and every public header is compiled on its own with strict warnings.
-Each job is a script in `ci/`, and `ci/local.sh` runs the same jobs locally in the same containers (requires Docker):
+Each job is a script in `ci/`, and `ci/local.sh` runs the Linux jobs locally in the same containers (requires Docker):
 
 ```bash
 ci/local.sh                 # All jobs.

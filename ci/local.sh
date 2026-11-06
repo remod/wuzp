@@ -15,7 +15,7 @@ set -uo pipefail
 REPO_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 ALL_PRESETS="gcc-wuzp-eigen gcc-wuzp-blitz gcc-boost-eigen gcc-boost-blitz clang-wuzp-eigen clang-wuzp-blitz clang-boost-eigen clang-boost-blitz"
 PRESETS=${WUZP_PRESETS:-${ALL_PRESETS}}
-CORES=$(nproc)
+CORES=$(getconf _NPROCESSORS_ONLN)
 CPUS=${WUZP_JOBS:-$(( CORES > 1 ? CORES / 2 : 1 ))}
 echo "Using ${CPUS} of ${CORES} CPU cores (set WUZP_JOBS to change)."
 
@@ -53,7 +53,8 @@ test_command() {
   echo "${command}"
 }
 
-declare -A RESULTS
+# The results, in the order of JOBS. An indexed array, since macOS's bash 3.2 has no associative arrays.
+RESULTS=()
 for job in "${JOBS[@]}"; do
   echo "################ ${job}"
   case ${job} in
@@ -67,13 +68,13 @@ for job in "${JOBS[@]}"; do
     benchmarks) run_in latest "ci/benchmarks.sh --benchmark_min_time=0.01s" ;;
     *) echo "Unknown job '${job}'." >&2; false ;;
   esac
-  if [[ $? -eq 0 ]]; then RESULTS[${job}]=passed; else RESULTS[${job}]=FAILED; fi
+  if [[ $? -eq 0 ]]; then RESULTS+=(passed); else RESULTS+=(FAILED); fi
 done
 
 echo "################ summary"
 STATUS=0
-for job in "${JOBS[@]}"; do
-  echo "${job}: ${RESULTS[${job}]}"
-  [[ ${RESULTS[${job}]} == passed ]] || STATUS=1
+for i in "${!JOBS[@]}"; do
+  echo "${JOBS[i]}: ${RESULTS[i]}"
+  [[ ${RESULTS[i]} == passed ]] || STATUS=1
 done
 exit ${STATUS}

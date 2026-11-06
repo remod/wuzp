@@ -89,6 +89,7 @@ The following table visualizes how a proper rigid transformation transforms a po
 * [Blitz++](https://github.com/blitzpp/blitz)
 
 *wuzp* is header-only and requires a C++20 compiler and CMake 3.22 or newer.
+It is tested on Linux with GCC 11 to 15 and Clang 14 to 21, on macOS with Apple Clang, and on Windows with MSVC (on a best-effort basis).
 Each backend is an optional component with its own dependency:
 
 | Component | Target | Dependency (supported versions) |

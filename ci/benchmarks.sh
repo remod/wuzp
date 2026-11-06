@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-export CMAKE_BUILD_PARALLEL_LEVEL=${WUZP_JOBS:-$(nproc)}
+export CMAKE_BUILD_PARALLEL_LEVEL=${WUZP_JOBS:-$(getconf _NPROCESSORS_ONLN)}
 
 for PRESET in gcc-benchmarks clang-benchmarks; do
   echo "=== ${PRESET}"

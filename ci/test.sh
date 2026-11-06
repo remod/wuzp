@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 # WUZP_JOBS limits the parallelism of builds and tests, including the projects built by the compile-fail tests.
-export CMAKE_BUILD_PARALLEL_LEVEL=${WUZP_JOBS:-$(nproc)}
+export CMAKE_BUILD_PARALLEL_LEVEL=${WUZP_JOBS:-$(getconf _NPROCESSORS_ONLN)}
 export CTEST_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}
 
 PRESET=$1

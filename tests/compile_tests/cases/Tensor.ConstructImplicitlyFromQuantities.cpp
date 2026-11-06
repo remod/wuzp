@@ -1,5 +1,6 @@
 // wuzp-expect: error
-// wuzp-error: (no viable )?conversion from
+// wuzp-error(compiler=gnu|clang|appleclang): (no viable )?conversion from
+// wuzp-error(compiler=msvc): cannot convert from
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/Quantities.hpp"

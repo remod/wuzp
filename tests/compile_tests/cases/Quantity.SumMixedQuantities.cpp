@@ -1,7 +1,8 @@
 // wuzp-expect: error
 // wuzp-static-assert(units=wuzp): Units do not match\.
 // wuzp-error(units=boost,compiler=gnu): no match for 'operator\+' \(operand types are 'boost::units::unit<
-// wuzp-error(units=boost,compiler=clang): invalid operands to binary expression \('boost::units::unit<
+// wuzp-error(units=boost,compiler=clang|appleclang): invalid operands to binary expression \('boost::units::unit<
+// wuzp-error(units=boost,compiler=msvc): binary '\+': 'T' does not define this operator
 
 #include "wuzp/core/Quantities.hpp"
 

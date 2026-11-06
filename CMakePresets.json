@@ -45,6 +45,13 @@
       }
     },
     {
+      "name": "msvc",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    },
+    {
       "name": "gcc-wuzp-eigen",
       "displayName": "gcc, wuzp units, eigen values",
       "inherits": [
@@ -187,6 +194,62 @@
         "WUZP_WITH_EIGEN": "ON",
         "WUZP_WITH_BLITZ": "ON"
       }
+    },
+    {
+      "name": "msvc-wuzp-eigen",
+      "displayName": "msvc, wuzp units, eigen values",
+      "inherits": [
+        "base",
+        "msvc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "wuzp",
+        "WUZP_TEST_VALUES": "eigen",
+        "WUZP_WITH_EIGEN": "ON"
+      }
+    },
+    {
+      "name": "msvc-wuzp-blitz",
+      "displayName": "msvc, wuzp units, blitz values",
+      "inherits": [
+        "base",
+        "msvc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "wuzp",
+        "WUZP_TEST_VALUES": "blitz",
+        "WUZP_WITH_BLITZ": "ON",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
+      "name": "msvc-boost-eigen",
+      "displayName": "msvc, boost units, eigen values",
+      "inherits": [
+        "base",
+        "msvc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "boost",
+        "WUZP_TEST_VALUES": "eigen",
+        "WUZP_WITH_EIGEN": "ON",
+        "WUZP_WITH_BOOST": "ON"
+      }
+    },
+    {
+      "name": "msvc-boost-blitz",
+      "displayName": "msvc, boost units, blitz values",
+      "inherits": [
+        "base",
+        "msvc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "boost",
+        "WUZP_TEST_VALUES": "blitz",
+        "WUZP_WITH_BLITZ": "ON",
+        "WUZP_WITH_BOOST": "ON",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -229,6 +292,22 @@
     {
       "name": "clang-benchmarks",
       "configurePreset": "clang-benchmarks"
+    },
+    {
+      "name": "msvc-wuzp-eigen",
+      "configurePreset": "msvc-wuzp-eigen"
+    },
+    {
+      "name": "msvc-wuzp-blitz",
+      "configurePreset": "msvc-wuzp-blitz"
+    },
+    {
+      "name": "msvc-boost-eigen",
+      "configurePreset": "msvc-boost-eigen"
+    },
+    {
+      "name": "msvc-boost-blitz",
+      "configurePreset": "msvc-boost-blitz"
     }
   ],
   "testPresets": [
@@ -305,6 +384,46 @@
     {
       "name": "clang-boost-blitz",
       "configurePreset": "clang-boost-blitz",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "msvc-wuzp-eigen",
+      "configurePreset": "msvc-wuzp-eigen",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "msvc-wuzp-blitz",
+      "configurePreset": "msvc-wuzp-blitz",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "msvc-boost-eigen",
+      "configurePreset": "msvc-boost-eigen",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "msvc-boost-blitz",
+      "configurePreset": "msvc-boost-blitz",
       "output": {
         "outputOnFailure": true
       },

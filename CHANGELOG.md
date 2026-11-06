@@ -19,6 +19,7 @@ Versions before 1.0 were distributed as Debian packages through a Launchpad PPA 
 ### Added
 
 - Support for Eigen 5, besides Eigen 3.4.
+- Support for macOS (Apple Clang) and, on a best-effort basis, Windows (MSVC), both tested in CI.
 - `<wuzp/wuzp.hpp>` includes all headers of the core and the transformations.
 - Benchmarks that compare *wuzp* with plain Eigen and Blitz++ at run time, and with plain Eigen at compile time (`benchmarks/README.md`).
 - Linear transformations transform covectors (`w' = w A^-1`) and tensors with two contravariant indices (`T' = A T A^T`). They returned `void` before.

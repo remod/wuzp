@@ -33,7 +33,12 @@ image_name() {
   local variant=$1
   local args hash
   args=$(build_args "${variant}")
-  hash=$( (cat "${REPO_DIR}/.devcontainer/Dockerfile"; echo "${args}") | sha256sum | cut -c1-16)
+  # macOS has shasum instead of sha256sum. Both compute the same hash, so the image names are the same on every host.
+  if command -v sha256sum > /dev/null; then
+    hash=$( (cat "${REPO_DIR}/.devcontainer/Dockerfile"; echo "${args}") | sha256sum | cut -c1-16)
+  else
+    hash=$( (cat "${REPO_DIR}/.devcontainer/Dockerfile"; echo "${args}") | shasum -a 256 | cut -c1-16)
+  fi
   echo "${IMAGE_REPOSITORY}:${variant}-${hash}"
 }
 
