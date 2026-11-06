@@ -155,6 +155,38 @@
         "WUZP_WITH_BOOST": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
+    },
+    {
+      "name": "gcc-benchmarks",
+      "displayName": "gcc, benchmarks (release)",
+      "inherits": [
+        "base",
+        "gcc"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "WUZP_BUILD_TESTS": "OFF",
+        "WUZP_BUILD_EXAMPLES": "OFF",
+        "WUZP_BUILD_BENCHMARKS": "ON",
+        "WUZP_WITH_EIGEN": "ON",
+        "WUZP_WITH_BLITZ": "ON"
+      }
+    },
+    {
+      "name": "clang-benchmarks",
+      "displayName": "clang, benchmarks (release)",
+      "inherits": [
+        "base",
+        "clang"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "WUZP_BUILD_TESTS": "OFF",
+        "WUZP_BUILD_EXAMPLES": "OFF",
+        "WUZP_BUILD_BENCHMARKS": "ON",
+        "WUZP_WITH_EIGEN": "ON",
+        "WUZP_WITH_BLITZ": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -189,6 +221,14 @@
     {
       "name": "clang-boost-blitz",
       "configurePreset": "clang-boost-blitz"
+    },
+    {
+      "name": "gcc-benchmarks",
+      "configurePreset": "gcc-benchmarks"
+    },
+    {
+      "name": "clang-benchmarks",
+      "configurePreset": "clang-benchmarks"
     }
   ],
   "testPresets": [

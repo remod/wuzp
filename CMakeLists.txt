@@ -19,6 +19,7 @@ include(GNUInstallDirs)
 
 option(WUZP_BUILD_TESTS "Build the unit tests." ${PROJECT_IS_TOP_LEVEL})
 option(WUZP_BUILD_EXAMPLES "Build the examples (requires the Eigen backend)." ${PROJECT_IS_TOP_LEVEL})
+option(WUZP_BUILD_BENCHMARKS "Build the benchmarks (requires Google Benchmark)." OFF)
 option(WUZP_INSTALL "Generate the install target." ${PROJECT_IS_TOP_LEVEL})
 
 # Backends: AUTO enables a backend if its dependency is found, ON requires it, OFF disables it.
@@ -111,7 +112,7 @@ endif()
 message(STATUS "wuzp ${PROJECT_VERSION}, enabled backends: ${WUZP_COMPONENTS}")
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Tests, examples, developer tooling
+# Tests, examples, benchmarks, developer tooling
 # ----------------------------------------------------------------------------------------------------------------------
 
 if(WUZP_BUILD_TESTS)
@@ -123,8 +124,14 @@ if(WUZP_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
+if(WUZP_BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif()
+
 if(PROJECT_IS_TOP_LEVEL)
     file(GLOB_RECURSE WUZP_ALL_CXX_FILES CONFIGURE_DEPENDS
+        ${PROJECT_SOURCE_DIR}/benchmarks/*.cpp
+        ${PROJECT_SOURCE_DIR}/benchmarks/*.hpp
         ${PROJECT_SOURCE_DIR}/examples/*.cpp
         ${PROJECT_SOURCE_DIR}/wuzp/include/*.hpp
         ${PROJECT_SOURCE_DIR}/wuzp_blitz/include/*.hpp

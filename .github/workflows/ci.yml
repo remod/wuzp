@@ -138,3 +138,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ci/install_and_consume.sh
+
+  benchmarks:
+    needs: image
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.image.outputs.latest }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      # Only checks that the benchmarks build and run: the times on shared runners are too noisy to compare.
+      - run: ci/benchmarks.sh --benchmark_min_time=0.01s

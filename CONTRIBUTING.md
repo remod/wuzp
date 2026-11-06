@@ -80,13 +80,13 @@ To format the code automatically before each commit, enable the [pre-commit](htt
 
 ## Continuous integration
 
-The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants, runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, and tests the installed package and the use through `FetchContent`.
+The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants, runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, tests the installed package and the use through `FetchContent`, and builds and runs the [benchmarks](benchmarks/README.md).
 Warnings are errors in CI (`WUZP_WARNINGS_AS_ERRORS`, on in all presets), and every public header is compiled on its own with strict warnings.
 Each job is a script in `ci/`, and `ci/local.sh` runs the same jobs locally in the same containers (requires Docker):
 
 ```bash
 ci/local.sh                 # All jobs.
-ci/local.sh format test-min # Selected jobs: format, tidy, test-min, test-latest, coverage, sanitizers, install.
+ci/local.sh format test-min # Selected jobs: format, tidy, test-min, test-latest, coverage, sanitizers, install, benchmarks.
 ```
 
 By default, `ci/local.sh` uses half of the CPU cores; set `WUZP_JOBS` to change this.

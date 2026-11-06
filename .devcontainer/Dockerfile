@@ -31,6 +31,7 @@ RUN apt-get update \
         git \
         gpg \
         less \
+        libbenchmark-dev \
         libboost-dev \
         libgtest-dev \
         llvm \

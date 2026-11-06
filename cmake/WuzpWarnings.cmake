@@ -1,7 +1,7 @@
-# Compiler warnings for wuzp's own targets (tests, examples, compile tests). Third-party headers are included as system
-# headers, so only warnings in wuzp's code are reported.
+# Compiler warnings for wuzp's own targets (tests, examples, benchmarks, compile tests). Third-party headers are
+# included as system headers, so only warnings in wuzp's code are reported.
 
-option(WUZP_WARNINGS_AS_ERRORS "Treat compiler warnings in the tests and examples as errors." OFF)
+option(WUZP_WARNINGS_AS_ERRORS "Treat compiler warnings in the tests, examples and benchmarks as errors." OFF)
 
 # The warning options, as a list.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

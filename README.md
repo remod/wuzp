@@ -144,6 +144,13 @@ cmake --build --preset gcc-wuzp-eigen
 
 For more example code, have a look at the unit tests in the `tests` folder.
 
+## Performance
+
+All checks happen at compile time.
+With Eigen, *wuzp* is as fast as plain Eigen; with Blitz++, it is slower for now ([#58](https://github.com/remod/wuzp/issues/58)).
+With Eigen, the same computations take about 25-50% longer to compile.
+See the [benchmarks](benchmarks/README.md) for the numbers.
+
 ## Limitations
 
 Tensors may only be 0-, 1-, or 2-dimensional.

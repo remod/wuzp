@@ -14,6 +14,6 @@ paths:
 After changing C++ or CMake code, run the CI jobs locally, in the same containers as CI:
 
 1. While iterating, a few presets: `WUZP_PRESETS="gcc-wuzp-eigen clang-boost-blitz" ci/local.sh test-latest`.
-2. Before finishing: `ci/local.sh` (format, clang-tidy, all presets on `min` and `latest`, coverage, sanitizers, install).
+2. Before finishing: `ci/local.sh` (format, clang-tidy, all presets on `min` and `latest`, coverage, sanitizers, install, benchmarks).
 
 Inside the dev container, the CMake presets work directly: `cmake --preset gcc-wuzp-eigen && cmake --build --preset gcc-wuzp-eigen && ctest --preset gcc-wuzp-eigen`.
