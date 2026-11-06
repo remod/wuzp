@@ -5,6 +5,7 @@
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
+#include "to_string.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -149,11 +150,15 @@ class TestQuantitiesFixture : public ::testing::Test {
 
 TEST_F(TestQuantitiesFixture, SetGetValues) {  // NOLINT
   EXPECT_EQ(getValues1(), getValues1());
-  std::cerr << getQuantities1().getValues() << std::endl;
 
   EXPECT_EQ(getQuantities1().getValues(), getValues1());
   getQuantities1().setValues(getValues2());
   EXPECT_EQ(getQuantities1().getValues(), getValues2());
+}
+
+TEST_F(TestQuantitiesFixture, StreamOperator) {  // NOLINT
+  // Quantities print their values, like the backend prints them.
+  EXPECT_EQ(toString(getQuantities1()), toString(getValues1()));
 }
 
 TEST_F(TestQuantitiesFixture, SetGetQuantity) {  // NOLINT

@@ -12,6 +12,7 @@
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
+#include "to_string.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -171,6 +172,10 @@ class TestHomogeneousTensorF : public ::testing::Test {
 
 TEST_F(TestTensorF, EqualityOperator) {  // NOLINT
   EXPECT_EQ(getTensor(), getTensor());
+}
+
+TEST_F(TestTensorF, StreamOperator) {  // NOLINT
+  EXPECT_EQ(toString(getTensor()), toString(getTensor().getQuantities()));
 }
 
 TEST_F(TestTensorF, GetQuantityCompileTime) {  // NOLINT

@@ -9,6 +9,7 @@
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
+#include "to_string.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -24,6 +25,10 @@ template <typename CoordinateSystemT>
 using VelocityGradient = Tensor<1, 1, Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Frequency>>, CoordinateSystemT, Relative>;
 
 const Scaling scaling{2.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 8.0};  // Scaling by 2, 4 and 8.
+
+TEST(TestPassiveLinearTransformation, StreamOperator) {  // NOLINT
+  EXPECT_EQ(toString(scaling), toString(scaling.getTensor()));
+}
 
 // Covectors and (1,1) tensors transform with the inverse, which Blitz++ does not provide.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ

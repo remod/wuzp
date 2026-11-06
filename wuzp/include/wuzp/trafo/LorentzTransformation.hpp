@@ -48,7 +48,8 @@ LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> cr
   for (int row = 0; row < Dimension; ++row) {
     for (int col = 0; col < row + 1; ++col) {
       QuantityT quantity;
-      if (row == 0 && col == 0) {
+      // For row 0, the column is 0 too.
+      if (row == 0) {
         quantity = lorentzFactor;
       } else if (col == 0) {
         quantity = -lorentzFactor / getSpeedOfLight<Value>() * velocity.getQuantities().get(row - 1, 0);

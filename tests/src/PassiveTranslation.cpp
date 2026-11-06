@@ -9,8 +9,15 @@
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
+#include "to_string.hpp"
 
 using namespace wuzp;  // NOLINT
+
+TEST(TestPassiveTranslation, StreamOperator) {  // NOLINT
+  using Transformation = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  const Transformation transformation{1.0, 2.0, 3.0};
+  EXPECT_EQ(toString(transformation), toString(transformation.getTensor()));
+}
 
 TEST(TestPassiveTranslation, TransformPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;

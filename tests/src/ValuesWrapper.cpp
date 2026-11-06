@@ -140,6 +140,23 @@ TEST(TestValuesWrapper, IsApprox) {  // NOLINT
   EXPECT_FALSE(matrix.isApprox(notApprox));
 }
 
+TEST(TestValuesWrapper, IsApproxDefaultPrecisionOfFloats) {  // NOLINT
+  // Floats have a default precision of 1e-5, relative to the magnitude of the values (here 5).
+  const ValueMatrix<float, 2, 1> matrix{3.0f, 4.0f};
+  const ValueMatrix<float, 2, 1> approx{3.0f, 4.0f + 1e-5f};
+  const ValueMatrix<float, 2, 1> notApprox{3.0f, 4.0f + 1e-3f};
+  EXPECT_TRUE(matrix.isApprox(approx));
+  EXPECT_FALSE(matrix.isApprox(notApprox));
+}
+
+TEST(TestValuesWrapper, IsApproxDefaultPrecisionOfIntegers) {  // NOLINT
+  // Integers have a default precision of 0: only equal values are approximately equal.
+  const ValueMatrix<int, 2, 1> matrix{3, 4};
+  const ValueMatrix<int, 2, 1> notApprox{3, 5};
+  EXPECT_TRUE(matrix.isApprox(matrix));
+  EXPECT_FALSE(matrix.isApprox(notApprox));
+}
+
 TEST(TestValuesWrapper, Zero) {  // NOLINT
   const ValueMatrix<double, 2, 3> expected{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   EXPECT_EQ((ValueMatrix<double, 2, 3>::zero()), expected);

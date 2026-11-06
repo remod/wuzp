@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <tuple>
@@ -161,10 +160,7 @@ struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementat
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
     static_assert(std::is_same_v<typename ImplementationLhsT_::T_numtype, typename ImplementationRhsT_::T_numtype>,
                   "Numeric types do not match.");
-    assert(implLhs.length(0) == 3);
-    assert(implLhs.length(1) == 1);
-    assert(implRhs.length(0) == 3);
-    assert(implRhs.length(1) == 1);
+    // The core only calls this for 3x1 matrices: CrossProduct<MatrixSize> rejects other sizes at compile time.
     blitz::Array<typename ImplementationLhsT_::T_numtype, 2> result{3, 1};
     result(0, 0) = implLhs(1, 0) * implRhs(2, 0) - implLhs(2, 0) * implRhs(1, 0);
     result(1, 0) = implLhs(2, 0) * implRhs(0, 0) - implLhs(0, 0) * implRhs(2, 0);
