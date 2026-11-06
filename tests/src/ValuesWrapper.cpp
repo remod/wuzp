@@ -250,13 +250,11 @@ TEST(TestValuesWrapper, TensorProduct) {  // NOLINT
 // Blitz promotes two ints which are summed to a long.
 // We could accept this as a result in this unit test, but unfortunately, the value matrix stores the value type itself too, which is still
 // an int.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, InnerProductTypeDerivation) {  // NOLINT
   using A = ValueMatrix<int, 4, 3>;
   using B = ValueMatrix<int, 3, 2>;
   static_assert(std::is_same_v<Evaluate<InnerProduct<A, B>::type>::type, ValueMatrix<int, 4, 2>>);
 }
-#endif
 
 TEST(TestValuesWrapper, InnerProduct) {  // NOLINT
   const ValueMatrix<int, 2, 3> lhs{1, 2, 3, 4, 5, 6};
@@ -294,7 +292,6 @@ TEST(TestValuesWrapper, OuterProductOfScalarAndMatrix) {  // NOLINT
 }
 
 // TODO(remod): This test with Blitz currently results in a segfault.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, DotProduct) {  // NOLINT
   const ValueMatrix<int, 4, 1> lhs{1, 2, 3, 4};
   const ValueMatrix<int, 4, 1> rhs{0, 3, -1, 2};
@@ -308,16 +305,13 @@ TEST(TestValuesWrapper, DotProduct1x1Matrices) {  // NOLINT
   const ValueWrapper<int> result{2};
   EXPECT_EQ(lhs.dotProduct(rhs), result);
 }
-#endif
 
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, CrossProduct) {  // NOLINT
   const ValueMatrix<int, 3, 1> lhs{1, 2, 3};
   const ValueMatrix<int, 3, 1> rhs{-1, 3, 4};
   const ValueMatrix<int, 3, 1> result{-1, -7, 5};
   EXPECT_EQ(lhs.crossProduct(rhs), result);
 }
-#endif
 
 TEST(TestValuesWrapper, DivisionWithBuiltinValue) {  // NOLINT
   const ValueMatrix<float, 2, 3> lhs{1.f, 2.f, 3.f, 4.f, 5.f, 6.f};

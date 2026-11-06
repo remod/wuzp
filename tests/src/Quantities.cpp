@@ -286,7 +286,6 @@ TEST(TestQuantities2, ProductWithQuantities) {  // NOLINT
 }
 
 // TODO(remod): This test with Blitz currently results in a segfault.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantities2, DotProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 4, 1>;
   using MyUnitMatrix = TypeMatrix<4, 1, Length>;
@@ -306,9 +305,7 @@ TEST(TestQuantities2, DotProduct1x1Matrices) {  // NOLINT
   const AreaQuantityI result{2};
   EXPECT_EQ(lhs.dotProduct(rhs), result);
 }
-#endif
 
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantities2, CrossProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 3, 1>;
   using MyUnitMatrix = TypeMatrix<3, 1, Length>;
@@ -320,7 +317,6 @@ TEST(TestQuantities2, CrossProduct) {  // NOLINT
   const MyQuantityMatrixResult result{-1, -7, 5};
   EXPECT_EQ(lhs.crossProduct(rhs), result);
 }
-#endif
 
 TEST(TestQuantities2, DivisionWithBuiltinValue) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
@@ -411,6 +407,8 @@ TEST_F(TestQuantitiesInvertible, TensorInverse) {  // NOLINT
   EXPECT_TRUE(getQuantities().tensorInverse().isApprox(quantitiesInv));
 }
 
+#endif
+
 TEST(TestQuantities, Norm) {  // NOLINT
   using MyValueVector = ValueVector<int, 3>;
   using MyUnitVector = TypeVector<3, Length>;
@@ -427,6 +425,7 @@ TEST(TestQuantities, SquaredNorm) {  // NOLINT
   EXPECT_EQ(quantities.squaredNorm(), SquaredLengthQuantityI{25});
 }
 
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantities, Determinant) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;

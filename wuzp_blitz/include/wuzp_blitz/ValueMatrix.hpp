@@ -135,7 +135,11 @@ struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementa
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
-    return blitz::sum(implLhs(blitz::tensor::i, blitz::tensor::k) * implRhs(blitz::tensor::k, blitz::tensor::j), blitz::tensor::k);
+    // Blitz++ widens sums (e.g. of int to long). Keep the type of the products, like Eigen.
+    using ValueT =
+        decltype(std::declval<typename ImplementationLhsT_::T_numtype>() * std::declval<typename ImplementationRhsT_::T_numtype>());
+    return blitz::cast<ValueT>(
+        blitz::sum(implLhs(blitz::tensor::i, blitz::tensor::k) * implRhs(blitz::tensor::k, blitz::tensor::j), blitz::tensor::k));
   }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
