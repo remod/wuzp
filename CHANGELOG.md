@@ -13,6 +13,7 @@ Versions before 1.0 were distributed as Debian packages through a Launchpad PPA 
 - **Breaking:** Points and vectors (absolute and relative tensors) no longer convert into each other implicitly. Use `makeRelative()` and `makeAbsolute()`.
 - **Breaking:** Translations check coordinate systems: an active translation only moves points expressed in its coordinate system, and the vector of a passive translation from `From` to `To` is expressed in `From` or `To`. A passive proper rigid transformation declares its translation in `To`.
 - **Breaking:** Powers of rationals that are not rationals themselves, such as `4^(1/4)`, are no longer defined (they returned wrong results), and `0^x` is only defined for `x > 0`.
+- **Breaking:** `getInvariant(vector)` deduces its template arguments, and takes any vector whose components have the same unit, e.g. a four-velocity. Explicit template arguments no longer compile.
 - The oldest supported dependency versions are those of Ubuntu 22.04: GCC 11, Clang 14, CMake 3.22, Eigen 3.4 and Boost 1.74.
 
 ### Added

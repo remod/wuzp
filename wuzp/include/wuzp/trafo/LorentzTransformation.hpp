@@ -23,12 +23,15 @@ auto getSpeedOfLight() {
                   typename AccessUnits<AccessImplementation<ValueT_>>::Velocity>{static_cast<ValueT_>(299792458)};
 }
 
-// TODO(remod): Why do we need to explicitly specialize the template arguments when using this function?
-template <int DimensionV, template <typename, int, int> typename ValuesT, typename ValueT, typename CoordinateSystemT>
-auto getInvariant(const SpacetimeVector<DimensionV, ValuesT, ValueT, CoordinateSystemT>& vector) {
+//! The Minkowski invariant v_0^2 - v_1^2 - ... - v_n^2 of a vector whose first component is the time component, e.g. of a
+//! spacetime vector (c t, x, y, z). All components need the same unit.
+//! It takes any vector rather than SpacetimeVector, whose alias template parameters could not be deduced.
+template <typename QuantitiesT_, typename CoordinateSystemT_>
+auto getInvariant(const Vector<QuantitiesT_, CoordinateSystemT_>& vector) {
+  constexpr int dimension = Rows<QuantitiesT_>::value;
   const auto& quantities = vector.getQuantities();
   // Evaluate the result, which would otherwise refer to the quantities after returning.
-  return (pow<2>(quantities.template get<0, 0>()) - quantities.template block<1, 0, DimensionV - 1, 1>().squaredNorm()).evaluate();
+  return (pow<2>(quantities.template get<0, 0>()) - quantities.template block<1, 0, dimension - 1, 1>().squaredNorm()).evaluate();
 }
 
 template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To,

@@ -52,8 +52,15 @@ TEST(TestLorentzTransformation, Invariant) {  // NOLINT
   // x0 = c * 1 us = 299.792458 m: x0^2 - x1^2 - x2^2 - x3^2 = 89875.51787 m^2 - 1010100 m^2.
   const SpacetimeVectorA object{getSpeedOfLight<double>() * TimeQuantityD{1.0e-6}, LengthQuantityD{1.0e1}, LengthQuantityD{1.0e2},
                                 LengthQuantityD{1.0e3}};
-  const auto invariant = getInvariant<4, ValueMatrix, double, CoordinateSystemA>(object);
+  const auto invariant = getInvariant(object);
   EXPECT_TRUE(invariant.isApprox(AreaQuantityD{-920224.48212}, 1e-9));
+}
+
+TEST(TestLorentzTransformation, InvariantOfFourVelocity) {  // NOLINT
+  // The four-velocity gamma (c, v) of any velocity v has the invariant c^2; for v = 0.6 c, gamma = 1.25.
+  const auto c = getSpeedOfLight<double>();
+  const VelocityVector<4, ValueMatrix, double, CoordinateSystemA> fourVelocity{c * 1.25, c * 0.75, c * 0.0, c * 0.0};
+  EXPECT_TRUE(getInvariant(fourVelocity).isApprox(pow<2>(c), 1e-12));
 }
 
 TEST(TestLorentzTransformation, InvariantIsPreserved) {  // NOLINT
@@ -61,7 +68,7 @@ TEST(TestLorentzTransformation, InvariantIsPreserved) {  // NOLINT
                                 LengthQuantityD{1.0e3}};
   const double c = getSpeedOfLight<double>().getValue();
   const LorentzBoost transformation{createBoost(Velocity3{0.1 * c, 0.2 * c, 0.3 * c})};
-  const auto invariant = getInvariant<4, ValueMatrix, double, CoordinateSystemA>(object);
-  const auto transformedInvariant = getInvariant<4, ValueMatrix, double, CoordinateSystemB>(transformation.transform(object));
+  const auto invariant = getInvariant(object);
+  const auto transformedInvariant = getInvariant(transformation.transform(object));
   EXPECT_TRUE(invariant.isApprox(transformedInvariant, 1e-9));
 }
