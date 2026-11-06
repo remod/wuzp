@@ -1,0 +1,27 @@
+name: Release
+
+# Creates a GitHub release with generated notes when a version tag (e.g. v1.0.0) is pushed. CI must have passed on the tagged
+# commit before tagging.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that the tag matches the project version
+        run: |
+          PROJECT_VERSION=$(sed -n 's/^    VERSION \([0-9.]*\)$/\1/p' CMakeLists.txt)
+          if [[ "${GITHUB_REF_NAME}" != "v${PROJECT_VERSION}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match the project version ${PROJECT_VERSION} in CMakeLists.txt." >&2
+            exit 1
+          fi
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" --generate-notes --verify-tag

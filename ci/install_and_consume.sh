@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Installs wuzp with all backends, then builds the tests and examples against the installed package, like a user would.
+# Installs wuzp with all backends, then builds the tests and examples against the installed package, and uses wuzp through
+# FetchContent, like a user would.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -12,9 +13,28 @@ cmake -S . -B build/install -G Ninja -D WUZP_WITH_EIGEN=ON -D WUZP_WITH_BLITZ=ON
   -D WUZP_BUILD_TESTS=OFF -D WUZP_BUILD_EXAMPLES=OFF -D CMAKE_INSTALL_PREFIX="${PREFIX}"
 cmake --install build/install
 
-cmake -S tests -B build/consume-tests -G Ninja -D CMAKE_PREFIX_PATH="${PREFIX}" -D WUZP_TEST_UNITS=boost -D WUZP_TEST_VALUES=eigen
+cmake -S tests -B build/consume-tests -G Ninja -D CMAKE_PREFIX_PATH="${PREFIX}" -D WUZP_TEST_UNITS=boost -D WUZP_TEST_VALUES=eigen -D WUZP_WARNINGS_AS_ERRORS=ON
 cmake --build build/consume-tests
 ctest --test-dir build/consume-tests --output-on-failure --no-tests=error
 
-cmake -S examples -B build/consume-examples -G Ninja -D CMAKE_PREFIX_PATH="${PREFIX}"
+cmake -S examples -B build/consume-examples -G Ninja -D CMAKE_PREFIX_PATH="${PREFIX}" -D WUZP_WARNINGS_AS_ERRORS=ON
 cmake --build build/consume-examples
+
+# Use wuzp through FetchContent, like the README describes. FETCHCONTENT_SOURCE_DIR_WUZP replaces the download with this
+# working tree.
+CONSUMER=build/consume-fetchcontent
+mkdir -p "${CONSUMER}"
+cat > "${CONSUMER}/CMakeLists.txt" <<'CMAKE'
+cmake_minimum_required(VERSION 3.22)
+project(consumer LANGUAGES CXX)
+include(FetchContent)
+FetchContent_Declare(wuzp GIT_REPOSITORY https://github.com/remod/wuzp.git GIT_TAG master)
+FetchContent_MakeAvailable(wuzp)
+add_executable(consumer main.cpp)
+target_link_libraries(consumer PRIVATE wuzp::wuzp wuzp::eigen)
+CMAKE
+cp examples/quantity.cpp "${CONSUMER}/main.cpp"
+cmake -S "${CONSUMER}" -B "${CONSUMER}/build" -G Ninja -D FETCHCONTENT_SOURCE_DIR_WUZP="${PWD}" -D WUZP_WITH_EIGEN=ON
+cmake --build "${CONSUMER}/build"
+"${CONSUMER}/build/consumer"
+
