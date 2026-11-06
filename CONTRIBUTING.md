@@ -69,24 +69,24 @@ The test `compile.diagnostics_coverage` enforces this; messages that are not tes
 
 ## Formatting and tidying
 
-The code is formatted using [clang-format](https://clang.llvm.org/docs/ClangFormat.html), with the version pinned in the dev container, and checked with [clang-tidy](https://clang.llvm.org/extra/clang-tidy/):
+The code is formatted using [clang-format](https://clang.llvm.org/docs/ClangFormat.html), with the version pinned in the dev container, and checked with [clang-tidy](https://clang.llvm.org/extra/clang-tidy/) (configured in `.clang-tidy`), for every backend combination:
 
 ```bash
 cmake --build --preset gcc-wuzp-eigen --target wuzp_format
-cmake --build --preset gcc-wuzp-eigen --target wuzp_tidy
+ci/tidy.sh                  # All backend combinations, or e.g. ci/tidy.sh clang-wuzp-eigen.
 ```
 
 To format the code automatically before each commit, enable the [pre-commit](https://pre-commit.com/) hook with `pre-commit install`.
 
 ## Continuous integration
 
-The CI workflow checks the format, runs the tests for all backend combinations with GCC and Clang in both dev container variants, runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, and tests the installed package and the use through `FetchContent`.
+The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants, runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, and tests the installed package and the use through `FetchContent`.
 Warnings are errors in CI (`WUZP_WARNINGS_AS_ERRORS`, on in all presets), and every public header is compiled on its own with strict warnings.
 Each job is a script in `ci/`, and `ci/local.sh` runs the same jobs locally in the same containers (requires Docker):
 
 ```bash
 ci/local.sh                 # All jobs.
-ci/local.sh format test-min # Selected jobs: format, test-min, test-latest, coverage, sanitizers, install.
+ci/local.sh format test-min # Selected jobs: format, tidy, test-min, test-latest, coverage, sanitizers, install.
 ```
 
 By default, `ci/local.sh` uses half of the CPU cores; set `WUZP_JOBS` to change this.

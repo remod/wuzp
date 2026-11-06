@@ -10,13 +10,12 @@
 
 #include "wuzp/core/MatrixSize.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
+#include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
-
-#include "wuzp_eigen/internal/comma_operations.hpp"
 
 namespace wuzp_eigen {
 
-// TODO: Move this typedef into wuzp itself?
+// TODO(remod): Move this typedef into wuzp itself?
 template <typename ValueT, int Rows, int Cols>
 using ValueMatrix = wuzp::ValuesWrapper<wuzp::MatrixSize<Rows, Cols>, ValueT, Eigen::Array<ValueT, Rows, Cols>>;
 
@@ -56,7 +55,7 @@ struct ReserveMemory<ImplementationT_, MatrixSize<SizesV_...>> {
 template <typename ImplementationT_, typename Arg0, typename... Args>
 struct Initialize<ImplementationT_, std::tuple<Arg0, Args...>> {
   static void run(ImplementationT_& impl, Arg0&& arg0, Args&&... args) {
-    wuzp_eigen::internal::spliceCommas((impl << std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
+    applyCommas((impl << std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
   }
 };
 

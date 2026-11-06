@@ -16,7 +16,7 @@ struct Sum<internal::AbsoluteImpl<ValueLhs_>, internal::AbsoluteImpl<ValueRhs_>>
 
 template <bool ValueLhs_, bool ValueRhs_>
 struct Difference<internal::AbsoluteImpl<ValueLhs_>, internal::AbsoluteImpl<ValueRhs_>> {
-  static_assert(!(!ValueLhs_ && ValueRhs_), "An absolute object cannot be subtracted from a relative object.");
+  static_assert(ValueLhs_ || !ValueRhs_, "An absolute object cannot be subtracted from a relative object.");
   using type = typename IfThenElse<ValueLhs_, typename IfThenElse<ValueRhs_, Relative, Absolute>::type, Relative>::type;
 };
 

@@ -56,6 +56,18 @@ jobs:
       - uses: actions/checkout@v4
       - run: ci/check_format.sh
 
+  tidy:
+    needs: image
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.image.outputs.latest }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/tidy.sh
+
   test:
     name: test (${{ matrix.variant }}, ${{ matrix.compiler }}, ${{ matrix.units }} units, ${{ matrix.values }} values)
     needs: image

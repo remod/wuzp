@@ -12,9 +12,8 @@
 
 #include "wuzp/core/MatrixSize.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
+#include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
-
-#include "wuzp_blitz/internal/comma_operations.hpp"
 
 namespace wuzp_blitz {
 
@@ -57,7 +56,7 @@ struct ReserveMemory<ImplementationT_, MatrixSize<SizesV_...>> {
 template <typename ImplementationT_, typename Arg0, typename... Args>
 struct Initialize<ImplementationT_, std::tuple<Arg0, Args...>> {
   static void run(ImplementationT_& impl, Arg0&& arg0, Args&&... args) {
-    wuzp_blitz::internal::spliceCommas((impl = std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
+    applyCommas((impl = std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
   }
 };
 

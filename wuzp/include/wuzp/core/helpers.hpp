@@ -2,10 +2,8 @@
 
 #include <array>
 #include <cstddef>
-#include <string_view>
 #include <tuple>
 #include <type_traits>
-#include <typeinfo>
 #include <utility>
 
 namespace wuzp {
@@ -108,27 +106,12 @@ struct ValueType;
 template <typename Implementation>
 struct AccessImplementation;
 
-template <typename T>
-constexpr auto getTypeName() noexcept {
-  std::string_view name;
-  std::string_view prefix;
-  std::string_view suffix;
-#ifdef __clang__
-  name = __PRETTY_FUNCTION__;
-  prefix = "auto type_name() [T = ";
-  suffix = "]";
-#elif defined(__GNUC__)
-  name = __PRETTY_FUNCTION__;
-  prefix = "constexpr auto getTypeName() [with T = ";
-  suffix = "]";
-#elif defined(_MSC_VER)
-  name = __FUNCSIG__;
-  prefix = "auto __cdecl type_name<";
-  suffix = ">(void) noexcept";
-#endif
-  name.remove_prefix(prefix.size());
-  name.remove_suffix(suffix.size());
-  return name;
+//! Applies the comma operator from left to right: applyCommas(a, b, c) evaluates ((a, b), c). The backends use it for the
+//! comma initializers of their libraries, e.g. (matrix << 1), 2, 3 with Eigen. All temporaries live until the end of the
+//! expression.
+template <typename First, typename... Rest>
+void applyCommas(First&& first, Rest&&... rest) {
+  static_cast<void>((std::forward<First>(first), ..., std::forward<Rest>(rest)));
 }
 
 }  // namespace wuzp

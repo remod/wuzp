@@ -17,6 +17,7 @@ namespace wuzp {
   };                                                                                                                \
   template <typename T0, typename T1>                                                                               \
   struct Name<T0, T1> {                                                                                             \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                                                                \
     static_assert(FailOnInstantiation<Name<T0, T1>>::value, "'" NameStr "' trait not specialized for given type."); \
   };                                                                                                                \
   template <typename T0, typename T1, typename T2, typename... Ts>                                                  \

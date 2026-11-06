@@ -2,7 +2,7 @@
 # Runs the CI jobs locally, in the same container images as CI. Requires Docker.
 #
 # Usage: ci/local.sh [job...]
-#   Jobs: format, test-min, test-latest, coverage, sanitizers, install. Without arguments, all jobs run.
+#   Jobs: format, tidy, test-min, test-latest, coverage, sanitizers, install. Without arguments, all jobs run.
 #   WUZP_PRESETS limits the tested presets, e.g. WUZP_PRESETS="gcc-wuzp-eigen clang-boost-blitz" ci/local.sh test-min
 #   WUZP_JOBS sets the number of CPU cores to use. The default is half of them, to keep the machine responsive.
 #
@@ -20,7 +20,7 @@ echo "Using ${CPUS} of ${CORES} CPU cores (set WUZP_JOBS to change)."
 
 JOBS=("$@")
 if [[ ${#JOBS[@]} -eq 0 ]]; then
-  JOBS=(format test-min test-latest coverage sanitizers install)
+  JOBS=(format tidy test-min test-latest coverage sanitizers install)
 fi
 
 # Runs a command in a fresh container of the given variant.
@@ -57,6 +57,7 @@ for job in "${JOBS[@]}"; do
   echo "################ ${job}"
   case ${job} in
     format) run_in latest "ci/check_format.sh" ;;
+    tidy) run_in latest "ci/tidy.sh" ;;
     test-min) run_in min "$(test_command)" ;;
     test-latest) run_in latest "$(test_command)" ;;
     coverage) run_in latest "ci/coverage.sh" ;;

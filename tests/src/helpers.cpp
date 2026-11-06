@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <gtest/gtest.h>
 
 #include "wuzp/core/helpers.hpp"
@@ -33,4 +35,23 @@ TEST(TestHelpers, AreSame) {  // NOLINT
   static_assert(areSame<double, double>);
   static_assert(areSame<double, double, double>);
   static_assert(!areSame<double, double, int>);
+}
+
+// Records the values that its comma operator is applied to.
+class CommaRecorder {
+ public:
+  explicit CommaRecorder(std::vector<int>& values) : values_(&values) {}
+  CommaRecorder operator,(int value) const {
+    values_->push_back(value);
+    return *this;
+  }
+
+ private:
+  std::vector<int>* values_;
+};
+
+TEST(TestHelpers, ApplyCommas) {  // NOLINT
+  std::vector<int> values;
+  applyCommas(CommaRecorder{values}, 1, 2, 3);
+  EXPECT_EQ(values, (std::vector<int>{1, 2, 3}));
 }

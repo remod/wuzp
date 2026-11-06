@@ -23,6 +23,10 @@ Versions before 1.0 were distributed as Debian packages through a Launchpad PPA 
 - Compile tests verify that invalid code does not compile, and that the error message explains why.
 - The public headers compile on their own and without warnings with `-Wshadow -Wconversion -Wsign-conversion -Wold-style-cast`.
 
+### Removed
+
+- `getTypeName()`, which returned wrong names.
+
 ### Fixed
 
 - The units of `TimePoint`, `Duration` and `TorqueVector`.

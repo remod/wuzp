@@ -132,28 +132,19 @@ if(PROJECT_IS_TOP_LEVEL)
         ${PROJECT_SOURCE_DIR}/wuzp_eigen/include/*.hpp
         ${PROJECT_SOURCE_DIR}/tests/src/*.cpp
         ${PROJECT_SOURCE_DIR}/tests/src/*.hpp
+        ${PROJECT_SOURCE_DIR}/tests/compile_tests/cases/*.cpp
     )
-    # The compile test cases are formatted, but not tidied: they are not part of the compilation database.
-    file(GLOB WUZP_COMPILE_TEST_CASE_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/tests/compile_tests/cases/*.cpp)
     find_program(WUZP_CLANG_FORMAT clang-format)
     if(WUZP_CLANG_FORMAT)
         add_custom_target(wuzp_format
-            COMMAND ${WUZP_CLANG_FORMAT} -i --style=file ${WUZP_ALL_CXX_FILES} ${WUZP_COMPILE_TEST_CASE_FILES}
+            COMMAND ${WUZP_CLANG_FORMAT} -i --style=file ${WUZP_ALL_CXX_FILES}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Formatting the code."
         )
         add_custom_target(wuzp_check_format
-            COMMAND ${WUZP_CLANG_FORMAT} --dry-run --Werror --style=file ${WUZP_ALL_CXX_FILES} ${WUZP_COMPILE_TEST_CASE_FILES}
+            COMMAND ${WUZP_CLANG_FORMAT} --dry-run --Werror --style=file ${WUZP_ALL_CXX_FILES}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Checking the code format."
-        )
-    endif()
-    find_program(WUZP_CLANG_TIDY clang-tidy)
-    if(WUZP_CLANG_TIDY)
-        add_custom_target(wuzp_tidy
-            COMMAND ${WUZP_CLANG_TIDY} -p ${PROJECT_BINARY_DIR} ${WUZP_ALL_CXX_FILES}
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-            COMMENT "Running clang-tidy."
         )
     endif()
 endif()
