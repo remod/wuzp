@@ -1,6 +1,6 @@
 {
   // latest: Ubuntu 26.04, the newest supported dependencies.
-  // The image is the one CI uses: ci/image.sh pulls it, or builds it if the Dockerfile changed.
+  // The image is the one CI uses: ci/image.sh pulls it, or builds it if the Dockerfile or its build arguments changed.
   "name": "wuzp (latest, Ubuntu 26.04)",
   "initializeCommand": "ci/image.sh ensure latest --tag wuzp-dev:latest",
   "image": "wuzp-dev:latest",

@@ -80,8 +80,14 @@ endfunction()
 
 wuzp_backend_mode(EIGEN _enabled _mode)
 if(_enabled)
-    find_package(Eigen3 ${WUZP_EIGEN_MIN_VERSION} ${_mode} NO_MODULE)
-    if(TARGET Eigen3::Eigen)
+    # The version is checked after the search, because no version request accepts both Eigen 3.4 and Eigen 5: Eigen 3's
+    # package version file rejects ranges beyond major version 3, and Eigen 5's rejects other major versions.
+    find_package(Eigen3 ${_mode} NO_MODULE)
+    if(Eigen3_FOUND AND Eigen3_VERSION VERSION_LESS WUZP_EIGEN_MIN_VERSION)
+        if(_mode STREQUAL "REQUIRED")
+            message(FATAL_ERROR "wuzp requires Eigen ${WUZP_EIGEN_MIN_VERSION} or newer, but found ${Eigen3_VERSION}.")
+        endif()
+    elseif(TARGET Eigen3::Eigen)
         wuzp_add_backend(eigen Eigen3::Eigen)
     endif()
 endif()

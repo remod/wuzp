@@ -37,7 +37,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and publish the images if the Dockerfile changed
+      - name: Build and publish the images if the Dockerfile or its build arguments changed
         id: publish
         run: |
           for VARIANT in min latest; do

@@ -91,12 +91,12 @@ The following table visualizes how a proper rigid transformation transforms a po
 *wuzp* is header-only and requires a C++20 compiler and CMake 3.22 or newer.
 Each backend is an optional component with its own dependency:
 
-| Component | Target | Dependency (minimum version) |
+| Component | Target | Dependency (supported versions) |
 | --- | --- | --- |
 | core, including *wuzp*' own units | `wuzp::wuzp` | none |
-| `eigen` | `wuzp::eigen` | Eigen 3.4 |
-| `blitz` | `wuzp::blitz` | Blitz++ 1.0.2 |
-| `boost` | `wuzp::boost` | Boost 1.74 |
+| `eigen` | `wuzp::eigen` | Eigen 3.4 and 5 |
+| `blitz` | `wuzp::blitz` | Blitz++ 1.0.2 or newer |
+| `boost` | `wuzp::boost` | Boost 1.74 or newer |
 
 **Using CMake's FetchContent:**
 

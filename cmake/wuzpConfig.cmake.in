@@ -22,7 +22,14 @@ foreach(_wuzp_component IN LISTS ${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS)
 
     # Dependencies are only searched for the requested components.
     if(_wuzp_component STREQUAL "eigen")
-        find_dependency(Eigen3 @WUZP_EIGEN_MIN_VERSION@ NO_MODULE)
+        # Like in wuzp's CMakeLists.txt, the version is checked after the search.
+        find_dependency(Eigen3 NO_MODULE)
+        if(Eigen3_VERSION VERSION_LESS @WUZP_EIGEN_MIN_VERSION@)
+            set(${CMAKE_FIND_PACKAGE_NAME}_${_wuzp_component}_FOUND FALSE)
+            set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE
+                "Component 'eigen' requires Eigen @WUZP_EIGEN_MIN_VERSION@ or newer, but found ${Eigen3_VERSION}.")
+            continue()
+        endif()
     elseif(_wuzp_component STREQUAL "boost")
         find_dependency(Boost @WUZP_BOOST_MIN_VERSION@ CONFIG)
     elseif(_wuzp_component STREQUAL "blitz")
