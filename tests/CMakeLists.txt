@@ -90,9 +90,6 @@ add_executable(wuzp_tests
 target_compile_features(wuzp_tests PRIVATE cxx_std_20)
 wuzp_set_warnings(wuzp_tests)
 target_compile_definitions(wuzp_tests PRIVATE ${WUZP_TEST_DEFINITIONS})
-if(WUZP_TEST_VALUES STREQUAL "blitz")
-    target_compile_definitions(wuzp_tests PRIVATE BZ_USE_NUMTRAIT=OFF BZ_HAVE_TEMPLATE_QUALIFIED_RETURN_TYPE=OFF)
-endif()
 target_include_directories(wuzp_tests PRIVATE src)
 target_link_libraries(wuzp_tests PRIVATE GTest::gtest_main ${WUZP_TEST_LINK_LIBRARIES})
 
