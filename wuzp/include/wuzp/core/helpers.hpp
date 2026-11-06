@@ -1,9 +1,12 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <string_view>
 #include <tuple>
+#include <type_traits>
 #include <typeinfo>
+#include <utility>
 
 namespace wuzp {
 
@@ -11,7 +14,7 @@ template <typename T>
 struct FailOnInstantiation : public std::false_type {};
 
 template <int Size, typename T>
-using HomogeneousTuple = decltype(std::tuple_cat(std::declval<std::array<T, Size>>()));
+using HomogeneousTuple = decltype(std::tuple_cat(std::declval<std::array<T, static_cast<std::size_t>(Size)>>()));
 
 template <typename... Tuples>
 struct Cat {
