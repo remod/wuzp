@@ -37,7 +37,7 @@ Versions before 1.0 were distributed as Debian packages through a Launchpad PPA 
 - `Tensor::isApprox` checks the covariant indices.
 - The homogeneity check of `Quantities`: elements with mixed units could be set with runtime indices.
 - The Lorentz invariant read freed memory, and the Lorentz boost matrix was NaN for zero velocity.
-- With Blitz++: `isApprox` compares relatively, like with Eigen; the dot product read a freed temporary; inner products keep the value type of the operands instead of widening it.
+- With Blitz++: `isApprox` compares relatively, like with Eigen; the dot product read a freed temporary; inner products and norms keep the value type of the operands instead of widening it.
 - Reducing rationals with large denominators exceeded the template instantiation depth.
 - Translations did not compile with Clang 20 and newer.
 - `Tensor::hyperdeterminant` failed with a confusing error instead of "Not implemented".

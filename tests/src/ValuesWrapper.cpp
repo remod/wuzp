@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 
@@ -321,6 +322,21 @@ TEST(TestValuesWrapper, OuterProductOfScalarAndMatrix) {  // NOLINT
 TEST(TestValuesWrapper, DotProductTypeDerivation) {  // NOLINT
   using A = ValueMatrix<int, 4, 1>;
   static_assert(std::is_same_v<DotProduct<A, A>::type, ValueMatrix<int, 1, 1>>);
+}
+
+// The norms keep the value type, also with Blitz++, which widens sums (e.g. of int to long), and std::sqrt, which returns
+// double for integers.
+TEST(TestValuesWrapper, NormsKeepTheValueType) {  // NOLINT
+  const ValueMatrix<int, 2, 1> integers{3, 4};
+  static_assert(std::is_same_v<decltype(integers.squaredNorm()), int>);
+  static_assert(std::is_same_v<decltype(integers.norm()), int>);
+  EXPECT_EQ(integers.squaredNorm(), 25);
+  EXPECT_EQ(integers.norm(), 5);
+  const ValueMatrix<float, 2, 1> floats{3.0f, 4.0f};
+  static_assert(std::is_same_v<decltype(floats.squaredNorm()), float>);
+  static_assert(std::is_same_v<decltype(floats.norm()), float>);
+  EXPECT_EQ(floats.squaredNorm(), 25.0f);
+  EXPECT_EQ(floats.norm(), 5.0f);
 }
 
 TEST(TestValuesWrapper, DotProduct) {  // NOLINT

@@ -185,14 +185,20 @@ struct Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
 
 template <typename ImplementationT_>
 struct Norm<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return std::sqrt(SquaredNorm<AccessImplementation<ImplementationT_>>::value(impl)); }
+  static auto value(const ImplementationT_& impl) {
+    // Keep the value type, like Eigen: std::sqrt returns double for integers.
+    return static_cast<typename ImplementationT_::T_numtype>(std::sqrt(SquaredNorm<AccessImplementation<ImplementationT_>>::value(impl)));
+  }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <typename ImplementationT_>
 struct SquaredNorm<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return blitz::sum(impl * impl); }
+  static auto value(const ImplementationT_& impl) {
+    // Keep the value type, like Eigen: Blitz++ widens sums, e.g. of int to long and of float to double.
+    return static_cast<typename ImplementationT_::T_numtype>(blitz::sum(impl * impl));
+  }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
