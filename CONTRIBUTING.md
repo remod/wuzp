@@ -1,6 +1,7 @@
 # Contributing to wuzp
 
 Thank you for helping! Bug reports, questions and pull requests are welcome.
+Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Issues
 
@@ -106,9 +107,9 @@ Codecov checks that the coverage does not drop and that new code is covered (`co
 The public API consists of the headers in `wuzp/include/`, `wuzp_eigen/include/`, `wuzp_blitz/include/`, `wuzp_boost/include/` and `wuzp_mp_units/include/`, except those in `internal/` directories, and of the CMake package and targets.
 Breaking changes need a new major version, and are listed as such in [CHANGELOG.md](CHANGELOG.md).
 
-The oldest supported dependency versions are those of the oldest Ubuntu LTS release in standard support, currently Ubuntu 22.04 (see the `min` dev container).
+The oldest supported compiler and dependency versions are those of Ubuntu 22.04 (see the `min` dev container).
 mp-units is an exception: Ubuntu does not package it, and it needs newer compilers than those of Ubuntu 22.04. It is supported from version 2.5, the one in the `latest` dev container.
-When that release reaches the end of its standard support, the next minor version raises the minimum versions.
+Raising a minimum compiler or dependency version breaks the build for some users, so it is a breaking change too and only happens in a new major version.
 
 ## Releasing
 

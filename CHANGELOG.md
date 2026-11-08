@@ -2,14 +2,12 @@
 
 All notable changes to *wuzp* are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and *wuzp* follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (see [CONTRIBUTING.md](CONTRIBUTING.md#versioning)).
-Versions before 1.0 were distributed as Debian packages through a Launchpad PPA and are not listed here.
 
 ## [Unreleased]
 
 ### Changed
 
 - **Breaking:** One CMake project and one installable package with the components `eigen`, `blitz`, `boost` and `mp_units`, used as `find_package(wuzp CONFIG REQUIRED COMPONENTS eigen)` and `wuzp::wuzp`, `wuzp::eigen`, etc. It replaces the four separately packaged projects. *wuzp* can also be used through `FetchContent`.
-- **Breaking:** The Debian packages and the Launchpad PPA are discontinued.
 - **Breaking:** Points and vectors (absolute and relative tensors) no longer convert into each other implicitly. Use `makeRelative()` and `makeAbsolute()`.
 - **Breaking:** Translations check coordinate systems: an active translation only moves points expressed in its coordinate system, and the vector of a passive translation from `From` to `To` is expressed in `From` or `To`. A passive proper rigid transformation declares its translation in `To`.
 - **Breaking:** Powers of rationals that are not rationals themselves, such as `4^(1/4)`, are no longer defined (they returned wrong results), and `0^x` is only defined for `x > 0`.
