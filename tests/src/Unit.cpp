@@ -38,11 +38,10 @@ TEST(TestUnit, Identity) {  // NOLINT
 }
 
 TEST(TestUnit, AreAnglesDimensionless) {  // NOLINT
-#if ANGLES_ARE_DIMENSIONLESS
+  // Angles are dimensionless with every units backend (see "Angles are dimensionless" in DESIGN.md).
   static_assert(std::is_same<Angle, Dimensionless>::value);
   static_assert(std::is_same<Product<Angle, Length>::type, Length>::value);
-#else
-  static_assert(!std::is_same<Angle, Dimensionless>::value);
-  static_assert(!std::is_same<Product<Angle, Length>::type, Length>::value);
-#endif
+  static_assert(std::is_same<Product<AngularVelocity, Length>::type, Velocity>::value);
+  static_assert(std::is_same<Product<AngularAcceleration, Length>::type, Acceleration>::value);
+  static_assert(std::is_same<Torque, Energy>::value);
 }

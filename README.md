@@ -158,6 +158,8 @@ See the [benchmarks](benchmarks/README.md) for the numbers.
 
 Tensors may only be 0-, 1-, or 2-dimensional.
 
+Angles are dimensionless with every units backend, so *wuzp* cannot tell `rad/s` from `Hz`, nor torque from energy (see [DESIGN.md](DESIGN.md#angles-are-dimensionless)).
+
 Do not use the keyword `auto` when using the Eigen implementation (see [documentation](https://eigen.tuxfamily.org/dox/TopicPitfalls.html)).
 
 Blitz++ cannot be installed with `libblitz0-dev` when compiled with Clang, because the Debian package does not contain a required header file.

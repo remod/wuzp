@@ -19,8 +19,3 @@ endfunction()
 
 wuzp_add_benchmarks(eigen)
 wuzp_add_benchmarks(blitz)
-if(TARGET wuzp_benchmarks_blitz)
-    # Copying Blitz++'s lazy inner products reads an uninitialized member, which GCC reports in optimized builds
-    # (https://github.com/remod/wuzp/issues/59).
-    target_compile_options(wuzp_benchmarks_blitz PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wno-maybe-uninitialized>)
-endif()

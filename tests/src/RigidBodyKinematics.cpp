@@ -10,8 +10,6 @@
 
 using namespace wuzp;  // NOLINT
 
-using AngleQuantity = QuantityD<Angle>;
-
 // TODO(remod): Turn this into a proper function.
 TEST(TestRigidBodyKinematics, CalculateVelocity) {  // NOLINT
   using VelocityVector = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
@@ -21,11 +19,7 @@ TEST(TestRigidBodyKinematics, CalculateVelocity) {  // NOLINT
   const TranslationVector translation{0.0, 0.0, 1.0};
   const RotationalVelocityVector rotationalVelocity{4.0, 1.0, 2.0};
   const VelocityVector expectedVelocity{2.0, -2.0, 3.0};
-  const VelocityVector actualVelocity{velocity + rotationalVelocity.crossProduct(translation)
-#if !ANGLES_ARE_DIMENSIONLESS
-                                                     / AngleQuantity{1.0}
-#endif
-  };
+  const VelocityVector actualVelocity{velocity + rotationalVelocity.crossProduct(translation)};
   EXPECT_EQ(actualVelocity, expectedVelocity);
 }
 
@@ -39,15 +33,7 @@ TEST(TestRigidBodyKinematics, CalculateAcceleration) {  // NOLINT
   const RotationalAccelerationVector rotationalAcceleration{2.0, -1.0, 3.0};
   const RotationalVelocityVector rotationalVelocity{4.0, 1.0, 2.0};
   const AccelerationVector expectedAcceleration{8.0, 2.0, -14.0};
-  const AccelerationVector actualAcceleration{acceleration +
-                                              rotationalAcceleration.crossProduct(translation)
-#if !ANGLES_ARE_DIMENSIONLESS
-                                                  / AngleQuantity{1.0}
-#endif
-                                              + rotationalVelocity.crossProduct(rotationalVelocity.crossProduct(translation))
-#if !ANGLES_ARE_DIMENSIONLESS
-                                                    / AngleQuantity{1.0} / AngleQuantity{1.0}
-#endif
-  };
+  const AccelerationVector actualAcceleration{acceleration + rotationalAcceleration.crossProduct(translation) +
+                                              rotationalVelocity.crossProduct(rotationalVelocity.crossProduct(translation))};
   EXPECT_EQ(actualAcceleration, expectedAcceleration);
 }

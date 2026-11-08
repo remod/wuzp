@@ -12,15 +12,17 @@
 
 namespace wuzp_boost {
 
+// Angles are dimensionless in every units backend (see "Angles are dimensionless" in DESIGN.md), unlike Boost.Units'
+// plane_angle: angular velocity is 1 / s, and torque is N m, the unit of energy.
 using Acceleration = wuzp::Unit<boost::units::si::acceleration>;
-using Angle = wuzp::Unit<boost::units::si::plane_angle>;
-using AngularAcceleration = wuzp::Unit<boost::units::si::angular_acceleration>;
-using AngularVelocity = wuzp::Unit<boost::units::si::angular_velocity>;
+using Angle = wuzp::Unit<boost::units::si::dimensionless>;
+using AngularAcceleration = wuzp::Unit<boost::units::divide_typeof_helper<boost::units::si::frequency, boost::units::si::time>::type>;
+using AngularVelocity = wuzp::Unit<boost::units::si::frequency>;
 using Area = wuzp::Unit<boost::units::si::area>;
 using Dimensionless = wuzp::Unit<boost::units::si::dimensionless>;
 using Energy = wuzp::Unit<boost::units::si::energy>;
 using Force = wuzp::Unit<boost::units::si::force>;
-using Torque = wuzp::Unit<boost::units::si::torque>;
+using Torque = wuzp::Unit<boost::units::si::energy>;
 using Frequency = wuzp::Unit<boost::units::si::frequency>;
 using Length = wuzp::Unit<boost::units::si::length>;
 using Mass = wuzp::Unit<boost::units::si::mass>;

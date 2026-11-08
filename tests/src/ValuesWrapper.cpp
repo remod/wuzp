@@ -68,10 +68,18 @@ TEST(TestValuesWrapper, LazyTensorInverse) {  // NOLINT
 }
 #endif
 
+// The Blitz++ backend evaluates inner products: copying Blitz++'s lazy reduction reads an uninitialized member (#59).
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, LazyInnerProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 2, 2>;
   static_assert(!std::is_same<InnerProduct<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
+#else
+TEST(TestValuesWrapper, EvaluatedInnerProduct) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<double, 2, 2>;
+  static_assert(std::is_same<InnerProduct<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
+}
+#endif
 
 TEST(TestValuesWrapper, DefaultConstructionDoesThrow) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 3>;

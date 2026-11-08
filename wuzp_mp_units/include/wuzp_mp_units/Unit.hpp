@@ -17,12 +17,13 @@ template <auto UnitV_>
 using UnitType = std::remove_cvref_t<decltype(UnitV_)>;
 
 // The units are built from the base units rather than named derived units (e.g. kg m / s^2 rather than newton), so that
-// they have the same types as the results of products and divisions. Angles are radians, which mp-units keeps apart from
-// the unit one (rad / s is not 1 / s), like Boost.Units does, but unlike wuzp's own units.
+// they have the same types as the results of products and divisions. Angles are dimensionless in every units backend
+// (see "Angles are dimensionless" in DESIGN.md), so they are the unit one rather than mp-units' radian, and angular
+// velocity is 1 / s.
 using Acceleration = wuzp::Unit<UnitType<mp_units::si::metre / mp_units::square(mp_units::si::second)>>;
-using Angle = wuzp::Unit<UnitType<mp_units::si::radian>>;
-using AngularAcceleration = wuzp::Unit<UnitType<mp_units::si::radian / mp_units::square(mp_units::si::second)>>;
-using AngularVelocity = wuzp::Unit<UnitType<mp_units::si::radian / mp_units::si::second>>;
+using Angle = wuzp::Unit<UnitType<mp_units::one>>;
+using AngularAcceleration = wuzp::Unit<UnitType<mp_units::one / mp_units::square(mp_units::si::second)>>;
+using AngularVelocity = wuzp::Unit<UnitType<mp_units::one / mp_units::si::second>>;
 using Area = wuzp::Unit<UnitType<mp_units::square(mp_units::si::metre)>>;
 using Dimensionless = wuzp::Unit<UnitType<mp_units::one>>;
 using Energy =
@@ -32,7 +33,7 @@ using Frequency = wuzp::Unit<UnitType<mp_units::one / mp_units::si::second>>;
 using Length = wuzp::Unit<UnitType<mp_units::si::metre>>;
 using Mass = wuzp::Unit<UnitType<mp_units::si::kilogram>>;
 using Time = wuzp::Unit<UnitType<mp_units::si::second>>;
-// Torque is N m, like in mp-units' SI system, so that the cross product of a length and a force is a torque.
+// Torque is N m, the unit of energy, so that the cross product of a length and a force is a torque.
 using Torque =
     wuzp::Unit<UnitType<mp_units::si::kilogram * mp_units::square(mp_units::si::metre) / mp_units::square(mp_units::si::second)>>;
 using Velocity = wuzp::Unit<UnitType<mp_units::si::metre / mp_units::si::second>>;

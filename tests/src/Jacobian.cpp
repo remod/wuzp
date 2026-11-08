@@ -18,7 +18,6 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
   using Object =
       Vector<Quantities<ValueMatrix<double, FromDimension, 1>, TypeMatrix<FromDimension, 1, Velocity, Velocity, AngularVelocity>>,
              CoordinateSystemA>;
-  // Note: With wuzp units angles are dimensionless, but with boost units not.
   using AngleOverLength = Division<Angle, Length>::type;
   using LengthOverAngle = Inverse<AngleOverLength>::type;
   using Transformation = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, FromDimension, ToDimension,

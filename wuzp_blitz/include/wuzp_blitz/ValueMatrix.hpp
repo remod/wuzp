@@ -138,10 +138,14 @@ struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementat
     // Blitz++ widens sums (e.g. of int to long). Keep the value type that ValuesWrapper declares for products, like Eigen.
     using ValueT =
         typename Product<ValueType<typename ImplementationLhsT_::T_numtype>, ValueType<typename ImplementationRhsT_::T_numtype>>::type;
-    return blitz::cast<ValueT>(
+    // The result is evaluated: Blitz++'s lazy reduction leaves a member uninitialized until it is evaluated, so copying it
+    // reads an uninitialized value (GCC warns about this in optimized builds).
+    blitz::Array<ValueT, 2> result(implLhs.extent(0), implRhs.extent(1));
+    result = blitz::cast<ValueT>(
         blitz::sum(implLhs(blitz::tensor::i, blitz::tensor::k) * implRhs(blitz::tensor::k, blitz::tensor::j), blitz::tensor::k));
+    return result;
   }
-  // Use decltype/declval to allow for lazy evaluation.
+  // Not lazy, see above.
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
 };
 

@@ -63,11 +63,5 @@ TEST(TestQuantity, Inverse) {  // NOLINT
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
   const LengthQuantity radius{2.0};
   const AngleQuantity angle{3.0};
-  [[maybe_unused]] const LengthQuantity arcLength{angle *
-                                                  radius
-#if !ANGLES_ARE_DIMENSIONLESS
-                                                  // Angles are not dimensionless with every backend. We need to "normalize" the result.
-                                                  / AngleQuantity{1.0}
-#endif
-  };
+  [[maybe_unused]] const LengthQuantity arcLength{angle * radius};
 }

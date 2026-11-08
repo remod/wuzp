@@ -29,12 +29,6 @@ using LengthQuantityI = QuantityI<Length>;
 using SquaredLengthQuantityI = QuantityI<Power<Length, Integer<2>>::type>;
 using MassQuantityI = QuantityI<Mass>;
 using AreaQuantityI = QuantityI<Area>;
-// The unit of a length times a force. Boost.Units defines torque as N m / rad, so there it is a torque times an angle.
-#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_BOOST
-using LengthTimesForce = Product<Torque, Angle>::type;
-#else
-using LengthTimesForce = Torque;
-#endif
 
 template <typename TensorT>
 using UnitOf = typename GetType<typename TensorT::UnitsT>::type;
@@ -386,7 +380,7 @@ TEST(TestTensor2, InnerProduct) {  // NOLINT
   using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
   using TensorRhs = Tensor<1, 0, QuantityMatrixRhs, CoordinateSystemA, Relative>;
   using ValueMatrixResult = ValueMatrix<int, 3, 1>;
-  using UnitMatrixResult = TypeMatrix<3, 1, LengthTimesForce>;
+  using UnitMatrixResult = TypeMatrix<3, 1, Torque>;
   using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
   using TensorResult = Tensor<1, 0, QuantityMatrixResult, CoordinateSystemA, Relative>;
   const TensorLhs tensorLhs{1, 2, 3, 4, 5, 6};
@@ -405,7 +399,7 @@ TEST(TestTensor2, OuterProductOfScalars) {  // NOLINT
   using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
   using TensorRhs = Tensor<0, 0, QuantityMatrixRhs, CoordinateSystemA, Relative>;
   using ValueMatrixResult = ValueMatrix<int, 1, 1>;
-  using UnitMatrixResult = TypeMatrix<1, 1, LengthTimesForce>;
+  using UnitMatrixResult = TypeMatrix<1, 1, Torque>;
   using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
   using TensorResult = Tensor<0, 0, QuantityMatrixResult, CoordinateSystemA, Relative>;
   const TensorLhs tensorLhs{2};
@@ -424,7 +418,7 @@ TEST(TestTensor2, OuterProductOfCovectorAndVector) {  // NOLINT
   using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
   using TensorRhs = Tensor<0, 1, QuantityMatrixRhs, CoordinateSystemA, Relative>;
   using ValueMatrixResult = ValueMatrix<int, 3, 2>;
-  using UnitMatrixResult = TypeMatrix<3, 2, LengthTimesForce>;
+  using UnitMatrixResult = TypeMatrix<3, 2, Torque>;
   using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
   using TensorResult = Tensor<1, 1, QuantityMatrixResult, CoordinateSystemA, Relative>;
   const TensorLhs tensorLhs{1, 2};
@@ -443,7 +437,7 @@ TEST(TestTensor2, OuterProductOfVectorAndCovector) {  // NOLINT
   using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
   using TensorRhs = Tensor<0, 1, QuantityMatrixRhs, CoordinateSystemA, Relative>;
   using ValueMatrixResult = ValueMatrix<int, 3, 2>;
-  using UnitMatrixResult = TypeMatrix<3, 2, LengthTimesForce>;
+  using UnitMatrixResult = TypeMatrix<3, 2, Torque>;
   using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
   using TensorResult = Tensor<1, 1, QuantityMatrixResult, CoordinateSystemA, Relative>;
   const TensorLhs tensorLhs{-1, 3, 4};
@@ -462,7 +456,7 @@ TEST(TestTensor2, OuterProductOfScalarAndMatrix) {  // NOLINT
   using QuantityMatrixRhs = Quantities<ValueMatrixRhs, UnitMatrixRhs>;
   using TensorRhs = Tensor<1, 1, QuantityMatrixRhs, CoordinateSystemA, Relative>;
   using ValueMatrixResult = ValueMatrix<int, 2, 2>;
-  using UnitMatrixResult = TypeMatrix<2, 2, LengthTimesForce>;
+  using UnitMatrixResult = TypeMatrix<2, 2, Torque>;
   using QuantityMatrixResult = Quantities<ValueMatrixResult, UnitMatrixResult>;
   using TensorResult = Tensor<1, 1, QuantityMatrixResult, CoordinateSystemA, Relative>;
   const TensorLhs tensorLhs{2};

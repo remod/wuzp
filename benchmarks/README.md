@@ -28,11 +28,11 @@ Google Benchmark warns that Ubuntu's build of it is a debug build; this affects 
 
 | Benchmark | GCC, plain | GCC, *wuzp* | Clang, plain | Clang, *wuzp* |
 | --- | --- | --- | --- | --- |
-| `Sum`: vector + vector | 0.42 ns | 0.41 ns | 0.43 ns | 0.40 ns |
-| `ProductWithScalar`: mass * acceleration | 1.39 ns | 0.40 ns | 0.41 ns | 0.40 ns |
-| `Norm` | 1.75 ns | 1.74 ns | 1.75 ns | 1.77 ns |
-| `TransformVector`: rigid transformation of a vector | 1.08 ns | 0.97 ns | 0.90 ns | 1.07 ns |
-| `TransformPoint`: rigid transformation of a point | 1.28 ns | 1.56 ns | 1.19 ns | 1.25 ns |
+| `Sum`: vector + vector | 0.44 ns | 0.52 ns | 0.45 ns | 0.43 ns |
+| `ProductWithScalar`: mass * acceleration | 1.64 ns | 0.52 ns | 0.43 ns | 0.44 ns |
+| `Norm` | 2.14 ns | 2.05 ns | 1.76 ns | 1.85 ns |
+| `TransformVector`: rigid transformation of a vector | 1.26 ns | 1.11 ns | 1.00 ns | 1.13 ns |
+| `TransformPoint`: rigid transformation of a point | 1.33 ns | 1.65 ns | 1.29 ns | 1.33 ns |
 
 With Eigen, *wuzp* is as fast as plain Eigen: the units, coordinate systems and absolute/relative flags are types, which the compiler removes.
 The generated code differs slightly, in both directions (e.g. GCC compiles plain Eigen's `mass * acceleration` to slower code).
@@ -42,11 +42,11 @@ Transforming a point with GCC is about 0.3 ns slower: the translation adds its c
 
 | Benchmark | GCC, plain | GCC, *wuzp* | Clang, plain | Clang, *wuzp* |
 | --- | --- | --- | --- | --- |
-| `Sum` | 20 ns | 28 ns | 30 ns | 42 ns |
-| `ProductWithScalar` | 20 ns | 25 ns | 27 ns | 44 ns |
-| `Norm` | 3 ns | 19 ns | 7 ns | 31 ns |
-| `TransformVector` | 20 ns | 36 ns | 36 ns | 48 ns |
-| `TransformPoint` | 20 ns | 139 ns | 40 ns | 225 ns |
+| `Sum` | 19 ns | 29 ns | 29 ns | 44 ns |
+| `ProductWithScalar` | 19 ns | 26 ns | 28 ns | 44 ns |
+| `Norm` | 3 ns | 19 ns | 8 ns | 33 ns |
+| `TransformVector` | 19 ns | 37 ns | 39 ns | 47 ns |
+| `TransformPoint` | 20 ns | 137 ns | 40 ns | 197 ns |
 
 With Blitz++, *wuzp* is slower.
 Its Blitz++ backend stores every value matrix in a dynamically allocated `blitz::Array`, even a single value: the norm, for example, allocates for its result, and the translation of a point allocates for each component it adds.

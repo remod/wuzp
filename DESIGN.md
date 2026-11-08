@@ -75,6 +75,17 @@ Transforming certain tensors, e.g. a mass matrix, requires left and right multip
 This rules out option 2, as the two multiplications do not know about each other.
 The information that the new coordinate system needs to be applied is only available on the level of the transformation object.
 
+### Angles are dimensionless
+
+The radian is a length divided by a length, so in SI angles are dimensionless.
+Boost.Units treats the plane angle as a dimension of its own, and mp-units keeps the radian as a unit apart from one.
+Following them would force explicit radians into ordinary formulas: `v + ω × r` only compiles after dividing `ω × r` by one radian, torque becomes `N m / rad`, and code written for one units backend does not compile with another.
+
+Decision: angles are dimensionless in every units backend.
+The Boost.Units and mp-units adapters define `Angle` as dimensionless, angular velocity as `1/s`, angular acceleration as `1/s^2` and torque as `N m`.
+
+The price: `rad/s` cannot be told apart from `Hz`, nor torque from energy, so *wuzp* does not catch a missing factor of 2π between angular velocity and frequency.
+
 ## Review of mathematical and physical soundness (November 2026)
 
 The library was reviewed for mathematical and physical soundness, with claims verified by compiling and running programs.
@@ -146,16 +157,6 @@ The rule `A^-T M A^-1` cannot handle non-square Jacobians, and the mass matrix t
 The physically meaningful operations are the pullback `M_q = J^T M_x J` (no inverse needed) and the operational space inertia `Λ = (J M^-1 J^T)^-1`.
 
 Recommendation: a separate Jacobian type that rejects points and provides the pullback.
-
-### TODO: Angles in the units backends
-
-*wuzp*'s own units treat angles as dimensionless, so angular velocity equals frequency and torque equals energy, and `rad/s` cannot be distinguished from `Hz`.
-Boost.Units treats the radian as a dimension (e.g. torque is `N m / rad`), so `v + ω × r` does not compile with Boost (`m/s` vs `m rad/s`).
-mp-units keeps the radian as a unit of its own too (`rad/s` is not `1/s`), so its backend behaves like Boost here; its torque is `N m`, though.
-The tests contain workarounds for this (`#if !ANGLES_ARE_DIMENSIONLESS ... / AngleQuantity{1.0}`), and user code is not portable between the units backends, which contradicts the goal that the backends prove the concept generalizes.
-
-Options: (a) define angles as dimensionless in all backends (configure Boost.Units and mp-units accordingly, or provide conversions); (b) treat angles as a dimension in all backends and provide the conversions needed for `ω × r`; (c) document the difference.
-Recommendation: (b), since Boost.Units and mp-units, the basis of the proposed standard units library, both keep the radian as a unit of its own; *wuzp*'s own units would follow them.
 
 ### TODO: Metric
 

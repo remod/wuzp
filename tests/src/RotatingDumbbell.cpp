@@ -80,11 +80,7 @@ std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordi
                                                              const RadiusQuantity& radius) {
   const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2, 0>()};
   const VelocityVector velocityVector{radius * minimalCoordinatesDt.getQuantity<2, 0>() *
-                                      DirectionVector(-sin(relativeAngle), cos(relativeAngle))
-#if !ANGLES_ARE_DIMENSIONLESS
-                                      / AngleQuantity{1.0}
-#endif
-  };
+                                      DirectionVector(-sin(relativeAngle), cos(relativeAngle))};
   const VelocityVector velocity1{castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinatesDt.block<0, 0, 2, 1>()) +
                                  velocityVector};
   const VelocityVector velocity2{castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinatesDt.block<0, 0, 2, 1>()) -
@@ -116,35 +112,16 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   // TODO(remod): For vectors, make it possible to write <1> instead of <1, 0>.
   const EnergyQuantity energyMinimalCoordinates1{
       0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantity<0, 0>()) + pow<2>(minimalCoordinatesDt.getQuantity<1, 0>()) +
-                        pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantity<2, 0>()
-#if !ANGLES_ARE_DIMENSIONLESS
-                                                / AngleQuantity{1.0}
-#endif
-                                                )) +
-             2.0 * radius * massDifference * minimalCoordinatesDt.getQuantity<2, 0>()
-#if !ANGLES_ARE_DIMENSIONLESS
-                 / AngleQuantity{1.0}
-#endif
-                 * (cos(relativeAngle) * minimalCoordinatesDt.getQuantity<1, 0>() -
-                    sin(relativeAngle) * minimalCoordinatesDt.getQuantity<0, 0>()))};
+                        pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantity<2, 0>())) +
+             2.0 * radius * massDifference * minimalCoordinatesDt.getQuantity<2, 0>() *
+                 (cos(relativeAngle) * minimalCoordinatesDt.getQuantity<1, 0>() -
+                  sin(relativeAngle) * minimalCoordinatesDt.getQuantity<0, 0>()))};
 
   const MassQuantity massMatrix00{massSum};
   const MassQuantity massMatrix01{0.0};
-  const MassLengthQuantity massMatrix02{-radius * massDifference * sin(relativeAngle)
-#if !ANGLES_ARE_DIMENSIONLESS
-                                        / AngleQuantity{1.0}
-#endif
-  };
-  const MassLengthQuantity massMatrix12{radius * massDifference * cos(relativeAngle)
-#if !ANGLES_ARE_DIMENSIONLESS
-                                        / AngleQuantity{1.0}
-#endif
-  };
-  const MassLength2Quantity massMatrix22{pow<2>(radius) * massSum
-#if !ANGLES_ARE_DIMENSIONLESS
-                                         / pow<2>(AngleQuantity{1.0})
-#endif
-  };
+  const MassLengthQuantity massMatrix02{-radius * massDifference * sin(relativeAngle)};
+  const MassLengthQuantity massMatrix12{radius * massDifference * cos(relativeAngle)};
+  const MassLength2Quantity massMatrix22{pow<2>(radius) * massSum};
   const MassMatrix massMatrix{massMatrix00, massMatrix01, massMatrix02, massMatrix01, massMatrix00,
                               massMatrix12, massMatrix02, massMatrix12, massMatrix22};
 
