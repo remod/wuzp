@@ -72,6 +72,7 @@ Compile tests are labelled `compile`, so `ctest --preset <preset> -L compile` ru
 
 Every `static_assert` message in the headers needs a compile test.
 The test `compile.diagnostics_coverage` enforces this; messages that are not tested yet are listed in `tests/compile_tests/untested_diagnostics.txt`, and that list must only shrink.
+Every concept constraint on a template parameter needs a compile test too. Compilers word constraint errors differently, so such a case expects `// wuzp-error: constraints?( are)? (failure|not satisfied)`, and only violates the constraint it tests.
 
 ## Formatting and tidying
 

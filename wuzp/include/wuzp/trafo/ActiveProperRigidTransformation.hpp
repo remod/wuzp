@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/trafo/ActiveSpatialRotation.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
@@ -13,7 +14,7 @@ namespace wuzp {
 // First rotate, then translate.
 // TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
 // TODO(remod): Add test which checks that active and passive transformation cancel each other (to proof order).
-template <typename CoordinateSystem, typename Rotation_, typename Translation_>
+template <AnyCoordinateSystem CoordinateSystem, typename Rotation_, typename Translation_>
 class ActiveProperRigidTransformationTemplate
     : public ActiveTransformation<ActiveProperRigidTransformationTemplate<CoordinateSystem, Rotation_, Translation_>> {
  public:

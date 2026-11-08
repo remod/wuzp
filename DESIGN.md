@@ -86,6 +86,14 @@ The Boost.Units and mp-units adapters define `Angle` as dimensionless, angular v
 
 The price: `rad/s` cannot be told apart from `Hz`, nor torque from energy, so *wuzp* does not catch a missing factor of 2π between angular velocity and frequency.
 
+### Constraints on template parameters
+
+Template parameters used to be unconstrained: a test passed a `TypeMatrix` of coordinate systems as the coordinate system of a tensor by accident, and it compiled.
+
+Decision: the template parameters are constrained with C++20 concepts (`wuzp/core/concepts.hpp`, #36), e.g. the coordinate system of a tensor must be a `CoordinateSystem`.
+A parameter of the wrong kind fails with a constraint error that names the unsatisfied concept.
+Invalid combinations of valid types, e.g. matrix sizes that do not match, are rejected with a `static_assert` and a clear message instead.
+
 ## Review of mathematical and physical soundness (November 2026)
 
 The library was reviewed for mathematical and physical soundness, with claims verified by compiling and running programs.
@@ -201,11 +209,6 @@ Recommendation: implement small fixed-size inverses for Blitz++ in *wuzp*, or do
 Absolute and relative only exist for tensors, so an absolute scalar (e.g. a time point or a temperature) needs a coordinate system, and there is no temperature alias.
 The rigid transformation of a mass or inertia tensor does not compile, which is arguably safer than guessing the parallel axis term.
 Recommendation: decide whether absolute quantities without a coordinate system are needed.
-
-### TODO: Constraints on template parameters
-
-The coordinate system parameter of a tensor is unconstrained: a test passes a `TypeMatrix` there by accident (`tests/src/RotatingDumbbell.cpp:43`).
-Recommendation: constrain the parameters with C++20 concepts (see #36).
 
 ### TODO: Unreachable invertibility check
 

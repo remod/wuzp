@@ -13,6 +13,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **Breaking:** Powers of rationals that are not rationals themselves, such as `4^(1/4)`, are no longer defined (they returned wrong results), and `0^x` is only defined for `x > 0`.
 - **Breaking:** `getInvariant(vector)` deduces its template arguments, and takes any vector whose components have the same unit, e.g. a four-velocity. Explicit template arguments no longer compile.
 - **Breaking:** With Boost.Units, angles are dimensionless, like with *wuzp*'s own units and mp-units: angular velocity is `1/s`, angular acceleration `1/s^2` and torque `N m`, so the same code compiles with every units backend (see "Angles are dimensionless" in `DESIGN.md`).
+- **Breaking:** The template parameters of tensors, quantities, value matrices and transformations are constrained with C++20 concepts (`<wuzp/core/concepts.hpp>`), e.g. the coordinate system of a tensor must be a `CoordinateSystem`. Misuse fails with a constraint error, instead of compiling or failing deep inside the library.
 - The oldest supported dependency versions are those of Ubuntu 22.04: GCC 11, Clang 14, CMake 3.22, Eigen 3.4 and Boost 1.74.
 
 ### Added

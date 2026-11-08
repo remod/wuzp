@@ -17,6 +17,7 @@
 #include "wuzp/core/Units.hpp"
 #include "wuzp/core/ValueWrapper.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/ActiveLinearTransformation.hpp"

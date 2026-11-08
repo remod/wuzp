@@ -6,12 +6,14 @@
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
 #include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystemT_, typename... Units>
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, AnyCoordinateSystem CoordinateSystemT_,
+          typename... Units>
 class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystemT_, Units...>> {
  public:
   using ValuesT = ValuesT_<Value, Dimension, 1>;

@@ -11,6 +11,7 @@
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
@@ -22,7 +23,7 @@ namespace wuzp {
  * @tparam ValuesT_ Container type to store the values (e.g. a scalar, vector, matrix, etc.).
  * @tparam UnitsT_ Container storing the units (e.g. a scalar, vector, matrix, etc.).
  */
-template <typename ValuesT_, typename UnitsT_>
+template <AnyValuesWrapper ValuesT_, AnyUnitMatrix UnitsT_>
 class Quantities {
  public:
   using ValuesT = ValuesT_;
@@ -35,7 +36,8 @@ class Quantities {
 
   Quantities() = default;
 
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  template <typename T0, typename... Ts>
+    requires(!IsSpecialization<T0, Tag>::value)
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) Quantities(T0&& t0, Ts&&... ts)
       : Quantities(typename GetTag<ThisT, T0, Ts...>::type{}, std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
@@ -43,33 +45,33 @@ class Quantities {
   static ThisT zero() { return ThisT(ValuesT::zero()); }
   static ThisT random() { return ThisT(ValuesT::random()); }
 
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  auto get() const {
+  auto get() const
+    requires(Dimension<ThisT>::value == 0)
+  {
     return get<0, 0>();
   }
 
-  template <int RowId, int ColId, int Dimension = Dimension<ThisT>::value>
+  template <int RowId, int ColId>
   auto get() const {
     return typename Element<ThisT, RowId, ColId>::type{values_.template get<RowId, ColId>()};
   }
 
-  template <int Dimension = Dimension<ThisT>::value>
-  auto get(const int rowId, const int colId) const {
-    return typename GetType<ThisT>::type{values_.get(rowId, colId)};
-  }
+  auto get(const int rowId, const int colId) const { return typename GetType<ThisT>::type{values_.get(rowId, colId)}; }
 
-  template <typename ValueT_, typename UnitT_, int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  void set(const Quantity<ValueT_, UnitT_>& quantity) {
+  template <typename ValueT_, typename UnitT_>
+  void set(const Quantity<ValueT_, UnitT_>& quantity)
+    requires(Dimension<ThisT>::value == 0)
+  {
     return set<0, 0>(quantity);
   }
 
-  template <int RowId, int ColId, typename ValueT_, typename UnitT_, int Dimension = Dimension<ThisT>::value>
+  template <int RowId, int ColId, typename ValueT_, typename UnitT_>
   void set(const Quantity<ValueT_, UnitT_>& quantity) {
     static_assert(std::is_same<typename Element<UnitsT, RowId, ColId>::type, UnitT_>::value, "Units do not match.");
     values_.template set<RowId, ColId>(quantity.getValue());
   }
 
-  template <typename ValueT_, typename UnitT_, int Dimension = Dimension<ThisT>::value>
+  template <typename ValueT_, typename UnitT_>
   void set(const int rowId, const int colId, const Quantity<ValueT_, UnitT_>& quantity) {
     static_assert(IsHomogeneous<ThisT>::value, "Quantities are not homogeneous.");
     static_assert(std::is_same<typename Element<UnitsT, 0, 0>::type, UnitT_>::value, "Units do not match.");
@@ -87,8 +89,9 @@ class Quantities {
     values_ = values;
   }
 
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  void setValue(ValueT value) {
+  void setValue(ValueT value)
+    requires(Dimension<ThisT>::value == 0)
+  {
     values_.set(value);
   }
 
@@ -100,8 +103,9 @@ class Quantities {
    */
   const ValuesT& getValues() const { return values_; }
 
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  ValueT getValue() const {
+  ValueT getValue() const
+    requires(Dimension<ThisT>::value == 0)
+  {
     return getValues().get();
   }
 
@@ -153,12 +157,10 @@ class Quantities {
 
   auto squaredNorm() const { return typename Power<typename GetType<ThisT>::type, Integer<2>>::type{values_.squaredNorm()}; }
 
-  /**
-   * Get the determinant. Its unit is the product of the units on the diagonal, e.g. u^n for a matrix with a single unit u.
-   * @tparam Dimension Do not use this.
-   */
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 2>>
-  auto determinant() const {
+  //! Get the determinant. Its unit is the product of the units on the diagonal, e.g. u^n for a matrix with a single unit u.
+  auto determinant() const
+    requires(Dimension<ThisT>::value == 2)
+  {
     return typename Determinant<ThisT>::type{values_.determinant()};
   }
 
@@ -201,7 +203,7 @@ struct GetTag<Quantities<ValuesT_, UnitsT_>, Ts...> {
   using type = typename IfThenElse<
       sizeof...(Ts) == 1,
       typename IfThenElse<
-          IsSpecialization<first, Quantities>::value, FromSimilar,
+          AnyQuantities<first>, FromSimilar,
           typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromImplementation, FromImplementationArgs>::type>::type,
       typename IfThenElse<(IsQuantity<std::decay_t<Ts>>::value && ...), FromImplementation, FromImplementationArgs>::type>::type;
 };

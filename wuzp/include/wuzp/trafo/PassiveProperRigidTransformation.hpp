@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/trafo/PassiveSpatialRotation.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
 #include "wuzp/trafo/PassiveTranslation.hpp"
@@ -14,7 +15,7 @@ namespace wuzp {
 // First rotate, then translate. The rotation transforms from From to an intermediate coordinate system with the origin of From and
 // the axes of To, the translation from there to To. The translation is therefore expressed in To.
 // TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
-template <typename CoordinateSystem, typename From, typename To, typename Rotation_, typename Translation_>
+template <AnyCoordinateSystem CoordinateSystem, AnyCoordinateSystem From, AnyCoordinateSystem To, typename Rotation_, typename Translation_>
 class PassiveProperRigidTransformationTemplate
     : public PassiveTransformation<PassiveProperRigidTransformationTemplate<CoordinateSystem, From, To, Rotation_, Translation_>, From,
                                    To> {

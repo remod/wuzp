@@ -49,25 +49,16 @@ struct IfThenElse<false, TypeA, TypeB> {
   using type = TypeB;
 };
 
-template <typename...>
-using Void = void;
-
-template <template <typename...> typename, typename...>
-struct IsSpecializableImpl : std::false_type {};
-template <template <typename...> typename C, typename... Ts>
-struct IsSpecializableImpl<C, Void<C<Ts...>>, Ts...> : std::true_type {};
-template <template <typename...> typename C, typename... Ts>
-struct IsSpecializable : IsSpecializableImpl<C, void, Ts...> {};
-
-template <template <typename...> typename Template1, template <typename...> typename Template2, typename... Args>
-struct IsSameSpecialization : std::is_same<Template1<Args...>, Template2<Args...>> {};
+//! Whether the template can be specialized with the arguments, e.g. whether their number fits and they satisfy its constraints.
+template <template <typename...> typename Template, typename... Args>
+concept Specializable = requires { typename Template<Args...>; };
 
 template <typename T, template <typename...> typename Template>
 struct IsSpecialization : std::false_type {};
-// std::conjunction only instantiates IsSameSpecialization if Template2<Args...> is valid.
+// Template2<Args...> is only formed if it is valid.
 template <template <typename...> typename Template1, template <typename...> typename Template2, typename... Args>
-struct IsSpecialization<Template1<Args...>, Template2>
-    : std::conjunction<IsSpecializable<Template2, Args...>, IsSameSpecialization<Template1, Template2, Args...>> {};
+  requires Specializable<Template2, Args...>
+struct IsSpecialization<Template1<Args...>, Template2> : std::is_same<Template1<Args...>, Template2<Args...>> {};
 // TODO(remod): This corner case could be avoided by using std::integral_constant instead of ints for the Tensor class and providing a
 // simplified alias.
 template <typename T, template <int, int, typename...> typename Template>

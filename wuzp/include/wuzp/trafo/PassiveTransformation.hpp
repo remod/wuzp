@@ -2,19 +2,17 @@
 
 #include <type_traits>
 
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/trafo/Transformation.hpp"
 #include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 
-template <typename Derived, typename From, typename To>
-class PassiveTransformation;
-
-template <typename Derived, typename FromName, typename ToName>
-class PassiveTransformation<Derived, CoordinateSystem<FromName>, CoordinateSystem<ToName>> : public Transformation {
+template <typename Derived, AnyCoordinateSystem From_, AnyCoordinateSystem To_>
+class PassiveTransformation : public Transformation {
  public:
-  using From = CoordinateSystem<FromName>;
-  using To = CoordinateSystem<ToName>;
+  using From = From_;
+  using To = To_;
 
   template <typename Object>
   auto transform(const Object& object) const {

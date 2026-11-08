@@ -9,13 +9,10 @@
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
-
-// Forward declaration.
-template <typename ValuesT_, typename UnitsT_>
-class Quantities;
 
 /**
  * Container to store a single quantity.

@@ -6,13 +6,14 @@
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
 #include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystemT_, typename From,
-          typename To, typename... Units>
+template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, AnyCoordinateSystem CoordinateSystemT_,
+          AnyCoordinateSystem From, AnyCoordinateSystem To, typename... Units>
 class PassiveTranslation
     : public PassiveTransformation<PassiveTranslation<ValuesT_, Dimension, Value, CoordinateSystemT_, From, To, Units...>, From, To> {
  public:

@@ -7,14 +7,15 @@
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
 #include "wuzp/trafo/internal/map_relative.hpp"
 #include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystemT_, typename From, typename To,
-          int DimensionFrom, int DimensionTo, typename... Units>
+template <template <typename, int, int> typename ValuesT_, typename Value, AnyCoordinateSystem CoordinateSystemT_, AnyCoordinateSystem From,
+          AnyCoordinateSystem To, int DimensionFrom, int DimensionTo, typename... Units>
 class PassiveLinearTransformation
     : public PassiveTransformation<
           PassiveLinearTransformation<ValuesT_, Value, CoordinateSystemT_, From, To, DimensionFrom, DimensionTo, Units...>, From, To> {

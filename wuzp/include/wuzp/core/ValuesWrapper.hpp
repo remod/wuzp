@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "wuzp/core/MatrixSize.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
@@ -17,7 +18,7 @@ namespace wuzp {
  * @tparam ImplementationT_ ImplementationT of the values.
  */
 // TODO(remod): Rename to Values?
-template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>
+template <AnyMatrixSize MatrixSizeT_, ArithmeticValue ValueT_, typename ImplementationT_>
 class ValuesWrapper {
  public:
   using MatrixSizeT = MatrixSizeT_;
@@ -28,7 +29,8 @@ class ValuesWrapper {
 
   ValuesWrapper() { ReserveMemory<ImplementationT_, MatrixSizeT_>::run(implementation_); }
 
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  template <typename T0, typename... Ts>
+    requires(!IsSpecialization<T0, Tag>::value)
   // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) ValuesWrapper(T0&& t0, Ts&&... ts)
       : ValuesWrapper(typename GetTag<ThisT, T0, Ts...>::type{}, std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
@@ -54,8 +56,9 @@ class ValuesWrapper {
     return implementation_(RowId, ColId);
   }
 
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  auto get() const {
+  auto get() const
+    requires(Dimension<ThisT>::value == 0)
+  {
     return get<0, 0>();
   }
 
@@ -68,8 +71,10 @@ class ValuesWrapper {
     return *this;
   }
 
-  template <typename ValueT, int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  ThisT& set(ValueT value) {
+  template <typename ValueT>
+  ThisT& set(ValueT value)
+    requires(Dimension<ThisT>::value == 0)
+  {
     return set<0, 0>(value);
   }
 
@@ -80,9 +85,10 @@ class ValuesWrapper {
     return *this;
   }
 
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
   // NOLINTNEXTLINE(google-explicit-constructor)
-  operator typename GetValue<ThisT>::type() const {
+  operator typename GetValue<ThisT>::type() const
+    requires(Dimension<ThisT>::value == 0)
+  {
     // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
     return implementation_(0, 0);
   }
@@ -167,7 +173,8 @@ class ValuesWrapper {
   }
 
   //! Constructor for non-arithmetic types, e.g. expressions.
-  template <typename T0, typename = std::enable_if_t<!std::is_arithmetic_v<std::remove_const_t<std::remove_reference_t<T0>>>>>
+  template <typename T0>
+    requires(!ArithmeticValue<std::remove_cvref_t<T0>>)
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0) : implementation_(std::forward<T0>(t0)) {}
   //! Constructor for a set of objects to initialize the values.
   template <typename T0, typename... Ts>
@@ -187,8 +194,7 @@ struct GetTag<ValuesWrapper<Xs...>, Ts...> {
 
  public:
   using type =
-      typename IfThenElse<sizeof...(Ts) == 1,
-                          typename IfThenElse<IsSpecialization<first, ValuesWrapper>::value, FromSimilar, FromImplementationArgs>::type,
+      typename IfThenElse<sizeof...(Ts) == 1, typename IfThenElse<AnyValuesWrapper<first>, FromSimilar, FromImplementationArgs>::type,
                           FromImplementationArgs>::type;
 };
 

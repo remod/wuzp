@@ -40,8 +40,7 @@ using AngleQuantity = wuzp::QuantityD<Angle>;
 using MassMatrixValues = ValueMatrix<double, 3, 3>;
 using MassMatrixUnits = wuzp::TypeMatrix<3, 3, Mass, Mass, MassLength, Mass, Mass, MassLength, MassLength, MassLength, MassLength2>;
 using MassMatrixQuantities = wuzp::Quantities<MassMatrixValues, MassMatrixUnits>;
-using MassMatrixSystemMatrix = wuzp::TypeMatrix<3, 3, MinimalCoordinateSystem>;
-using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MassMatrixSystemMatrix, wuzp::Relative>;
+using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MinimalCoordinateSystem, wuzp::Relative>;
 
 // class MinimalToCartesianTransformation
 //    : public wuzp::PassiveTransformation<MinimalToCartesianTransformation, MinimalCoordinateSystem, CartesianCoordinateSystem> {

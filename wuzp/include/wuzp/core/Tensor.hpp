@@ -10,13 +10,15 @@
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
 
 // TODO(remod): Are two indices sufficient or do we need a boolean per dimension?
-template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
+template <int ContravariantIndices, int CovariantIndices, AnyQuantities QuantitiesT_, AnyCoordinateSystem CoordinateSystemT_,
+          AbsoluteOrRelative AbsoluteT_>
 class Tensor {
  public:
   using QuantitiesT = QuantitiesT_;
@@ -33,7 +35,8 @@ class Tensor {
 
   Tensor() = default;
 
-  template <typename T0, typename... Ts, typename = std::enable_if_t<!IsSpecialization<T0, Tag>::value>>
+  template <typename T0, typename... Ts>
+    requires(!IsSpecialization<T0, Tag>::value)
   // Allow implicit construction from similar tensors. NOLINTNEXTLINE(google-explicit-constructor)
   explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) Tensor(T0&& t0, Ts&&... ts)
       : Tensor(typename GetTag<ThisT, T0, Ts...>::type{}, std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
@@ -66,8 +69,9 @@ class Tensor {
     return quantities_.isApprox(other.getQuantities(), precision);
   }
 
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  auto getQuantity() const {
+  auto getQuantity() const
+    requires(Dimension<ThisT>::value == 0)
+  {
     return quantities_.get();
   }
 
@@ -78,8 +82,10 @@ class Tensor {
 
   auto getQuantity(const int rowId, const int colId) const { return quantities_.get(rowId, colId); }
 
-  template <typename QuantityT_, int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0>>
-  void setQuantity(const QuantityT_& quantity) {
+  template <typename QuantityT_>
+  void setQuantity(const QuantityT_& quantity)
+    requires(Dimension<ThisT>::value == 0)
+  {
     return quantities_.set(quantity);
   }
 
@@ -142,24 +148,24 @@ class Tensor {
   auto inverse() const { return typename Inverse<ThisT>::type{quantities_.inverse()}; }
   auto tensorInverse() const { return typename TensorInverse<ThisT>::type{quantities_.tensorInverse()}; }
 
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0 || Dimension == 1>>
-  auto norm() const {
+  auto norm() const
+    requires(Dimension<ThisT>::value <= 1)
+  {
     static_assert(!AbsoluteT_::value, "Tensor is not relative.");
     return quantities_.norm();
   }
 
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 0 || Dimension == 1>>
-  auto squaredNorm() const {
+  auto squaredNorm() const
+    requires(Dimension<ThisT>::value <= 1)
+  {
     static_assert(!AbsoluteT_::value, "Tensor is not relative.");
     return quantities_.squaredNorm();
   }
 
-  /**
-   * Get the determinant of a tensor of rank 2.
-   * @tparam Dimension Do not use this.
-   */
-  template <int Dimension = Dimension<ThisT>::value, typename = std::enable_if_t<Dimension == 2>>
-  auto determinant() const {
+  //! Get the determinant of a tensor of rank 2.
+  auto determinant() const
+    requires(Dimension<ThisT>::value == 2)
+  {
     return quantities_.determinant();
   }
 
@@ -191,12 +197,7 @@ template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_,
           typename... Ts>
 struct GetTag<Tensor<ContravariantIndices, CovariantIndices, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>, Ts...> {
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
-  using type = typename IfThenElse<
-      sizeof...(Ts) == 1,
-      typename IfThenElse<IsSpecializationInts<first, Tensor>::value, FromSimilar,
-                          typename IfThenElse<(IsSpecialization<Ts, Quantities>::value && ...), FromImplementationArgs,
-                                              FromImplementationArgs>::type>::type,
-      typename IfThenElse<(IsSpecialization<Ts, Quantities>::value && ...), FromImplementationArgs, FromImplementationArgs>::type>::type;
+  using type = typename IfThenElse<sizeof...(Ts) == 1 && AnyTensor<first>, FromSimilar, FromImplementationArgs>::type;
 };
 
 template <int ContravariantIndices, int CovariantIndices, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
