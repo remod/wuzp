@@ -15,12 +15,13 @@ In the `latest` dev container, `ci/benchmarks.sh` builds the benchmarks in relea
 
 ```bash
 ci/benchmarks.sh                                  # Accurate numbers.
+ci/benchmarks.sh --benchmark_repetitions=10 --benchmark_report_aggregates_only=true  # Medians, like the results below.
 ci/benchmarks.sh --benchmark_min_time=0.01s       # Quick check that they run, like CI.
 ```
 
 ## Results
 
-Measured in the `latest` dev container (GCC 15.2, Clang 21.1, Eigen 5.0.1, Blitz++ 1.0.2, `-O3`) on an AMD Ryzen 9 8940HX.
+Measured in the `latest` dev container (GCC 15.2, Clang 21.1, Eigen 5.0.1, Blitz++ 1.0.2, `-O3`) on an AMD Ryzen 9 8940HX, as the median of 10 repetitions (`--benchmark_repetitions=10`).
 Times are per operation; differences below about 0.2 ns are noise.
 Google Benchmark warns that Ubuntu's build of it is a debug build; this affects its own bookkeeping, for both sides alike.
 
@@ -28,29 +29,30 @@ Google Benchmark warns that Ubuntu's build of it is a debug build; this affects 
 
 | Benchmark | GCC, plain | GCC, *wuzp* | Clang, plain | Clang, *wuzp* |
 | --- | --- | --- | --- | --- |
-| `Sum`: vector + vector | 0.44 ns | 0.52 ns | 0.45 ns | 0.43 ns |
-| `ProductWithScalar`: mass * acceleration | 1.64 ns | 0.52 ns | 0.43 ns | 0.44 ns |
-| `Norm` | 2.14 ns | 2.05 ns | 1.76 ns | 1.85 ns |
-| `TransformVector`: rigid transformation of a vector | 1.26 ns | 1.11 ns | 1.00 ns | 1.13 ns |
-| `TransformPoint`: rigid transformation of a point | 1.33 ns | 1.65 ns | 1.29 ns | 1.33 ns |
+| `Sum`: vector + vector | 0.40 ns | 0.40 ns | 0.40 ns | 0.40 ns |
+| `ProductWithScalar`: mass * acceleration | 1.33 ns | 0.40 ns | 0.40 ns | 0.40 ns |
+| `Norm` | 1.69 ns | 1.70 ns | 1.66 ns | 1.68 ns |
+| `TransformVector`: rigid transformation of a vector | 1.01 ns | 0.92 ns | 0.92 ns | 1.02 ns |
+| `TransformPoint`: rigid transformation of a point | 1.21 ns | 1.60 ns | 1.15 ns | 1.19 ns |
 
-With Eigen, *wuzp* is as fast as plain Eigen: the units, coordinate systems and absolute/relative flags are types, which the compiler removes.
+With Eigen, *wuzp* is as fast as plain Eigen: the units, coordinate systems and absolute/relative flags are types, which the compiler removes, and evaluating the result of every operation costs nothing measurable.
 The generated code differs slightly, in both directions (e.g. GCC compiles plain Eigen's `mass * acceleration` to slower code).
-Transforming a point with GCC is about 0.3 ns slower: the translation adds its components one by one, and GCC passes them through the stack.
+Transforming a point with GCC is about 0.4 ns slower.
 
 **Blitz++:**
 
 | Benchmark | GCC, plain | GCC, *wuzp* | Clang, plain | Clang, *wuzp* |
 | --- | --- | --- | --- | --- |
-| `Sum` | 19 ns | 29 ns | 29 ns | 44 ns |
-| `ProductWithScalar` | 19 ns | 26 ns | 28 ns | 44 ns |
-| `Norm` | 3 ns | 19 ns | 8 ns | 33 ns |
-| `TransformVector` | 19 ns | 37 ns | 39 ns | 47 ns |
-| `TransformPoint` | 20 ns | 137 ns | 40 ns | 197 ns |
+| `Sum` | 18 ns | 35 ns | 27 ns | 44 ns |
+| `ProductWithScalar` | 17 ns | 31 ns | 25 ns | 45 ns |
+| `Norm` | 3 ns | 16 ns | 7 ns | 29 ns |
+| `TransformVector` | 17 ns | 40 ns | 34 ns | 78 ns |
+| `TransformPoint` | 18 ns | 88 ns | 36 ns | 142 ns |
 
 With Blitz++, *wuzp* is slower.
-Its Blitz++ backend stores every value matrix in a dynamically allocated `blitz::Array`, even a single value: the norm, for example, allocates for its result, and the translation of a point allocates for each component it adds.
+Its Blitz++ backend stores every value matrix in a dynamically allocated `blitz::Array`, even a single value: the norm, for example, allocates for its result.
 Plain Blitz++ code avoids this with plain scalars.
+Values also have value semantics with every backend, so the backend copies an array where plain Blitz++ code would share it, e.g. for the vector that a translation returns unchanged.
 This is tracked in [#58](https://github.com/remod/wuzp/issues/58).
 
 ## Compile time

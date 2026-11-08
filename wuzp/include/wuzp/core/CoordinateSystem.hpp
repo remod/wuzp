@@ -28,4 +28,10 @@ struct Product<CoordinateSystem<Lhs>, CoordinateSystem<Rhs>> {
   using type = CoordinateSystem<Lhs>;
 };
 
+template <typename Lhs, typename Rhs>
+struct Division<CoordinateSystem<Lhs>, CoordinateSystem<Rhs>> {
+  static_assert(std::is_same<Lhs, Rhs>::value, "Coordinate systems do not match.");
+  using type = CoordinateSystem<Lhs>;
+};
+
 }  // namespace wuzp

@@ -8,6 +8,7 @@
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/concepts.hpp"
+#include "wuzp/core/helpers.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
 #include "wuzp/trafo/internal/map_relative.hpp"
 #include "wuzp/trafo/traits.hpp"
@@ -26,7 +27,9 @@ class PassiveLinearTransformation
   using CoordinateSystemT = CoordinateSystemT_;
   using TensorT = Tensor<1, 1, QuantitiesT, CoordinateSystemT, Relative>;
 
+  // Copies and moves are left to the implicit constructors, see CopiesOrMoves.
   template <typename... Args>
+    requires(!CopiesOrMoves<PassiveLinearTransformation, Args...>)
   explicit PassiveLinearTransformation(Args&&... args) : tensor_{std::forward<Args>(args)...} {}
 
   const TensorT& getTensor() const { return tensor_; }

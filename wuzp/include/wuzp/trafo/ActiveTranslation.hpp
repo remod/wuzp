@@ -7,7 +7,9 @@
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/concepts.hpp"
+#include "wuzp/core/helpers.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
+#include "wuzp/trafo/internal/translate.hpp"
 #include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
@@ -22,7 +24,9 @@ class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_
   using CoordinateSystemT = CoordinateSystemT_;
   using TensorT = Tensor<1, 0, QuantitiesT, CoordinateSystemT, Relative>;
 
+  // Copies and moves are left to the implicit constructors, see CopiesOrMoves.
   template <typename... Args>
+    requires(!CopiesOrMoves<ActiveTranslation, Args...>)
   explicit ActiveTranslation(Args&&... args) : tensor_{std::forward<Args>(args)...} {}
 
   const TensorT& getTensor() const { return tensor_; }
@@ -56,18 +60,7 @@ struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Value, Coordi
   static auto transform(const ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>& transformation,
                         const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
     static_assert(std::is_same_v<CoordinateSystem, CoordinateSystemT_>, "Coordinate systems do not match.");
-    if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
-      auto result = object;
-      // TODO(remod): Improve efficiency by performing this addition at compile time.
-      for (int row = 0; row < Rows<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value; ++row) {
-        for (int col = 0; col < Cols<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value; ++col) {
-          result.setQuantity(row, col, result.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
-        }
-      }
-      return result.evaluate();
-    } else {
-      return object;
-    }
+    return internal::translate(object, transformation.getTensor().getQuantities());
   }
 };
 

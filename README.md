@@ -160,7 +160,11 @@ Tensors may only be 0-, 1-, or 2-dimensional.
 
 Angles are dimensionless with every units backend, so *wuzp* cannot tell `rad/s` from `Hz`, nor torque from energy (see [DESIGN.md](DESIGN.md#angles-are-dimensionless)).
 
-Do not use the keyword `auto` when using the Eigen implementation (see [documentation](https://eigen.tuxfamily.org/dox/TopicPitfalls.html)).
+*wuzp* does not convert units: quantities with different units, e.g. `m` and `km`, cannot be added.
+With mp-units, `wuzp_mp_units::UnitType` accepts named units such as `si::newton`, but only coherent SI units, e.g. not kilometres, grams or degrees.
+
+The results of operations are evaluated, so they can be stored in `auto` variables, also when they are computed from temporaries.
+Only the expressions of the value matrix libraries themselves, e.g. Eigen expressions built from `getImplementation()`, can refer to temporaries (see [Eigen's pitfalls](https://eigen.tuxfamily.org/dox/TopicPitfalls.html)).
 
 Blitz++ cannot be installed with `libblitz0-dev` when compiled with Clang, because the Debian package does not contain a required header file.
 Instead, it needs to be cloned from GitHub and then built and installed manually (see [GitHub issue](https://github.com/blitzpp/blitz/issues/177)).

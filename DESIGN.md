@@ -94,6 +94,33 @@ Decision: the template parameters are constrained with C++20 concepts (`wuzp/cor
 A parameter of the wrong kind fails with a constraint error that names the unsatisfied concept.
 Invalid combinations of valid types, e.g. matrix sizes that do not match, are rejected with a `static_assert` and a clear message instead.
 
+### Results of operations are evaluated
+
+Eigen and Blitz++ return lazy expressions, which refer to their operands.
+*wuzp* used to return them too, so whether a result referred to its operands depended on the operator: `auto x = makeVector() / 2.0;` was evaluated, while `auto x = makeVector() / quantity;` referred to a destroyed temporary (#69).
+Some operations on such expressions did not compile, e.g. `-(a + b)` (#64).
+
+Decision: the operators and member functions return evaluated values, quantities and tensors, which can be stored in `auto` variables.
+The traits (e.g. `Sum<Lhs, Rhs>::type`) remain the lazy types: an operation computes the lazy expression of the backend and evaluates it once.
+With Eigen, this costs no measurable time in the [benchmarks](benchmarks/README.md); in a chain such as `a + b + c`, each operation is evaluated on its own, though.
+With Blitz++, every evaluation allocates an array.
+
+Values, quantities and tensors have value semantics with every backend: a copy, a transpose or a block never shares the values of the original, although Blitz++'s copies, transposes and slices are views of the original (#60).
+Blitz++ arrays cannot be moved, so a move hands the values over and leaves the moved-from array empty, like a moved-from dynamic Eigen matrix: a moved-from object can only be assigned to or destroyed.
+
+### Invalid conversions are explicit
+
+Conversions between similar types, e.g. from an unevaluated sum into a vector, are implicit.
+Those that fail their checks were implicit too, and failed with a `static_assert` in the body of the constructor, so `std::is_convertible` reported them as valid, and overloads such as `f(VectorInA)` and `f(VectorInB)` were ambiguous (#70).
+
+Decision: they are `explicit` (`explicit(!IsValidConversion<...>::value)`).
+Type traits report them as invalid, and copy initialization fails with the compiler's conversion error.
+Direct initialization still reaches the constructor, whose `static_assert` explains what does not match, e.g. "Coordinate systems do not match.".
+
+### Integer values
+
+Decision: operations whose result is not an integer, such as the norm or a power with a non-integer exponent, are computed in floating point and truncated to the value type, like the norm of integer vectors in Eigen: `pow<1, 2>()` of 5 m² is 2 m (#63).
+
 ## Review of mathematical and physical soundness (November 2026)
 
 The library was reviewed for mathematical and physical soundness, with claims verified by compiling and running programs.
@@ -104,7 +131,7 @@ The library was reviewed for mathematical and physical soundness, with claims ve
 * The unit inverse of matrices and its invertibility check, which accepts exactly the matrices with units of the form `u_i / v_j`, i.e. matrices that describe a linear map.
 * The transformation rules for vectors, points, (1,1) and (0,2) tensors (`A^-T M A^-1` matches `R M R^T` to 1e-15 for a general rotation).
 * Active and passive transformations cancel each other; the order of rotation and translation in rigid transformations; translations moving points but not vectors.
-* The passive Lorentz boost matrix (standard form, `x^0 = c t` in length units, signature `(+,-,-,-)`, `Λ_0i = -γ β_i`).
+* The passive Lorentz boost matrix (standard form, `x^0 = c t` in length units, signature `(+,-,-,-)`, `Λ_0i = -γ β_i`), for the velocity of `To` relative to `From`, expressed in `From`, which must be smaller than the speed of light (#67).
 * The rigid body kinematics in the tests (`v + ω × r`, `a + α × r + ω × (ω × r)` for a body-fixed point), and the kinetic energy and mass matrix of the rotating dumbbell.
 
 **Defects** found by the review and while writing the compile tests, all fixed:
@@ -126,6 +153,21 @@ The library was reviewed for mathematical and physical soundness, with claims ve
 | `ActiveTranslation.hpp` and `PassiveTranslation.hpp` did not include what they use | - |
 | `isApprox` was relative with Eigen, but absolute with Blitz++ | - |
 | `zero()` and `random()` never compiled | - |
+
+A code audit (November 2026) found these defects, all fixed:
+
+| Defect | Issue |
+| --- | --- |
+| With Blitz++, copies shared the values of the original, so translations changed their `const` input | #60 |
+| Dividing tensors did not check their coordinate systems | #61 |
+| Converting values of another size was not checked | #62 |
+| `pow<1, 2>()` of an integer quantity returned 1 | #63 |
+| Some operations on unevaluated results did not compile | #64 |
+| With mp-units, named units did not match the units *wuzp* computes | #65 |
+| Copying a transformation from a non-const object did not compile | #66 |
+| The Lorentz boost returned NaN for velocities of at least the speed of light | #67 |
+| Whether a result referred to a destroyed temporary depended on the operator | #69 |
+| Type traits reported invalid conversions as valid | #70 |
 
 ## Open design questions
 

@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include <gtest/gtest.h>
 
 #include "wuzp/core/Tensor.hpp"
@@ -71,4 +73,26 @@ TEST(TestLorentzTransformation, InvariantIsPreserved) {  // NOLINT
   const auto invariant = getInvariant(object);
   const auto transformedInvariant = getInvariant(transformation.transform(object));
   EXPECT_TRUE(invariant.isApprox(transformedInvariant, 1e-9));
+}
+
+// A boost needs a velocity below the speed of light: the Lorentz factor is infinite at the speed of light and not real above
+// it (#67).
+TEST(TestLorentzTransformation, BoostNeedsVelocityBelowSpeedOfLight) {  // NOLINT
+  const double c = getSpeedOfLight<double>().getValue();
+  EXPECT_THROW(createBoost(Velocity3{c, 0.0, 0.0}), std::invalid_argument);
+  EXPECT_THROW(createBoost(Velocity3{0.0, 2.0 * c, 0.0}), std::invalid_argument);
+  EXPECT_NO_THROW(createBoost(Velocity3{0.0, 0.0, 0.99 * c}));
+}
+
+// The velocity is the one of To relative to From, expressed in From: an event at the origin of To, which moves with v along x
+// in From, has the spatial coordinates 0 in To.
+TEST(TestLorentzTransformation, VelocityOfToRelativeToFrom) {  // NOLINT
+  const double c = getSpeedOfLight<double>().getValue();
+  const LorentzBoost transformation{createBoost(Velocity3{0.6 * c, 0.0, 0.0})};
+  // At t = 1 s, the origin of To is at x = 0.6 c * 1 s in From, and its proper time is 1 s / gamma = 0.8 s, with gamma = 1.25.
+  const SpacetimeVectorA event{getSpeedOfLight<double>() * TimeQuantityD{1.0}, getSpeedOfLight<double>() * TimeQuantityD{0.6},
+                               LengthQuantityD{0.0}, LengthQuantityD{0.0}};
+  const SpacetimeVectorB transformedEvent{getSpeedOfLight<double>() * TimeQuantityD{0.8}, LengthQuantityD{0.0}, LengthQuantityD{0.0},
+                                          LengthQuantityD{0.0}};
+  EXPECT_TRUE(transformation.transform(event).isApprox(transformedEvent, 1e-12));
 }

@@ -227,6 +227,19 @@ struct Random<AccessImplementation<ImplementationT_>> {
   static void run(ImplementationT_& impl) { impl.setRandom(); }
 };
 
+// Eigen's matrices have value semantics: their copies do not share the values. Copies of expressions refer to the same
+// operands, like the expressions themselves.
+template <typename ImplementationT_>
+struct Copy<AccessImplementation<ImplementationT_>> {
+  static ImplementationT_ value(const ImplementationT_& impl) { return impl; }
+};
+
+template <typename ImplementationT_>
+struct Move<AccessImplementation<ImplementationT_>> {
+  static ImplementationT_ construct(ImplementationT_& source) { return std::move(source); }
+  static void assign(ImplementationT_& target, ImplementationT_& source) { target = std::move(source); }
+};
+
 template <typename ImplementationT_>
 struct Evaluate<AccessImplementation<ImplementationT_>> {
   static auto value(const ImplementationT_& impl) { return impl.eval(); }

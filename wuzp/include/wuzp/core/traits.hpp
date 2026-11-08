@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "wuzp/core/helpers.hpp"
 
@@ -215,6 +216,30 @@ struct Evaluate {
   using type = std::decay_t<T>;  // Default e.g. for arithmetic types.
 };
 
+//! Copies a matrix of a value matrix backend. The copy must not share its values with the original, so that value matrices,
+//! quantities and tensors have value semantics with every backend. Each backend specializes it for its matrices: Eigen copies
+//! with the copy constructor, Blitz++, whose copy constructor shares the values, makes a deep copy.
+template <typename T>
+struct Copy {
+  static_assert(FailOnInstantiation<Copy<T>>::value, "'Copy' trait not specialized for given type.");
+};
+
+//! Moves a matrix of a value matrix backend: `construct` returns the moved matrix, `assign` moves it into another one. The
+//! moved-from matrix may be left empty, like a moved-from dynamic Eigen matrix, so it can only be assigned to or destroyed. Each
+//! backend specializes it: Eigen with its move constructor and assignment, Blitz++, which cannot move arrays, by handing the
+//! values over and leaving the moved-from array empty, so that no two arrays share them.
+template <typename T>
+struct Move {
+  static_assert(FailOnInstantiation<Move<T>>::value, "'Move' trait not specialized for given type.");
+};
+
+//! Whether converting a From into a To passes the checks of the converting constructor of To, e.g. whether the units of two
+//! quantity matrices match. The converting constructors between similar types are explicit if the conversion is invalid, so
+//! that type traits such as std::is_convertible report it as invalid and overloads such as f(VectorInA) and f(VectorInB) are
+//! not ambiguous. Direct initialization still reaches the constructor, whose static_assert explains what does not match.
+template <typename To, typename... From>
+struct IsValidConversion : std::false_type {};
+
 template <typename T>
 struct IsAbsolute {
   static_assert(FailOnInstantiation<IsAbsolute<T>>::value, "'IsAbsolute' trait not specialized for given type.");
@@ -226,7 +251,7 @@ struct MakeRelative {
 };
 template <typename T>
 auto makeRelative(T t) {
-  return MakeRelative<T>::make(t);
+  return MakeRelative<T>::make(std::move(t));
 }
 
 template <typename T>
@@ -235,7 +260,7 @@ struct MakeAbsolute {
 };
 template <typename T>
 auto makeAbsolute(T t) {
-  return MakeAbsolute<T>::make(t);
+  return MakeAbsolute<T>::make(std::move(t));
 }
 
 template <typename T>
@@ -251,7 +276,7 @@ struct CastCoordinateSystem {
 // TODO(remod): turn this (and other free functions?) into a member
 template <typename To, typename T>
 auto castCoordinateSystem(T t) {
-  return typename CastCoordinateSystem<T, To>::type{t.getValues()};
+  return typename Evaluate<typename CastCoordinateSystem<T, To>::type>::type{std::move(t).getValues()};
 }
 
 template <typename ImplementationT_, typename MatrixSizeT_>

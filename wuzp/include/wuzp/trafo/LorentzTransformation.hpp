@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/PassiveLinearTransformation.hpp"
@@ -34,6 +36,14 @@ auto getInvariant(const Vector<QuantitiesT_, CoordinateSystemT_>& vector) {
   return (pow<2>(quantities.template get<0, 0>()) - quantities.template block<1, 0, dimension - 1, 1>().squaredNorm()).evaluate();
 }
 
+/**
+ * The passive Lorentz boost from From to To, in the standard form with the time component first and in length units
+ * (x^0 = c t), and the signature (+, -, ..., -): x'^0 = gamma (x^0 - beta . x), with beta = v / c and the Lorentz factor
+ * gamma = 1 / sqrt(1 - beta^2) (see the boost matrix B(v) in https://en.wikipedia.org/wiki/Lorentz_transformation#Proper_transformations).
+ * @param velocity Velocity of To relative to From, expressed in From. Its magnitude must be smaller than the speed of light.
+ * @throws std::invalid_argument If the magnitude of the velocity is not smaller than the speed of light, for which there is no
+ * Lorentz boost (the Lorentz factor is infinite or not real).
+ */
 template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To,
           int Dimension>
 LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> createBoostMatrix(
@@ -41,8 +51,12 @@ LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> cr
   using QuantitiesT = typename LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension>::QuantitiesT;
   using QuantityT = Quantity<typename AccessValues<AccessImplementation<Value>>::template Value<Value>,
                              typename AccessUnits<AccessImplementation<Value>>::Dimensionless>;
-  const auto squaredNorm{velocity.squaredNorm()};
-  const auto lorentzFactor{pow<-1, 2>(QuantityT{1.0} - squaredNorm / pow<2>(getSpeedOfLight<Value>()))};
+  const QuantityT squaredBeta{velocity.squaredNorm() / pow<2>(getSpeedOfLight<Value>())};
+  // Also rejects NaN.
+  if (!(squaredBeta.getValue() < 1)) {
+    throw std::invalid_argument("The magnitude of the velocity of a Lorentz boost must be smaller than the speed of light.");
+  }
+  const auto lorentzFactor{pow<-1, 2>(QuantityT{1.0} - squaredBeta)};
   // The spatial part uses (lorentzFactor - 1) / |v|^2 = lorentzFactor^2 / ((lorentzFactor + 1) c^2). The right-hand side is
   // finite for v = 0, where the left-hand side divides zero by zero, and numerically more stable for small velocities.
   const auto spatialFactor{(pow<2>(lorentzFactor) / ((lorentzFactor + QuantityT{1.0}) * pow<2>(getSpeedOfLight<Value>()))).evaluate()};

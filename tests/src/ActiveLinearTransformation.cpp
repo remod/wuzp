@@ -78,3 +78,10 @@ TEST(TestActiveLinearTransformation, TransformOuterProductOfVectors) {  // NOLIN
   const Covariance<CoordinateSystemA> transformedObject{outerProduct(transformedVector, transformedVector.transpose())};
   EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
 }
+
+// A transformation can be copied from a non-const object: the forwarding constructor does not hijack the copy (#66).
+TEST(TestActiveLinearTransformation, CopyFromNonConstObject) {  // NOLINT
+  Scaling transformation{scaling};
+  const Scaling copy(transformation);
+  EXPECT_EQ(copy, scaling);
+}

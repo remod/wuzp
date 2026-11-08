@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <concepts>
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
@@ -52,6 +53,12 @@ struct IfThenElse<false, TypeA, TypeB> {
 //! Whether the template can be specialized with the arguments, e.g. whether their number fits and they satisfy its constraints.
 template <template <typename...> typename Template, typename... Args>
 concept Specializable = requires { typename Template<Args...>; };
+
+//! Whether constructing a Class from the arguments copies or moves it, i.e. whether they are a single Class. Forwarding
+//! constructors exclude these arguments, so that they do not hijack the copy and move constructors: for a non-const lvalue,
+//! a forwarding reference is a better match than the const reference of the copy constructor.
+template <typename Class, typename... Args>
+concept CopiesOrMoves = sizeof...(Args) == 1 && (std::same_as<std::remove_cvref_t<Args>, Class> && ...);
 
 template <typename T, template <typename...> typename Template>
 struct IsSpecialization : std::false_type {};

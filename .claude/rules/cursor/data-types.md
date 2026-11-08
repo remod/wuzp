@@ -7,7 +7,8 @@ paths:
 <!-- Generated from .cursor/rules/data-types.mdc by .claude/sync-from-cursor.py. Edit the source, then rerun the script. -->
 
 - Use the library's own types in tests and examples: quantities with units, tensors with coordinate systems, points vs. vectors. Avoid raw value matrices where a typed quantity exists.
-- Prefer explicit types over `auto` for results of operations: with Eigen, `auto` can hold an expression that refers to a temporary and dangles. If a function returns a result computed from local variables, evaluate it (`.evaluate()`) before returning.
+- The operators and functions of wuzp return evaluated results, so storing them in `auto` is safe. Expressions of the backend libraries themselves (e.g. Eigen's or Blitz++'s, inside the backends and traits) are lazy and can refer to temporaries: evaluate them (`.evaluate()`, `Evaluate<...>`) before returning them from a function.
+- Prefer explicit types over `auto` in tests and examples where the type documents what is computed (e.g. the unit or coordinate system of a result).
 - Make invalid states unrepresentable at compile time, rather than at runtime, and add a compile test:
   - Constrain template parameters with the concepts in `wuzp/core/concepts.hpp` (e.g. `AnyCoordinateSystem`), so that a parameter of the wrong kind fails with a constraint error.
   - Reject invalid combinations of valid types (e.g. matrix sizes that do not match) with a `static_assert` and a clear message.

@@ -79,3 +79,41 @@ TEST(TestActiveTranslation, TransformActiveRotation) {  // NOLINT
   const Transformation transformation{0.0, 0.0, 1.0};  // Active translation of 1 along z.
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
+
+// Transforming a point leaves the point unchanged, with every backend: the translation copies it, and a copy does not share
+// the values of the original, also with Blitz++ (#60).
+TEST(TestActiveTranslation, TransformLeavesTheInputUnchanged) {  // NOLINT
+  using Object = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  const Object object{1.0, 2.0, 3.0};
+  const Transformation transformation{0.0, 0.0, 1.0};  // Active translation of 1 along z.
+  const Object transformedObject{1.0, 2.0, 4.0};
+  EXPECT_EQ(transformation.transform(object), transformedObject);
+  EXPECT_EQ(transformation.transform(object), transformedObject);
+  EXPECT_EQ(object, (Object{1.0, 2.0, 3.0}));
+}
+
+// The object can be the result of an operation, here the sum of a point and a vector (#64).
+TEST(TestActiveTranslation, TransformSum) {  // NOLINT
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  const PositionPoint3<ValueMatrix, double, CoordinateSystemA> point{1.0, 2.0, 3.0};
+  const PositionVector3<ValueMatrix, double, CoordinateSystemA> vector{1.0, 1.0, 1.0};
+  const Transformation transformation{0.0, 0.0, 1.0};  // Active translation of 1 along z.
+  EXPECT_EQ(transformation.transform(point + vector), (PositionPoint3<ValueMatrix, double, CoordinateSystemA>{2.0, 3.0, 5.0}));
+}
+
+// A transformation can be copied from a non-const object: the forwarding constructor does not hijack the copy (#66).
+TEST(TestActiveTranslation, CopyFromNonConstObject) {  // NOLINT
+  ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA> transformation{1.0, 2.0, 3.0};
+  const ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA> copy(transformation);
+  EXPECT_EQ(copy, transformation);
+}
+
+// A point is translated by adding the translation, so its components may have different units, e.g. a point in space and time.
+TEST(TestActiveTranslation, TransformPointWithMixedUnits) {  // NOLINT
+  using Object = Tensor<1, 0, Quantities<ValueMatrix<double, 2, 1>, TypeMatrix<2, 1, Length, Time>>, CoordinateSystemA, Absolute>;
+  using Transformation = ActiveTranslation<ValueMatrix, 2, double, CoordinateSystemA, Length, Time>;
+  const Object object{1.0, 2.0};
+  const Transformation transformation{3.0, 4.0};
+  EXPECT_EQ(transformation.transform(object), (Object{4.0, 6.0}));
+}

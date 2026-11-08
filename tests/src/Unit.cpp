@@ -1,3 +1,5 @@
+#include <type_traits>
+
 #include <gtest/gtest.h>
 
 #include "wuzp/core/Integer.hpp"
@@ -45,3 +47,19 @@ TEST(TestUnit, AreAnglesDimensionless) {  // NOLINT
   static_assert(std::is_same<Product<AngularAcceleration, Length>::type, Acceleration>::value);
   static_assert(std::is_same<Torque, Energy>::value);
 }
+
+#if UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_MP_UNITS
+// mp-units gives named units their own types, e.g. si::newton is not the type of kg m / s^2. The adapter normalizes them to
+// the coherent SI units built from the base units, which wuzp computes (#65). The other units backends have no such named
+// units: Boost.Units gives equal units the same type.
+TEST(TestUnit, NamedUnitsOfMpUnits) {  // NOLINT
+  static_assert(std::is_same<wuzp::Unit<UnitType<mp_units::si::newton>>, Force>::value);
+  static_assert(std::is_same<wuzp::Unit<UnitType<mp_units::si::joule>>, Energy>::value);
+  static_assert(std::is_same<wuzp::Unit<UnitType<mp_units::si::hertz>>, Frequency>::value);
+  static_assert(std::is_same<wuzp::Unit<UnitType<mp_units::si::radian>>, Angle>::value);
+  static_assert(std::is_same<wuzp::Unit<UnitType<mp_units::si::kilogram>>, Mass>::value);
+  static_assert(std::is_same<Product<Mass, Acceleration>::type, wuzp::Unit<UnitType<mp_units::si::newton>>>::value);
+  static_assert(std::is_same<Product<Force, Length>::type, wuzp::Unit<UnitType<mp_units::si::joule>>>::value);
+  static_assert(std::is_same<Division<wuzp::Unit<UnitType<mp_units::si::watt>>, Force>::type, Velocity>::value);
+}
+#endif

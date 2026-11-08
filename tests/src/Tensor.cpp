@@ -1,4 +1,5 @@
 #include <cmath>
+#include <concepts>
 #include <type_traits>
 
 #include <gtest/gtest.h>
@@ -576,3 +577,80 @@ TEST(TestTensor2, Determinant) {  // NOLINT
   EXPECT_EQ(tensor.determinant(), AreaQuantityI{-7});
 }
 #endif
+
+namespace {
+
+using VectorInA = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
+using VectorInB = PositionVector3<ValueMatrix, double, CoordinateSystemB>;
+using PointInA = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
+
+VectorInA makeVector() {
+  return VectorInA{1.0, 2.0, 3.0};
+}
+
+int getCoordinateSystemId(const VectorInA& /*vector*/) {
+  return 0;
+}
+int getCoordinateSystemId(const VectorInB& /*vector*/) {
+  return 1;
+}
+
+}  // namespace
+
+// Tensors have value semantics with every backend: a copy does not share the values of the original, although Blitz++'s copy
+// constructor shares them (#60).
+TEST(TestTensor, CopyIsIndependentOfTheOriginal) {  // NOLINT
+  PointInA original{1.0, 2.0, 3.0};
+  const PointInA copy{original};  // From a non-const object.
+  const PointInA copyInitialized = original;
+  original.setQuantity<0, 0>(QuantityD<Length>{42.0});
+  EXPECT_EQ(copy, (PointInA{1.0, 2.0, 3.0}));
+  EXPECT_EQ(copyInitialized, (PointInA{1.0, 2.0, 3.0}));
+}
+
+// The results of operations are evaluated, so that they do not refer to their operands, and can be stored even if the
+// operands are temporaries (#69). A result that referred to a destroyed temporary would read freed memory, which the
+// sanitizers job reports (AddressSanitizer: stack-use-after-scope).
+TEST(TestTensor, ResultsOfTemporariesCanBeStored) {  // NOLINT
+  static_assert(std::is_same_v<decltype(makeVector() + makeVector()), VectorInA>);
+  static_assert(std::is_same_v<decltype(makeVector() - makeVector()), VectorInA>);
+  static_assert(std::is_same_v<decltype(-makeVector()), VectorInA>);
+  static_assert(std::is_same_v<decltype(makeVector().evaluate()), VectorInA>);
+  const auto quotient = makeVector() / QuantityD<Dimensionless>{2.0};
+  const auto quotientOfValue = makeVector() / 2.0;
+  const auto product = makeVector() * QuantityD<Dimensionless>{2.0};
+  const auto productWithValue = makeVector() * 2.0;
+  const auto sum = makeVector() + makeVector();
+  const auto difference = makeVector() - VectorInA{1.0, 1.0, 1.0};
+  const auto negation = -makeVector();
+  const auto transpose = makeVector().transpose();
+  const auto block = makeVector().block<1, 0, 2, 1>();
+  EXPECT_EQ(quotient, (VectorInA{0.5, 1.0, 1.5}));
+  EXPECT_EQ(quotientOfValue, (VectorInA{0.5, 1.0, 1.5}));
+  EXPECT_EQ(product, (VectorInA{2.0, 4.0, 6.0}));
+  EXPECT_EQ(productWithValue, (VectorInA{2.0, 4.0, 6.0}));
+  EXPECT_EQ(sum, (VectorInA{2.0, 4.0, 6.0}));
+  EXPECT_EQ(difference, (VectorInA{0.0, 1.0, 2.0}));
+  EXPECT_EQ(negation, (VectorInA{-1.0, -2.0, -3.0}));
+  EXPECT_EQ(transpose.getValues(), (ValueMatrix<double, 1, 3>{1.0, 2.0, 3.0}));
+  EXPECT_EQ(block.getValues(), (ValueMatrix<double, 2, 1>{2.0, 3.0}));
+}
+
+// Only valid conversions are implicit: type traits report the others as invalid, and overloads for different coordinate
+// systems are not ambiguous (#70). Direct initialization fails with a static_assert that explains why (compile tests
+// Tensor.Convert*).
+TEST(TestTensor, ConversionsAreImplicitOnlyIfValid) {  // NOLINT
+  static_assert(!std::is_convertible_v<VectorInA, VectorInB>);
+  static_assert(!std::convertible_to<VectorInA, VectorInB>);
+  static_assert(!std::is_convertible_v<PointInA, VectorInA>);
+  static_assert(!std::is_convertible_v<VectorInA, PointInA>);
+  static_assert(!std::is_convertible_v<VelocityVector3<ValueMatrix, double, CoordinateSystemA>, VectorInA>);
+  // An unevaluated sum, of the type the traits compute, converts implicitly into a vector in the same coordinate system only.
+  using UnevaluatedSum = Sum<VectorInA, VectorInA>::type;
+  static_assert(!std::is_same_v<UnevaluatedSum, VectorInA>);
+  static_assert(std::is_convertible_v<UnevaluatedSum, VectorInA>);
+  static_assert(!std::is_convertible_v<UnevaluatedSum, VectorInB>);
+  static_assert(requires(const UnevaluatedSum& unevaluatedSum) { getCoordinateSystemId(unevaluatedSum); });
+  EXPECT_EQ(getCoordinateSystemId(makeVector() + makeVector()), 0);
+  EXPECT_EQ(getCoordinateSystemId(VectorInB{1.0, 2.0, 3.0}), 1);
+}

@@ -7,7 +7,10 @@
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/concepts.hpp"
+#include "wuzp/core/helpers.hpp"
+#include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
+#include "wuzp/trafo/internal/translate.hpp"
 #include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
@@ -23,7 +26,9 @@ class PassiveTranslation
   using CoordinateSystemT = CoordinateSystemT_;
   using TensorT = Tensor<1, 0, QuantitiesT, CoordinateSystemT, Relative>;
 
+  // Copies and moves are left to the implicit constructors, see CopiesOrMoves.
   template <typename... Args>
+    requires(!CopiesOrMoves<PassiveTranslation, Args...>)
   explicit PassiveTranslation(Args&&... args) : tensor_{std::forward<Args>(args)...} {}
 
   const TensorT& getTensor() const { return tensor_; }
@@ -62,21 +67,7 @@ struct TransformationTraits<PassiveTranslation<ValuesT_, Dimension, Value, Coord
     // components would have to be transformed first.
     static_assert(std::is_same_v<CoordinateSystem, From> || std::is_same_v<CoordinateSystem, To>,
                   "The translation must be expressed in the coordinate system From or To.");
-    if constexpr (IsAbsolute<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value) {
-      auto fromResult = object;
-      // TODO(remod): Improve efficiency by performing this addition at compile time.
-      for (int row = 0; row < Rows<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value; ++row) {
-        for (int col = 0; col < Cols<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>>::value; ++col) {
-          fromResult.setQuantity(row, col, fromResult.getQuantity(row, col) + transformation.getTensor().getQuantity(row, 0));
-        }
-      }
-      const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type{fromResult.getQuantities()};
-      return toResult.evaluate();
-    } else {
-      const auto fromResult = object;
-      const auto toResult = typename CastCoordinateSystem<std::decay_t<decltype(fromResult)>, To>::type{fromResult.getQuantities()};
-      return toResult.evaluate();
-    }
+    return castCoordinateSystem<To>(internal::translate(object, transformation.getTensor().getQuantities()));
   }
 };
 

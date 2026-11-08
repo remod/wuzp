@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <type_traits>
+#include <utility>
 
 #include <gtest/gtest.h>
 
@@ -431,6 +432,103 @@ TEST(TestValuesWrapper, Evaluate) {  // NOLINT
   const ValueMatrix<int, 2, 3> rhs{3, 4, 1, 5, 6, 2};
   const ValueMatrix<int, 2, 3> result{4, 6, 4, 9, 11, 8};
   EXPECT_EQ(sum(lhs, rhs).evaluate(), result);
+}
+
+// Values have value semantics with every backend: a copy does not share the values of the original, although Blitz++'s copy
+// constructor shares them (#60).
+TEST(TestValuesWrapper, CopyIsIndependentOfTheOriginal) {  // NOLINT
+  ValueMatrix<int, 2, 1> original{1, 2};
+  const ValueMatrix<int, 2, 1> copy{original};  // From a non-const object.
+  const ValueMatrix<int, 2, 1> copyOfConst{std::as_const(original)};
+  ValueMatrix<int, 2, 1> assigned;
+  assigned = original;
+  const ValueMatrix<int, 2, 1> evaluated = original.evaluate();
+  original.set<0, 0>(7);
+  const ValueMatrix<int, 2, 1> expected{1, 2};
+  EXPECT_EQ(copy, expected);
+  EXPECT_EQ(copyOfConst, expected);
+  EXPECT_EQ(assigned, expected);
+  EXPECT_EQ(evaluated, expected);
+  assigned.set<1, 0>(8);
+  EXPECT_EQ(original, (ValueMatrix<int, 2, 1>{7, 2}));
+}
+
+// Moves hand the values over, and a moved-from object can be assigned to again, so std::swap works, also with Blitz++, whose
+// arrays cannot be moved (#60).
+TEST(TestValuesWrapper, MoveAndSwap) {  // NOLINT
+  ValueMatrix<int, 2, 1> first{1, 2};
+  ValueMatrix<int, 2, 1> second{3, 4};
+  std::swap(first, second);
+  EXPECT_EQ(first, (ValueMatrix<int, 2, 1>{3, 4}));
+  EXPECT_EQ(second, (ValueMatrix<int, 2, 1>{1, 2}));
+  const ValueMatrix<int, 2, 1> moved{std::move(first)};
+  EXPECT_EQ(moved, (ValueMatrix<int, 2, 1>{3, 4}));
+  first = second;
+  second.set<0, 0>(5);
+  EXPECT_EQ(first, (ValueMatrix<int, 2, 1>{1, 2}));
+  EXPECT_EQ(moved, (ValueMatrix<int, 2, 1>{3, 4}));
+}
+
+// The transpose and a block are copies, not views that share the values of the original, e.g. with Blitz++ (#60).
+TEST(TestValuesWrapper, TransposeAndBlockAreIndependentOfTheOriginal) {  // NOLINT
+  ValueMatrix<int, 2, 2> original{1, 2, 3, 4};
+  ValueMatrix<int, 2, 2> transpose = original.transpose();
+  ValueMatrix<int, 2, 1> block = original.getBlock<0, 0, 2, 1>();
+  transpose.set<0, 1>(-3);
+  block.set<0, 0>(-1);
+  EXPECT_EQ(original, (ValueMatrix<int, 2, 2>{1, 2, 3, 4}));
+  original.set<1, 0>(5);
+  EXPECT_EQ(transpose, (ValueMatrix<int, 2, 2>{1, -3, 2, 4}));
+  EXPECT_EQ(block, (ValueMatrix<int, 2, 1>{-1, 3}));
+}
+
+// Operations return evaluated values, which do not refer to their operands (#69), while the traits are lazy (see the tests
+// Lazy* above).
+TEST(TestValuesWrapper, ResultsAreEvaluated) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 2, 3>;
+  const MyValueMatrix values{1, 2, 3, 4, 5, 6};
+  static_assert(std::is_same_v<decltype(values + values), MyValueMatrix>);
+  static_assert(std::is_same_v<decltype(values - values), MyValueMatrix>);
+  static_assert(std::is_same_v<decltype(-values), MyValueMatrix>);
+  static_assert(std::is_same_v<decltype(values * values), MyValueMatrix>);
+  static_assert(std::is_same_v<decltype(values * 2), MyValueMatrix>);
+  static_assert(std::is_same_v<decltype(values / values), MyValueMatrix>);
+  static_assert(std::is_same_v<decltype(values.getBlock<0, 1, 2, 2>()), ValueMatrix<int, 2, 2>>);
+  static_assert(std::is_same_v<decltype(values.innerProduct(values.transpose())), ValueMatrix<int, 2, 2>>);
+  // With Eigen 3.4, the evaluated transpose is stored row by row, so its type differs from ValueMatrix<int, 3, 2>.
+  using TransposeT = decltype(values.transpose());
+  static_assert(std::is_same_v<Evaluate<TransposeT>::type, TransposeT>);
+  EXPECT_EQ(values.transpose(), (ValueMatrix<int, 3, 2>{1, 4, 2, 5, 3, 6}));
+}
+
+// Operations also work on unevaluated values, i.e. values of the lazy types of the traits (#64). Blitz++ evaluates its
+// expressions first where it needs an array, e.g. for the transpose.
+TEST(TestValuesWrapper, OperationsOnUnevaluatedValues) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 3, 1>;
+  using Implementation = MyValueMatrix::ImplementationT;
+  const MyValueMatrix lhs{1, 2, 3};
+  const MyValueMatrix rhs{3, 2, 1};
+  const Sum<MyValueMatrix, MyValueMatrix>::type unevaluated{
+      Sum<AccessImplementation<Implementation>, AccessImplementation<Implementation>>::value(lhs.getImplementation(),
+                                                                                             rhs.getImplementation())};
+  EXPECT_EQ(unevaluated, (MyValueMatrix{4, 4, 4}));
+  const Sum<MyValueMatrix, MyValueMatrix>::type copy{unevaluated};
+  EXPECT_EQ(copy, (MyValueMatrix{4, 4, 4}));
+  EXPECT_EQ(-unevaluated, (MyValueMatrix{-4, -4, -4}));
+  EXPECT_EQ(unevaluated.transpose(), (ValueMatrix<int, 1, 3>{4, 4, 4}));
+  EXPECT_EQ((unevaluated.getBlock<1, 0, 2, 1>()), (ValueMatrix<int, 2, 1>{4, 4}));
+  EXPECT_EQ(unevaluated.dotProduct(lhs), (Value<int>{24}));
+  EXPECT_EQ(unevaluated.crossProduct(lhs), (MyValueMatrix{4, -8, 4}));
+  EXPECT_EQ(unevaluated.evaluate(), (MyValueMatrix{4, 4, 4}));
+}
+
+// Only values of the same size convert implicitly, so that type traits report other conversions as invalid (#62, #70).
+// Direct initialization from values of another size fails with a static_assert (compile tests ValuesWrapper.Convert*).
+TEST(TestValuesWrapper, ConversionsAreImplicitOnlyIfValid) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<int, 3, 1>;
+  static_assert(std::is_convertible_v<Sum<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>);
+  static_assert(!std::is_convertible_v<ValueMatrix<int, 2, 1>, MyValueMatrix>);
+  static_assert(!std::is_convertible_v<ValueMatrix<int, 3, 2>, MyValueMatrix>);
 }
 
 // TODO(remod): Compile-time check number of constructor arguments and test it.

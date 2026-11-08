@@ -44,6 +44,45 @@ using ValueI = Value<int>;
 using ValueF = Value<float>;
 using ValueD = Value<double>;
 
+namespace internal {
+
+//! The array type of a Blitz++ array or expression.
+template <typename ImplementationT_>
+using ArrayOf = blitz::Array<typename ImplementationT_::T_numtype, 2>;
+
+template <typename ImplementationT_>
+inline constexpr bool isArray = std::is_same_v<ImplementationT_, ArrayOf<ImplementationT_>>;
+
+//! The values of a Blitz++ array or expression in a new array, which shares them with no other array. Blitz++'s copy
+//! constructor makes a shared view of an array instead (see "Referencing another array" in
+//! https://github.com/blitzpp/blitz/blob/main/doc/arrays-ctors.texi), and so do transpose() and slicing.
+template <typename ImplementationT_>
+ArrayOf<ImplementationT_> copyToArray(const ImplementationT_& impl) {
+  if constexpr (isArray<ImplementationT_>) {
+    // Unlike impl.copy(), which keeps the storage order of a transposed view, this stores the copy row by row, like all other
+    // arrays of the backend.
+    ArrayOf<ImplementationT_> result(impl.extent(0), impl.extent(1));
+    result = impl;
+    return result;
+  } else {
+    // Evaluates the expression into a new array.
+    return ArrayOf<ImplementationT_>(impl);
+  }
+}
+
+//! A Blitz++ array as it is, or an expression evaluated into a new array: some members, e.g. transpose(), only exist for
+//! arrays.
+template <typename ImplementationT_>
+decltype(auto) asArray(const ImplementationT_& impl) {
+  if constexpr (isArray<ImplementationT_>) {
+    return (impl);
+  } else {
+    return ArrayOf<ImplementationT_>(impl);
+  }
+}
+
+}  // namespace internal
+
 }  // namespace wuzp_blitz
 
 namespace wuzp {
@@ -84,10 +123,52 @@ struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementatio
   }
 };
 
+// Blitz++'s copy constructor shares the values of an array, so arrays are copied into new arrays. Copies of expressions refer
+// to the same operands, like the expressions themselves.
+template <typename ImplementationT_>
+struct Copy<AccessImplementation<ImplementationT_>> {
+  static ImplementationT_ value(const ImplementationT_& impl) {
+    if constexpr (wuzp_blitz::internal::isArray<ImplementationT_>) {
+      return wuzp_blitz::internal::copyToArray(impl);
+    } else {
+      return impl;
+    }
+  }
+};
+
+// Blitz++ arrays cannot be moved, and their copy constructor shares the values: the moved array takes over the values with
+// reference(), and the moved-from array is emptied with free() (see "Array members" in
+// https://github.com/blitzpp/blitz/blob/main/doc/arrays-members.texi), so that no two arrays share the values.
+template <typename ImplementationT_>
+struct Move<AccessImplementation<ImplementationT_>> {
+  static ImplementationT_ construct(ImplementationT_& source) {
+    if constexpr (wuzp_blitz::internal::isArray<ImplementationT_>) {
+      ImplementationT_ result;
+      result.reference(source);
+      source.free();
+      return result;
+    } else {
+      return source;
+    }
+  }
+  static void assign(ImplementationT_& target, ImplementationT_& source) {
+    if constexpr (wuzp_blitz::internal::isArray<ImplementationT_>) {
+      target.reference(source);
+      source.free();
+    } else {
+      target = source;
+    }
+  }
+};
+
 template <typename ImplementationT_>
 struct Transpose<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return impl.transpose(1, 0); }
-  // Use decltype/declval to allow for lazy evaluation.
+  // Blitz++'s transpose() is a view that shares the values of the array, so the transpose is copied: it does not change with the
+  // original. Expressions have no transpose(), so they are evaluated first.
+  static auto value(const ImplementationT_& impl) {
+    return wuzp_blitz::internal::copyToArray(wuzp_blitz::internal::asArray(impl).transpose(1, 0));
+  }
+  // Not lazy, see above.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
@@ -140,9 +221,12 @@ struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementat
         typename Product<ValueType<typename ImplementationLhsT_::T_numtype>, ValueType<typename ImplementationRhsT_::T_numtype>>::type;
     // The result is evaluated: Blitz++'s lazy reduction leaves a member uninitialized until it is evaluated, so copying it
     // reads an uninitialized value (GCC warns about this in optimized builds).
-    blitz::Array<ValueT, 2> result(implLhs.extent(0), implRhs.extent(1));
+    // Expressions are evaluated first, for their extents and the index placeholders.
+    const auto& lhs = wuzp_blitz::internal::asArray(implLhs);
+    const auto& rhs = wuzp_blitz::internal::asArray(implRhs);
+    blitz::Array<ValueT, 2> result(lhs.extent(0), rhs.extent(1));
     result = blitz::cast<ValueT>(
-        blitz::sum(implLhs(blitz::tensor::i, blitz::tensor::k) * implRhs(blitz::tensor::k, blitz::tensor::j), blitz::tensor::k));
+        blitz::sum(lhs(blitz::tensor::i, blitz::tensor::k) * rhs(blitz::tensor::k, blitz::tensor::j), blitz::tensor::k));
     return result;
   }
   // Not lazy, see above.
@@ -163,11 +247,14 @@ struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementat
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
     static_assert(std::is_same_v<typename ImplementationLhsT_::T_numtype, typename ImplementationRhsT_::T_numtype>,
                   "Numeric types do not match.");
-    // The core only calls this for 3x1 matrices: CrossProduct<MatrixSize> rejects other sizes at compile time.
+    // The core only calls this for 3x1 matrices: CrossProduct<MatrixSize> rejects other sizes at compile time. Expressions are
+    // evaluated first, for the element access.
+    const auto& lhs = wuzp_blitz::internal::asArray(implLhs);
+    const auto& rhs = wuzp_blitz::internal::asArray(implRhs);
     blitz::Array<typename ImplementationLhsT_::T_numtype, 2> result{3, 1};
-    result(0, 0) = implLhs(1, 0) * implRhs(2, 0) - implLhs(2, 0) * implRhs(1, 0);
-    result(1, 0) = implLhs(2, 0) * implRhs(0, 0) - implLhs(0, 0) * implRhs(2, 0);
-    result(2, 0) = implLhs(0, 0) * implRhs(1, 0) - implLhs(1, 0) * implRhs(0, 0);
+    result(0, 0) = lhs(1, 0) * rhs(2, 0) - lhs(2, 0) * rhs(1, 0);
+    result(1, 0) = lhs(2, 0) * rhs(0, 0) - lhs(0, 0) * rhs(2, 0);
+    result(2, 0) = lhs(0, 0) * rhs(1, 0) - lhs(1, 0) * rhs(0, 0);
     return result;
   }
   // Use decltype/declval to allow for lazy evaluation.
@@ -225,10 +312,12 @@ struct TensorInverse<AccessImplementation<ImplementationT_>> {
 
 template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
 struct Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+  // A slice of an array is a view that shares its values, like transpose(), so the block is copied.
   static auto value(const ImplementationT_& impl) {
-    return impl(blitz::Range(BlockRowId, BlockRowId + BlockRows - 1), blitz::Range(BlockColId, BlockColId + BlockCols - 1));
+    return wuzp_blitz::internal::copyToArray(wuzp_blitz::internal::asArray(impl)(blitz::Range(BlockRowId, BlockRowId + BlockRows - 1),
+                                                                                 blitz::Range(BlockColId, BlockColId + BlockCols - 1)));
   }
-  // Use decltype/declval to allow for lazy evaluation.
+  // Not lazy, see above.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
@@ -253,8 +342,8 @@ struct Random<AccessImplementation<ImplementationT_>> {
 
 template <typename ImplementationT_>
 struct Evaluate<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return blitz::Array<typename ImplementationT_::T_numtype, 2>(impl); }
-  // Use decltype/declval to allow for lazy evaluation.
+  // A new array, also for an array: the result of evaluate() does not share the values of the original.
+  static auto value(const ImplementationT_& impl) { return wuzp_blitz::internal::copyToArray(impl); }
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 

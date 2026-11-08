@@ -12,6 +12,7 @@
 #include "wuzp/core/Units.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
 #include "wuzp/core/concepts.hpp"
+#include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
@@ -36,10 +37,11 @@ class Quantities {
 
   Quantities() = default;
 
+  // Copies and moves are left to the implicit constructors, see CopiesOrMoves.
   template <typename T0, typename... Ts>
-    requires(!IsSpecialization<T0, Tag>::value)
-  // Allow implicit construction from similar quantity matrices. NOLINTNEXTLINE(google-explicit-constructor)
-  explicit(!std::is_same_v<typename GetTag<ThisT, T0, Ts...>::type, FromSimilar>) Quantities(T0&& t0, Ts&&... ts)
+    requires(!IsSpecialization<T0, Tag>::value && !CopiesOrMoves<Quantities, T0, Ts...>)
+  // Allow implicit construction from similar quantity matrices with the same units. NOLINTNEXTLINE(google-explicit-constructor)
+  explicit(!IsValidConversion<ThisT, std::remove_cvref_t<T0>, std::remove_cvref_t<Ts>...>::value) Quantities(T0&& t0, Ts&&... ts)
       : Quantities(typename GetTag<ThisT, T0, Ts...>::type{}, std::forward<T0>(t0), std::forward<Ts>(ts)...) {}
 
   static ThisT zero() { return ThisT(ValuesT::zero()); }
@@ -82,11 +84,12 @@ class Quantities {
    * Set the values of the quantities.
    * WARNING: This method circumvents quantity type safety.
    * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
-   * @param values ValueMatrix.
+   * @param values ValueMatrix of the same size.
    */
   template <typename ValuesOtherT_>
   void setValues(const ValuesOtherT_& values) {
-    values_ = values;
+    // Direct initialization checks the size, see the converting constructor of ValuesWrapper.
+    values_ = ValuesT(values);
   }
 
   void setValue(ValueT value)
@@ -101,7 +104,9 @@ class Quantities {
    * This method is provided even if the dimension is 0, to ensure all quantities have the same interface in templated functions.
    * @return ValueMatrix of the quantities.
    */
-  const ValuesT& getValues() const { return values_; }
+  const ValuesT& getValues() const& { return values_; }
+  //! The values of a temporary are moved out of it, which avoids a copy and does not refer to the destroyed temporary.
+  ValuesT getValues() && { return std::move(values_); }
 
   ValueT getValue() const
     requires(Dimension<ThisT>::value == 0)
@@ -116,42 +121,49 @@ class Quantities {
     return values_.isApprox(other.getValues(), precision);
   }
 
+  // The member functions and operators return evaluated results (see ValuesWrapper), of the evaluated types of the traits.
+
   template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
   auto block() const {
-    return typename Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
+    return typename Evaluate<typename Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type>::type(
         values_.template getBlock<BlockRowId, BlockColId, BlockRows, BlockCols>());
   }
 
-  auto transpose() const { return typename Transpose<ThisT>::type{values_.transpose()}; }
+  auto transpose() const { return typename Evaluate<typename Transpose<ThisT>::type>::type{values_.transpose()}; }
 
   // TODO(remod): Either a) remove methods, or b) remove free functions or c) make them re-use each other.
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto tensorProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename TensorProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.tensorProduct(other.getValues())};
+    return typename Evaluate<typename TensorProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type>::type{
+        values_.tensorProduct(other.getValues())};
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto innerProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename InnerProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.innerProduct(other.getValues())};
+    return typename Evaluate<typename InnerProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type>::type{
+        values_.innerProduct(other.getValues())};
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto outerProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename OuterProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.outerProduct(other.getValues())};
+    return typename Evaluate<typename OuterProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type>::type{
+        values_.outerProduct(other.getValues())};
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto dotProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename DotProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.dotProduct(other.getValues())};
+    return typename Evaluate<typename DotProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type>::type{
+        values_.dotProduct(other.getValues())};
   }
 
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto crossProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename CrossProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type{values_.crossProduct(other.getValues())};
+    return typename Evaluate<typename CrossProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type>::type{
+        values_.crossProduct(other.getValues())};
   }
 
-  auto inverse() const { return typename Inverse<ThisT>::type{values_.inverse()}; }
-  auto tensorInverse() const { return typename TensorInverse<ThisT>::type{values_.tensorInverse()}; }
+  auto inverse() const { return typename Evaluate<typename Inverse<ThisT>::type>::type{values_.inverse()}; }
+  auto tensorInverse() const { return typename Evaluate<typename TensorInverse<ThisT>::type>::type{values_.tensorInverse()}; }
 
   auto norm() const { return typename GetType<ThisT>::type{values_.norm()}; }
 
@@ -164,7 +176,8 @@ class Quantities {
     return typename Determinant<ThisT>::type{values_.determinant()};
   }
 
-  auto evaluate() const { return typename Evaluate<ThisT>::type{values_.evaluate()}; }
+  auto evaluate() const& { return typename Evaluate<ThisT>::type{values_.evaluate()}; }
+  auto evaluate() && { return typename Evaluate<ThisT>::type{std::move(values_).evaluate()}; }
 
  private:
   template <typename ValuesOtherT_, typename UnitsOtherT_>
@@ -188,6 +201,12 @@ class Quantities {
   explicit Quantities(FromImplementationArgs /*tag*/, Ts&&... ts) : values_(std::forward<Ts>(ts)...) {}
 
   ValuesT values_;
+};
+
+template <typename ValuesT_, typename UnitsT_, typename ValuesOtherT_, typename UnitsOtherT_>
+struct IsValidConversion<Quantities<ValuesT_, UnitsT_>, Quantities<ValuesOtherT_, UnitsOtherT_>> {
+  // The value matrices have the sizes of the unit matrices, so they match if the units match.
+  static constexpr bool value = std::is_same_v<UnitsT_, UnitsOtherT_>;
 };
 
 template <typename ValuesT_, typename UnitsT_, typename... Ts>
@@ -245,6 +264,11 @@ struct Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhs
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 struct Difference<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
   using type = Quantities<typename Difference<ValuesLhsT_, ValuesRhsT_>::type, typename Difference<UnitsLhsT_, UnitsRhsT_>::type>;
+};
+
+template <typename ValuesT_, typename UnitsT_>
+struct Negation<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantities<typename Negation<ValuesT_>::type, UnitsT_>;
 };
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
@@ -328,8 +352,8 @@ struct Evaluate<Quantities<ValuesT_, UnitsT_>> {
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto sum(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return
-      typename Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type{sum(lhs.getValues(), rhs.getValues())};
+  return typename Evaluate<typename Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type>::type{
+      sum(lhs.getValues(), rhs.getValues())};
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto operator+(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
@@ -338,7 +362,7 @@ auto operator+(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto difference(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return typename Difference<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
+  return typename Evaluate<typename Difference<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type>::type(
       difference(lhs.getValues(), rhs.getValues()));
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
@@ -348,7 +372,7 @@ auto operator-(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<
 
 template <typename ValuesT_, typename UnitsT_>
 auto negation(const Quantities<ValuesT_, UnitsT_>& rhs) {
-  return Quantities<ValuesT_, UnitsT_>(negation(rhs.getValues()));
+  return typename Evaluate<typename Negation<Quantities<ValuesT_, UnitsT_>>::type>::type(negation(rhs.getValues()));
 }
 template <typename ValuesT_, typename UnitsT_>
 auto operator-(const Quantities<ValuesT_, UnitsT_>& rhs) {
@@ -357,10 +381,8 @@ auto operator-(const Quantities<ValuesT_, UnitsT_>& rhs) {
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
-  // Evaluate to avoid returning an expression on a temporary object.
   return product(lhs, Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
-                               typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs))
-      .evaluate();
+                               typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs));
 }
 template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto product(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
@@ -368,11 +390,9 @@ auto product(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rh
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
 auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
-  // Evaluate to avoid returning an expression on a temporary object.
   return product(lhs, Quantities<ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>,
                                  TypeMatrix<Rows<MatrixSizeRhsT_>::value, Cols<MatrixSizeRhsT_>::value,
-                                            typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>>(rhs))
-      .evaluate();
+                                            typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>>(rhs));
 }
 template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto product(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
@@ -381,7 +401,7 @@ auto product(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT
 // This specialization also covers the `Quantity` typedef.
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
+  return typename Evaluate<typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type>::type(
       product(lhs.getValues(), rhs.getValues()));
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
@@ -407,20 +427,17 @@ auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto tensorProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return typename TensorProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
-      lhs.getValues().tensorProduct(rhs.getValues()));
+  return lhs.tensorProduct(rhs);
 }
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto innerProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return typename InnerProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
-      lhs.getValues().innerProduct(rhs.getValues()));
+  return lhs.innerProduct(rhs);
 }
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto outerProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return typename OuterProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type(
-      lhs.getValues().outerProduct(rhs.getValues()));
+  return lhs.outerProduct(rhs);
 }
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
@@ -435,7 +452,7 @@ auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValuesWrappe
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typename UnitRhsT_>
 auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
-  return typename Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type(
+  return typename Evaluate<typename Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type>::type(
       division(lhs.getValues(), rhs.getValue()));
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
@@ -469,12 +486,20 @@ std::ostream& operator<<(std::ostream& lhs, const Quantities<ValuesT_, UnitsT_>&
 }
 
 // TODO(remod): Implement for full matrices?
-// Exponent first, as value and unit can be derived automatically.
+/**
+ * The quantity raised to a rational power, e.g. pow<Rational<1, 2>>(area) is a length.
+ * The power is computed in floating point and converted to the value type. For integer values, a result that is not an integer
+ * is truncated, like the norm of integer vectors, which follows Eigen's norm(): pow<1, 2>(QuantityI<Area>(5)) is 2 m.
+ * The exponent comes first, as the value and the unit can be deduced.
+ */
 template <typename ExponentT, typename Value, typename Unit>
 auto pow(const Quantity<Value, Unit>& quantity) {
+  using ValueT = typename Value::ValueT;
+  // An exponent of an integer type would truncate a non-integer exponent, e.g. 1/2 to 0.
+  using ExponentValueT = std::conditional_t<std::is_floating_point_v<ValueT>, ValueT, double>;
   // Evaluate the value here, as we need the result to have a constructor which can take a scalar, which expressions do not have.
   return typename Power<Quantity<typename Evaluate<Value>::type, Unit>, ExponentT>::type(
-      std::pow(quantity.getValue(), ExponentT::template value<typename Value::ValueT>()));
+      static_cast<ValueT>(std::pow(quantity.getValue(), ExponentT::template value<ExponentValueT>())));
 }
 
 // Convenience definition, so one can write pow<2>() to get pow<Integer<2>>().
@@ -489,14 +514,18 @@ auto pow(const Quantity<Value, Unit>& quantity) {
   return pow<Rational<ExponentDividendV, ExponentDivisorV>>(quantity);
 }
 
+// The results of sin and cos are constructed from a scalar, so they have the evaluated value type: an expression, e.g. of the
+// sum of two angles, has no constructor from a scalar.
 template <typename Value>
 auto sin(const Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Angle>& angle) {
-  return Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Dimensionless>(std::sin(angle.getValue()));
+  return Quantity<typename Evaluate<Value>::type, typename AccessUnits<AccessImplementation<Value>>::Dimensionless>(
+      std::sin(angle.getValue()));
 }
 
 template <typename Value>
 auto cos(const Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Angle>& angle) {
-  return Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Dimensionless>(std::cos(angle.getValue()));
+  return Quantity<typename Evaluate<Value>::type, typename AccessUnits<AccessImplementation<Value>>::Dimensionless>(
+      std::cos(angle.getValue()));
 }
 
 // TODO(remod): add more math functions.

@@ -6,6 +6,6 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  [[maybe_unused]] const TestTensor<1, 1> tensor = TestTensor<1, 0>::zero();
+  [[maybe_unused]] const TestTensor<1, 1> tensor{TestTensor<1, 0>::zero()};
   return 0;
 }
