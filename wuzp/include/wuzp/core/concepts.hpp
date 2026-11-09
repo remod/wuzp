@@ -84,13 +84,27 @@ class Quantities;
 template <typename T>
 concept AnyQuantities = IsSpecialization<T, Quantities>::value;
 
-template <int ContravariantIndicesV_, int CovariantIndicesV_, AnyQuantities QuantitiesT_, AnyCoordinateSystem CoordinateSystemT_,
-          AbsoluteOrRelative AbsoluteT_>
+// An upper and a lower index of a tensor, defined in Indices.hpp.
+struct Up;
+struct Down;
+
+//! `Up` or `Down`: whether an index of a tensor is upper (contravariant) or lower (covariant).
+template <typename T>
+concept UpOrDown = std::same_as<T, Up> || std::same_as<T, Down>;
+
+template <UpOrDown... VariancesT_>
+struct Indices;
+
+//! Any indices of a tensor: a specialization of `Indices`, e.g. `Indices<Up, Down>`.
+template <typename T>
+concept AnyIndices = IsSpecialization<T, Indices>::value;
+
+template <AnyIndices IndicesT_, AnyQuantities QuantitiesT_, AnyCoordinateSystem CoordinateSystemT_, AbsoluteOrRelative AbsoluteT_>
 class Tensor;
 
 //! Any tensor: a specialization of `Tensor`, including points, vectors and their aliases.
 template <typename T>
-concept AnyTensor = IsSpecializationInts<T, Tensor>::value;
+concept AnyTensor = IsSpecialization<T, Tensor>::value;
 
 // ---------------------------------------------------------------------------------------------------------------------------------
 // The backend interface

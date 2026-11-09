@@ -5,7 +5,7 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  [[maybe_unused]] const TestTensor<1, 0> vector = wuzp::makeRelative(TestTensor<1, 0, wuzp::Absolute>::zero());
-  [[maybe_unused]] const TestTensor<1, 0, wuzp::Absolute> point = wuzp::makeAbsolute(TestTensor<1, 0>::zero());
+  [[maybe_unused]] const TestTensor<Indices<Up>> vector = wuzp::makeRelative(TestTensor<Indices<Up>, wuzp::Absolute>::zero());
+  [[maybe_unused]] const TestTensor<Indices<Up>, wuzp::Absolute> point = wuzp::makeAbsolute(TestTensor<Indices<Up>>::zero());
   return 0;
 }

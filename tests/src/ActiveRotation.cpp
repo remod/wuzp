@@ -44,9 +44,9 @@ TEST(TestActiveRotation, TransformVelocityVector) {  // NOLINT
 TEST(TestActiveRotation, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, Length>>;
-  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
+  using Object = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
-  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
+  using TransformedObject = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   const Object object{1.0, 4.0, 2.0, 5.0, 3.0, 6.0};
   const TransformedObject transformedObject{1.0, 4.0, -3.0, -6.0, 2.0, 5.0};
   const Transformation transformation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
@@ -57,18 +57,17 @@ TEST(TestActiveRotation, TransformPointCloud) {  // NOLINT
 TEST(TestActiveRotation, TransformMassMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 3>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 3, Mass>>;
-  using MassMatrix = Tensor<0, 2, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MassMatrix = Tensor<Indices<Down, Down>, MyQuantityMatrix, CoordinateSystemA, Relative>;
   using VelocityVector = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
   const MassMatrix massMatrix{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
   const VelocityVector velocityVector{1.0, 2.0, 3.0};
-  const QuantityD<Energy> energy{0.5 * innerProduct(velocityVector.transpose(), innerProduct(massMatrix, velocityVector)).getQuantity()};
+  const QuantityD<Energy> energy{0.5 * innerProduct(innerProduct(massMatrix, velocityVector), velocityVector).getQuantity()};
   const Transformation transformation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
   const MassMatrix transformedMassMatrix{transformation.transform(massMatrix)};
   const VelocityVector transformedVelocityVector{transformation.transform(velocityVector)};
   const QuantityD<Energy> transformedEnergy{
-      0.5 *
-      innerProduct(transformedVelocityVector.transpose(), innerProduct(transformedMassMatrix, transformedVelocityVector)).getQuantity()};
+      0.5 * innerProduct(innerProduct(transformedMassMatrix, transformedVelocityVector), transformedVelocityVector).getQuantity()};
   EXPECT_EQ(transformedEnergy, energy);
 }
 #endif

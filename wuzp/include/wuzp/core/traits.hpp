@@ -114,10 +114,6 @@ struct Product<ValueType<Lhs>, ValueType<Rhs>> {
 template <typename Lhs, typename Rhs>
 auto product(const Lhs& lhs, const Rhs& rhs);
 
-WUZP_DEFINE_RECURSIVE_TRAIT(TensorProduct)
-template <typename Lhs, typename Rhs>
-auto tensorProduct(const Lhs& lhs, const Rhs& rhs);
-
 WUZP_DEFINE_RECURSIVE_TRAIT(InnerProduct)
 template <typename Lhs, typename Rhs>
 auto innerProduct(const Lhs& lhs, const Rhs& rhs);

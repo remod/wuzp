@@ -137,14 +137,6 @@ class ValuesWrapper {
   }
 
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
-  auto tensorProduct(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other) const {
-    return typename TensorProduct<ThisT, ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>>::type(
-               TensorProduct<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOtherT_>>::value(
-                   implementation_, other.getImplementation()))
-        .evaluate();
-  }
-
-  template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
   auto innerProduct(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other) const {
     return typename InnerProduct<ThisT, ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>>::type(
                InnerProduct<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOtherT_>>::value(
@@ -388,16 +380,6 @@ struct Product<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
   using type = ValuesWrapper<typename Product<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
                              typename Product<ValueType<ValueLhsT_>, ValueType<ValueRhsT_>>::type,
                              typename Product<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::type>;
-};
-
-template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
-          typename ImplementationRhsT_>
-struct TensorProduct<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
-                     ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>> {
-  using type =
-      ValuesWrapper<typename TensorProduct<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
-                    typename TensorProduct<ValueType<ValueLhsT_>, ValueType<ValueRhsT_>>::type,
-                    typename TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::type>;
 };
 
 template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,

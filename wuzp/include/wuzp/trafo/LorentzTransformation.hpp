@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 
+#include "wuzp/core/Indices.hpp"
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/Tensor.hpp"
@@ -32,6 +33,7 @@ auto getSpeedOfLight() {
 //! It takes any vector rather than SpacetimeVector, whose alias template parameters could not be deduced.
 template <typename QuantitiesT_, typename CoordinateSystemT_>
 auto getInvariant(const Vector<QuantitiesT_, CoordinateSystemT_>& vector) {
+  static_assert(internal::RejectBatch<Indices<Up>, QuantitiesT_>::value);
   constexpr int dimension = Rows<QuantitiesT_>::value;
   const auto& quantities = vector.getQuantities();
   return pow<2>(quantities.template get<0, 0>()) - quantities.template block<1, 0, dimension - 1, 1>().squaredNorm();

@@ -10,6 +10,6 @@
 
 int main() {
   // Use = instead of {} to trigger implicit conversion.
-  [[maybe_unused]] const TestTensor<1, 0> tensor = TestTensor<1, 0, wuzp::Absolute>::zero();
+  [[maybe_unused]] const TestTensor<Indices<Up>> tensor = TestTensor<Indices<Up>, wuzp::Absolute>::zero();
   return 0;
 }

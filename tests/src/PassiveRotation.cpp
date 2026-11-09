@@ -44,9 +44,9 @@ TEST(TestPassiveRotation, TransformVelocityVector) {  // NOLINT
 TEST(TestPassiveRotation, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, Length>>;
-  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
+  using Object = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   using Transformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
-  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemB, Absolute>;
+  using TransformedObject = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemB, Absolute>;
   const Object object{1.0, 4.0, 2.0, 5.0, 3.0, 6.0};
   const TransformedObject transformedObject{1.0, 4.0, 3.0, 6.0, -2.0, -5.0};
   const Transformation transformation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
@@ -57,20 +57,19 @@ TEST(TestPassiveRotation, TransformPointCloud) {  // NOLINT
 TEST(TestPassiveRotation, TransformMassMatrix) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 3>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 3, Mass>>;
-  using MassMatrix = Tensor<0, 2, MyQuantityMatrix, CoordinateSystemA, Relative>;
+  using MassMatrix = Tensor<Indices<Down, Down>, MyQuantityMatrix, CoordinateSystemA, Relative>;
   using VelocityVector = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
-  using TransformedMassMatrix = Tensor<0, 2, MyQuantityMatrix, CoordinateSystemB, Relative>;
+  using TransformedMassMatrix = Tensor<Indices<Down, Down>, MyQuantityMatrix, CoordinateSystemB, Relative>;
   using TransformedVelocityVector = VelocityVector3<ValueMatrix, double, CoordinateSystemB>;
   const MassMatrix massMatrix{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
   const VelocityVector velocityVector{1.0, 2.0, 3.0};
-  const QuantityD<Energy> energy{0.5 * innerProduct(velocityVector.transpose(), innerProduct(massMatrix, velocityVector)).getQuantity()};
+  const QuantityD<Energy> energy{0.5 * innerProduct(innerProduct(massMatrix, velocityVector), velocityVector).getQuantity()};
   const Transformation transformation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
   const TransformedMassMatrix transformedMassMatrix{transformation.transform(massMatrix)};
   const TransformedVelocityVector transformedVelocityVector{transformation.transform(velocityVector)};
   const QuantityD<Energy> transformedEnergy{
-      0.5 *
-      innerProduct(transformedVelocityVector.transpose(), innerProduct(transformedMassMatrix, transformedVelocityVector)).getQuantity()};
+      0.5 * innerProduct(innerProduct(transformedMassMatrix, transformedVelocityVector), transformedVelocityVector).getQuantity()};
   EXPECT_EQ(transformedEnergy, energy);
 }
 #endif

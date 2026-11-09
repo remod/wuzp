@@ -5,11 +5,13 @@
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/Absolute.hpp"
+#include "wuzp/core/Indices.hpp"
 
 #include "ValueMatrix.hpp"
 #include "coordinate_systems.hpp"
 
 int main() {
-  [[maybe_unused]] constexpr auto size = sizeof(wuzp::Tensor<1, 0, ValueMatrix<double, 3, 1>, CoordinateSystemA, wuzp::Relative>);
+  [[maybe_unused]] constexpr auto size =
+      sizeof(wuzp::Tensor<wuzp::Indices<wuzp::Up>, ValueMatrix<double, 3, 1>, CoordinateSystemA, wuzp::Relative>);
   return 0;
 }

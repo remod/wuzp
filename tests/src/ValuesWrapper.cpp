@@ -266,14 +266,6 @@ TEST(TestValuesWrapper, ProductWithValues) {  // NOLINT
   EXPECT_EQ(lhs * rhs, result);
 }
 
-TEST(TestValuesWrapper, TensorProduct) {  // NOLINT
-                                          // TODO(remod): Implement
-  //  const ValueMatrix<int, 2, 3> lhs{1, 2, 3, 4, 5, 6};
-  //  const ValueMatrix<int, 2, 3> rhs{3, 4, 1, 5, 6, 2};
-  //  const ValueMatrix<int, 2, 3> result{3, 8, 3, 20, 30, 12};
-  //  EXPECT_EQ(tensorProduct(lhs, rhs), result);
-}
-
 // The inner product keeps the value type, also with Blitz++, which widens sums (e.g. of int to long, and of float to double).
 TEST(TestValuesWrapper, InnerProductTypeDerivation) {  // NOLINT
   using A = ValueMatrix<int, 4, 3>;
@@ -332,6 +324,13 @@ TEST(TestValuesWrapper, OuterProductOfScalarAndMatrix) {  // NOLINT
   const ValueMatrix<int, 1, 1> lhs{2};
   const ValueMatrix<int, 2, 2> rhs{-1, 3, 4, 2};
   const ValueMatrix<int, 2, 2> result{-2, 6, 8, 4};
+  EXPECT_EQ(outerProduct(lhs, rhs), result);
+}
+
+TEST(TestValuesWrapper, OuterProductOfVectorAndScalar) {  // NOLINT
+  const ValueMatrix<int, 3, 1> lhs{-1, 3, 4};
+  const ValueMatrix<int, 1, 1> rhs{2};
+  const ValueMatrix<int, 3, 1> result{-2, 6, 8};
   EXPECT_EQ(outerProduct(lhs, rhs), result);
 }
 

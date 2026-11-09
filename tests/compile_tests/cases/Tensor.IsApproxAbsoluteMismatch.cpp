@@ -6,5 +6,5 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  return TestTensor<1, 0, wuzp::Absolute>::zero().isApprox(TestTensor<1, 0>::zero()) ? 0 : 1;
+  return TestTensor<Indices<Up>, wuzp::Absolute>::zero().isApprox(TestTensor<Indices<Up>>::zero()) ? 0 : 1;
 }

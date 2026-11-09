@@ -360,6 +360,14 @@ TEST(TestQuantities2, DivisionWithQuantity) {  // NOLINT
   EXPECT_EQ(quantities / quantity, (MyQuantityMatrixResult{0, 1, 1, 2}));
 }
 
+// The elementwise quotient of quantities of the same size, e.g. for cwiseQuotient() of tensors.
+TEST(TestQuantities2, DivisionWithQuantities) {  // NOLINT
+  using Lhs = Quantities<ValueMatrix<int, 2, 2>, TypeMatrix<2, 2, Length, Area, Length, Area>>;
+  using Rhs = Quantities<ValueMatrix<int, 2, 2>, TypeMatrix<2, 2, Time, Length, Length, Time>>;
+  using Result = Quantities<ValueMatrix<int, 2, 2>, TypeMatrix<2, 2, Velocity, Length, Dimensionless, Division<Area, Time>::type>>;
+  EXPECT_EQ(division(Lhs{6, 8, 9, 4}, Rhs{3, 2, 3, 4}), (Result{2, 4, 3, 1}));
+}
+
 TEST(TestQuantities2, Chain) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix1 = TypeMatrix<2, 2, Length>;

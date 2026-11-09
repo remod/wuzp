@@ -52,9 +52,9 @@ TEST(TestPassiveTranslation, TransformVelocityVector) {  // NOLINT
 TEST(TestPassiveTranslation, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, Length>>;
-  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
+  using Object = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   using Transformation = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
-  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemB, Absolute>;
+  using TransformedObject = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemB, Absolute>;
   const Object object{1.0, 4.0, 2.0, 5.0, 3.0, 6.0};
   const TransformedObject transformedObject{1.0, 4.0, 2.0, 5.0, 2.0, 5.0};
   const Transformation transformation{0.0, 0.0, -1.0};  // Passive translation of 1 along z.
@@ -118,4 +118,11 @@ TEST(TestPassiveTranslation, CopyFromNonConstObject) {  // NOLINT
   Transformation transformation{1.0, 2.0, 3.0};
   const Transformation copy(transformation);
   EXPECT_EQ(copy, transformation);
+}
+
+TEST(TestPassiveTranslation, IsApprox) {  // NOLINT
+  using Transformation = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  Transformation transformation{1.0, 2.0, 3.0};  // Not const: isApprox() is not const yet (#68).
+  EXPECT_TRUE(transformation.isApprox(Transformation{1.0, 2.0, 3.0 + 1e-14}));
+  EXPECT_FALSE(transformation.isApprox(Transformation{1.0, 2.0, 4.0}));
 }

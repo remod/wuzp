@@ -51,9 +51,9 @@ TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
 TEST(TestActiveTranslation, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, Length>>;
-  using Object = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
+  using Object = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using TransformedObject = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
+  using TransformedObject = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemA, Absolute>;
   const Object object{1.0, 4.0, 2.0, 5.0, 3.0, 6.0};
   const TransformedObject transformedObject{1.0, 4.0, 2.0, 5.0, 4.0, 7.0};
   const Transformation transformation{0.0, 0.0, 1.0};  // Active translation of 1 along z.
@@ -111,9 +111,16 @@ TEST(TestActiveTranslation, CopyFromNonConstObject) {  // NOLINT
 
 // A point is translated by adding the translation, so its components may have different units, e.g. a point in space and time.
 TEST(TestActiveTranslation, TransformPointWithMixedUnits) {  // NOLINT
-  using Object = Tensor<1, 0, Quantities<ValueMatrix<double, 2, 1>, TypeMatrix<2, 1, Length, Time>>, CoordinateSystemA, Absolute>;
+  using Object = Tensor<Indices<Up>, Quantities<ValueMatrix<double, 2, 1>, TypeMatrix<2, 1, Length, Time>>, CoordinateSystemA, Absolute>;
   using Transformation = ActiveTranslation<ValueMatrix, 2, double, CoordinateSystemA, Length, Time>;
   const Object object{1.0, 2.0};
   const Transformation transformation{3.0, 4.0};
   EXPECT_EQ(transformation.transform(object), (Object{4.0, 6.0}));
+}
+
+TEST(TestActiveTranslation, IsApprox) {  // NOLINT
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  Transformation transformation{1.0, 2.0, 3.0};  // Not const: isApprox() is not const yet (#68).
+  EXPECT_TRUE(transformation.isApprox(Transformation{1.0, 2.0, 3.0 + 1e-14}));
+  EXPECT_FALSE(transformation.isApprox(Transformation{1.0, 2.0, 4.0}));
 }

@@ -40,7 +40,7 @@ using AngleQuantity = QuantityD<Angle>;
 using MassMatrixValues = ValueMatrix<double, 3, 3>;
 using MassMatrixUnits = wuzp::TypeMatrix<3, 3, Mass, Mass, MassLength, Mass, Mass, MassLength, MassLength, MassLength, MassLength2>;
 using MassMatrixQuantities = wuzp::Quantities<MassMatrixValues, MassMatrixUnits>;
-using MassMatrix = wuzp::Tensor<0, 2, MassMatrixQuantities, MinimalCoordinateSystem, wuzp::Relative>;
+using MassMatrix = wuzp::Tensor<wuzp::Indices<wuzp::Down, wuzp::Down>, MassMatrixQuantities, MinimalCoordinateSystem, wuzp::Relative>;
 
 // class MinimalToCartesianTransformation
 //    : public wuzp::PassiveTransformation<MinimalToCartesianTransformation, MinimalCoordinateSystem, CartesianCoordinateSystem> {
@@ -125,7 +125,7 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
                               massMatrix12, massMatrix02, massMatrix12, massMatrix22};
 
   const EnergyQuantity energyMinimalCoordinates2{
-      0.5 * innerProduct(minimalCoordinatesDt.transpose(), innerProduct(massMatrix, minimalCoordinatesDt)).getQuantity()};
+      0.5 * innerProduct(innerProduct(massMatrix, minimalCoordinatesDt), minimalCoordinatesDt).getQuantity()};
 
   EXPECT_TRUE(energyCartesianCoordinates.isApprox(energyMinimalCoordinates1))
       << energyCartesianCoordinates << " is not approximately " << energyMinimalCoordinates1;

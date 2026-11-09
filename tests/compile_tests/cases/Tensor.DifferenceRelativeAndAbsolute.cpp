@@ -14,15 +14,15 @@ using namespace wuzp;
 
 struct CoordinateSystemAName {};
 using CoordinateSystemA = CoordinateSystem<CoordinateSystemAName>;
-using MyValueMatrix = ValueMatrix<int, 2, 3>;
-using MyUnitMatrix = TypeMatrix<2, 3, Length>;
+using MyValueMatrix = ValueMatrix<int, 3, 1>;
+using MyUnitMatrix = TypeMatrix<3, 1, Length>;
 using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-using MyTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Relative>;
-using MyAbsoluteTensor = Tensor<1, 0, MyQuantityMatrix, CoordinateSystemA, Absolute>;
+using MyTensor = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemA, Relative>;
+using MyAbsoluteTensor = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemA, Absolute>;
 
 int main() {
-  const MyTensor tensor{1, 2, 3, 4, 5, 6};
-  const MyAbsoluteTensor absoluteTensor{1, 4, 2, 5, 3, 6};
+  const MyTensor tensor{1, 2, 3};
+  const MyAbsoluteTensor absoluteTensor{1, 4, 2};
   tensor - absoluteTensor;
   return 0;
 }

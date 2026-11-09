@@ -10,9 +10,9 @@ Open questions are marked with **TODO** and must be decided before 1.0.
 * **Units.** Every element of a matrix has its own unit, so heterogeneous matrices (e.g. mass matrices with `kg` and `kg m^2` entries) are supported.
   Elementwise operations combine units elementwise, matrix products require all summands of an element to have the same unit.
   Units are either *wuzp*'s own implementation (seven SI exponents as reduced rationals), Boost.Units or mp-units, one of them per program (see [The backend interface](#the-backend-interface)).
-* **Tensors.** `Tensor<Contravariant, Covariant, Quantities, CoordinateSystem, Absolute>` has up to rank 2.
-  The number of indices is independent of the shape of the matrix storing the components.
-  `innerProduct` contracts one index (the result has `c1 + c2 - 1` contravariant and `k1 + k2 - 1` covariant indices), `outerProduct` adds the indices.
+* **Tensors.** `Tensor<Indices, Quantities, CoordinateSystem, Absolute>` has up to rank 2.
+  `Indices` records the variance of each index in its order, e.g. `Indices<Up, Down>` for a linear map `T^i_j`, and the indices determine the shape of the matrix storing the components (see [Index variance and order](#index-variance-and-order)).
+  `innerProduct` contracts the last index of the left-hand side with the first index of the right-hand side, `outerProduct` concatenates the indices, and `*` and `/` only take scalars (see [Products of tensors](#products-of-tensors)).
 * **Coordinate systems.** Every tensor is expressed in a coordinate system, a type without runtime cost.
   Operations combining tensors require them to be expressed in the same coordinate system.
   A coordinate system means axes and an origin; it is not a moving observer.
@@ -26,14 +26,14 @@ For a linear transformation with component matrix `A` (contravariant components 
 
 | Object | Indices | Rule | Implemented |
 | --- | --- | --- | --- |
-| Vector | (1,0) | `v' = A v` | yes |
-| Point | (1,0), absolute | `p' = A p` (via a relative intermediate) | yes |
-| Covector | (0,1) | `w' = w A^-1` | yes (Eigen only) |
-| Linear map | (1,1) | `T' = A T A^-1` | yes (Eigen only) |
-| Bilinear form, e.g. mass matrix | (0,2) | `M' = A^-T M A^-1` | yes (Eigen only) |
-| E.g. covariance matrix | (2,0) | `T' = A T A^T` | yes |
+| Vector | `Indices<Up>` | `v' = A v` | yes |
+| Point | `Indices<Up>`, absolute | `p' = A p` (via a relative intermediate) | yes |
+| Covector | `Indices<Down>` | `w' = w A^-1` | yes (Eigen only) |
+| Linear map | `Indices<Up, Down>` | `T' = A T A^-1` | yes (Eigen only) |
+| Bilinear form, e.g. mass matrix | `Indices<Down, Down>` | `M' = A^-T M A^-1` | yes (Eigen only) |
+| E.g. covariance matrix | `Indices<Up, Up>` | `T' = A T A^T` | yes |
 
-`A^-1` appears twice in the rule for (0,2) tensors because `A` transforms components, so covariant indices transform with `A^-1`.
+`A^-1` appears twice in the rule for bilinear forms because `A` transforms components, so covariant indices transform with `A^-1`.
 Equivalently, `A^-1` is the change-of-basis matrix `P` used by Wikipedia ("old = P new").
 The notes at the end of this document start with the opposite convention (`M' = A^-1 M A`, `A^T M A`); the code follows the table above.
 
@@ -55,7 +55,7 @@ The rules follow affine geometry (and Boost.Units' absolute quantities):
 | point - vector | point |
 | point - point | vector |
 | vector - point | error |
-| tensor * tensor, tensor / tensor, norm, cross product | only for vectors |
+| product with a tensor of rank 0, quotient by it, `cwiseProduct`, `cwiseQuotient`, norm, cross product | only for vectors |
 
 ## Decisions
 
@@ -146,6 +146,46 @@ Type traits report them as invalid, and copy initialization fails with the compi
 Direct initialization still reaches the constructor, whose `static_assert` explains what does not match, e.g. "Coordinate systems do not match.".
 The specializations of `IsValidConversion` name each check, e.g. `CoordinateSystemsMatchV`, and the `static_assert`s use them, so that the two cannot drift apart.
 
+### Index variance and order
+
+*wuzp* used to record only the number of contravariant and covariant indices of a tensor, while `transpose`, `innerProduct` and `outerProduct` acted on the matrix of its components, independently of its indices.
+The index rules were unsound: the inner product of a vector, a 3x1 matrix, and a covector, a 1x3 matrix, was a 3x3 matrix typed as a tensor of rank 0, the inner product of a transposed vector with a (1,1) tensor contracted two upper indices, and the inner product of a (2,0) and a (1,1) tensor was a (2,0) tensor (#71).
+
+Decision: a tensor records the variance of each index, in their order: `Tensor<Indices<Up, Down>, ...>` is a linear map `T^i_j`, `Indices<Down, Down>` a bilinear form such as a mass matrix, `Indices<Up>` a vector and `Indices<>` a scalar.
+The index placement follows chapter 1 of Carroll's [Lecture Notes on General Relativity](https://arxiv.org/abs/gr-qc/9712019), on which his book Spacetime and Geometry is based: an upper index is contravariant, a lower index covariant, and the first index of a tensor of rank 2 is the row of its matrix, the second the column, like `M^i_j` in eq. 1.54, with vectors as columns and covectors as rows (eq. 1.39).
+Libraries for symbolic tensor algebra, e.g. SymPy and xAct, likewise record the variance of each index.
+
+* The components are stored in a canonical shape, checked with a `static_assert`: a tensor of rank 0 is a 1x1 matrix, a vector a column, a covector a row, and a tensor of rank 2 a square matrix.
+  A tensor with an upper index may also store a batch of vectors or points, one per column, e.g. a point cloud, which the transformations transform at once.
+  Transformations, sums, differences, comparisons, and products and quotients with scalars accept batches; the operations that are only defined for a single vector reject them with a `static_assert`: `innerProduct`, `outerProduct`, `dotProduct`, `crossProduct`, `norm()`, `squaredNorm()`, `transpose()`, `inverse()`, `tensorInverse()`, `determinant()` and `getInvariant()`.
+* `transpose()` swaps the indices of a tensor of rank 2, e.g. `(T^T)_j^i = T^i_j`, and turns a vector, a column, into a covector, a row, and vice versa.
+  The latter lowers or raises the index with the Euclidean metric, which keeps the components (Carroll, eq. 1.62 and the text after it; see [Metric](#todo-metric)).
+* `innerProduct` contracts the last index of the left-hand side with the first index of the right-hand side, which must be an upper and a lower index, since a contraction pairs an upper with a lower index, and the order of the indices matters (Carroll, eqs. 1.59 and 1.60).
+  The only index of a vector or a covector is both its first and its last index, so `innerProduct(w, v)` and `innerProduct(v, w)` are both the scalar `w_i v^i`, and `innerProduct(v, M)` of a vector and a mass matrix is the covector `v^i M_ij`.
+  It is computed as the product of the matrices of the components, with a vector on the left-hand side transposed into a row and a covector on the right-hand side into a column.
+  The result keeps the remaining indices in their order and is stored in its canonical shape: e.g. `innerProduct(M, v)` is the covector `M_ij v^j`, a row, although the product of the matrices is a column, and the kinetic energy is `innerProduct(v, innerProduct(M, v)) / 2`.
+* `outerProduct` concatenates the indices, e.g. `v^i w_j`, so that both operands are vectors or covectors: tensors have rank 2 at most.
+* `inverse()` and `tensorInverse()` swap and flip the indices, like the matrix inverse, which maps a metric `g_ij` to `g^ij` (Carroll, eq. 1.56).
+
+The matrices of the transformations map one coordinate system into another, possibly of another dimension, so they are not tensors in one coordinate system: the transformations multiply their matrix with the quantities of the tensors they transform, and `getTensor()` only exists for square matrices.
+
+### Products of tensors
+
+`tensor * tensor` used to be the elementwise (Hadamard) product, also for tensors of rank 2: for a rotation `R` by 90°, `R * R` was `[0 1; 1 0]`, not `-I`.
+The result claimed to be a tensor in the same coordinate system, but it did not transform like one, and users of Eigen expect `*` to be the matrix product.
+The tensor product (`tensorProduct`) was implemented in neither backend, and its trait gave the result the index counts of the left operand instead of adding them.
+
+Decision: `*` and `/` only take scalars, so that neither the elementwise product nor the matrix product is a silent misunderstanding.
+
+* A tensor can be multiplied by an arithmetic scalar, a quantity (1x1 quantities or values) or a tensor of rank 0, e.g. a scalar field, and divided by them; the result has the indices and the coordinate system of the tensor.
+  A tensor of rank 0 must be expressed in the same coordinate system, and its product with a point is rejected, like other products of tensors were.
+  Quantities and values of other sizes have no indices, so they are rejected like tensors of rank 1 or more.
+* An arithmetic scalar of another type is converted into the value type, if their common type is the value type: `2 * v` is valid for a vector of `double`, `2.5 * v` is rejected for a vector of `int`.
+* The products of tensors of rank 1 or more have names: `innerProduct` contracts an index, `outerProduct` is the tensor product, and `cwiseProduct` and `cwiseQuotient` compute the elementwise product and quotient of the components, which depend on the basis, so they return quantities, without indices or a coordinate system.
+  This follows Eigen, which distinguishes matrices, whose product is the matrix product, from arrays, whose product is elementwise ([Array class](https://eigen.tuxfamily.org/dox/group__TutorialArrayClass.html)), and mp-units, which defines `*` of vector quantities only with a scalar and names the other products ([character of a quantity](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/character_of_a_quantity/)).
+* `tensorProduct` is removed: `outerProduct` is the tensor product of tensors of rank 2 at most.
+* The units of a product of matrices must be equal in all summands of an element, which holds for the matrices of linear maps, whose units are `u_i / v_j` (Hart, Multidimensional Analysis, 1995).
+
 ### Integer values
 
 Decision: operations whose result is not an integer, such as the norm or a power with a non-integer exponent, are computed in floating point and truncated to the value type, like the norm of integer vectors in Eigen: `pow<1, 2>()` of 5 m² is 2 m (#63).
@@ -197,24 +237,13 @@ A code audit (November 2026) found these defects, all fixed:
 | The Lorentz boost returned NaN for velocities of at least the speed of light | #67 |
 | Whether a result referred to a destroyed temporary depended on the operator | #69 |
 | Type traits reported invalid conversions as valid | #70 |
+| The index rules of `innerProduct` were unsound, e.g. the inner product of a vector and a covector was a 3x3 matrix typed as a scalar | #71 |
 
 ## Open design questions
 
-### TODO: Products of tensors
-
-`tensor * tensor` is the elementwise (Hadamard) product, also for rank 2 tensors: for a rotation `R` by 90°, `R * R` is `[0 1; 1 0]`, not `-I`.
-The result claims to be a tensor in the same coordinate system, but it does not transform like one.
-Users of Eigen expect `*` to be the matrix product.
-
-Options: (a) `*` is the inner product (matrix product) for tensors, elementwise products get a named function; (b) no `*` between tensors at all, only named functions; (c) keep it.
-Recommendation: (b) for 1.0, since it avoids silent misunderstandings in both directions; (a) can be added later.
-
-The tensor product (`tensorProduct`) is not implemented in either backend, and its trait gives the result the index counts of the left operand instead of adding them.
-Recommendation: remove it until it is implemented correctly.
-
 ### TODO: Meaning of `Tensor::inverse()`
 
-`inverse()` computes the elementwise reciprocal but swaps the contravariant and covariant indices, which has no tensor meaning (the `inverse()` of a vector is a covector of reciprocals).
+`inverse()` computes the elementwise reciprocal but swaps and flips the indices like the matrix inverse, which has no tensor meaning (the `inverse()` of a vector is a covector of reciprocals).
 `tensorInverse()` is the matrix inverse.
 
 Options: (a) `inverse()` is the matrix inverse of (1,1) tensors (mapping `T` to `T^-1`), and the elementwise reciprocal gets a different name; (b) keep both with clearer names.
@@ -223,7 +252,7 @@ Recommendation: (a).
 ### TODO: Operations on points
 
 The rules for `+` and `-` are correct, but these operations on points compile although their result depends on the origin: `point * 2.0`, `point * quantity`, `point / quantity`, `-point`, `point.dotProduct(point)`.
-`norm()`, the cross product and `tensor * tensor` correctly reject points.
+`norm()`, the cross product, `cwiseProduct`, `cwiseQuotient` and the product with a tensor of rank 0 correctly reject points.
 
 Recommendation: reject all of them, with compile tests.
 In the same spirit, `makeRelative()` of a relative tensor and `makeAbsolute()` of an absolute tensor are silently accepted, although the corresponding traits (`Absolute.hpp`) reject them; recommendation: reject them as well.
@@ -232,24 +261,19 @@ In the same spirit, `makeRelative()` of a relative tensor and `makeAbsolute()` o
 
 A Jacobian is a `PassiveLinearTransformation`, so it also maps points: the Jacobian of polar to Cartesian coordinates at `r = 2` maps the point `(2 m, π/2)` to `(2, 3.14) m` instead of `(0, 2) m`.
 A Jacobian is a local linearization and must only map tangent vectors.
-The rule `A^-T M A^-1` cannot handle non-square Jacobians, and the mass matrix test is commented out (`tests/src/Jacobian.cpp:51`).
+The rule `A^-T M A^-1` cannot handle non-square Jacobians, and the check of the mass matrix test (`TestJacobian.TransformMassMatrix`) is commented out.
 The physically meaningful operations are the pullback `M_q = J^T M_x J` (no inverse needed) and the operational space inertia `Λ = (J M^-1 J^T)^-1`.
 
 Recommendation: a separate Jacobian type that rejects points and provides the pullback.
 
 ### TODO: Metric
 
-`dotProduct` and `norm` use the Euclidean metric and contract two contravariant vectors.
+`dotProduct` and `norm` use the Euclidean metric and contract two vectors, i.e. two upper indices, and `transpose()` of a vector or a covector lowers or raises its index with it.
 This is fine in orthonormal coordinate systems, but not invariant under Jacobians or Lorentz transformations: the Euclidean "dot product" of a 4-vector changes from 1010100 to 1249730 m² under a boost, while the Minkowski invariant is preserved.
 `SpacetimeVector` is just a 4D `PositionVector`.
 
 Options: (a) a metric as part of the coordinate system, used by `dotProduct` and `norm`; (b) restrict `dotProduct` and `norm` to Euclidean coordinate systems and provide explicit metric contractions; (c) document the limitation.
 Recommendation: (c) for 1.0, (a) later.
-
-### TODO: Index order of mixed tensors
-
-A (1,1) tensor does not record which of its indices is the upper and which the lower one (see the TODO in `Tensor.hpp`).
-Recommendation: document that the first (row) index is contravariant and the second (column) index covariant, and keep it as a convention.
 
 ### TODO: Validity of rotations
 
@@ -271,7 +295,7 @@ Recommendation: document this clearly; consider dedicated twist and wrench types
 
 ### TODO: Backend support for inverses
 
-Blitz++ provides neither inverses nor determinants, so transformations of (0,1), (1,1) and (0,2) tensors only work with Eigen, and the Blitz++ backend does not satisfy `InvertibleValueMatrixBackend`.
+Blitz++ provides neither inverses nor determinants, so transformations of covectors, linear maps and bilinear forms only work with Eigen, and the Blitz++ backend does not satisfy `InvertibleValueMatrixBackend`.
 This weakens the goal that every feature works with every backend.
 Recommendation: implement small fixed-size inverses for Blitz++ in *wuzp*, or document the restriction per backend.
 

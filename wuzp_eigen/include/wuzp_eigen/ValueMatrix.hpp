@@ -128,13 +128,6 @@ struct Product<AccessImplementation<ImplementationLhsT_>, AccessImplementation<I
     : internal::OperatorProduct<ImplementationLhsT_, ImplementationRhsT_> {};
 
 template <wuzp_eigen::EigenArray ImplementationLhsT_, wuzp_eigen::EigenArray ImplementationRhsT_>
-struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static_assert(
-      FailOnInstantiation<TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>>::value,
-      "Tensor product is not implemented for eigen.");
-};
-
-template <wuzp_eigen::EigenArray ImplementationLhsT_, wuzp_eigen::EigenArray ImplementationRhsT_>
 struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
     return (implLhs.matrix() * implRhs.matrix()).array();

@@ -133,12 +133,6 @@ class Quantities {
 
   // TODO(remod): Either a) remove methods, or b) remove free functions or c) make them re-use each other.
   template <typename ValuesOtherT_, typename UnitsOtherT_>
-  auto tensorProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
-    return typename Evaluate<typename TensorProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type>::type{
-        values_.tensorProduct(other.getValues())};
-  }
-
-  template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto innerProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
     return typename Evaluate<typename InnerProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type>::type{
         values_.innerProduct(other.getValues())};
@@ -277,11 +271,6 @@ struct Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, Unit
 };
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-struct TensorProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
-  using type = Quantities<typename TensorProduct<ValuesLhsT_, ValuesRhsT_>::type, typename TensorProduct<UnitsLhsT_, UnitsRhsT_>::type>;
-};
-
-template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 struct InnerProduct<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
   using type = Quantities<typename InnerProduct<ValuesLhsT_, ValuesRhsT_>::type, typename InnerProduct<UnitsLhsT_, UnitsRhsT_>::type>;
 };
@@ -305,6 +294,11 @@ template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typena
 struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>> {
   using type =
       Quantities<typename Division<ValuesLhsT_, typename ValueRhsT_::ValueT>::type, typename Division<UnitsLhsT_, UnitRhsT_>::type>;
+};
+//! The elementwise quotient of quantities of the same size.
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
+  using type = Quantities<typename Division<ValuesLhsT_, ValuesRhsT_>::type, typename Division<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
 template <typename ValueT_, typename UnitT_, typename ExponentT_>
@@ -348,6 +342,25 @@ struct Evaluate<Quantities<ValuesT_, UnitsT_>> {
   using type = Quantities<typename Evaluate<ValuesT_>::type, UnitsT_>;
 };
 
+namespace internal {
+
+/**
+ * An arithmetic scalar as a dimensionless quantity of the value matrix backend and the value type of ValuesT_, e.g. for 2 * v.
+ * The scalar is converted into the value type if their common type (the type of their sum in C++) is the value type, e.g. an int
+ * scalar with double values, but not a double scalar with int values, nor an unsigned scalar with int values, whose sum would
+ * be unsigned.
+ */
+template <typename ValuesT_, ArithmeticValue ScalarT_>
+auto toDimensionlessQuantity(const ScalarT_ scalar) {
+  using ValueT = typename ValuesT_::ValueT;
+  static_assert(std::is_same_v<std::common_type_t<ScalarT_, ValueT>, ValueT>,
+                "The common type of the scalar and the value type is not the value type, e.g. a double scalar with int values.");
+  return Quantity<ScalarValues<ValuesT_, ValueT>, typename AccessUnits<AccessImplementation<ValueT>>::Dimensionless>(
+      static_cast<ValueT>(scalar));
+}
+
+}  // namespace internal
+
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto sum(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return typename Evaluate<typename Sum<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type>::type{
@@ -379,9 +392,8 @@ auto operator-(const Quantities<ValuesT_, UnitsT_>& rhs) {
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
-  // The scalar has the value matrix backend of the quantities.
-  return product(
-      lhs, Quantity<ScalarValues<ValuesLhsT_, ValueRhsT_>, typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs));
+  // The scalar has the value matrix backend and the value type of the quantities.
+  return product(lhs, internal::toDimensionlessQuantity<ValuesLhsT_>(rhs));
 }
 template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto product(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
@@ -397,7 +409,9 @@ template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename Implementation
 auto product(const ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return product(rhs, lhs);
 }
-// This specialization also covers the `Quantity` typedef.
+//! The elementwise product of quantities of the same size, or with a quantity. Quantities have no coordinate system and no
+//! indices, so this is the unrestricted counterpart of cwiseProduct() of tensors, e.g. for the components of points.
+//! This specialization also covers the `Quantity` typedef.
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return typename Evaluate<typename Product<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type>::type(
@@ -425,11 +439,6 @@ auto operator*(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<
 }
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
-auto tensorProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
-  return lhs.tensorProduct(rhs);
-}
-
-template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto innerProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return lhs.innerProduct(rhs);
 }
@@ -441,9 +450,8 @@ auto outerProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantiti
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
-  using Dimensionless = typename Identity<typename Element<UnitsLhsT_, 0, 0>::type>::type;
-  // The scalar has the value matrix backend of the quantities.
-  return division(lhs, Quantity<ScalarValues<ValuesLhsT_, ValueRhsT_>, Dimensionless>(rhs));
+  // The scalar has the value matrix backend and the value type of the quantities.
+  return division(lhs, internal::toDimensionlessQuantity<ValuesLhsT_>(rhs));
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
 auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
@@ -454,6 +462,13 @@ template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_, typena
 auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantity<ValueRhsT_, UnitRhsT_>& rhs) {
   return typename Evaluate<typename Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRhsT_>>::type>::type(
       division(lhs.getValues(), rhs.getValue()));
+}
+//! The elementwise quotient of quantities of the same size. Quantities have no coordinate system and no indices, so this is the
+//! unrestricted counterpart of cwiseQuotient() of tensors, e.g. for the components of points.
+template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
+auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
+  return typename Evaluate<typename Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>>::type>::type(
+      division(lhs.getValues(), rhs.getValues()));
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto operator/(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {

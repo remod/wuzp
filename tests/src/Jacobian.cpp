@@ -33,14 +33,15 @@ TEST(TestJacobian, TransformVelocityVector) {  // NOLINT
 TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   constexpr int FromDimension = 3;
   constexpr int ToDimension = 2;
-  using Object = Tensor<0, 2, Quantities<ValueMatrix<double, FromDimension, FromDimension>, TypeMatrix<FromDimension, FromDimension, Mass>>,
+  using Object = Tensor<Indices<Down, Down>,
+                        Quantities<ValueMatrix<double, FromDimension, FromDimension>, TypeMatrix<FromDimension, FromDimension, Mass>>,
                         CoordinateSystemA, Relative>;
   using LengthInv = Inverse<Length>::type;
   using Transformation = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, FromDimension, ToDimension,
                                   LengthInv, LengthInv, Dimensionless, Dimensionless, Dimensionless, Length>;
   using MassLength = Product<Mass, Length>::type;
   using MassLength2 = Product<MassLength, Length>::type;
-  using TransformedObject = Tensor<0, 2,
+  using TransformedObject = Tensor<Indices<Down, Down>,
                                    Quantities<ValueMatrix<double, ToDimension, ToDimension>,
                                               TypeMatrix<ToDimension, ToDimension, Mass, MassLength, MassLength, MassLength2>>,
                                    CoordinateSystemB, Relative>;
@@ -49,4 +50,36 @@ TEST(TestJacobian, TransformMassMatrix) {  // NOLINT
   const Transformation transformation{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
   // TODO(remod): Jacobian::inverse() does not exist yet.
   //  EXPECT_EQ(transformation.transform(object), transformedObject);
+}
+
+namespace {
+
+template <typename TransformationT_>
+concept HasGetTensor = requires(const TransformationT_& transformation) { transformation.getTensor(); };
+
+}  // namespace
+
+// The matrix of a Jacobian between coordinate systems of different dimensions is not a tensor in one coordinate system, whose
+// matrix would be square: getTensor() only exists for square matrices, getQuantities() for all.
+TEST(TestJacobian, MatrixIsALinearMapOnlyIfSquare) {  // NOLINT
+  using NonSquare = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, 3, 2, Dimensionless>;
+  using Square = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, 2, 2, Dimensionless>;
+  static_assert(!HasGetTensor<NonSquare>);
+  static_assert(HasGetTensor<Square>);
+  const NonSquare jacobian{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+  EXPECT_EQ(jacobian.getQuantities(),
+            (Quantities<ValueMatrix<double, 2, 3>, TypeMatrix<2, 3, Dimensionless>>{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}));
+  const Square square{1.0, 2.0, 3.0, 4.0};
+  EXPECT_EQ(square.getTensor(),
+            (Tensor<Indices<Up, Down>, Quantities<ValueMatrix<double, 2, 2>, TypeMatrix<2, 2, Dimensionless>>, CoordinateSystemA, Relative>{
+                1.0, 2.0, 3.0, 4.0}));
+}
+
+// The matrices of transformations are compared as quantities, also those of Jacobians between coordinate systems of different
+// dimensions, which are not tensors.
+TEST(TestJacobian, IsApprox) {  // NOLINT
+  using NonSquare = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, 3, 2, Dimensionless>;
+  NonSquare jacobian{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};  // Not const: isApprox() is not const yet (#68).
+  EXPECT_TRUE(jacobian.isApprox(NonSquare{1.0, 2.0, 3.0, 4.0, 5.0, 6.0 + 1e-14}));
+  EXPECT_FALSE(jacobian.isApprox(NonSquare{1.0, 2.0, 3.0, 4.0, 5.0, 7.0}));
 }

@@ -4,6 +4,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "wuzp/core/Indices.hpp"
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/concepts.hpp"
@@ -26,7 +28,7 @@ class PassiveTranslation
   using UnitsT = TypeMatrix<DimensionV_, 1, UnitsT_...>;
   using QuantitiesT = Quantities<ValuesT, UnitsT>;
   using CoordinateSystemT = CoordinateSystemT_;
-  using TensorT = Tensor<1, 0, QuantitiesT, CoordinateSystemT, Relative>;
+  using TensorT = Tensor<Indices<Up>, QuantitiesT, CoordinateSystemT, Relative>;
 
   // Copies and moves are left to the implicit constructors, see CopiesOrMoves.
   template <typename... Args>
@@ -34,6 +36,8 @@ class PassiveTranslation
   explicit PassiveTranslation(Args&&... args) : tensor_{std::forward<Args>(args)...} {}
 
   const TensorT& getTensor() const { return tensor_; }
+  //! The components of the translation, like getQuantities() of the linear transformations.
+  const QuantitiesT& getQuantities() const { return tensor_.getQuantities(); }
 
  private:
   //! Vector from the origin of coordinate system To to the origin of coordinate system From, expressed in coordinate system
@@ -63,10 +67,10 @@ namespace wuzp {
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_, typename FromT_,
           typename ToT_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
 struct TransformationTraits<PassiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, FromT_, ToT_, UnitsT_...>,
-                            Tensor<1, 0, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
+                            Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
   static auto transform(
       const PassiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, FromT_, ToT_, UnitsT_...>& transformation,
-      const Tensor<1, 0, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+      const Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
     // From and To have the same axes, so the translation has the same components in both. In any other coordinate system, its
     // components would have to be transformed first.
     static_assert(std::is_same_v<CoordinateSystemT_, FromT_> || std::is_same_v<CoordinateSystemT_, ToT_>,
@@ -103,7 +107,7 @@ struct TransformationTraits<PassiveTranslation<ValuesT_, DimensionV_, ValueT_, C
                                         DimensionToOtherV_, UnitsOtherT_...>& object) {
     // TODO(remod): We could use castCoordinateSystem instead, but we need to specialize it.
     return PassiveLinearTransformation<ValuesOtherT_, ValueOtherT_, ToT_, FromOtherT_, ToOtherT_, DimensionFromOtherV_, DimensionToOtherV_,
-                                       UnitsOtherT_...>(object.getTensor().getValues());
+                                       UnitsOtherT_...>(object.getQuantities());
   }
 };
 

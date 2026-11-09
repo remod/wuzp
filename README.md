@@ -38,6 +38,16 @@ force_in_A + force_in_B  // Error: Mismatching coordinate systems!
 force_in_A + transformation_B_to_A.transform(force_in_B)  // OK.
 ```
 
+Tensors know whether each of their indices is upper (contravariant, e.g. a velocity) or lower (covariant, e.g. a gradient), following [Carroll](https://arxiv.org/abs/gr-qc/9712019), so only products that are tensors compile ([DESIGN.md](DESIGN.md#products-of-tensors)):
+
+```cpp
+velocity * velocity                // Error: A tensor can only be multiplied by a scalar, a quantity or a tensor of rank 0.
+innerProduct(velocity, velocity)   // Error: An inner product contracts an upper with a lower index, ...
+cwiseProduct(velocity, velocity)   // OK: the elementwise product, as quantities without a coordinate system.
+2 * mass * acceleration            // OK.
+innerProduct(innerProduct(massMatrix, velocity), velocity) / 2  // OK: the kinetic energy M_ij v^i v^j / 2.
+```
+
 **Note:** While a single object can only have a single coordinate system, it is possible to assign it a heterogeneous set of units.
 This is required e.g. to represent mass matrices, which contain `kg` for translational degrees of freedom and `kg m^2` for rotational degrees of freedom.
 
@@ -168,7 +178,7 @@ See the [benchmarks](benchmarks/README.md) for the numbers.
 
 ## Limitations
 
-Tensors may only be 0-, 1-, or 2-dimensional.
+Tensors have rank 0, 1 or 2, e.g. the outer product of two vectors is supported, but not that of a vector and a matrix.
 
 Angles are dimensionless with every units backend, so *wuzp* cannot tell `rad/s` from `Hz`, nor torque from energy (see [DESIGN.md](DESIGN.md#angles-are-dimensionless)).
 

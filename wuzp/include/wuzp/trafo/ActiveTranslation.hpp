@@ -4,10 +4,13 @@
 #include <type_traits>
 #include <utility>
 
+#include "wuzp/core/Indices.hpp"
+#include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
+#include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
 #include "wuzp/trafo/internal/translate.hpp"
 #include "wuzp/trafo/traits.hpp"
@@ -23,7 +26,7 @@ class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_
   using UnitsT = TypeMatrix<DimensionV_, 1, UnitsT_...>;
   using QuantitiesT = Quantities<ValuesT, UnitsT>;
   using CoordinateSystemT = CoordinateSystemT_;
-  using TensorT = Tensor<1, 0, QuantitiesT, CoordinateSystemT, Relative>;
+  using TensorT = Tensor<Indices<Up>, QuantitiesT, CoordinateSystemT, Relative>;
 
   // Copies and moves are left to the implicit constructors, see CopiesOrMoves.
   template <typename... Args>
@@ -31,6 +34,8 @@ class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_
   explicit ActiveTranslation(Args&&... args) : tensor_{std::forward<Args>(args)...} {}
 
   const TensorT& getTensor() const { return tensor_; }
+  //! The components of the translation, like getQuantities() of the linear transformations.
+  const QuantitiesT& getQuantities() const { return tensor_.getQuantities(); }
 
  private:
   //! Vector which transforms another vector by being added to it.
@@ -58,9 +63,9 @@ namespace wuzp {
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
           typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
 struct TransformationTraits<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>,
-                            Tensor<1, 0, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
+                            Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
   static auto transform(const ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>& transformation,
-                        const Tensor<1, 0, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+                        const Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
     static_assert(std::is_same_v<CoordinateSystemT_, CoordinateSystemOtherT_>, "Coordinate systems do not match.");
     return internal::translate(object, transformation.getTensor().getQuantities());
   }

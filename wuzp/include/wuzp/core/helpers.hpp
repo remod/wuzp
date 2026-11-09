@@ -66,13 +66,6 @@ struct IsSpecialization : std::false_type {};
 template <template <typename...> typename Template1, template <typename...> typename Template2, typename... Args>
   requires Specializable<Template2, Args...>
 struct IsSpecialization<Template1<Args...>, Template2> : std::is_same<Template1<Args...>, Template2<Args...>> {};
-// TODO(remod): This corner case could be avoided by using std::integral_constant instead of ints for the Tensor class and providing a
-// simplified alias.
-template <typename T, template <int, int, typename...> typename Template>
-struct IsSpecializationInts : std::false_type {};
-template <template <int, int, typename...> typename Template, int Int0, int Int1, typename... Args>
-struct IsSpecializationInts<Template<Int0, Int1, Args...>, Template> : std::true_type {};
-
 template <int Start, int End, int Increment, typename Tuple, typename IndexSequence>
 struct GetSubsetImpl;
 template <int Start, int End, int Increment, typename... Ts, size_t... Is>

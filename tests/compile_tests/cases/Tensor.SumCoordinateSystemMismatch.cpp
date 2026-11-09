@@ -6,6 +6,6 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  [[maybe_unused]] const auto result = TestTensor<1, 0>::zero() + TestTensor<1, 0, wuzp::Relative, CoordinateSystemB>::zero();
+  [[maybe_unused]] const auto result = TestTensor<Indices<Up>>::zero() + TestTensor<Indices<Up>, wuzp::Relative, CoordinateSystemB>::zero();
   return 0;
 }

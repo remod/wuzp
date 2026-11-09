@@ -57,6 +57,15 @@ TEST(TestQuantity, Product) {  // NOLINT
   EXPECT_EQ(TimeQuantity{2.0} * FrequencyQuantity{3.0}, DimensionlessQuantity(6.0));
 }
 
+// An arithmetic scalar of another type is converted into the value type of the quantity, if their common type is the value type.
+TEST(TestQuantity, ProductWithScalarOfAnotherType) {  // NOLINT
+  EXPECT_EQ(TimeQuantity{1.5} * 2, TimeQuantity{3.0});
+  EXPECT_EQ(2 * TimeQuantity{1.5}, TimeQuantity{3.0});
+  EXPECT_EQ(TimeQuantity{3.0} / 2, TimeQuantity{1.5});
+  static_assert(std::is_same_v<decltype(TimeQuantity{1.5} * 2), TimeQuantity>);
+  static_assert(std::is_same_v<decltype(TimeQuantity{3.0} / 2), TimeQuantity>);
+}
+
 TEST(TestQuantity, Chain) {  // NOLINT
   EXPECT_EQ(TimeQuantity{1.0} + TimeQuantity{2.0} * DimensionlessQuantity{3.0}, TimeQuantity{7.0});
 }

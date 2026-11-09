@@ -6,6 +6,6 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  TestTensor<1, 0>::zero().hyperdeterminant();
+  TestTensor<Indices<Up>>::zero().hyperdeterminant();
   return 0;
 }

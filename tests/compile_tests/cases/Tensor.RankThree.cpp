@@ -6,6 +6,6 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  [[maybe_unused]] constexpr auto size = sizeof(TestTensor<2, 1>);
+  [[maybe_unused]] constexpr auto size = sizeof(TestTensor<Indices<Up, Up, Down>>);
   return 0;
 }

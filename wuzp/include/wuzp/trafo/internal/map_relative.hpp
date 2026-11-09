@@ -12,14 +12,12 @@ namespace internal {
 //! result must not refer to it, which holds for the operations of wuzp: they return evaluated results.
 //! These are overloads rather than one function with `if constexpr`: MSVC compiles both branches of an `if constexpr` in
 //! member functions of class templates, and the branch for relative tensors does not compile for absolute ones.
-template <int ContravariantIndicesV_, int CovariantIndicesV_, typename QuantitiesT_, typename CoordinateSystemT_, typename MapT_>
-auto mapRelative(const Tensor<ContravariantIndicesV_, CovariantIndicesV_, QuantitiesT_, CoordinateSystemT_, Relative>& object,
-                 const MapT_& map) {
+template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename MapT_>
+auto mapRelative(const Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, Relative>& object, const MapT_& map) {
   return map(object);
 }
-template <int ContravariantIndicesV_, int CovariantIndicesV_, typename QuantitiesT_, typename CoordinateSystemT_, typename MapT_>
-auto mapRelative(const Tensor<ContravariantIndicesV_, CovariantIndicesV_, QuantitiesT_, CoordinateSystemT_, Absolute>& object,
-                 const MapT_& map) {
+template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename MapT_>
+auto mapRelative(const Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, Absolute>& object, const MapT_& map) {
   return makeAbsolute(map(makeRelative(object)));
 }
 

@@ -20,9 +20,10 @@ using Scaling =
 template <typename CoordinateSystemT>
 using ForceCovector = HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemT>;
 template <typename CoordinateSystemT>
-using Covariance = Tensor<2, 0, Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Area>>, CoordinateSystemT, Relative>;
+using Covariance = Tensor<Indices<Up, Up>, Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Area>>, CoordinateSystemT, Relative>;
 template <typename CoordinateSystemT>
-using VelocityGradient = Tensor<1, 1, Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Frequency>>, CoordinateSystemT, Relative>;
+using VelocityGradient =
+    Tensor<Indices<Up, Down>, Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Frequency>>, CoordinateSystemT, Relative>;
 
 const Scaling scaling{2.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 8.0};  // Scaling by 2, 4 and 8.
 
@@ -74,9 +75,9 @@ TEST(TestPassiveLinearTransformation, TransformTensorWithTwoContravariantIndices
 TEST(TestPassiveLinearTransformation, TransformOuterProductOfVectors) {  // NOLINT
   // The outer product of a vector with itself transforms like the outer product of the transformed vectors.
   const PositionVector3<ValueMatrix, double, CoordinateSystemA> vector{1.0, 2.0, 3.0};
-  const Covariance<CoordinateSystemA> object{outerProduct(vector, vector.transpose())};
+  const Covariance<CoordinateSystemA> object{outerProduct(vector, vector)};
   const auto transformedVector = scaling.transform(vector);
-  const Covariance<CoordinateSystemB> transformedObject{outerProduct(transformedVector, transformedVector.transpose())};
+  const Covariance<CoordinateSystemB> transformedObject{outerProduct(transformedVector, transformedVector)};
   EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
 }
 

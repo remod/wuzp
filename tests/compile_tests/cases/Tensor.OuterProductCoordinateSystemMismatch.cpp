@@ -7,6 +7,6 @@
 
 int main() {
   [[maybe_unused]] const auto result =
-      wuzp::outerProduct(TestTensor<1, 0>::zero(), TestTensor<0, 1, wuzp::Relative, CoordinateSystemB>::zero());
+      wuzp::outerProduct(TestTensor<Indices<Up>>::zero(), TestTensor<Indices<Down>, wuzp::Relative, CoordinateSystemB>::zero());
   return 0;
 }

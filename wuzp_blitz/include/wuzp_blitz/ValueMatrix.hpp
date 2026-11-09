@@ -220,13 +220,6 @@ struct Product<AccessImplementation<ImplementationLhsT_>, AccessImplementation<I
     : internal::OperatorProduct<ImplementationLhsT_, ImplementationRhsT_> {};
 
 template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
-struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static_assert(
-      FailOnInstantiation<TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>>::value,
-      "Tensor product is not implemented for blitz.");
-};
-
-template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
 struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
     // Blitz++ widens sums (e.g. of int to long). Keep the value type that ValuesWrapper declares for products, like Eigen.

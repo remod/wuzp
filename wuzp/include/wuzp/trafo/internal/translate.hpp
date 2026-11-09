@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wuzp/core/Absolute.hpp"
+#include "wuzp/core/Indices.hpp"
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
@@ -17,22 +18,23 @@ namespace internal {
 
 //! A vector is not translated.
 template <typename QuantitiesT_, typename CoordinateSystemT_, typename TranslationQuantitiesT_>
-auto translate(const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, Relative>& vector, const TranslationQuantitiesT_& /*translation*/) {
+auto translate(const Tensor<Indices<Up>, QuantitiesT_, CoordinateSystemT_, Relative>& vector,
+               const TranslationQuantitiesT_& /*translation*/) {
   return vector.evaluate();
 }
 
 //! A point is translated by adding the translation: p' = p + t. The sum checks the units of every component, which may differ.
 template <typename QuantitiesT_, typename CoordinateSystemT_, typename TranslationQuantitiesT_>
   requires(Cols<QuantitiesT_>::value == 1)
-auto translate(const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, Absolute>& point, const TranslationQuantitiesT_& translation) {
-  return typename Evaluate<Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, Absolute>>::type{point.getQuantities() + translation};
+auto translate(const Tensor<Indices<Up>, QuantitiesT_, CoordinateSystemT_, Absolute>& point, const TranslationQuantitiesT_& translation) {
+  return typename Evaluate<Tensor<Indices<Up>, QuantitiesT_, CoordinateSystemT_, Absolute>>::type{point.getQuantities() + translation};
 }
 
 //! A point cloud, whose columns are points, is translated by adding the translation to every column. The quantities must be
 //! homogeneous.
 template <typename QuantitiesT_, typename CoordinateSystemT_, typename TranslationQuantitiesT_>
   requires(Cols<QuantitiesT_>::value > 1)
-auto translate(const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, Absolute>& points, const TranslationQuantitiesT_& translation) {
+auto translate(const Tensor<Indices<Up>, QuantitiesT_, CoordinateSystemT_, Absolute>& points, const TranslationQuantitiesT_& translation) {
   auto result = points.evaluate();
   // TODO(remod): Improve efficiency by performing this addition at compile time.
   for (int row = 0; row < Rows<QuantitiesT_>::value; ++row) {

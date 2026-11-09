@@ -7,6 +7,6 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  [[maybe_unused]] const TestTensor<1, 0> tensor{TestTensor<1, 0, wuzp::Absolute>::zero()};
+  [[maybe_unused]] const TestTensor<Indices<Up>> tensor{TestTensor<Indices<Up>, wuzp::Absolute>::zero()};
   return 0;
 }

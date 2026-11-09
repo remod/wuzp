@@ -5,6 +5,7 @@
 
 #include "wuzp/core/Absolute.hpp"
 #include "wuzp/core/CoordinateSystem.hpp"
+#include "wuzp/core/Indices.hpp"
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/MatrixSize.hpp"
 #include "wuzp/core/Quantities.hpp"

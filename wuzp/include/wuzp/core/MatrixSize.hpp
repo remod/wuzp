@@ -62,13 +62,6 @@ struct Product<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_
 };
 
 template <int RowsLhsV_, int ColsLhsV_, int RowsRhsV_, int ColsRhsV_>
-struct TensorProduct<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
-  static_assert(RowsLhsV_ == RowsRhsV_, "Number of rows do not match.");
-  static_assert(ColsLhsV_ == ColsRhsV_, "Number of cols do not match.");
-  using type = MatrixSize<RowsLhsV_, ColsLhsV_>;
-};
-
-template <int RowsLhsV_, int ColsLhsV_, int RowsRhsV_, int ColsRhsV_>
 struct InnerProduct<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
   static_assert(ColsLhsV_ == RowsRhsV_, "Number of LHS cols does not match number of RHS rows.");
   using type = MatrixSize<RowsLhsV_, ColsRhsV_>;

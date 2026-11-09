@@ -6,6 +6,6 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  [[maybe_unused]] const auto norm = TestTensor<1, 0, wuzp::Absolute>::zero().norm();
+  [[maybe_unused]] const auto norm = TestTensor<Indices<Up>, wuzp::Absolute>::zero().norm();
   return 0;
 }

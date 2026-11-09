@@ -109,14 +109,6 @@ TEST(TestTypeMatrix, Product) {  // NOLINT
   static_assert(std::is_same<Product<A, B>::type, C>::value);
 }
 
-TEST(TestTypeMatrix, TensorProduct) {  // NOLINT
-                                       // TODO(remod): Implement
-  //  using A = TypeMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
-  //  using B = TypeMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;
-  //  using C = TypeMatrix<2, 2, Integer<0>, Integer<3>, Integer<8>, Integer<6>>;
-  //  static_assert(std::is_same<TensorProduct<A, B>::type, C>::value);
-}
-
 TEST(TestTypeMatrix, InnerProduct) {  // NOLINT
   using A = TypeMatrix<2, 2, Integer<0>, Integer<1>, Integer<2>, Integer<3>>;
   using B = TypeMatrix<2, 2, Integer<-1>, Integer<3>, Integer<4>, Integer<2>>;

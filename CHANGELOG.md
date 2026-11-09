@@ -23,6 +23,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **Breaking:** Value matrix backends specialize the traits only for their own matrices and expressions, e.g. `template <EigenArray ImplementationT_>`, and specialize the new traits `Coefficient` (element access) and `Rebind` (values of another value type and size of the same backend). Operations derive scalars from the backend of their operands. See "The backend interface" in `DESIGN.md`.
 - **Breaking:** The template parameters that take a value matrix backend, e.g. of `HomogeneousVector`, `PositionVector3` or `ActiveLinearTransformation`, must be the `ValueMatrix` of a value matrix backend (`AnyValueMatrix`), e.g. `wuzp_eigen::ValueMatrix`, not e.g. `Eigen::Array`.
 - **Breaking:** With Eigen, evaluated values have Eigen's default storage order, so that results have one type: e.g. the transpose of a `ValueMatrix<double, 3, 2>` is a `ValueMatrix<double, 2, 3>`, rather than a row-major array.
+- **Breaking:** Tensors record the variance of each index, in their order: `Tensor<Indices<Up, Down>, Quantities, CoordinateSystem, Absolute>` replaces `Tensor<1, 1, Quantities, CoordinateSystem, Absolute>`, e.g. `Indices<Down, Down>` for a mass matrix. The aliases, e.g. `Vector`, `Covector`, `Point` and `PositionVector3`, are unchanged. The components are stored in a canonical shape: a 1x1 matrix for rank 0, a column for a vector, or several columns for a batch of vectors or points, e.g. a point cloud, a row for a covector, and a square matrix for rank 2 (see "Index variance and order" in `DESIGN.md`). The operations that are only defined for a single vector, e.g. `innerProduct`, `norm()` and `transpose()`, reject batches.
+- **Breaking:** `transpose()` swaps the indices: the transpose of a vector is a covector, and that of `T^i_j` is `T_j^i`. `innerProduct` contracts the last index of the left-hand side with the first index of the right-hand side, which must be an upper and a lower index, whatever the shape of the operands: e.g. `innerProduct(v, w)` of a vector and a covector is the scalar `v^i w_i`, and `innerProduct(v.transpose(), innerProduct(M, v))`, which contracts two lower indices, becomes `innerProduct(v, innerProduct(M, v))`. `outerProduct` concatenates the indices of two vectors or covectors, e.g. `outerProduct(v, v)` has two upper indices. `inverse()` and `tensorInverse()` swap and flip the indices, e.g. the inverse of a metric `g_ij` is `g^ij`.
+- **Breaking:** `*` and `/` of tensors only take scalars: arithmetic values, values and quantities of size 1x1, and tensors of rank 0. The elementwise products and quotients of tensors of rank 1 or more, and of tensors with quantities or values of other sizes, are rejected: they depend on the basis, so `cwiseProduct` and `cwiseQuotient` compute them as quantities (see "Products of tensors" in `DESIGN.md`).
+- **Breaking:** Linear transformations, e.g. rotations, Jacobians and Lorentz transformations, store their matrix as quantities, returned by `getQuantities()`, and are constructed from values or quantities, e.g. `Rotation{tensor.getQuantities()}` rather than `Rotation{tensor}`. `getTensor()` returns the matrix as a linear map, and only exists for square matrices: the matrix of a Jacobian maps one coordinate system into another, possibly of another dimension. Translations provide `getQuantities()` too, and `isApprox` of transformations compares their quantities.
 - Translations move a single point by adding the translation to it, instead of component by component, which is faster and also works for points with different units per component.
 - The oldest supported dependency versions are those of Ubuntu 22.04: GCC 11, Clang 14, CMake 3.22, Eigen 3.4 and Boost 1.74.
 
@@ -39,11 +43,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Several value matrix backends can be used in one program, also in one translation unit. A program uses exactly one units backend.
 - Compile tests verify that invalid code does not compile, and that the error message explains why.
 - The public headers compile on their own and without warnings with `-Wshadow -Wconversion -Wsign-conversion -Wold-style-cast`.
+- `cwiseProduct` and `cwiseQuotient` of tensors, which return the elementwise product and quotient of their components as quantities, and the elementwise `division` of quantities of the same size.
+- Products of tensors of rank 0 with tensors of any rank, e.g. of a scalar field and a vector.
+- Quantities and tensors can be multiplied and divided by arithmetic scalars of another type, if their common type is the value type, e.g. `2 * v` for a vector of `double`.
 
 ### Removed
 
 - `getTypeName()`, which returned wrong names.
 - The trait `AccessValues`, the global default value matrix backend, which `Rebind` replaces.
+- `tensorProduct` and the trait `TensorProduct`, which no backend implemented and which gave the result the indices of the left operand: `outerProduct` is the tensor product.
+- `IsSpecializationInts`, which `IsSpecialization` replaces now that the template parameters of `Tensor` are types.
 
 ### Fixed
 
@@ -67,5 +76,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - The Lorentz boost returned NaN for velocities of at least the speed of light. It is documented that the velocity is the one of `To` relative to `From`, expressed in `From` ([#67](https://github.com/remod/wuzp/issues/67)).
 - Whether a result referred to its operands depended on the operator: `auto x = makeVector() / QuantityD<Dimensionless>(2.0);` read a destroyed temporary, `makeVector() / 2.0` did not ([#69](https://github.com/remod/wuzp/issues/69)).
 - Type traits reported invalid conversions as valid, e.g. `std::is_convertible` of a vector in one coordinate system into another one, which made overloads ambiguous ([#70](https://github.com/remod/wuzp/issues/70)).
+- The index rules of `innerProduct` were unsound: the inner product of a vector and a covector was a 3x3 matrix typed as a scalar, and inner products contracted two upper indices ([#71](https://github.com/remod/wuzp/issues/71)). `outerProduct(v, v)` of two vectors failed with "Hypermatrices are not supported".
 
 [Unreleased]: https://github.com/remod/wuzp/commits/master

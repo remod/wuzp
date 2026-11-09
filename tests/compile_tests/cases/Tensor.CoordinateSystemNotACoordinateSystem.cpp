@@ -6,6 +6,6 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  [[maybe_unused]] constexpr auto size = sizeof(TestTensor<1, 0, wuzp::Relative, wuzp::TypeMatrix<1, 1, CoordinateSystemA>>);
+  [[maybe_unused]] constexpr auto size = sizeof(TestTensor<Indices<Up>, wuzp::Relative, wuzp::TypeMatrix<1, 1, CoordinateSystemA>>);
   return 0;
 }
