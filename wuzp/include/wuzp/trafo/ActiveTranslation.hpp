@@ -17,11 +17,16 @@
 
 namespace wuzp {
 
+/**
+ * An active translation, which moves points by a vector t, p' = p + t, and leaves vectors unchanged (see the conventions in
+ * DESIGN.md). It only transforms objects expressed in its coordinate system.
+ */
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, AnyCoordinateSystem CoordinateSystemT_,
           typename... UnitsT_>
   requires AnyValueMatrix<ValuesT_>
 class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>> {
  public:
+  using ValueT = ValueT_;
   using ValuesT = ValuesT_<ValueT_, DimensionV_, 1>;
   using UnitsT = TypeMatrix<DimensionV_, 1, UnitsT_...>;
   using QuantitiesT = Quantities<ValuesT, UnitsT>;
@@ -37,8 +42,20 @@ class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_
   //! The components of the translation, like getQuantities() of the linear transformations.
   const QuantitiesT& getQuantities() const { return tensor_.getQuantities(); }
 
+  //! The inverse translation, by -t.
+  ActiveTranslation inverse() const { return ActiveTranslation{-tensor_}; }
+
+  //! Whether both translations, which must be expressed in the same coordinate system, are approximately equal: their vectors are
+  //! compared like tensors (see Tensor::isApprox()).
+  template <template <typename, int, int> typename ValuesOtherT_, int DimensionOtherV_, typename ValueOtherT_,
+            typename CoordinateSystemOtherT_, typename... UnitsOtherT_>
+  bool isApprox(const ActiveTranslation<ValuesOtherT_, DimensionOtherV_, ValueOtherT_, CoordinateSystemOtherT_, UnitsOtherT_...>& other,
+                const ValueT precision = Precision<ValueT>::value()) const {
+    return tensor_.isApprox(other.getTensor(), precision);
+  }
+
  private:
-  //! Vector which transforms another vector by being added to it.
+  //! The vector t that points are moved by.
   TensorT tensor_;
 };
 
@@ -47,18 +64,6 @@ template <template <typename, int, int> typename ValuesT_, int DimensionV_, type
 struct GetCoordinateSystem<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>> {
   using type = CoordinateSystemT_;
 };
-
-template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
-          typename... UnitsT_, typename NewCoordinateSystemT_>
-struct CastCoordinateSystem<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>, NewCoordinateSystemT_> {
-  using type = ActiveTranslation<ValuesT_, DimensionV_, ValueT_, NewCoordinateSystemT_, UnitsT_...>;
-};
-
-}  // namespace wuzp
-
-#include "wuzp/trafo/ActiveLinearTransformation.hpp"
-
-namespace wuzp {
 
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
           typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
@@ -71,6 +76,7 @@ struct TransformationTraits<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, Co
   }
 };
 
+// The conjugation T_t T_s T_-t of a translation by a translation is the translation itself: translations commute.
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
           typename... UnitsT_, template <typename, int, int> typename ValuesOtherT_, int DimensionOtherV_, typename ValueOtherT_,
           typename CoordinateSystemOtherT_, typename... UnitsOtherT_>
@@ -84,16 +90,16 @@ struct TransformationTraits<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, Co
   }
 };
 
-template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
-          typename... UnitsT_, template <typename, int, int> typename ValuesOtherT_, typename ValueOtherT_,
-          typename CoordinateSystemOtherT_, int DimensionFromOtherV_, int DimensionToOtherV_, typename... UnitsOtherT_>
-struct TransformationTraits<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>,
-                            ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_,
-                                                       DimensionToOtherV_, UnitsOtherT_...>> {
-  static auto transform(const ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>& /*transformation*/,
-                        const ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_,
-                                                         DimensionToOtherV_, UnitsOtherT_...>& object) {
-    return object;
+// The composition of two translations is the translation by the sum of their vectors, t_lhs + t_rhs.
+template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhsV_, typename ValueLhsT_, typename CoordinateSystemLhsT_,
+          typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, int DimensionRhsV_, typename ValueRhsT_,
+          typename CoordinateSystemRhsT_, typename... UnitsRhsT_>
+struct CompositionTraits<ActiveTranslation<ValuesLhsT_, DimensionLhsV_, ValueLhsT_, CoordinateSystemLhsT_, UnitsLhsT_...>,
+                         ActiveTranslation<ValuesRhsT_, DimensionRhsV_, ValueRhsT_, CoordinateSystemRhsT_, UnitsRhsT_...>> {
+  static auto compose(const ActiveTranslation<ValuesLhsT_, DimensionLhsV_, ValueLhsT_, CoordinateSystemLhsT_, UnitsLhsT_...>& lhs,
+                      const ActiveTranslation<ValuesRhsT_, DimensionRhsV_, ValueRhsT_, CoordinateSystemRhsT_, UnitsRhsT_...>& rhs) {
+    return ActiveTranslation<ValuesLhsT_, DimensionLhsV_, ValueLhsT_, CoordinateSystemLhsT_, UnitsLhsT_...>{lhs.getTensor() +
+                                                                                                            rhs.getTensor()};
   }
 };
 

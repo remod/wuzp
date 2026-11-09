@@ -10,6 +10,6 @@
 
 int main() {
   [[maybe_unused]] constexpr auto size =
-      sizeof(wuzp::PassiveSpatialRotation3<NotAValueMatrixBackend, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>);
+      sizeof(wuzp::PassiveSpatialRotation3<NotAValueMatrixBackend, double, CoordinateSystemA, CoordinateSystemB>);
   return 0;
 }

@@ -8,28 +8,28 @@
 
 namespace wuzp {
 
-template <typename Derived>
+//! An active transformation, which moves objects within its coordinate system (see Transformation).
+template <typename DerivedT_>
 class ActiveTransformation : public Transformation {
  public:
   template <typename Object>
   auto transform(const Object& object) const {
-    return TransformationTraits<Derived, Object>::transform(derived(), object);
+    return TransformationTraits<DerivedT_, Object>::transform(derived(), object);
   }
-
-  //! Whether the matrices or vectors of both transformations, which must be expressed in the same coordinate system, are
-  //! approximately equal. They are compared as quantities: the matrix of a linear transformation is only a tensor if it is square
-  //! (see getTensor()).
-  template <typename Other>
-  bool isApprox(const Other& other) {
-    static_assert(std::is_same_v<typename GetCoordinateSystem<Derived>::type, typename GetCoordinateSystem<Other>::type>,
-                  "Coordinate systems do not match.");
-    return derived().getQuantities().isApprox(other.getQuantities());
-  }
-
-  // TODO(remod): Add inverse() function.
 
  private:
-  const Derived& derived() const { return static_cast<const Derived&>(*this); }  // TODO(remod): Use CRTP class template from web.
+  const DerivedT_& derived() const { return static_cast<const DerivedT_&>(*this); }  // TODO(remod): Use CRTP class template from web.
 };
+
+/**
+ * The composition of two active transformations in the same coordinate system, which applies rhs first, then lhs:
+ * (lhs * rhs).transform(x) is lhs.transform(rhs.transform(x)), like the product of their matrices (see CompositionTraits).
+ */
+template <typename LhsT_, typename RhsT_>
+auto operator*(const ActiveTransformation<LhsT_>& lhs, const ActiveTransformation<RhsT_>& rhs) {
+  static_assert(std::is_same_v<typename GetCoordinateSystem<LhsT_>::type, typename GetCoordinateSystem<RhsT_>::type>,
+                "Coordinate systems do not match.");
+  return CompositionTraits<LhsT_, RhsT_>::compose(static_cast<const LhsT_&>(lhs), static_cast<const RhsT_&>(rhs));
+}
 
 }  // namespace wuzp

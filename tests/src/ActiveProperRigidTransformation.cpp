@@ -80,18 +80,97 @@ TEST(TestActiveProperRigidTransformation3, TransformActiveTranslation) {  // NOL
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
-TEST(TestActiveProperRigidTransformation3, TransformActiveRotation) {  // NOLINT
-  using Object = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
-  using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
-  using TransformedObject = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
-  const Object object{0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-  const TransformedObject transformedObject{0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0};
-  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
-  const Transformation::Translation translation{0.0, 0.0, 1.0};                           // Active translation of 1 along z.
-  const Transformation transformation{rotation, translation};
-  EXPECT_EQ(transformation.transform(object), transformedObject);
-}
-#endif
+namespace {
 
-// TODO(remod): Add TransformActive/PassiveProperRigidTransformation everywhere
+using Transformation3 = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
+using Point3 = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
+using Vector3 = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
+
+// A rotation of pi/2 around x, then a translation of 1 along z.
+const Transformation3 rigid{Transformation3::Rotation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0},
+                            Transformation3::Translation{0.0, 0.0, 1.0}};
+// A rotation of pi/2 around z, then a translation of 1 along x.
+const Transformation3 otherRigid{Transformation3::Rotation{0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0},
+                                 Transformation3::Translation{1.0, 0.0, 0.0}};
+
+}  // namespace
+
+// The composition applies the right-hand side first: (R_lhs R_rhs, R_lhs t_rhs + t_lhs).
+TEST(TestActiveProperRigidTransformation3, Compose) {  // NOLINT
+  const Point3 point{1.0, 2.0, 3.0};
+  const Vector3 vector{1.0, 2.0, 3.0};
+  const Transformation3 composition = otherRigid * rigid;
+  EXPECT_EQ(composition.transform(point), otherRigid.transform(rigid.transform(point)));
+  // (1, 2, 3) is moved to (1, -3, 3) by rigid, and then to (3, 1, 3) + (1, 0, 0) by otherRigid.
+  EXPECT_EQ(composition.transform(point), (Point3{4.0, 1.0, 3.0}));
+  // Vectors are only rotated: (1, 2, 3) is rotated to (1, -3, 2), and then to (3, 1, 2).
+  EXPECT_EQ(composition.transform(vector), otherRigid.transform(rigid.transform(vector)));
+  EXPECT_EQ(composition.transform(vector), (Vector3{3.0, 1.0, 2.0}));
+  EXPECT_EQ(composition.getRotation(), otherRigid.getRotation() * rigid.getRotation());
+  // R_lhs t_rhs + t_lhs = (0, 0, 1) + (1, 0, 0).
+  EXPECT_EQ(composition.getTranslation(), (Transformation3::Translation{1.0, 0.0, 1.0}));
+}
+
+TEST(TestActiveProperRigidTransformation3, ComposeWithTranslation) {  // NOLINT
+  const Point3 point{1.0, 2.0, 3.0};
+  const Transformation3::Translation translation{1.0, 2.0, 3.0};
+  const Transformation3 translationFirst = rigid * translation;
+  const Transformation3 translationLast = translation * rigid;
+  EXPECT_EQ(translationFirst.transform(point), rigid.transform(translation.transform(point)));
+  EXPECT_EQ(translationLast.transform(point), translation.transform(rigid.transform(point)));
+  // (1, 2, 3) + t = (2, 4, 6) is moved to (2, -6, 4) + (0, 0, 1), and (1, -3, 3) to (1, -3, 3) + t.
+  EXPECT_EQ(translationFirst.transform(point), (Point3{2.0, -6.0, 5.0}));
+  EXPECT_EQ(translationLast.transform(point), (Point3{2.0, -1.0, 6.0}));
+  // Vectors are only rotated.
+  const Vector3 vector{1.0, 2.0, 3.0};
+  EXPECT_EQ(translationFirst.transform(vector), rigid.transform(translation.transform(vector)));
+  EXPECT_EQ(translationLast.transform(vector), translation.transform(rigid.transform(vector)));
+  EXPECT_EQ(translationFirst.transform(vector), (Vector3{1.0, -3.0, 2.0}));
+  EXPECT_EQ(translationLast.transform(vector), (Vector3{1.0, -3.0, 2.0}));
+  // R t + t_rigid = (1, -3, 2) + (0, 0, 1), and t_rigid + t.
+  EXPECT_EQ(translationFirst.getTranslation(), (Transformation3::Translation{1.0, -3.0, 3.0}));
+  EXPECT_EQ(translationLast.getTranslation(), (Transformation3::Translation{1.0, 2.0, 4.0}));
+}
+
+// The inverse (R^T, -R^T t) only needs the transpose of the rotation, so it works with every value matrix backend.
+TEST(TestActiveProperRigidTransformation3, Inverse) {  // NOLINT
+  const Point3 point{1.0, 2.0, 3.0};
+  const Transformation3 inverse = rigid.inverse();
+  EXPECT_EQ(inverse.getRotation(), Transformation3::Rotation{rigid.getRotation().getQuantities().transpose()});
+  // -R^T t = -R^T (0, 0, 1).
+  EXPECT_EQ(inverse.getTranslation(), (Transformation3::Translation{0.0, -1.0, 0.0}));
+  EXPECT_EQ(inverse.transform(rigid.transform(point)), point);
+  EXPECT_EQ(rigid.transform(inverse.transform(point)), point);
+  const Transformation3::Rotation identityRotation{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+  const Transformation3::Translation zeroTranslation{0.0, 0.0, 0.0};
+  const Transformation3 inverseFirst = inverse * rigid;
+  const Transformation3 inverseLast = rigid * inverse;
+  EXPECT_EQ(inverseFirst.getRotation(), identityRotation);
+  EXPECT_EQ(inverseFirst.getTranslation(), zeroTranslation);
+  EXPECT_EQ(inverseLast.getRotation(), identityRotation);
+  EXPECT_EQ(inverseLast.getTranslation(), zeroTranslation);
+}
+
+// The conjugation G Q G^-1 of a rotation Q by a proper rigid transformation G is affine, x -> R Q R^T x + (I - R Q R^T) t, not
+// the rotation R Q R^T (#72): composing with a proper rigid transformation that only rotates gives it.
+TEST(TestActiveProperRigidTransformation3, ConjugateRotation) {                            // NOLINT
+  const Transformation3::Rotation rotation{0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};  // Active rotation of pi/2 around z.
+  const Transformation3 rotationOnly{rotation, Transformation3::Translation{0.0, 0.0, 0.0}};
+  const Transformation3 conjugation = rigid * rotationOnly * rigid.inverse();
+  const Point3 point{1.0, 2.0, 3.0};
+  EXPECT_EQ(conjugation.transform(point), rigid.transform(rotation.transform(rigid.inverse().transform(point))));
+  // The rotation of pi/2 around the image of z, -y, around the axis through the image of the origin, t = (0, 0, 1).
+  EXPECT_EQ(conjugation.getRotation(), (Transformation3::Rotation{0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0}));
+  EXPECT_EQ(conjugation.transform(Point3{0.0, 5.0, 1.0}), (Point3{0.0, 5.0, 1.0}));
+}
+
+// isApprox is const, takes a precision, and compares both the rotation and the translation (#68).
+TEST(TestActiveProperRigidTransformation3, IsApprox) {  // NOLINT
+  const Transformation3 almostEqual{rigid.getRotation(), Transformation3::Translation{0.0, 0.0, 1.0 + 1e-14}};
+  const Transformation3 otherRotation{otherRigid.getRotation(), rigid.getTranslation()};
+  const Transformation3 otherTranslation{rigid.getRotation(), Transformation3::Translation{0.0, 0.0, 1.001}};
+  EXPECT_TRUE(rigid.isApprox(almostEqual));
+  EXPECT_FALSE(rigid.isApprox(otherRotation));
+  EXPECT_FALSE(rigid.isApprox(otherTranslation));
+  EXPECT_TRUE(rigid.isApprox(otherTranslation, 1e-2));
+}

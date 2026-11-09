@@ -2,6 +2,7 @@
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
+#include "wuzp/trafo/ActiveProperRigidTransformation.hpp"
 #include "wuzp/trafo/ActiveSpatialRotation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
 
@@ -70,14 +71,50 @@ TEST(TestActiveTranslation, TransformActiveTranslation) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
-TEST(TestActiveTranslation, TransformActiveRotation) {  // NOLINT
-  using Object = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+// The conjugation T Q T^-1 of a rotation Q by a translation T is affine, x -> Q x + (I - Q) t, not the rotation Q (#72): composing
+// with a proper rigid transformation that only rotates gives it. For t = (0, 0, 1) and a rotation by pi around x, the point
+// (0, 0, 1) is mapped onto itself, while Q maps it to (0, 0, -1).
+TEST(TestActiveTranslation, ConjugateRotation) {  // NOLINT
+  using Translation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  using RigidTransformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
+  using Point = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
+  const Translation translation{0.0, 0.0, 1.0};                                                 // Active translation of 1 along z.
+  const RigidTransformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0};  // Active rotation of pi around x.
+  const RigidTransformation rotationOnly{rotation, Translation{0.0, 0.0, 0.0}};
+  const Point point{0.0, 0.0, 1.0};
+  const RigidTransformation conjugation = translation * rotationOnly * translation.inverse();
+  EXPECT_EQ(conjugation.transform(point), point);
+  EXPECT_EQ(conjugation.transform(point), translation.transform(rotation.transform(translation.inverse().transform(point))));
+  EXPECT_EQ(rotation.transform(point), (Point{0.0, 0.0, -1.0}));
+  // (I - Q) t = 2 t.
+  EXPECT_EQ(conjugation.getRotation(), rotation);
+  EXPECT_EQ(conjugation.getTranslation(), (Translation{0.0, 0.0, 2.0}));
+}
+
+TEST(TestActiveTranslation, Compose) {  // NOLINT
   using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  using TransformedObject = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
-  const Object object{0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-  const TransformedObject transformedObject{0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-  const Transformation transformation{0.0, 0.0, 1.0};  // Active translation of 1 along z.
-  EXPECT_EQ(transformation.transform(object), transformedObject);
+  const Transformation first{0.0, 0.0, 1.0};
+  const Transformation second{1.0, 2.0, 0.0};
+  const PositionPoint3<ValueMatrix, double, CoordinateSystemA> point{1.0, 2.0, 3.0};
+  const PositionVector3<ValueMatrix, double, CoordinateSystemA> vector{1.0, 2.0, 3.0};
+  const Transformation composition = second * first;
+  EXPECT_EQ(composition, (Transformation{1.0, 2.0, 1.0}));
+  EXPECT_EQ(composition.transform(point), second.transform(first.transform(point)));
+  EXPECT_EQ(composition.transform(point), (PositionPoint3<ValueMatrix, double, CoordinateSystemA>{2.0, 4.0, 4.0}));
+  // Vectors are not translated, neither by the composition.
+  EXPECT_EQ(composition.transform(vector), second.transform(first.transform(vector)));
+  EXPECT_EQ(composition.transform(vector), vector);
+}
+
+TEST(TestActiveTranslation, Inverse) {  // NOLINT
+  using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
+  const Transformation transformation{1.0, 2.0, 3.0};
+  const PositionPoint3<ValueMatrix, double, CoordinateSystemA> point{4.0, 5.0, 6.0};
+  EXPECT_EQ(transformation.inverse(), (Transformation{-1.0, -2.0, -3.0}));
+  EXPECT_EQ(transformation.inverse().transform(transformation.transform(point)), point);
+  EXPECT_EQ(transformation.transform(transformation.inverse().transform(point)), point);
+  EXPECT_EQ(transformation * transformation.inverse(), (Transformation{0.0, 0.0, 0.0}));
+  EXPECT_EQ(transformation.inverse() * transformation, (Transformation{0.0, 0.0, 0.0}));
 }
 
 // Transforming a point leaves the point unchanged, with every backend: the translation copies it, and a copy does not share
@@ -118,9 +155,12 @@ TEST(TestActiveTranslation, TransformPointWithMixedUnits) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), (Object{4.0, 6.0}));
 }
 
+// isApprox is const and takes a precision, like that of tensors (#68).
 TEST(TestActiveTranslation, IsApprox) {  // NOLINT
   using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
-  Transformation transformation{1.0, 2.0, 3.0};  // Not const: isApprox() is not const yet (#68).
+  const Transformation transformation{1.0, 2.0, 3.0};
   EXPECT_TRUE(transformation.isApprox(Transformation{1.0, 2.0, 3.0 + 1e-14}));
   EXPECT_FALSE(transformation.isApprox(Transformation{1.0, 2.0, 4.0}));
+  EXPECT_TRUE(transformation.isApprox(Transformation{1.0, 2.0, 3.001}, 1e-3));
+  EXPECT_FALSE(transformation.isApprox(Transformation{1.0, 2.0, 3.001}, 1e-6));
 }

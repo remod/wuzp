@@ -91,6 +91,17 @@ The following table visualizes how a proper rigid transformation transforms a po
 | Type:<br>Active | <img src="doc/active_proper_rigid_transformation_of_point.svg" alt="Active Proper Rigid Transformation of Point" height="200"/><br>P is first rotated, then translated into P'. | <img src="doc/active_proper_rigid_transformation_of_vector.svg" alt="Active Proper Rigid Transformation of Vector" height="200"/><br>*r* is first rotated, then translated into *r'*. As a vector is agnostic to its position, only the rotational part of the transformation affects its components. |
 | Type:<br>Passive | <img src="doc/passive_proper_rigid_transformation_of_point.svg" alt="Passive Proper Rigid Transformation of Point" height="200"/><br>P is expressed in coordinate system A, then in coordinate system B. | <img src="doc/passive_proper_rigid_transformation_of_vector.svg" alt="Active Proper Rigid Transformation of Vector" height="200"/><br>*r* is expressed in coordinate system A, then in coordinate system B. As a vector is agnostic to its position, only the rotational part of the transformation affects its components. |
 
+Transformations compose with `*` and have an `inverse()` ([code example](examples/transformation.cpp), [DESIGN.md](DESIGN.md#composition-and-inverse-of-transformations)).
+`a2 * a1` applies `a1` first, then `a2`, like the product of their matrices.
+Passive transformations compose in the order of [Drake's monogram notation](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html), where `X_AB` transforms from `B` to `A`, and the coordinate systems that meet must match:
+
+```cpp
+X_AB * X_BC                    // OK: X_AC, from C to A.
+X_AB * X_CB                    // Error: Adjacent frames do not match.
+X_AB.inverse()                 // OK: X_BA, from A to B.
+rotation_in_A * rotation_in_B  // Error: Coordinate systems do not match.
+```
+
 ## Installation & Usage
 
 *wuzp* integrates with the following unit and linear algebra libraries:

@@ -11,16 +11,19 @@
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_,
-          int DimensionV_>
-using LorentzTransformation = PassiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_, DimensionV_,
+//! A Lorentz transformation Lambda from the inertial frame From to the inertial frame To, a passive linear transformation of
+//! spacetime vectors, with the time component first (see createBoostMatrix()). Its inverse is eta Lambda^T eta, which follows from
+//! eta = Lambda^T eta Lambda (Carroll, Lecture Notes on General Relativity, https://arxiv.org/abs/gr-qc/9712019, eq. 1.14), and
+//! which inverse() computes as the matrix inverse.
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_, int DimensionV_>
+using LorentzTransformation = PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_, DimensionV_,
                                                           typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_>
-using LorentzTransformation2 = LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, 2>;
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_>
-using LorentzTransformation3 = LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, 3>;
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_>
-using LorentzTransformation4 = LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, 4>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_>
+using LorentzTransformation2 = LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, 2>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_>
+using LorentzTransformation3 = LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, 3>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_>
+using LorentzTransformation4 = LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, 4>;
 
 //! The speed of light, as a quantity of the value matrix backend ValuesT_, e.g. getSpeedOfLight<wuzp_eigen::ValueMatrix, double>().
 template <template <typename, int, int> typename ValuesT_, typename ValueT_>
@@ -43,15 +46,17 @@ auto getInvariant(const Vector<QuantitiesT_, CoordinateSystemT_>& vector) {
  * The passive Lorentz boost from From to To, in the standard form with the time component first and in length units
  * (x^0 = c t), and the signature (+, -, ..., -): x'^0 = gamma (x^0 - beta . x), with beta = v / c and the Lorentz factor
  * gamma = 1 / sqrt(1 - beta^2) (see the boost matrix B(v) in https://en.wikipedia.org/wiki/Lorentz_transformation#Proper_transformations).
- * @param velocity Velocity of To relative to From, expressed in From. Its magnitude must be smaller than the speed of light.
+ * The composition of two boosts along the same direction is the boost with the relativistic sum of their velocities, e.g. 0.5 c
+ * and 0.5 c give 0.8 c; the composition of boosts along different directions also rotates (Wigner rotation).
+ * @param velocity The velocity of To relative to From, i.e. of the origin of To measured in From, expressed in From. Its
+ * magnitude must be smaller than the speed of light.
  * @throws std::invalid_argument If the magnitude of the velocity is not smaller than the speed of light, for which there is no
  * Lorentz boost (the Lorentz factor is infinite or not real).
  */
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_,
-          int DimensionV_>
-LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_> createBoostMatrix(
-    const VelocityVector<DimensionV_ - 1, ValuesT_, ValueT_, CoordinateSystemT_>& velocity) {
-  using QuantitiesT = typename LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_>::QuantitiesT;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_, int DimensionV_>
+LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_> createBoostMatrix(
+    const VelocityVector<DimensionV_ - 1, ValuesT_, ValueT_, FromT_>& velocity) {
+  using QuantitiesT = typename LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>::QuantitiesT;
   using QuantityT = Quantity<ValuesT_<ValueT_, 1, 1>, typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
   const QuantityT squaredBeta{velocity.squaredNorm() / pow<2>(getSpeedOfLight<ValuesT_, ValueT_>())};
   // Also rejects NaN.
@@ -86,7 +91,7 @@ LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, Dimen
       quantities.set(row, col, quantities.get(col, row));
     }
   }
-  return LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_>{quantities};
+  return LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>{quantities};
 }
 
 }  // namespace wuzp

@@ -12,7 +12,6 @@
 using namespace wuzp;  // NOLINT
 
 int main() {
-  [[maybe_unused]] constexpr auto size =
-      sizeof(PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemBId>);
+  [[maybe_unused]] constexpr auto size = sizeof(PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemBId>);
   return 0;
 }

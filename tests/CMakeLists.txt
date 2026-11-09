@@ -78,6 +78,7 @@ add_executable(wuzp_tests
     src/Quantities.cpp
     src/Tensor.cpp
     src/ValueMatrixBackends.cpp
+    src/Transformation.cpp
     src/ActiveLinearTransformation.cpp
     src/PassiveLinearTransformation.cpp
     src/ActiveTranslation.cpp
@@ -89,6 +90,7 @@ add_executable(wuzp_tests
     src/Jacobian.cpp
     src/ActiveProperRigidTransformation.cpp
     src/PassiveProperRigidTransformation.cpp
+    src/ActiveAndPassiveProperRigidTransformation.cpp
     src/LorentzTransformation.cpp
     src/RigidBodyKinematics.cpp
     src/RotatingDumbbell.cpp

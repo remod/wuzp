@@ -23,8 +23,7 @@ using Acceleration = wuzp::AccelerationVector3<ValueMatrix, double, CoordinateSy
 using Force = wuzp::ForceVector3<ValueMatrix, double, CoordinateSystemA>;
 using Mass = QuantityD<wuzp_units::Mass>;
 using Speed = QuantityD<wuzp_units::Velocity>;
-using Transformation =
-    wuzp::PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, double>;
+using Transformation = wuzp::PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemB, double>;
 
 // A passive rotation of pi/2 around x, and a translation of 1 along z.
 Transformation createTransformation() {

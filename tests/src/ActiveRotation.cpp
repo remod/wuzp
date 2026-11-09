@@ -82,14 +82,42 @@ TEST(TestActiveRotation, TransformActiveTranslation) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
-// TEST(TestActiveRotation, TransformActiveRotation) {  // NOLINT
-//  using Object = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemA, CoordinateSystemB>;
-//  using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemC, CoordinateSystemD>;
-//  using TransformedObject = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, CoordinateSystemB>;
-//  const double sqrt2_2 = 0.5 * std::sqrt{2.0};
-//  const Object object{0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-//  const TransformedObject transformedObject{0.0, sqrt2_2, sqrt2_2, sqrt2_2, 0.5, -0.5, sqrt2_2, -0.5, 0.5};
-//  const Transformation transformation(Eigen::AngleAxisd(M_PI_2, Eigen::Vector3d(1.0, 0.0, 0.0)).toRotationMatrix{)};
-//  EXPECT_TRUE(transformation.transform(object).isApprox(transformedObject));
-//  // TODO(remod): Test converting an object with original and transformed transformation, and check whether they match.
-//}
+// The composition applies the right-hand side first: two rotations by pi/2 around x are a rotation by pi around x.
+TEST(TestActiveRotation, Compose) {  // NOLINT
+  using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+  const Transformation aroundX{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
+  const Transformation aroundZ{0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};  // Active rotation of pi/2 around z.
+  const PositionPoint3<ValueMatrix, double, CoordinateSystemA> point{1.0, 2.0, 3.0};
+  // The product of two rotations is a rotation, of the same type.
+  const Transformation twiceAroundX = aroundX * aroundX;
+  EXPECT_EQ(twiceAroundX, (Transformation{1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0}));
+  EXPECT_EQ((aroundZ * aroundX).transform(point), aroundZ.transform(aroundX.transform(point)));
+  EXPECT_EQ((aroundZ * aroundX).transform(point), (PositionPoint3<ValueMatrix, double, CoordinateSystemA>{3.0, 1.0, 2.0}));
+  EXPECT_NE(aroundZ * aroundX, aroundX * aroundZ);
+}
+
+// The inverse of a linear transformation is its matrix inverse, which Blitz++ does not provide.
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+TEST(TestActiveRotation, Inverse) {  // NOLINT
+  using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+  const Transformation transformation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
+  const Transformation inverse = transformation.inverse();
+  EXPECT_TRUE(inverse.isApprox(Transformation{transformation.getQuantities().transpose()}, 1e-12));
+  EXPECT_TRUE((inverse * transformation).isApprox(Transformation{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}, 1e-12));
+  EXPECT_TRUE((transformation * inverse).isApprox(Transformation{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}, 1e-12));
+  const PositionPoint3<ValueMatrix, double, CoordinateSystemA> point{1.0, 2.0, 3.0};
+  EXPECT_TRUE(inverse.transform(transformation.transform(point)).isApprox(point, 1e-12));
+  EXPECT_TRUE(transformation.transform(inverse.transform(point)).isApprox(point, 1e-12));
+}
+
+// The conjugation R Q R^-1 of a rotation Q by a rotation R is the composition of R, Q and the inverse of R.
+TEST(TestActiveRotation, TransformActiveRotation) {  // NOLINT
+  using Transformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+  const Transformation transformation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
+  const Transformation object{0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};          // Active rotation of pi/2 around z.
+  // The rotation of pi/2 around the image of z, -y.
+  const Transformation transformedObject{0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0};
+  EXPECT_TRUE(transformation.transform(object).isApprox(transformedObject, 1e-12));
+  EXPECT_TRUE((transformation * object * transformation.inverse()).isApprox(transformedObject, 1e-12));
+}
+#endif

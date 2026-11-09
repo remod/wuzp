@@ -11,7 +11,7 @@
 
 using namespace wuzp;  // NOLINT
 
-using Rotation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+using Rotation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB>;
 using PositionInC = PositionVector3<ValueMatrix, double, CoordinateSystemC>;
 
 int main() {

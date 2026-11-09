@@ -12,7 +12,6 @@
 using namespace wuzp;  // NOLINT
 
 int main() {
-  [[maybe_unused]] constexpr auto size =
-      sizeof(PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemAId, CoordinateSystemB>);
+  [[maybe_unused]] constexpr auto size = sizeof(PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemAId, CoordinateSystemB>);
   return 0;
 }

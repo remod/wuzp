@@ -10,7 +10,10 @@
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
+#include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
+#include "wuzp/trafo/ActiveTranslation.hpp"
+#include "wuzp/trafo/internal/apply_units.hpp"
 #include "wuzp/trafo/internal/map_relative.hpp"
 #include "wuzp/trafo/internal/with_quantities.hpp"
 #include "wuzp/trafo/traits.hpp"
@@ -20,10 +23,36 @@ namespace wuzp {
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, AnyCoordinateSystem CoordinateSystemT_, int DimensionFromV_,
           int DimensionToV_, typename... UnitsT_>
   requires AnyValueMatrix<ValuesT_>
+class ActiveLinearTransformation;
+
+namespace internal {
+
+//! The active linear transformation in CoordinateSystemT_ whose matrix has the quantities QuantitiesT_, e.g. the product or the
+//! inverse of the matrices of linear transformations, with the units given like the aliases give them (see ApplyUnits), so that
+//! e.g. the product of two rotations is an ActiveSpatialRotation.
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystemT_, typename QuantitiesT_>
+struct ActiveLinearTransformationOf {
+  template <typename... UnitsT_>
+  using WithUnits = ActiveLinearTransformation<ValuesT_, typename QuantitiesT_::ValueT, CoordinateSystemT_, Cols<QuantitiesT_>::value,
+                                               Rows<QuantitiesT_>::value, UnitsT_...>;
+  using type = typename ApplyUnits<typename QuantitiesT_::UnitsT, WithUnits>::type;
+};
+
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystemT_, typename QuantitiesT_>
+auto makeActiveLinearTransformation(QuantitiesT_ quantities) {
+  return typename ActiveLinearTransformationOf<ValuesT_, CoordinateSystemT_, QuantitiesT_>::type{std::move(quantities)};
+}
+
+}  // namespace internal
+
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, AnyCoordinateSystem CoordinateSystemT_, int DimensionFromV_,
+          int DimensionToV_, typename... UnitsT_>
+  requires AnyValueMatrix<ValuesT_>
 class ActiveLinearTransformation
     : public ActiveTransformation<
           ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>> {
  public:
+  using ValueT = ValueT_;
   using ValuesT = ValuesT_<ValueT_, DimensionToV_, DimensionFromV_>;
   using UnitsT = TypeMatrix<DimensionToV_, DimensionFromV_, UnitsT_...>;
   using QuantitiesT = Quantities<ValuesT, UnitsT>;
@@ -44,29 +73,34 @@ class ActiveLinearTransformation
     return TensorT{quantities_};
   }
 
+  /**
+   * The inverse transformation, whose matrix is the matrix inverse A^-1 (see Quantities::inverse()): A must be square, and its
+   * units must describe a linear map. This needs a value matrix backend with matrix inverses (InvertibleValueMatrixBackend),
+   * which Blitz++ is not yet. The inverse of a proper rigid transformation only needs the transpose of its rotation.
+   */
+  auto inverse() const { return internal::makeActiveLinearTransformation<ValuesT_, CoordinateSystemT_>(quantities_.inverse()); }
+
+  //! Whether both linear transformations, which must be expressed in the same coordinate system, are approximately equal: their
+  //! matrices are compared like the components of tensors (see Tensor::isApprox()), also those that are not square.
+  template <template <typename, int, int> typename ValuesOtherT_, typename ValueOtherT_, typename CoordinateSystemOtherT_,
+            int DimensionFromOtherV_, int DimensionToOtherV_, typename... UnitsOtherT_>
+  bool isApprox(const ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_,
+                                                 DimensionToOtherV_, UnitsOtherT_...>& other,
+                const ValueT precision = Precision<ValueT>::value()) const {
+    static_assert(std::is_same_v<CoordinateSystemT_, CoordinateSystemOtherT_>, "Coordinate systems do not match.");
+    return quantities_.isApprox(other.getQuantities(), precision);
+  }
+
  private:
   //! The matrix A, which transforms a vector v into A v. It is multiplied with the quantities of the tensors it transforms (see
   //! internal::withQuantities()).
   QuantitiesT quantities_;
 };
 
-}  // namespace wuzp
-
-#include "wuzp/trafo/ActiveTranslation.hpp"
-
-namespace wuzp {
-
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, int DimensionFromV_,
           int DimensionToV_, typename... UnitsT_>
 struct GetCoordinateSystem<ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>> {
   using type = CoordinateSystemT_;
-};
-
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, int DimensionFromV_,
-          int DimensionToV_, typename... UnitsT_, typename NewCoordinateSystemT_>
-struct CastCoordinateSystem<ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
-                            NewCoordinateSystemT_> {
-  using type = ActiveLinearTransformation<ValuesT_, ValueT_, NewCoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>;
 };
 
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, int DimensionFromV_,
@@ -138,6 +172,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, Coordi
   }
 };
 
+// The conjugation A T_t A^-1 of a translation by a linear transformation is the translation by A t: A (A^-1 x + t) = x + A t.
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, int DimensionFromV_,
           int DimensionToV_, typename... UnitsT_, template <typename, int, int> typename ValuesOtherT_, int DimensionOtherV_,
           typename ValueOtherT_, typename CoordinateSystemOtherT_, typename... UnitsOtherT_>
@@ -151,6 +186,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, Coordi
   }
 };
 
+// The conjugation A B A^-1 of a linear transformation by a linear transformation, like the transformation of a linear map.
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, int DimensionFromV_,
           int DimensionToV_, typename... UnitsT_, template <typename, int, int> typename ValuesOtherT_, typename ValueOtherT_,
           typename CoordinateSystemOtherT_, int DimensionFromOtherV_, int DimensionToOtherV_, typename... UnitsOtherT_>
@@ -163,6 +199,22 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, Coordi
                                        UnitsOtherT_...>& object) {
     return ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_, DimensionToOtherV_,
                                       UnitsOtherT_...>(transformation.transform(object.getTensor()).getQuantities());
+  }
+};
+
+// The composition of two linear transformations is the product of their matrices, A_lhs A_rhs.
+template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT_, typename CoordinateSystemLhsT_, int DimensionFromLhsV_,
+          int DimensionToLhsV_, typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, typename ValueRhsT_,
+          typename CoordinateSystemRhsT_, int DimensionFromRhsV_, int DimensionToRhsV_, typename... UnitsRhsT_>
+struct CompositionTraits<
+    ActiveLinearTransformation<ValuesLhsT_, ValueLhsT_, CoordinateSystemLhsT_, DimensionFromLhsV_, DimensionToLhsV_, UnitsLhsT_...>,
+    ActiveLinearTransformation<ValuesRhsT_, ValueRhsT_, CoordinateSystemRhsT_, DimensionFromRhsV_, DimensionToRhsV_, UnitsRhsT_...>> {
+  static auto compose(const ActiveLinearTransformation<ValuesLhsT_, ValueLhsT_, CoordinateSystemLhsT_, DimensionFromLhsV_, DimensionToLhsV_,
+                                                       UnitsLhsT_...>& lhs,
+                      const ActiveLinearTransformation<ValuesRhsT_, ValueRhsT_, CoordinateSystemRhsT_, DimensionFromRhsV_, DimensionToRhsV_,
+                                                       UnitsRhsT_...>& rhs) {
+    return internal::makeActiveLinearTransformation<ValuesLhsT_, CoordinateSystemLhsT_>(
+        innerProduct(lhs.getQuantities(), rhs.getQuantities()));
   }
 };
 

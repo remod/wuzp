@@ -11,11 +11,11 @@
 
 using namespace wuzp;  // NOLINT
 
-using Rotation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemC>;
-using Translation = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, CoordinateSystemB>;
+using Rotation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC>;
+using Translation = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemC, CoordinateSystemB>;
 
 int main() {
   [[maybe_unused]] constexpr auto size =
-      sizeof(PassiveProperRigidTransformationTemplate<CoordinateSystemA, CoordinateSystemAId, CoordinateSystemB, Rotation, Translation>);
+      sizeof(PassiveProperRigidTransformationTemplate<CoordinateSystemAId, CoordinateSystemB, Rotation, Translation>);
   return 0;
 }

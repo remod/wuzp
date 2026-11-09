@@ -1,4 +1,5 @@
-// This example shows how to use wuzp to transform objects between coordinate systems.
+// This example shows how to use wuzp to transform objects between coordinate systems, and how to compose and invert
+// transformations.
 
 #include <iostream>
 
@@ -8,17 +9,25 @@
 
 struct A {};
 struct B {};
+struct C {};
 using CoordinateSystemA = wuzp::CoordinateSystem<A>;
 using CoordinateSystemB = wuzp::CoordinateSystem<B>;
+using CoordinateSystemC = wuzp::CoordinateSystem<C>;
 
 template <typename CoordinateSystem>
 using ForceVector = wuzp::ForceVector3<wuzp_eigen::ValueMatrix, double, CoordinateSystem>;
+template <typename CoordinateSystem>
+using PositionPoint = wuzp::PositionPoint3<wuzp_eigen::ValueMatrix, double, CoordinateSystem>;
 
 using ForceVectorInA = ForceVector<CoordinateSystemA>;
 using ForceVectorInB = ForceVector<CoordinateSystemB>;
 
-using TransformationFromAToB =
-    wuzp::PassiveProperRigidTransformation3<wuzp_eigen::ValueMatrix, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, double>;
+// The passive transformation from From to To. In the monogram notation of Drake, TransformationFromAToB is X_BA: it maps the
+// coordinates of a point in A to its coordinates in B.
+template <typename From, typename To>
+using RigidTransformation = wuzp::PassiveProperRigidTransformation3<wuzp_eigen::ValueMatrix, From, To, double>;
+using TransformationFromAToB = RigidTransformation<CoordinateSystemA, CoordinateSystemB>;
+using TransformationFromBToC = RigidTransformation<CoordinateSystemB, CoordinateSystemC>;
 
 int main() {
   // Two forces to add:
@@ -33,7 +42,18 @@ int main() {
   TransformationFromAToB::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
   TransformationFromAToB transformationFromAToB{rotation, translation};
   ForceVectorInB totalForce = transformationFromAToB.transform(forceInA) + forceInB;
-
   std::cout << "Resulting force:\n" << totalForce << std::endl;
+
+  // Transformations compose in the order of Drake's monogram notation, X_CB * X_BA = X_CA: first from A to B, then from B to C.
+  // The coordinate systems that meet must match, e.g. transformationFromAToB * transformationFromBToC does not compile.
+  TransformationFromBToC transformationFromBToC{TransformationFromBToC::Rotation{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0},
+                                                TransformationFromBToC::Translation{1.0, 0.0, 0.0}};
+  RigidTransformation<CoordinateSystemA, CoordinateSystemC> transformationFromAToC = transformationFromBToC * transformationFromAToB;
+  PositionPoint<CoordinateSystemA> point{1.0, 2.0, 3.0};
+  std::cout << "Point in C:\n" << transformationFromAToC.transform(point) << std::endl;
+
+  // The inverse transforms back, from C to A.
+  RigidTransformation<CoordinateSystemC, CoordinateSystemA> transformationFromCToA = transformationFromAToC.inverse();
+  std::cout << "Point in A again:\n" << transformationFromCToA.transform(transformationFromAToC.transform(point)) << std::endl;
   return 0;
 }

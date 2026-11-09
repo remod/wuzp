@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/ActiveLinearTransformation.hpp"
 
 namespace wuzp {

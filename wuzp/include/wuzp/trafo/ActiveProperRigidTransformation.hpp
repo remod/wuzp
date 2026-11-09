@@ -1,25 +1,31 @@
 #pragma once
 
+#include <type_traits>
 #include <utility>
 
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/concepts.hpp"
+#include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/ActiveSpatialRotation.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
+#include "wuzp/trafo/internal/rigid.hpp"
 #include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 
-// First rotate, then translate.
-// TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
-// TODO(remod): Add test which checks that active and passive transformation cancel each other (to proof order).
-template <AnyCoordinateSystem CoordinateSystemT_, typename Rotation_, typename Translation_>
+/**
+ * An active proper rigid transformation, which first rotates, then translates: x -> R x + t. The rotation R must be a rotation
+ * (orthogonal, with determinant 1), which is not checked yet: the inverse, (R^T, -R^T t), relies on it.
+ * TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
+ */
+template <AnyCoordinateSystem CoordinateSystemT_, typename RotationT_, typename TranslationT_>
 class ActiveProperRigidTransformationTemplate
-    : public ActiveTransformation<ActiveProperRigidTransformationTemplate<CoordinateSystemT_, Rotation_, Translation_>> {
+    : public ActiveTransformation<ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>> {
  public:
-  using Rotation = Rotation_;
-  using Translation = Translation_;
+  using Rotation = RotationT_;
+  using Translation = TranslationT_;
+  using ValueT = typename Rotation::ValueT;
 
   ActiveProperRigidTransformationTemplate() = default;
   ActiveProperRigidTransformationTemplate(Rotation rotation, Translation translation)
@@ -30,6 +36,18 @@ class ActiveProperRigidTransformationTemplate
 
   void setTranslation(const Translation& translation) { translation_ = translation; }
   const Translation& getTranslation() const { return translation_; }
+
+  //! The inverse transformation, (R^T, -R^T t), which only needs the transpose of the rotation (see internal::invertRigid()).
+  ActiveProperRigidTransformationTemplate inverse() const { return internal::invertRigid<ActiveProperRigidTransformationTemplate>(*this); }
+
+  //! Whether both transformations, which must be expressed in the same coordinate system, are approximately equal: their rotations
+  //! and their translations are compared with their isApprox().
+  template <typename CoordinateSystemOtherT_, typename RotationOtherT_, typename TranslationOtherT_>
+  bool isApprox(const ActiveProperRigidTransformationTemplate<CoordinateSystemOtherT_, RotationOtherT_, TranslationOtherT_>& other,
+                const ValueT precision = Precision<ValueT>::value()) const {
+    static_assert(std::is_same_v<CoordinateSystemT_, CoordinateSystemOtherT_>, "Coordinate systems do not match.");
+    return rotation_.isApprox(other.getRotation(), precision) && translation_.isApprox(other.getTranslation(), precision);
+  }
 
  private:
   Rotation rotation_;
@@ -45,11 +63,52 @@ using ActiveProperRigidTransformation2 = ActiveProperRigidTransformation<ValuesT
 template <template <typename, int, int> typename ValuesT_, typename CoordinateSystemT_, typename ValueT_>
 using ActiveProperRigidTransformation3 = ActiveProperRigidTransformation<ValuesT_, 3, CoordinateSystemT_, ValueT_>;
 
+template <typename CoordinateSystemT_, typename RotationT_, typename TranslationT_>
+struct GetCoordinateSystem<ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>> {
+  using type = CoordinateSystemT_;
+};
+
 template <typename CoordinateSystemT_, typename RotationT_, typename TranslationT_, typename Object>
 struct TransformationTraits<ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>, Object> {
   static auto transform(const ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>& transformation,
                         const Object& object) {
     return transformation.getTranslation().transform(transformation.getRotation().transform(object));
+  }
+};
+
+// The compositions of proper rigid transformations with each other and with translations are proper rigid transformations of the
+// type of the proper rigid operand (see internal/rigid.hpp).
+
+template <typename CoordinateSystemLhsT_, typename RotationLhsT_, typename TranslationLhsT_, typename CoordinateSystemRhsT_,
+          typename RotationRhsT_, typename TranslationRhsT_>
+struct CompositionTraits<ActiveProperRigidTransformationTemplate<CoordinateSystemLhsT_, RotationLhsT_, TranslationLhsT_>,
+                         ActiveProperRigidTransformationTemplate<CoordinateSystemRhsT_, RotationRhsT_, TranslationRhsT_>> {
+  using ResultT = ActiveProperRigidTransformationTemplate<CoordinateSystemLhsT_, RotationLhsT_, TranslationLhsT_>;
+  static ResultT compose(const ResultT& lhs,
+                         const ActiveProperRigidTransformationTemplate<CoordinateSystemRhsT_, RotationRhsT_, TranslationRhsT_>& rhs) {
+    return internal::composeRigid<ResultT>(lhs, rhs);
+  }
+};
+
+template <typename CoordinateSystemT_, typename RotationT_, typename TranslationT_, template <typename, int, int> typename ValuesRhsT_,
+          int DimensionRhsV_, typename ValueRhsT_, typename CoordinateSystemRhsT_, typename... UnitsRhsT_>
+struct CompositionTraits<ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>,
+                         ActiveTranslation<ValuesRhsT_, DimensionRhsV_, ValueRhsT_, CoordinateSystemRhsT_, UnitsRhsT_...>> {
+  using ResultT = ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>;
+  static ResultT compose(const ResultT& lhs,
+                         const ActiveTranslation<ValuesRhsT_, DimensionRhsV_, ValueRhsT_, CoordinateSystemRhsT_, UnitsRhsT_...>& rhs) {
+    return internal::composeRigidAndTranslation<ResultT>(lhs, rhs);
+  }
+};
+
+template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhsV_, typename ValueLhsT_, typename CoordinateSystemLhsT_,
+          typename... UnitsLhsT_, typename CoordinateSystemT_, typename RotationT_, typename TranslationT_>
+struct CompositionTraits<ActiveTranslation<ValuesLhsT_, DimensionLhsV_, ValueLhsT_, CoordinateSystemLhsT_, UnitsLhsT_...>,
+                         ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>> {
+  using ResultT = ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>;
+  static ResultT compose(const ActiveTranslation<ValuesLhsT_, DimensionLhsV_, ValueLhsT_, CoordinateSystemLhsT_, UnitsLhsT_...>& lhs,
+                         const ResultT& rhs) {
+    return internal::composeTranslationAndRigid<ResultT>(lhs, rhs);
   }
 };
 

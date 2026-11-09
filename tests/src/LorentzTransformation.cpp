@@ -17,13 +17,13 @@ using TimeQuantityD = QuantityD<Time>;
 using LengthQuantityD = QuantityD<Length>;
 using AreaQuantityD = QuantityD<Area>;
 
-using LorentzBoost = LorentzTransformation4<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+using LorentzBoost = LorentzTransformation4<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB>;
 using Velocity3 = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
 using SpacetimeVectorA = SpacetimeVector4<ValueMatrix, double, CoordinateSystemA>;
 using SpacetimeVectorB = SpacetimeVector4<ValueMatrix, double, CoordinateSystemB>;
 
 LorentzBoost createBoost(const Velocity3& velocity) {
-  return createBoostMatrix<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, 4>(velocity);
+  return createBoostMatrix<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB, 4>(velocity);
 }
 
 TEST(TestLorentzTransformation, TransformSpacetimeVector) {  // NOLINT
@@ -38,7 +38,7 @@ TEST(TestLorentzTransformation, TransformSpacetimeVector) {  // NOLINT
 TEST(TestLorentzTransformation, BoostWithZeroVelocityIsIdentity) {  // NOLINT
   const LorentzBoost transformation{createBoost(Velocity3{0.0, 0.0, 0.0})};
   const LorentzBoost identity{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-  EXPECT_TRUE(transformation.getTensor().isApprox(identity.getTensor(), 1e-12));
+  EXPECT_TRUE(transformation.isApprox(identity, 1e-12));
 }
 
 TEST(TestLorentzTransformation, BoostWithSmallVelocity) {  // NOLINT
@@ -96,3 +96,65 @@ TEST(TestLorentzTransformation, VelocityOfToRelativeToFrom) {  // NOLINT
                                           LengthQuantityD{0.0}, LengthQuantityD{0.0}};
   EXPECT_TRUE(transformation.transform(event).isApprox(transformedEvent, 1e-12));
 }
+
+// The composition of two boosts along the same direction is the boost with the relativistic sum of their velocities,
+// (v1 + v2) / (1 + v1 v2 / c^2): 0.5 c and 0.5 c give 0.8 c.
+TEST(TestLorentzTransformation, ComposeCollinearBoosts) {  // NOLINT
+  const double c = getSpeedOfLight<ValueMatrix, double>().getValue();
+  const LorentzBoost boostBA{createBoost(Velocity3{0.5 * c, 0.0, 0.0})};
+  const LorentzTransformation4<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC> boostCB{
+      createBoostMatrix<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 4>(
+          VelocityVector3<ValueMatrix, double, CoordinateSystemB>{0.5 * c, 0.0, 0.0})};
+  const LorentzTransformation4<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC> boostCA{
+      createBoostMatrix<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 4>(Velocity3{0.8 * c, 0.0, 0.0})};
+  EXPECT_TRUE((boostCB * boostBA).isApprox(boostCA, 1e-12));
+  // With gamma = 5/3 for 0.8 c: x'^0 = gamma (5 m - 0.8 * 4 m) = 3 m, and x' = gamma (4 m - 0.8 * 5 m) = 0.
+  const SpacetimeVectorA event{5.0, 4.0, 1.0, 2.0};
+  EXPECT_TRUE((boostCB * boostBA).transform(event).isApprox(boostCB.transform(boostBA.transform(event)), 1e-12));
+  EXPECT_TRUE(
+      (boostCB * boostBA).transform(event).isApprox(SpacetimeVector4<ValueMatrix, double, CoordinateSystemC>{3.0, 0.0, 1.0, 2.0}, 1e-12));
+}
+
+namespace {
+
+// The Minkowski metric eta with the signature (+, -, -, -).
+using Metric = Quantities<ValueMatrix<double, 4, 4>, TypeMatrix<4, 4, Dimensionless>>;
+const Metric eta{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0};
+
+}  // namespace
+
+// The inverse of a Lorentz transformation is eta Lambda^T eta, which follows from eta = Lambda^T eta Lambda (Carroll, Lecture
+// Notes on General Relativity, https://arxiv.org/abs/gr-qc/9712019, eq. 1.14), and needs no matrix inverse.
+TEST(TestLorentzTransformation, InverseIsEtaTransposeEta) {  // NOLINT
+  const double c = getSpeedOfLight<ValueMatrix, double>().getValue();
+  const LorentzBoost boost{createBoost(Velocity3{0.1 * c, 0.2 * c, 0.3 * c})};
+  const Metric inverse = innerProduct(eta, innerProduct(boost.getQuantities().transpose(), eta));
+  const Metric identity{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+  EXPECT_TRUE(innerProduct(inverse, boost.getQuantities()).isApprox(identity, 1e-12));
+  EXPECT_TRUE(innerProduct(boost.getQuantities(), inverse).isApprox(identity, 1e-12));
+}
+
+// The inverse of a linear transformation is its matrix inverse, which Blitz++ does not provide.
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+// The inverse transforms from To to From. The inverse of a boost is the boost with the velocity of From relative to To, which is
+// -v in To.
+TEST(TestLorentzTransformation, Inverse) {  // NOLINT
+  using LorentzBoostAB = LorentzTransformation4<ValueMatrix, double, CoordinateSystemB, CoordinateSystemA>;
+  const double c = getSpeedOfLight<ValueMatrix, double>().getValue();
+  const LorentzBoost boost{createBoost(Velocity3{0.1 * c, 0.2 * c, 0.3 * c})};
+  const LorentzBoostAB inverse = boost.inverse();
+  EXPECT_TRUE(inverse.getQuantities().isApprox(innerProduct(eta, innerProduct(boost.getQuantities().transpose(), eta)), 1e-12));
+  EXPECT_TRUE(inverse.isApprox(createBoostMatrix<ValueMatrix, double, CoordinateSystemB, CoordinateSystemA, 4>(
+                                   VelocityVector3<ValueMatrix, double, CoordinateSystemB>{-0.1 * c, -0.2 * c, -0.3 * c}),
+                               1e-12));
+  const SpacetimeVectorA event{1.0, 2.0, 3.0, 4.0};
+  EXPECT_TRUE(inverse.transform(boost.transform(event)).isApprox(event, 1e-12));
+  const SpacetimeVectorB eventInB{1.0, 2.0, 3.0, 4.0};
+  EXPECT_TRUE(boost.transform(inverse.transform(eventInB)).isApprox(eventInB, 1e-12));
+  const LorentzTransformation4<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA> identityInA{
+      1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+  const LorentzTransformation4<ValueMatrix, double, CoordinateSystemB, CoordinateSystemB> identityInB{identityInA.getQuantities()};
+  EXPECT_TRUE((inverse * boost).isApprox(identityInA, 1e-12));
+  EXPECT_TRUE((boost * inverse).isApprox(identityInB, 1e-12));
+}
+#endif

@@ -12,7 +12,7 @@
 using namespace wuzp;  // NOLINT
 
 int main() {
-  ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA> rotationInA{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+  const ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA> rotationInA{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
   const ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemB> rotationInB{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
   return rotationInA.isApprox(rotationInB) ? 0 : 1;
 }

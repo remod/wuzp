@@ -14,7 +14,7 @@ using namespace wuzp;  // NOLINT
 TEST(TestActiveAndPassiveRotation, CancelEachOtherWhenTransformingPositionVector) {  // NOLINT
   using Object = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
   using ActiveTransformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
-  using PassiveTransformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using PassiveTransformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemB>;
   const Object object{1.0, 2.0, 3.0};
   const TransformedObject transformedObject{1.0, 2.0, 3.0};
@@ -26,7 +26,7 @@ TEST(TestActiveAndPassiveRotation, CancelEachOtherWhenTransformingPositionVector
 TEST(TestActiveAndPassiveRotation, CancelEachOtherWhenTransformingPositionPoint) {  // NOLINT
   using Object = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
   using ActiveTransformation = ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
-  using PassiveTransformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
+  using PassiveTransformation = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB>;
   using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemB>;
   const Object object{1.0, 2.0, 3.0};
   const TransformedObject transformedObject{1.0, 2.0, 3.0};

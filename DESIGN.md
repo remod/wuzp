@@ -19,6 +19,7 @@ Open questions are marked with **TODO** and must be decided before 1.0.
 * **Points and vectors.** Absolute tensors are points, relative tensors are vectors and all other tensors (like temperatures and temperature differences).
   Points follow the rules of affine spaces: operations whose result depends on the origin of the coordinate system are rejected (see [Points and vectors](#points-and-vectors)).
 * **Transformations.** Rotations, translations, proper rigid transformations (first rotation, then translation), Jacobians and Lorentz transformations, each in an active and a passive form.
+  They compose with `*`, in the order of Drake's monogram notation, and have an `inverse()` (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
 
 ## Conventions
 
@@ -39,12 +40,24 @@ Equivalently, `A^-1` is the change-of-basis matrix `P` used by Wikipedia ("old =
 The notes at the end of this document start with the opposite convention (`M' = A^-1 M A`, `A^T M A`); the code follows the table above.
 
 Translations move points and leave vectors unchanged.
-A proper rigid transformation first rotates, then translates.
-In the passive case, the rotation transforms from `From` into an intermediate coordinate system with the origin of `From` and the axes of `To`, and the translation from there into `To`; the translation is therefore expressed in `To`.
-A translation must be expressed in the coordinate system of the objects it moves (active), or in `From` or `To` (passive), which have the same axes.
-Active and passive transformations with the same parameters cancel each other.
+A proper rigid transformation first rotates, then translates: `x -> R x + t`.
+An active transformation moves the objects expressed in its coordinate system.
+A passive transformation from `From` to `To` expresses the objects of `From` in `To`, and only takes objects expressed in `From`.
+`PassiveTransformation<From = B, To = A>` is `X_AB` in the [monogram notation of Drake](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html) and `^A_B T` in the notation of Craig (Introduction to Robotics, chapter 2): it maps the coordinates of a point in `B` to its coordinates in `A`.
+The vector of a passive translation is the vector from the origin of `To` to the origin of `From`, expressed in `To`, i.e. Drake's `p_AoBo_A`; `From` and `To` have the same axes, so it has the same components in `From`.
+In a passive proper rigid transformation, the rotation transforms from `From` into an intermediate coordinate system with the origin of `From` and the axes of `To`, and the translation from there into `To`; the translation is therefore expressed in `To`, like that of Drake's [RigidTransform](https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html) `X_AB = (R_AB, p_AoBo_A)`.
+The matrix `A` of a passive linear transformation maps the components of a vector in `From` to its components in `To`: its rows are the dual basis covectors of `To`, and the basis vectors of `To` are the columns of `A^-1`, all expressed in `From` (Carroll, eqs. 1.38 and 1.30); only for orthonormal bases, e.g. for a rotation, are the rows of `A` also the basis vectors of `To`.
 
-`transformation.transform(otherTransformation)` re-expresses the other transformation in another coordinate system (conjugation); it does not compose them.
+An active transformation and the passive transformation with the same parameters cancel each other: the passive transformation from `From` to `To` with the parameters of a motion is the one to the coordinate system `To` that the motion moves `From` onto, and it is the inverse of the active transformation by that motion.
+Its matrix and vector are those of the inverse:
+
+* The active rotation by `R` and the passive rotation by the same angle around the same axis, whose matrix is `R^T`.
+* The active translation by `t` and the passive translation by `t`, whose vector, from the origin of `To` to the origin of `From`, is `-t`.
+* The active proper rigid transformation `(R, t)` and the passive one with the same rotation and translation, `(R^T, -R^T t)`, whose translation `-R^T t` is expressed in `To`.
+  It is not `-t`, unless `R t = t`: the passive transformation `(R^T, -t)` maps the point `(1, 2, 3)`, moved by the rotation of `pi/2` around `x` and the translation `(0, 0, 1)`, to `(1, 3, 2)` (`tests/src/ActiveAndPassiveProperRigidTransformation.cpp`).
+
+Transformations compose with `*` and have an `inverse()` (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
+`activeTransformation.transform(otherTransformation)` is the conjugation `a b a^-1`, which re-expresses the other transformation; it is defined where the result is a transformation of the same kind: a linear transformation or a translation conjugated by a linear transformation, and a translation conjugated by a translation or a proper rigid transformation.
 
 **Points and vectors.**
 The rules follow affine geometry (see [Points and vectors](#points-and-vectors)), where `o` is the origin of the coordinate system:
@@ -174,7 +187,7 @@ Libraries for symbolic tensor algebra, e.g. SymPy and xAct, likewise record the 
 * `outerProduct` concatenates the indices, e.g. `v^i w_j`, so that both operands are vectors or covectors: tensors have rank 2 at most.
 * `inverse()`, the matrix inverse of a tensor of rank 0 or 2, maps the indices `(X, Y)` to `(not Y, not X)`, e.g. a metric `g_ij` to `g^ij` (Carroll, eq. 1.56; see [Inverses and determinants](#inverses-and-determinants)).
 
-The matrices of the transformations map one coordinate system into another, possibly of another dimension, so they are not tensors in one coordinate system: the transformations multiply their matrix with the quantities of the tensors they transform, and `getTensor()` only exists for square matrices.
+The matrices of the transformations map one coordinate system into another, possibly of another dimension, so they are not tensors in one coordinate system: the transformations multiply their matrix with the quantities of the tensors they transform, and `getTensor()` only exists for the square matrices of active linear transformations, which are linear maps in their coordinate system; the matrix of a passive linear transformation maps `From` into `To`, a two-point object, so it is only available as quantities.
 
 ### Products of tensors
 
@@ -237,6 +250,38 @@ Decision:
 
 Decision: operations whose result is not an integer, such as the norm or a power with a non-integer exponent, are computed in floating point and truncated to the value type, like the norm of integer vectors in Eigen: `pow<1, 2>()` of 5 m² is 2 m (#63).
 
+### Composition and inverse of transformations
+
+Transformations could not be composed or inverted, the most common operations in robotics.
+`transformation.transform(otherTransformation)` was a conjugation, which users read as a composition, and two of its cases were wrong:
+
+* A translation returned a linear transformation `Q` unchanged, and a proper rigid transformation `(R, t)` returned `R Q R^-1`, ignoring its translation (#72), but the conjugation `T Q T^-1` maps `x` to `Q x + (I - Q) t`, which is affine.
+  For `t = (0, 0, 1)` and the rotation `Q` by `pi` around `x`, it maps `(0, 0, 1)` onto itself, while `Q` maps it to `(0, 0, -1)`.
+* A passive transformation re-expressed another passive transformation in its `To`, but the result could only be applied if its coordinate system parameter equaled its `From` (#73).
+  That parameter, the coordinate system in which the matrix or vector of a passive transformation was expressed, was redundant: the tensors a passive transformation transforms are expressed in `From`.
+
+Decision:
+
+* `lhs * rhs` composes two transformations: it applies `rhs` first, then `lhs`, like the product of their matrices.
+  Passive transformations compose in the order of the [monogram notation of Drake](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html), `X_AB * X_BC = X_AC`, i.e. `^A_C T = ^A_B T ^B_C T` in the notation of Craig.
+  The coordinate systems that meet, `From` of `lhs` and `To` of `rhs`, must be the same, which is checked at compile time with the message "Adjacent frames do not match.", like [wave_geometry](https://github.com/wavelab/wave_geometry) does.
+  Active transformations compose within their coordinate system.
+* The compositions that are again transformations of *wuzp* are defined, by specializations of the trait `CompositionTraits`: linear transformations with linear transformations (the product of their matrices, e.g. the chain rule for Jacobians, and the composition of Lorentz transformations), translations with translations (the sum of their vectors), and proper rigid transformations with proper rigid transformations and with translations, `(R1, t1) * (R2, t2) = (R1 R2, R1 t2 + t1)` (Sola, Deray and Atchuthan, ["A micro Lie theory for state estimation in robotics"](https://arxiv.org/abs/1812.01537), eq. 171, and Drake's [RigidTransform](https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html)).
+  The result has the type of the aliases, e.g. the product of two `ActiveSpatialRotation3` is an `ActiveSpatialRotation3`, since homogeneous units are given as a single unit.
+* Other combinations are rejected with "These transformations cannot be composed.", e.g. a translation with a rotation, and an active with a passive transformation.
+  A rotation is an alias of a linear transformation with dimensionless units, so it cannot be told apart from e.g. a scaling or a Lorentz transformation: composing it with a translation into a proper rigid transformation would make the inverse of that transformation, which relies on `R^-1 = R^T`, silently wrong until rotations are a class of their own (see [Validity of rotations and Lorentz transformations](#todo-validity-of-rotations-and-lorentz-transformations)).
+* `inverse()` inverts every transformation; a passive inverse transforms from `To` to `From`.
+  The inverse of a linear transformation has the matrix inverse, which needs a value matrix backend with matrix inverses (see [Backend support for inverses](#todo-backend-support-for-inverses)); that of a translation is `-t`, and that of a proper rigid transformation `(R^T, -R^T t)` (Sola et al., eq. 170), which only needs the transpose of the rotation and works with every backend.
+  The inverses of rotations, `R^T`, and of Lorentz transformations, `eta Lambda^T eta`, which follows from `eta = Lambda^T eta Lambda` (Carroll, eq. 1.14), are the matrix inverses, which `inverse()` computes as long as they are aliases of linear transformations.
+* The conjugations of linear transformations by translations and proper rigid transformations, and all transformations of passive transformations by passive transformations, are removed: users compose with `*` and `inverse()`, e.g. `t * q * t.inverse()`, where `q` is a proper rigid transformation that only rotates.
+  Passing such a transformation to `transform()` fails with a message that says to compose transformations with `operator*`: `transform()` of a passive transformation checks this before the coordinate system, which passive transformations do not have, and the primary template of `TransformationTraits` for active transformations.
+  The other conjugations of active transformations remain, since their results are transformations of the same kind: `A B A^-1` of a linear transformation `B` by a linear transformation `A`, and the conjugations of a translation by `t`, which are the translation by `A t` for a linear transformation `A`, by `R t` for a proper rigid transformation `(R, t')`, and by `t` for a translation.
+* The passive transformations have no coordinate system parameter: they transform tensors expressed in `From`, and the vector of a passive translation is expressed in `To`.
+  Passive linear transformations have no `getTensor()`: their matrix maps `From` into `To`, a two-point object, which typing it as a tensor in `From` would misrepresent; `getQuantities()` returns it.
+* `isApprox(other, precision)` of transformations is `const` and takes a precision with the default of tensors (#68).
+  It compares transformations of the same kind, expressed in the same coordinate system (active) or between the same coordinate systems (passive), and compares the matrices of linear transformations, the vectors of translations, and both the rotation and the translation of proper rigid transformations.
+* The base class `Transformation` has a protected non-virtual destructor rather than a virtual one: transformations are values that are never deleted through a pointer to the base class, and the pointer to the virtual table made every transformation larger.
+
 ## Review of mathematical and physical soundness (November 2026)
 
 The library was reviewed for mathematical and physical soundness, with claims verified by compiling and running programs.
@@ -246,7 +291,7 @@ The library was reviewed for mathematical and physical soundness, with claims ve
 * The unit exponent algebra and the canonical reduction of rational exponents.
 * The units of the matrix inverse, `(M^-1)_ij = b_i / a_j` for the matrices with units of the form `M_ij = a_i / b_j`, i.e. matrices that describe a linear map; the units of other matrices are rejected (see [Inverses and determinants](#inverses-and-determinants)).
 * The transformation rules for vectors, points, (1,1) and (0,2) tensors (`A^-T M A^-1` matches `R M R^T` to 1e-15 for a general rotation).
-* Active and passive transformations cancel each other; the order of rotation and translation in rigid transformations; translations moving points but not vectors.
+* Active and passive transformations with the same parameters cancel each other (for proper rigid transformations only with the translation `-R^T t` of the passive one, see [Conventions](#conventions)); the order of rotation and translation in rigid transformations; translations moving points but not vectors.
 * The passive Lorentz boost matrix (standard form, `x^0 = c t` in length units, signature `(+,-,-,-)`, `Λ_0i = -γ β_i`), for the velocity of `To` relative to `From`, expressed in `From`, which must be smaller than the speed of light (#67).
 * The rigid body kinematics in the tests (`v + ω × r`, `a + α × r + ω × (ω × r)` for a body-fixed point), and the kinetic energy and mass matrix of the rotating dumbbell.
 
@@ -285,6 +330,9 @@ A code audit (November 2026) found these defects, all fixed:
 | Whether a result referred to a destroyed temporary depended on the operator | #69 |
 | Type traits reported invalid conversions as valid | #70 |
 | The index rules of `innerProduct` were unsound, e.g. the inner product of a vector and a covector was a 3x3 matrix typed as a scalar | #71 |
+| `isApprox` of transformations was not `const`, had no precision, did not check `From` and `To`, and did not work for rigid transformations | #68 |
+| Translations and rigid transformations conjugated linear transformations into linear transformations, ignoring the translation, which is wrong for points | #72 |
+| Passive transformations transformed by passive transformations could not be applied | #73 |
 
 ## Open design questions
 
@@ -294,6 +342,7 @@ A Jacobian is a `PassiveLinearTransformation`, so it also maps points: the Jacob
 A Jacobian is a local linearization and must only map tangent vectors.
 The rule `A^-T M A^-1` cannot handle non-square Jacobians, and the check of the mass matrix test (`TestJacobian.TransformMassMatrix`) is commented out.
 The physically meaningful operations are the pullback `M_q = J^T M_x J` (no inverse needed) and the operational space inertia `Λ = (J M^-1 J^T)^-1`.
+The composition of Jacobians is the chain rule, `J_AB * J_BC = J_AC` (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
 
 Recommendation: a separate Jacobian type that rejects points and provides the pullback.
 
@@ -306,16 +355,17 @@ This is fine in orthonormal coordinate systems, but not invariant under Jacobian
 Options: (a) a metric as part of the coordinate system, used by `dotProduct` and `norm`; (b) restrict `dotProduct` and `norm` to Euclidean coordinate systems and provide explicit metric contractions; (c) document the limitation.
 Recommendation: (c) for 1.0, (a) later.
 
-### TODO: Validity of rotations
+### TODO: Validity of rotations and Lorentz transformations
 
 Rotations are not checked for orthogonality or a determinant of 1, so a shear is accepted as a rotation.
 The transformation rules use the general inverse and remain correct for any invertible matrix; only the guarantees of a rotation (e.g. preserving norms) break.
-Recommendation: a runtime check in debug builds when constructing a rotation.
+The inverse of a proper rigid transformation, `(R^T, -R^T t)`, relies on `R^-1 = R^T`, though, and is wrong for a rotation that is not one.
+Rotations are aliases of linear transformations with dimensionless units, so they cannot be told apart from e.g. scalings or Lorentz transformations: their `inverse()` is the matrix inverse rather than `R^T`, which needs a backend with matrix inverses, and they do not compose with translations into proper rigid transformations.
+Likewise, Lorentz transformations are aliases of passive linear transformations: their `inverse()` is the matrix inverse rather than `eta Lambda^T eta`, and nothing checks `Lambda^T eta Lambda = eta`.
 
-### TODO: Composition and inverse of transformations
-
-There is no composition (`A→B` and `B→C` give `A→C`) and no inverse of transformations.
-Recommendation: add both, type-checked through the coordinate systems; they are the most common operations in robotics.
+Decision: a rotation class and a Lorentz class, with a runtime check in debug builds when constructing them (`R^T R = I` and `det R = 1`, `Lambda^T eta Lambda = eta`).
+Their inverses are structural, `R^T` and `eta Lambda^T eta`, so they work with every value matrix backend.
+Rotations will compose with translations and proper rigid transformations into proper rigid transformations (rotation * translation, translation * rotation, rigid * rotation and rotation * rigid), which are rejected until then.
 
 ### TODO: Moving coordinate systems
 
@@ -327,7 +377,8 @@ Recommendation: document this clearly; consider dedicated twist and wrench types
 
 ### TODO: Backend support for inverses
 
-Blitz++ provides neither matrix inverses nor determinants, so transformations of covectors, linear maps and bilinear forms only work with Eigen, and the Blitz++ backend does not satisfy `InvertibleValueMatrixBackend`.
+Blitz++ provides neither matrix inverses nor determinants, so transformations of covectors, linear maps and bilinear forms, and the inverses of linear transformations, only work with Eigen, and the Blitz++ backend does not satisfy `InvertibleValueMatrixBackend`.
+The inverses of translations and proper rigid transformations need no matrix inverse and work with every backend, and so will those of the planned rotation and Lorentz classes (see [Validity of rotations and Lorentz transformations](#todo-validity-of-rotations-and-lorentz-transformations)).
 Of the inverses, the Blitz++ backend only implements the elementwise reciprocal, `cwiseInverse()`.
 This weakens the goal that every feature works with every backend.
 Recommendation: implement small fixed-size inverses for Blitz++ in *wuzp*, or document the restriction per backend.

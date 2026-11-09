@@ -11,8 +11,8 @@
 
 using namespace wuzp;  // NOLINT
 
-using Lhs = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB>;
-using Rhs = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, CoordinateSystemC>;
+using Lhs = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB>;
+using Rhs = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC>;
 
 int main() {
   const Lhs lhs{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};

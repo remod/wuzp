@@ -1,20 +1,19 @@
 #pragma once
 
+#include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/PassiveLinearTransformation.hpp"
-#include "wuzp/trafo/traits.hpp"
 
 namespace wuzp {
 
 // TODO(remod): When instantiating a spatial rotation, test for determinant == 1.
 // TODO(remod): Call "unitless rotation" or simply "rotation"?
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_,
-          int DimensionV_>
-using PassiveSpatialRotation = PassiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_, DimensionV_,
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_, int DimensionV_>
+using PassiveSpatialRotation = PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_, DimensionV_,
                                                            typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_>
-using PassiveSpatialRotation2 = PassiveSpatialRotation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, 2>;
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_>
-using PassiveSpatialRotation3 = PassiveSpatialRotation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, 3>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_>
+using PassiveSpatialRotation2 = PassiveSpatialRotation<ValuesT_, ValueT_, FromT_, ToT_, 2>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_>
+using PassiveSpatialRotation3 = PassiveSpatialRotation<ValuesT_, ValueT_, FromT_, ToT_, 3>;
 
 // template <typename Derived, typename From, typename To, typename DimensionlessQuantity>
 // class QuaternionBase : public PassiveTransformation<Derived, From, To> {
