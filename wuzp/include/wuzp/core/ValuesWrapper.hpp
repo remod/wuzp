@@ -79,8 +79,7 @@ class ValuesWrapper {
 
   template <int RowIdV_, int ColIdV_>
   auto get() const {
-    // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
-    return implementation_(RowIdV_, ColIdV_);
+    return Coefficient<AccessImplementation<ImplementationT>>::get(implementation_, RowIdV_, ColIdV_);
   }
 
   auto get() const
@@ -89,13 +88,11 @@ class ValuesWrapper {
     return get<0, 0>();
   }
 
-  auto get(int rowId, int colId) const { return implementation_(rowId, colId); }
+  auto get(int rowId, int colId) const { return Coefficient<AccessImplementation<ImplementationT>>::get(implementation_, rowId, colId); }
 
   template <int RowIdV_, int ColIdV_, typename ValueOtherT_>
   ThisT& set(ValueOtherT_ value) {
-    // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
-    implementation_(RowIdV_, ColIdV_) = value;
-    return *this;
+    return set(RowIdV_, ColIdV_, value);
   }
 
   template <typename ValueOtherT_>
@@ -107,8 +104,7 @@ class ValuesWrapper {
 
   template <typename ValueOtherT_>
   ThisT& set(int rowId, int colId, ValueOtherT_ value) {
-    // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
-    implementation_(rowId, colId) = value;
+    Coefficient<AccessImplementation<ImplementationT>>::set(implementation_, rowId, colId, value);
     return *this;
   }
 
@@ -116,8 +112,7 @@ class ValuesWrapper {
   operator typename GetValue<ThisT>::type() const
     requires(Dimension<ThisT>::value == 0)
   {
-    // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
-    return implementation_(0, 0);
+    return get<0, 0>();
   }
 
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
@@ -270,6 +265,18 @@ template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>
 struct GetValue<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
   using type = ValueT_;
 };
+
+//! Evaluated values of the same value matrix backend, with another value type and size.
+template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_, typename ValueOtherT_, int RowsV_, int ColsV_>
+struct Rebind<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>, ValueOtherT_, RowsV_, ColsV_> {
+  using type = ValuesWrapper<MatrixSize<RowsV_, ColsV_>, ValueOtherT_,
+                             typename Rebind<AccessImplementation<ImplementationT_>, ValueOtherT_, RowsV_, ColsV_>::type>;
+};
+
+//! Evaluated 1x1 values of the value matrix backend of ValuesT_, with the value type ValueT_: e.g. a scalar that an operation
+//! combines with values of the type ValuesT_, which is converted into values of the same backend.
+template <typename ValuesT_, typename ValueT_>
+using ScalarValues = typename Rebind<ValuesT_, ValueT_, 1, 1>::type;
 
 template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>
 struct Rows<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {

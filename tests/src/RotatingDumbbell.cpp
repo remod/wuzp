@@ -30,12 +30,12 @@ using VelocityVector = wuzp::VelocityVector2<ValueMatrix, double, CartesianCoord
 using MassLength = wuzp::Product<Mass, wuzp::Division<Length, Angle>::type>::type;
 using MassLength2 = wuzp::Product<MassLength, wuzp::Division<Length, Angle>::type>::type;
 
-using RadiusQuantity = wuzp::QuantityD<Length>;
-using MassQuantity = wuzp::QuantityD<Mass>;
-using MassLengthQuantity = wuzp::QuantityD<MassLength>;
-using MassLength2Quantity = wuzp::QuantityD<MassLength2>;
-using EnergyQuantity = wuzp::QuantityD<Energy>;
-using AngleQuantity = wuzp::QuantityD<Angle>;
+using RadiusQuantity = QuantityD<Length>;
+using MassQuantity = QuantityD<Mass>;
+using MassLengthQuantity = QuantityD<MassLength>;
+using MassLength2Quantity = QuantityD<MassLength2>;
+using EnergyQuantity = QuantityD<Energy>;
+using AngleQuantity = QuantityD<Angle>;
 
 using MassMatrixValues = ValueMatrix<double, 3, 3>;
 using MassMatrixUnits = wuzp::TypeMatrix<3, 3, Mass, Mass, MassLength, Mass, Mass, MassLength, MassLength, MassLength, MassLength2>;

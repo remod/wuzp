@@ -34,48 +34,49 @@ using Volume = wuzp::Unit<boost::units::si::volume>;
 
 namespace wuzp {
 
-template <typename ImplementationLhs, typename ImplementationRhs>
-struct Sum<Unit<ImplementationLhs>, Unit<ImplementationRhs>> {
-  using type = Unit<typename boost::units::add_typeof_helper<ImplementationLhs, ImplementationRhs>::type>;
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Sum<Unit<ImplementationLhsT_>, Unit<ImplementationRhsT_>> {
+  using type = Unit<typename boost::units::add_typeof_helper<ImplementationLhsT_, ImplementationRhsT_>::type>;
 };
 
-template <typename ImplementationLhs, typename ImplementationRhs>
-struct Difference<Unit<ImplementationLhs>, Unit<ImplementationRhs>> {
-  using type = Unit<typename boost::units::subtract_typeof_helper<ImplementationLhs, ImplementationRhs>::type>;
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Difference<Unit<ImplementationLhsT_>, Unit<ImplementationRhsT_>> {
+  using type = Unit<typename boost::units::subtract_typeof_helper<ImplementationLhsT_, ImplementationRhsT_>::type>;
 };
 
-template <typename ImplementationLhs, typename ImplementationRhs>
-struct Product<Unit<ImplementationLhs>, Unit<ImplementationRhs>> {
-  using type = Unit<typename boost::units::multiply_typeof_helper<ImplementationLhs, ImplementationRhs>::type>;
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Product<Unit<ImplementationLhsT_>, Unit<ImplementationRhsT_>> {
+  using type = Unit<typename boost::units::multiply_typeof_helper<ImplementationLhsT_, ImplementationRhsT_>::type>;
 };
 
-template <typename ImplementationLhs, typename ImplementationRhs>
-struct Division<Unit<ImplementationLhs>, Unit<ImplementationRhs>> {
-  using type = Unit<typename boost::units::divide_typeof_helper<ImplementationLhs, ImplementationRhs>::type>;
+template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+struct Division<Unit<ImplementationLhsT_>, Unit<ImplementationRhsT_>> {
+  using type = Unit<typename boost::units::divide_typeof_helper<ImplementationLhsT_, ImplementationRhsT_>::type>;
 };
 
-template <typename Implementation, typename Exponent>
-struct Power<Unit<Implementation>, Exponent> {
-  using type = Unit<typename boost::units::power_typeof_helper<Implementation,
-                                                               boost::units::static_rational<Exponent::Dividend, Exponent::Divisor>>::type>;
+template <typename ImplementationT_, typename ExponentT_>
+struct Power<Unit<ImplementationT_>, ExponentT_> {
+  using type =
+      Unit<typename boost::units::power_typeof_helper<ImplementationT_,
+                                                      boost::units::static_rational<ExponentT_::Dividend, ExponentT_::Divisor>>::type>;
 };
 
-template <typename Dim, typename System>
-struct Identity<Unit<boost::units::unit<Dim, System>>> {
-  using type = Unit<boost::units::unit<boost::units::dimensionless_type, System>>;
+template <typename DimensionT_, typename SystemT_>
+struct Identity<Unit<boost::units::unit<DimensionT_, SystemT_>>> {
+  using type = Unit<boost::units::unit<boost::units::dimensionless_type, SystemT_>>;
 };
-template <typename Dim, typename System>
-struct Identity<Unit<boost::units::absolute<boost::units::unit<Dim, System>>>> {
-  using type = Unit<boost::units::absolute<boost::units::unit<boost::units::dimensionless_type, System>>>;
-};
-
-template <typename Implementation>
-struct Inverse<Unit<Implementation>> {
-  using type = Unit<typename boost::units::power_typeof_helper<Implementation, boost::units::static_rational<-1>>::type>;
+template <typename DimensionT_, typename SystemT_>
+struct Identity<Unit<boost::units::absolute<boost::units::unit<DimensionT_, SystemT_>>>> {
+  using type = Unit<boost::units::absolute<boost::units::unit<boost::units::dimensionless_type, SystemT_>>>;
 };
 
-template <typename T>
-struct AccessUnits<AccessImplementation<T>> {
+template <typename ImplementationT_>
+struct Inverse<Unit<ImplementationT_>> {
+  using type = Unit<typename boost::units::power_typeof_helper<ImplementationT_, boost::units::static_rational<-1>>::type>;
+};
+
+template <typename ValueT_>
+struct AccessUnits<AccessImplementation<ValueT_>> {
   using Acceleration = wuzp_boost::Acceleration;
   using Angle = wuzp_boost::Angle;
   using AngularAcceleration = wuzp_boost::AngularAcceleration;

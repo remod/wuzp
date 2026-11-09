@@ -9,3 +9,4 @@ Follow separation of concerns:
 - **`ci/`**: CI job scripts, **`.devcontainer/`**: the build environment, **`cmake/`**: CMake package files and build helpers (e.g. the warning options).
 
 Backend-specific behavior is selected through trait specializations, never with `#if` in the core.
+A value matrix backend constrains its specializations to its own implementation types (e.g. `EigenArray`), so that several value matrix backends can be used in one program, and the tests check that every backend satisfies its concept from `wuzp/core/concepts.hpp` (`ValueMatrixBackend`, `UnitSystem`), not its header, where the check would cost compile time in every translation unit.

@@ -27,11 +27,7 @@ namespace wuzp {
 template <typename ValueT_, typename UnitT_>
 using Quantity = Quantities<ValueT_, TypeMatrixImpl<1, 1, std::tuple<UnitT_>>>;
 
-template <typename UnitT_>
-using QuantityI = Quantity<typename AccessValues<AccessImplementation<UnitT_>>::ValueI, UnitT_>;
-template <typename UnitT_>
-using QuantityF = Quantity<typename AccessValues<AccessImplementation<UnitT_>>::ValueF, UnitT_>;
-template <typename UnitT_>
-using QuantityD = Quantity<typename AccessValues<AccessImplementation<UnitT_>>::ValueD, UnitT_>;
+// The aliases of quantities with a value type, e.g. QuantityD<UnitT_>, are defined by the value matrix backends, e.g.
+// wuzp_eigen::QuantityD<UnitT_>, since they need a value matrix backend.
 
 }  // namespace wuzp

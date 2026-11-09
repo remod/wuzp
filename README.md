@@ -132,7 +132,19 @@ In the code, include `<wuzp/wuzp.hpp>` (the core and the transformations), a uni
 #include <wuzp/wuzp.hpp>
 #include <wuzp_eigen/ValueMatrix.hpp>  // Or <wuzp_blitz/ValueMatrix.hpp>.
 #include <wuzp_units/Unit.hpp>         // Or <wuzp_boost/Unit.hpp>, <wuzp_mp_units/Unit.hpp>.
+
+struct A {};
+using CoordinateSystemA = wuzp::CoordinateSystem<A>;
+using Force = wuzp_eigen::QuantityD<wuzp_units::Force>;
+using Position = wuzp::PositionVector3<wuzp_eigen::ValueMatrix, double, CoordinateSystemA>;
 ```
+
+The value matrix backend defines the quantities with a value type, e.g. `wuzp_eigen::QuantityD<Unit>` (also `QuantityI` and `QuantityF`), and the tensor aliases take it as a parameter, e.g. `wuzp_eigen::ValueMatrix`.
+A program can use several value matrix backends, also in one translation unit, but values of different backends cannot be combined.
+A program uses exactly one units backend: using two of them, also in different translation units, violates the [one definition rule](https://en.cppreference.com/w/cpp/language/definition#One_Definition_Rule).
+
+To adapt another library, specialize the traits of the core like the existing backends do: the concepts `ValueMatrixBackend`, `InvertibleValueMatrixBackend` and `UnitSystem` in [`wuzp/core/concepts.hpp`](wuzp/include/wuzp/core/concepts.hpp) list what the core needs (see "The backend interface" in [DESIGN.md](DESIGN.md#the-backend-interface)).
+Check them in the tests of the backend, e.g. `static_assert(wuzp::ValueMatrixBackend<my_backend::ValueMatrix>);` or `static_assert(wuzp::UnitSystem<wuzp::AccessUnits<wuzp::AccessImplementation<double>>>);`, rather than in its headers, where the check would cost compile time in every translation unit of its users.
 
 ## Examples
 
@@ -151,7 +163,7 @@ For more example code, have a look at the unit tests in the `tests` folder.
 
 All checks happen at compile time.
 With Eigen, *wuzp* is as fast as plain Eigen; with Blitz++, it is slower for now ([#58](https://github.com/remod/wuzp/issues/58)).
-With Eigen, the same computations take about 25-50% longer to compile.
+With Eigen, the same computations take about 20-45% longer to compile.
 See the [benchmarks](benchmarks/README.md) for the numbers.
 
 ## Limitations

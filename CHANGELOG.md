@@ -19,6 +19,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **Breaking:** Conversions that fail their checks, e.g. of a vector in one coordinate system into another one, of a point into a vector, of a length into a time, or of values into values of another size, are explicit: `std::is_convertible` is false for them, and copy initialization fails with a conversion error. Direct initialization still fails with a message that explains why.
 - **Breaking:** With mp-units, `wuzp_mp_units::UnitType` normalizes units to the coherent SI units built from the base units, e.g. `si::newton` to `kg m / s^2`, and rejects other units, e.g. kilometres or degrees, since *wuzp* does not convert units.
 - **Breaking:** `createBoostMatrix` throws `std::invalid_argument` if the velocity is not smaller than the speed of light.
+- **Breaking:** `QuantityI`, `QuantityF` and `QuantityD` are defined by the value matrix backends, e.g. `wuzp_eigen::QuantityD<Length>` instead of `wuzp::QuantityD<Length>`, since they need a value matrix backend. `<wuzp/core/ValueWrapper.hpp>` and `wuzp::ValueWrapper<ValueT>` are removed: use the backend's `Value<ValueT>`, e.g. `wuzp_eigen::Value<double>`. `getSpeedOfLight` takes the value matrix backend: `getSpeedOfLight<wuzp_eigen::ValueMatrix, double>()`.
+- **Breaking:** Value matrix backends specialize the traits only for their own matrices and expressions, e.g. `template <EigenArray ImplementationT_>`, and specialize the new traits `Coefficient` (element access) and `Rebind` (values of another value type and size of the same backend). Operations derive scalars from the backend of their operands. See "The backend interface" in `DESIGN.md`.
+- **Breaking:** The template parameters that take a value matrix backend, e.g. of `HomogeneousVector`, `PositionVector3` or `ActiveLinearTransformation`, must be the `ValueMatrix` of a value matrix backend (`AnyValueMatrix`), e.g. `wuzp_eigen::ValueMatrix`, not e.g. `Eigen::Array`.
+- **Breaking:** With Eigen, evaluated values have Eigen's default storage order, so that results have one type: e.g. the transpose of a `ValueMatrix<double, 3, 2>` is a `ValueMatrix<double, 2, 3>`, rather than a row-major array.
 - Translations move a single point by adding the translation to it, instead of component by component, which is faster and also works for points with different units per component.
 - The oldest supported dependency versions are those of Ubuntu 22.04: GCC 11, Clang 14, CMake 3.22, Eigen 3.4 and Boost 1.74.
 
@@ -31,12 +35,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Benchmarks that compare *wuzp* with plain Eigen and Blitz++ at run time, and with plain Eigen at compile time (`benchmarks/README.md`).
 - Linear transformations transform covectors (`w' = w A^-1`) and tensors with two contravariant indices (`T' = A T A^T`). They returned `void` before.
 - `zero()` and `random()` for values, quantities and tensors, with every backend. They did not compile before.
+- Concepts for the backend interface, `ValueMatrixBackend`, `InvertibleValueMatrixBackend` and `UnitSystem` (`<wuzp/core/concepts.hpp>`). The tests check every backend with them, and authors of other backends can do the same, so that a backend that misses a trait fails in its tests, rather than deep inside the core.
+- Several value matrix backends can be used in one program, also in one translation unit. A program uses exactly one units backend.
 - Compile tests verify that invalid code does not compile, and that the error message explains why.
 - The public headers compile on their own and without warnings with `-Wshadow -Wconversion -Wsign-conversion -Wold-style-cast`.
 
 ### Removed
 
 - `getTypeName()`, which returned wrong names.
+- The trait `AccessValues`, the global default value matrix backend, which `Rebind` replaces.
 
 ### Fixed
 
@@ -47,6 +54,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - The Lorentz invariant read freed memory, and the Lorentz boost matrix was NaN for zero velocity.
 - With Blitz++: `isApprox` compares relatively, like with Eigen; the dot product read a freed temporary; inner products and norms keep the value type of the operands instead of widening it, and inner products no longer copy an uninitialized member of Blitz++'s lazy reductions.
 - Reducing rationals with large denominators exceeded the template instantiation depth.
+- Including both value matrix backends in one translation unit was a redefinition error, and using them in different translation units of one program violated the one definition rule.
 - Translations did not compile with Clang 20 and newer.
 - `Tensor::hyperdeterminant` failed with a confusing error instead of "Not implemented".
 - With Blitz++, copies of values, quantities and tensors shared their values with the original, so translations changed their `const` input point, and transposes and blocks changed with the original. They have value semantics with every backend now; with Blitz++, a moved-from object is empty and can only be assigned to or destroyed ([#60](https://github.com/remod/wuzp/issues/60)).

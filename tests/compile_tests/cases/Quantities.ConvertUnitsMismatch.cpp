@@ -10,7 +10,7 @@
 #include "ValueMatrix.hpp"
 
 int main() {
-  const wuzp::QuantityD<Length> length{1.0};
-  [[maybe_unused]] const wuzp::QuantityD<Time> time{length};
+  const QuantityD<Length> length{1.0};
+  [[maybe_unused]] const QuantityD<Time> time{length};
   return 0;
 }

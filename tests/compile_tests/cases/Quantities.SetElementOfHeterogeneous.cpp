@@ -12,6 +12,6 @@
 int main() {
   using Heterogeneous = wuzp::Quantities<ValueMatrix<double, 1, 2>, wuzp::TypeMatrix<1, 2, Length, Time>>;
   Heterogeneous quantities;
-  quantities.set(0, 0, wuzp::QuantityD<Length>{1.0});
+  quantities.set(0, 0, QuantityD<Length>{1.0});
   return 0;
 }

@@ -11,40 +11,59 @@
 #include <blitz/range.h>
 
 #include "wuzp/core/MatrixSize.hpp"
+#include "wuzp/core/Quantities.hpp"
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
+#include "wuzp/core/internal/operator_traits.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp_blitz {
 
-template <typename ValueT, int Rows, int Cols>
-using ValueMatrix = wuzp::ValuesWrapper<wuzp::MatrixSize<Rows, Cols>, ValueT, blitz::Array<ValueT, 2>>;
+template <typename ValueT_, int RowsV_, int ColsV_>
+using ValueMatrix = wuzp::ValuesWrapper<wuzp::MatrixSize<RowsV_, ColsV_>, ValueT_, blitz::Array<ValueT_, 2>>;
 
-template <int Rows, int Cols>
-using ValueMatrixI = ValueMatrix<int, Rows, Cols>;
-template <int Rows, int Cols>
-using ValueMatrixF = ValueMatrix<float, Rows, Cols>;
-template <int Rows, int Cols>
-using ValueMatrixD = ValueMatrix<double, Rows, Cols>;
+template <int RowsV_, int ColsV_>
+using ValueMatrixI = ValueMatrix<int, RowsV_, ColsV_>;
+template <int RowsV_, int ColsV_>
+using ValueMatrixF = ValueMatrix<float, RowsV_, ColsV_>;
+template <int RowsV_, int ColsV_>
+using ValueMatrixD = ValueMatrix<double, RowsV_, ColsV_>;
 
-template <typename ValueT, int Rows>
-using ValueVector = ValueMatrix<ValueT, Rows, 1>;
+template <typename ValueT_, int RowsV_>
+using ValueVector = ValueMatrix<ValueT_, RowsV_, 1>;
 
-template <int Rows>
-using ValueVectorI = ValueVector<int, Rows>;
-template <int Rows>
-using ValueVectorF = ValueVector<float, Rows>;
-template <int Rows>
-using ValueVectorD = ValueVector<double, Rows>;
+template <int RowsV_>
+using ValueVectorI = ValueVector<int, RowsV_>;
+template <int RowsV_>
+using ValueVectorF = ValueVector<float, RowsV_>;
+template <int RowsV_>
+using ValueVectorD = ValueVector<double, RowsV_>;
 
-template <typename ValueT>
-using Value = ValueMatrix<ValueT, 1, 1>;
+template <typename ValueT_>
+using Value = ValueMatrix<ValueT_, 1, 1>;
 
 using ValueI = Value<int>;
 using ValueF = Value<float>;
 using ValueD = Value<double>;
 
+//! A quantity with a value of this backend, e.g. QuantityD<wuzp_units::Length>.
+template <typename UnitT_>
+using QuantityI = wuzp::Quantity<ValueI, UnitT_>;
+template <typename UnitT_>
+using QuantityF = wuzp::Quantity<ValueF, UnitT_>;
+template <typename UnitT_>
+using QuantityD = wuzp::Quantity<ValueD, UnitT_>;
+
 namespace internal {
+
+template <typename T>
+struct IsBlitzArray : std::false_type {};
+template <typename ValueT_>
+struct IsBlitzArray<blitz::Array<ValueT_, 2>> : std::true_type {};
+template <typename ExpressionT_>
+struct IsBlitzArray<blitz::_bz_ArrayExpr<ExpressionT_>> : std::true_type {};
 
 //! The array type of a Blitz++ array or expression.
 template <typename ImplementationT_>
@@ -83,32 +102,46 @@ decltype(auto) asArray(const ImplementationT_& impl) {
 
 }  // namespace internal
 
+//! The implementation types of the backend: Blitz++'s two-dimensional arrays and the expressions of arrays, _bz_ArrayExpr (see
+//! "Array expressions" in https://github.com/blitzpp/blitz/blob/main/doc/arrays-expr.texi). The traits of the backend are only
+//! specialized for them, so that other value matrix backends can be used in the same program.
+template <typename T>
+concept BlitzArray = internal::IsBlitzArray<T>::value;
+
 }  // namespace wuzp_blitz
 
 namespace wuzp {
 
-template <typename ImplementationT_, int... SizesV_>
+template <wuzp_blitz::BlitzArray ImplementationT_, int... SizesV_>
 struct ReserveMemory<ImplementationT_, MatrixSize<SizesV_...>> {
   static void run(ImplementationT_& impl) { impl.resize(SizesV_...); }
 };
 
-template <typename ImplementationT_, typename Arg0, typename... Args>
-struct Initialize<ImplementationT_, std::tuple<Arg0, Args...>> {
-  static void run(ImplementationT_& impl, Arg0&& arg0, Args&&... args) {
-    applyCommas((impl = std::forward<Arg0>(arg0)), std::forward<Args>(args)...);
+template <wuzp_blitz::BlitzArray ImplementationT_, typename Arg0T_, typename... ArgsT_>
+struct Initialize<ImplementationT_, std::tuple<Arg0T_, ArgsT_...>> {
+  static void run(ImplementationT_& impl, Arg0T_&& arg0, ArgsT_&&... args) {
+    applyCommas((impl = std::forward<Arg0T_>(arg0)), std::forward<ArgsT_>(args)...);
   }
 };
 
-template <typename T>
-struct AccessValues<AccessImplementation<T>> {
-  template <typename ValueT_>
-  using Value = wuzp_blitz::Value<ValueT_>;
-  using ValueI = wuzp_blitz::ValueI;
-  using ValueF = wuzp_blitz::ValueF;
-  using ValueD = wuzp_blitz::ValueD;
+// All matrices are two-dimensional arrays, whose size is only known at run time.
+template <wuzp_blitz::BlitzArray ImplementationT_, typename ValueT_, int RowsV_, int ColsV_>
+struct Rebind<AccessImplementation<ImplementationT_>, ValueT_, RowsV_, ColsV_> {
+  using type = blitz::Array<ValueT_, 2>;
 };
 
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+// Blitz++ accesses elements with the parenthesis operator (see "Indexing" in
+// https://github.com/blitzpp/blitz/blob/main/doc/arrays-slicing.texi).
+template <wuzp_blitz::BlitzArray ImplementationT_>
+struct Coefficient<AccessImplementation<ImplementationT_>> {
+  static auto get(const ImplementationT_& impl, const int row, const int col) { return impl(row, col); }
+  // Only arrays are assigned to: the core rejects assigning to unevaluated values, i.e. expressions.
+  static void set(ImplementationT_& impl, const int row, const int col, const typename ImplementationT_::T_numtype value) {
+    impl(row, col) = value;
+  }
+};
+
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
 struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static bool equal(const ImplementationLhsT_& lhs, const ImplementationRhsT_& rhs) {
     return blitz::all(blitz::Array<bool, 2>(lhs == rhs));
@@ -125,7 +158,7 @@ struct Comparison<AccessImplementation<ImplementationLhsT_>, AccessImplementatio
 
 // Blitz++'s copy constructor shares the values of an array, so arrays are copied into new arrays. Copies of expressions refer
 // to the same operands, like the expressions themselves.
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Copy<AccessImplementation<ImplementationT_>> {
   static ImplementationT_ value(const ImplementationT_& impl) {
     if constexpr (wuzp_blitz::internal::isArray<ImplementationT_>) {
@@ -139,7 +172,7 @@ struct Copy<AccessImplementation<ImplementationT_>> {
 // Blitz++ arrays cannot be moved, and their copy constructor shares the values: the moved array takes over the values with
 // reference(), and the moved-from array is emptied with free() (see "Array members" in
 // https://github.com/blitzpp/blitz/blob/main/doc/arrays-members.texi), so that no two arrays share the values.
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Move<AccessImplementation<ImplementationT_>> {
   static ImplementationT_ construct(ImplementationT_& source) {
     if constexpr (wuzp_blitz::internal::isArray<ImplementationT_>) {
@@ -158,7 +191,7 @@ struct Move<AccessImplementation<ImplementationT_>> {
   }
 };
 
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Transpose<AccessImplementation<ImplementationT_>> {
   // Blitz++'s transpose() is a view that shares the values of the array, so the transpose is copied: it does not change with the
   // original. Expressions have no transpose(), so they are evaluated first.
@@ -169,48 +202,31 @@ struct Transpose<AccessImplementation<ImplementationT_>> {
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct Sum<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs + implRhs; }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
-};
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
+struct Sum<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>
+    : internal::OperatorSum<ImplementationLhsT_, ImplementationRhsT_> {};
 
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct Difference<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs - implRhs; }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
-};
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
+struct Difference<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>
+    : internal::OperatorDifference<ImplementationLhsT_, ImplementationRhsT_> {};
 
-template <typename ImplementationT_>
-struct Negation<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return -impl; }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationT_>()));
-};
+template <wuzp_blitz::BlitzArray ImplementationT_>
+struct Negation<AccessImplementation<ImplementationT_>> : internal::OperatorNegation<ImplementationT_> {};
 
-template <typename ImplementationLhsT_, typename ValueRhsT_>
-struct Product<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
-  static auto value(const ImplementationLhsT_& implLhs, const ValueRhsT_ valueRhs) { return implLhs * valueRhs; }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ValueRhsT_>()));
-};
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct Product<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs * implRhs; }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
-};
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, ArithmeticValue ValueRhsT_>
+struct Product<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> : internal::OperatorProduct<ImplementationLhsT_, ValueRhsT_> {};
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
+struct Product<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>
+    : internal::OperatorProduct<ImplementationLhsT_, ImplementationRhsT_> {};
 
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
 struct TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static_assert(
       FailOnInstantiation<TensorProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>>::value,
       "Tensor product is not implemented for blitz.");
 };
 
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
 struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
     // Blitz++ widens sums (e.g. of int to long). Keep the value type that ValuesWrapper declares for products, like Eigen.
@@ -230,7 +246,7 @@ struct InnerProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementat
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
 };
 
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
 struct OuterProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
     return implLhs(blitz::tensor::i, blitz::tensor::j) * implRhs(blitz::tensor::i, blitz::tensor::j);
@@ -239,7 +255,7 @@ struct OuterProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementat
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
 };
 
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
 struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
   static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) {
     static_assert(std::is_same_v<typename ImplementationLhsT_::T_numtype, typename ImplementationRhsT_::T_numtype>,
@@ -258,20 +274,13 @@ struct CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementat
   using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
 };
 
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct Division<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>> {
-  static auto value(const ImplementationLhsT_& implLhs, const ImplementationRhsT_& implRhs) { return implLhs / implRhs; }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ImplementationRhsT_>()));
-};
-template <typename ImplementationLhsT_, typename ValueRhsT_>
-struct Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> {
-  static auto value(const ImplementationLhsT_& implLhs, const ValueRhsT_ valueRhs) { return implLhs / valueRhs; }
-  // Use decltype/declval to allow for lazy evaluation.
-  using type = decltype(value(std::declval<const ImplementationLhsT_>(), std::declval<const ValueRhsT_>()));
-};
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, wuzp_blitz::BlitzArray ImplementationRhsT_>
+struct Division<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>
+    : internal::OperatorDivision<ImplementationLhsT_, ImplementationRhsT_> {};
+template <wuzp_blitz::BlitzArray ImplementationLhsT_, ArithmeticValue ValueRhsT_>
+struct Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_> : internal::OperatorDivision<ImplementationLhsT_, ValueRhsT_> {};
 
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Norm<AccessImplementation<ImplementationT_>> {
   static auto value(const ImplementationT_& impl) {
     // Keep the value type, like Eigen: std::sqrt returns double for integers.
@@ -281,7 +290,7 @@ struct Norm<AccessImplementation<ImplementationT_>> {
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct SquaredNorm<AccessImplementation<ImplementationT_>> {
   static auto value(const ImplementationT_& impl) {
     // Keep the value type, like Eigen: Blitz++ widens sums, e.g. of int to long and of float to double.
@@ -291,39 +300,39 @@ struct SquaredNorm<AccessImplementation<ImplementationT_>> {
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Determinant<AccessImplementation<ImplementationT_>> {
   static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value, "Determinant is not implemented for blitz.");
 };
 
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Inverse<AccessImplementation<ImplementationT_>> {
   static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value, "Inverse is not implemented for blitz.");
 };
 
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct TensorInverse<AccessImplementation<ImplementationT_>> {
   static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value,
                 "Tensor inverse is not implemented for blitz.");
 };
 
-template <typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
+template <wuzp_blitz::BlitzArray ImplementationT_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
+struct Block<AccessImplementation<ImplementationT_>, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_> {
   // A slice of an array is a view that shares its values, like transpose(), so the block is copied.
   static auto value(const ImplementationT_& impl) {
-    return wuzp_blitz::internal::copyToArray(wuzp_blitz::internal::asArray(impl)(blitz::Range(BlockRowId, BlockRowId + BlockRows - 1),
-                                                                                 blitz::Range(BlockColId, BlockColId + BlockCols - 1)));
+    return wuzp_blitz::internal::copyToArray(wuzp_blitz::internal::asArray(impl)(
+        blitz::Range(BlockRowIdV_, BlockRowIdV_ + BlockRowsV_ - 1), blitz::Range(BlockColIdV_, BlockColIdV_ + BlockColsV_ - 1)));
   }
   // Not lazy, see above.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Zero<AccessImplementation<ImplementationT_>> {
   static void run(ImplementationT_& impl) { impl = 0; }
 };
 
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Random<AccessImplementation<ImplementationT_>> {
   // Uniformly distributed in [-1, 1], like Eigen's setRandom().
   static void run(ImplementationT_& impl) {
@@ -337,7 +346,7 @@ struct Random<AccessImplementation<ImplementationT_>> {
   }
 };
 
-template <typename ImplementationT_>
+template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Evaluate<AccessImplementation<ImplementationT_>> {
   // A new array, also for an array: the result of evaluate() does not share the values of the original.
   static auto value(const ImplementationT_& impl) { return wuzp_blitz::internal::copyToArray(impl); }

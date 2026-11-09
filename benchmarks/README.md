@@ -62,9 +62,10 @@ Compiling `wuzp.cpp` vs. `eigen.cpp` (best of three runs, one translation unit e
 
 | Compiler | Plain Eigen | *wuzp* with Eigen |
 | --- | --- | --- |
-| GCC, `-O3` | 0.68 s | 0.88 s (+29%) |
-| GCC, `-O0 -g` | 0.84 s | 1.28 s (+54%) |
-| Clang, `-O3` | 1.01 s | 1.25 s (+25%) |
-| Clang, `-O0 -g` | 1.03 s | 1.31 s (+27%) |
+| GCC, `-O3` | 0.64 s | 0.78 s (+22%) |
+| GCC, `-O0 -g` | 0.77 s | 1.12 s (+45%) |
+| Clang, `-O3` | 0.96 s | 1.17 s (+22%) |
+| Clang, `-O0 -g` | 0.99 s | 1.25 s (+26%) |
 
 The overhead grows with the number of different types a translation unit uses, since each combination of units and coordinate systems is instantiated separately.
+The backends do not check that they implement the interface of the core (`ValueMatrixBackend`, see "The backend interface" in [DESIGN.md](../DESIGN.md#the-backend-interface)) in their headers: with Eigen, this check takes about 0.7 s, which every translation unit would pay; the tests check it instead.

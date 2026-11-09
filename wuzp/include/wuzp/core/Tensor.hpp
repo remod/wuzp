@@ -10,6 +10,7 @@
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/ValuesWrapper.hpp"
 #include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
@@ -496,7 +497,8 @@ template <int ContravariantIndicesLhsV_, int CovariantIndicesLhsV_, typename Qua
           typename AbsoluteLhsT_, typename ValueRhsT_>
 auto product(const Tensor<ContravariantIndicesLhsV_, CovariantIndicesLhsV_, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
              const ValueRhsT_ rhs) {
-  return product(lhs, Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
+  // The scalar has the value matrix backend of the tensor.
+  return product(lhs, Quantity<ScalarValues<typename QuantitiesLhsT_::ValuesT, ValueRhsT_>,
                                typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs));
 }
 template <typename ValueLhsT_, int ContravariantIndicesRhsV_, int CovariantIndicesRhsV_, typename QuantitiesRhsT_,
@@ -623,7 +625,8 @@ template <int ContravariantIndicesLhsV_, int CovariantIndicesLhsV_, typename Qua
           typename AbsoluteLhsT_, typename ValueRhsT_>
 auto division(const Tensor<ContravariantIndicesLhsV_, CovariantIndicesLhsV_, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
               const ValueRhsT_ rhs) {
-  return division(lhs, Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
+  // The scalar has the value matrix backend of the tensor.
+  return division(lhs, Quantity<ScalarValues<typename QuantitiesLhsT_::ValuesT, ValueRhsT_>,
                                 typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs));
 }
 template <int ContravariantIndicesLhsV_, int CovariantIndicesLhsV_, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_,
@@ -707,24 +710,31 @@ std::ostream& operator<<(std::ostream& lhs,
   return lhs;
 }
 
+// The aliases with a value matrix backend, e.g. HomogeneousVector<3, wuzp_eigen::ValueMatrix, double, Length, CoordinateSystemT_>,
+// take it as its alias template ValueMatrix (AnyValueMatrix).
+
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Vector = Tensor<1, 0, QuantityVectorT_, CoordinateSystemT_, Relative>;
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename UnitT_, typename CoordinateSystemT_>
+  requires AnyValueMatrix<ValuesT_>
 using HomogeneousVector = Vector<Quantities<ValuesT_<ValueT_, DimensionV_, 1>, TypeMatrix<DimensionV_, 1, UnitT_>>, CoordinateSystemT_>;
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Covector = Tensor<0, 1, QuantityVectorT_, CoordinateSystemT_, Relative>;
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename UnitT_, typename CoordinateSystemT_>
+  requires AnyValueMatrix<ValuesT_>
 using HomogeneousCovector = Covector<Quantities<ValuesT_<ValueT_, 1, DimensionV_>, TypeMatrix<1, DimensionV_, UnitT_>>, CoordinateSystemT_>;
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Point = Tensor<1, 0, QuantityVectorT_, CoordinateSystemT_, Absolute>;
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename UnitT_, typename CoordinateSystemT_>
+  requires AnyValueMatrix<ValuesT_>
 using HomogeneousPoint = Point<Quantities<ValuesT_<ValueT_, DimensionV_, 1>, TypeMatrix<DimensionV_, 1, UnitT_>>, CoordinateSystemT_>;
 
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Copoint = Tensor<0, 1, QuantityVectorT_, CoordinateSystemT_, Absolute>;
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename UnitT_, typename CoordinateSystemT_>
+  requires AnyValueMatrix<ValuesT_>
 using HomogeneousCopoint = Copoint<Quantities<ValuesT_<ValueT_, 1, DimensionV_>, TypeMatrix<1, DimensionV_, UnitT_>>, CoordinateSystemT_>;
 
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>

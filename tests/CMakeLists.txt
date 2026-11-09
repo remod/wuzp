@@ -41,7 +41,9 @@ elseif(WUZP_TEST_VALUES STREQUAL "blitz")
 else()
     message(FATAL_ERROR "Unknown WUZP_TEST_VALUES '${WUZP_TEST_VALUES}'.")
 endif()
-list(APPEND WUZP_TEST_COMPONENTS ${WUZP_TEST_VALUES})
+# Both value matrix backends: the tests run against WUZP_TEST_VALUES, and ValueMatrixBackends.cpp uses both in one translation
+# unit, which checks that they can be used side by side.
+list(APPEND WUZP_TEST_COMPONENTS eigen blitz)
 
 set(WUZP_TEST_LINK_LIBRARIES wuzp::wuzp)
 foreach(_component IN LISTS WUZP_TEST_COMPONENTS)
@@ -75,6 +77,7 @@ add_executable(wuzp_tests
     src/Quantity.cpp
     src/Quantities.cpp
     src/Tensor.cpp
+    src/ValueMatrixBackends.cpp
     src/ActiveLinearTransformation.cpp
     src/PassiveLinearTransformation.cpp
     src/ActiveTranslation.cpp

@@ -16,8 +16,8 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "WUZP_BUILD_TESTS": "ON",
         "WUZP_BUILD_EXAMPLES": "ON",
-        "WUZP_WITH_EIGEN": "OFF",
-        "WUZP_WITH_BLITZ": "OFF",
+        "WUZP_WITH_EIGEN": "ON",
+        "WUZP_WITH_BLITZ": "ON",
         "WUZP_WITH_BOOST": "OFF",
         "WUZP_WITH_MP_UNITS": "OFF",
         "WUZP_WARNINGS_AS_ERRORS": "ON"
@@ -61,8 +61,7 @@
       ],
       "cacheVariables": {
         "WUZP_TEST_UNITS": "wuzp",
-        "WUZP_TEST_VALUES": "eigen",
-        "WUZP_WITH_EIGEN": "ON"
+        "WUZP_TEST_VALUES": "eigen"
       }
     },
     {
@@ -75,7 +74,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "wuzp",
         "WUZP_TEST_VALUES": "blitz",
-        "WUZP_WITH_BLITZ": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
     },
@@ -89,7 +87,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "boost",
         "WUZP_TEST_VALUES": "eigen",
-        "WUZP_WITH_EIGEN": "ON",
         "WUZP_WITH_BOOST": "ON"
       }
     },
@@ -103,7 +100,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "boost",
         "WUZP_TEST_VALUES": "blitz",
-        "WUZP_WITH_BLITZ": "ON",
         "WUZP_WITH_BOOST": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
@@ -117,8 +113,7 @@
       ],
       "cacheVariables": {
         "WUZP_TEST_UNITS": "wuzp",
-        "WUZP_TEST_VALUES": "eigen",
-        "WUZP_WITH_EIGEN": "ON"
+        "WUZP_TEST_VALUES": "eigen"
       }
     },
     {
@@ -131,7 +126,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "wuzp",
         "WUZP_TEST_VALUES": "blitz",
-        "WUZP_WITH_BLITZ": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
     },
@@ -145,7 +139,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "boost",
         "WUZP_TEST_VALUES": "eigen",
-        "WUZP_WITH_EIGEN": "ON",
         "WUZP_WITH_BOOST": "ON"
       }
     },
@@ -159,7 +152,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "boost",
         "WUZP_TEST_VALUES": "blitz",
-        "WUZP_WITH_BLITZ": "ON",
         "WUZP_WITH_BOOST": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
@@ -175,9 +167,7 @@
         "CMAKE_BUILD_TYPE": "Release",
         "WUZP_BUILD_TESTS": "OFF",
         "WUZP_BUILD_EXAMPLES": "OFF",
-        "WUZP_BUILD_BENCHMARKS": "ON",
-        "WUZP_WITH_EIGEN": "ON",
-        "WUZP_WITH_BLITZ": "ON"
+        "WUZP_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -191,9 +181,7 @@
         "CMAKE_BUILD_TYPE": "Release",
         "WUZP_BUILD_TESTS": "OFF",
         "WUZP_BUILD_EXAMPLES": "OFF",
-        "WUZP_BUILD_BENCHMARKS": "ON",
-        "WUZP_WITH_EIGEN": "ON",
-        "WUZP_WITH_BLITZ": "ON"
+        "WUZP_BUILD_BENCHMARKS": "ON"
       }
     },
     {
@@ -205,8 +193,7 @@
       ],
       "cacheVariables": {
         "WUZP_TEST_UNITS": "wuzp",
-        "WUZP_TEST_VALUES": "eigen",
-        "WUZP_WITH_EIGEN": "ON"
+        "WUZP_TEST_VALUES": "eigen"
       }
     },
     {
@@ -219,7 +206,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "wuzp",
         "WUZP_TEST_VALUES": "blitz",
-        "WUZP_WITH_BLITZ": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
     },
@@ -233,7 +219,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "boost",
         "WUZP_TEST_VALUES": "eigen",
-        "WUZP_WITH_EIGEN": "ON",
         "WUZP_WITH_BOOST": "ON"
       }
     },
@@ -247,7 +232,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "boost",
         "WUZP_TEST_VALUES": "blitz",
-        "WUZP_WITH_BLITZ": "ON",
         "WUZP_WITH_BOOST": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
@@ -262,7 +246,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "mp_units",
         "WUZP_TEST_VALUES": "eigen",
-        "WUZP_WITH_EIGEN": "ON",
         "WUZP_WITH_MP_UNITS": "ON"
       }
     },
@@ -276,7 +259,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "mp_units",
         "WUZP_TEST_VALUES": "blitz",
-        "WUZP_WITH_BLITZ": "ON",
         "WUZP_WITH_MP_UNITS": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
@@ -291,7 +273,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "mp_units",
         "WUZP_TEST_VALUES": "eigen",
-        "WUZP_WITH_EIGEN": "ON",
         "WUZP_WITH_MP_UNITS": "ON"
       }
     },
@@ -305,7 +286,6 @@
       "cacheVariables": {
         "WUZP_TEST_UNITS": "mp_units",
         "WUZP_TEST_VALUES": "blitz",
-        "WUZP_WITH_BLITZ": "ON",
         "WUZP_WITH_MP_UNITS": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }

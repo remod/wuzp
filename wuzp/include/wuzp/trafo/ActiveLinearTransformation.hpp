@@ -16,6 +16,7 @@ namespace wuzp {
 
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, AnyCoordinateSystem CoordinateSystemT_, int DimensionFromV_,
           int DimensionToV_, typename... UnitsT_>
+  requires AnyValueMatrix<ValuesT_>
 class ActiveLinearTransformation
     : public ActiveTransformation<
           ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>> {

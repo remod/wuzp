@@ -12,13 +12,13 @@
 namespace wuzp_mp_units {
 namespace internal {
 
-template <typename... Ratios>
+template <typename... RatiosT_>
 struct RatioSum {
   using type = std::ratio<0>;
 };
-template <typename Ratio, typename... Ratios>
-struct RatioSum<Ratio, Ratios...> {
-  using type = std::ratio_add<Ratio, typename RatioSum<Ratios...>::type>;
+template <typename RatioT_, typename... RatiosT_>
+struct RatioSum<RatioT_, RatiosT_...> {
+  using type = std::ratio_add<RatioT_, typename RatioSum<RatiosT_...>::type>;
 };
 
 using Gram = std::remove_cvref_t<decltype(mp_units::si::gram)>;
@@ -32,18 +32,19 @@ template <>
 struct GramExponent<Gram> {
   using type = std::ratio<1>;
 };
-template <int Num, int... Den>
-struct GramExponent<mp_units::power<Gram, Num, Den...>> {
-  using type = std::ratio<Num, Den...>;
+template <int NumeratorV_, int... DenominatorV_>
+struct GramExponent<mp_units::power<Gram, NumeratorV_, DenominatorV_...>> {
+  using type = std::ratio<NumeratorV_, DenominatorV_...>;
 };
-template <typename Factor, typename... Factors>
-struct GramExponent<mp_units::per<Factor, Factors...>> {
-  using type = std::ratio_subtract<std::ratio<0>,
-                                   typename RatioSum<typename GramExponent<Factor>::type, typename GramExponent<Factors>::type...>::type>;
+template <typename FactorT_, typename... FactorsT_>
+struct GramExponent<mp_units::per<FactorT_, FactorsT_...>> {
+  using type =
+      std::ratio_subtract<std::ratio<0>,
+                          typename RatioSum<typename GramExponent<FactorT_>::type, typename GramExponent<FactorsT_>::type...>::type>;
 };
-template <typename... Factors>
-struct GramExponent<mp_units::derived_unit<Factors...>> {
-  using type = typename RatioSum<typename GramExponent<Factors>::type...>::type;
+template <typename... FactorsT_>
+struct GramExponent<mp_units::derived_unit<FactorsT_...>> {
+  using type = typename RatioSum<typename GramExponent<FactorsT_>::type...>::type;
 };
 
 //! The coherent SI unit with a reference unit of mp-units (see Normalize): the gram replaced by the kilogram.
@@ -158,8 +159,8 @@ struct Inverse<Unit<UnitT_>> {
   using type = Unit<wuzp_mp_units::UnitType<mp_units::one / UnitT_{}>>;
 };
 
-template <typename T>
-struct AccessUnits<AccessImplementation<T>> {
+template <typename ValueT_>
+struct AccessUnits<AccessImplementation<ValueT_>> {
   using Acceleration = wuzp_mp_units::Acceleration;
   using Angle = wuzp_mp_units::Angle;
   using AngularAcceleration = wuzp_mp_units::AngularAcceleration;

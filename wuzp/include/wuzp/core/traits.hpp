@@ -217,6 +217,13 @@ struct Evaluate {
   using type = std::decay_t<T>;  // Default e.g. for arithmetic types.
 };
 
+// A value matrix backend adapts a linear algebra library by specializing the traits of this file, e.g. Sum, Transpose or Copy,
+// for AccessImplementation<ImplementationT_>, where ImplementationT_ is a matrix or an expression of the library. ValueMatrixBackend
+// in concepts.hpp lists the traits the core needs. The specializations are constrained to the backend's own implementation types,
+// e.g. `template <EigenArray ImplementationT_>`, so that several value matrix backends can be used in one program (see "The backend
+// interface" in DESIGN.md). Specializations that apply a C++ operator of the library, e.g. `implLhs + implRhs` for Sum, inherit
+// it from internal/operator_traits.hpp, e.g. from internal::OperatorSum.
+
 // Value matrices, quantities and tensors have value semantics with every backend: they never share their values with another
 // object (see "Results of operations are evaluated" in DESIGN.md). A value matrix backend provides this with Copy and Move,
 // which it specializes for AccessImplementation<ImplementationT_> of all its implementation types, including expressions. The
@@ -295,16 +302,29 @@ struct ReserveMemory;
 template <typename ImplementationT_, typename ArgsTupleT_>
 struct Initialize;
 
+//! Element access of a matrix of a value matrix backend: `get(impl, row, col)` returns an element, `set(impl, row, col, value)`
+//! sets it. Eigen and Blitz++ both access elements with `impl(row, col)`.
+template <typename T>
+struct Coefficient {
+  static_assert(FailOnInstantiation<Coefficient<T>>::value, "'Coefficient' trait not specialized for given type.");
+};
+
+//! The evaluated type of another value type and size, of the same backend as T: e.g. the 1x1 values of a scalar that an
+//! operation combines with values of the type T. A value matrix backend specializes it for
+//! AccessImplementation<ImplementationT_>, where `type` is the matrix of its ValueMatrix<ValueT_, RowsV_, ColsV_>, so that
+//! the core never needs a default value matrix backend and several backends can be used in one program.
+template <typename T, typename ValueT_, int RowsV_, int ColsV_>
+struct Rebind {
+  static_assert(FailOnInstantiation<Rebind<T, ValueT_, RowsV_, ColsV_>>::value, "'Rebind' trait not specialized for given type.");
+};
+
+//! The units for values of the type ValueT_, specialized for AccessImplementation<ValueT_> by the units backend, e.g. `Length`
+//! and `Force` (see UnitSystem in concepts.hpp). A program uses exactly one units backend: the specializations of the
+//! backends are the same template for every value type, so two of them cannot be used together.
 template <typename UnitT_>
 struct AccessUnits {
   static_assert(FailOnInstantiation<AccessUnits<UnitT_>>::value,
                 "'AccessUnits' trait not specialized for given type. Make sure you included the necessary unit headers.");
-};
-
-template <typename ValueT_>
-struct AccessValues {
-  static_assert(FailOnInstantiation<AccessValues<ValueT_>>::value,
-                "'AccessValues' trait not specialized for given type. Make sure you included the necessary value headers.");
 };
 
 template <typename ValueT_>

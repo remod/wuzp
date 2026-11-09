@@ -9,7 +9,7 @@ Open questions are marked with **TODO** and must be decided before 1.0.
 
 * **Units.** Every element of a matrix has its own unit, so heterogeneous matrices (e.g. mass matrices with `kg` and `kg m^2` entries) are supported.
   Elementwise operations combine units elementwise, matrix products require all summands of an element to have the same unit.
-  Units are either *wuzp*'s own implementation (seven SI exponents as reduced rationals), Boost.Units or mp-units.
+  Units are either *wuzp*'s own implementation (seven SI exponents as reduced rationals), Boost.Units or mp-units, one of them per program (see [The backend interface](#the-backend-interface)).
 * **Tensors.** `Tensor<Contravariant, Covariant, Quantities, CoordinateSystem, Absolute>` has up to rank 2.
   The number of indices is independent of the shape of the matrix storing the components.
   `innerProduct` contracts one index (the result has `c1 + c2 - 1` contravariant and `k1 + k2 - 1` covariant indices), `outerProduct` adds the indices.
@@ -93,6 +93,33 @@ Template parameters used to be unconstrained: a test passed a `TypeMatrix` of co
 Decision: the template parameters are constrained with C++20 concepts (`wuzp/core/concepts.hpp`, #36), e.g. the coordinate system of a tensor must be a `CoordinateSystem`.
 A parameter of the wrong kind fails with a constraint error, whose notes name the unsatisfied concept.
 Invalid combinations of valid types, e.g. matrix sizes that do not match, are rejected with a `static_assert` and a clear message instead.
+
+### The backend interface
+
+The backends adapt other libraries by specializing the traits of the core (`wuzp/core/traits.hpp`), e.g. `Sum` or `Transpose`, for `AccessImplementation<ImplementationT_>`.
+These specializations used to be unconstrained, e.g. `AccessValues<AccessImplementation<T>>` for every `T`.
+Including both value matrix backends in one translation unit was a redefinition error, and using them in different translation units of one program an undiagnosed violation of the [one definition rule](https://en.cppreference.com/w/cpp/language/definition#One_Definition_Rule).
+The core took the backend of a scalar, e.g. of `quantity * 2.0`, from this global default, and nothing told a backend author which traits to specialize: a missing one failed deep inside the core.
+
+Decision:
+
+* A value matrix backend constrains its specializations to its own implementation types, i.e. the matrices and expressions of its library: `EigenArray` (everything derived from `Eigen::ArrayBase`) and `BlitzArray` (`blitz::Array<ValueT, 2>` and its expressions).
+  Several value matrix backends can be used in one program, also in one translation unit, side by side; values of different backends cannot be combined.
+* Operations derive the values of scalars from the backend of their operands, with the trait `Rebind`, so the core needs no default value matrix backend.
+  The aliases that need one, `QuantityI`, `QuantityF` and `QuantityD`, are defined by the backends, e.g. `wuzp_eigen::QuantityD<Length>`.
+* A program uses exactly one units backend.
+  `AccessUnits` keeps a single specialization for all value types, and the units backends specialize the arithmetic traits for their units, partly for all units (Boost.Units).
+  Including two units backends in one translation unit is a redefinition error, and using them in different translation units of one program an ODR violation.
+  Quantities of different units backends could not be combined anyway, so constraining the units backends like the value matrix backends would add complexity without a use.
+* The interface is defined by concepts in `wuzp/core/concepts.hpp`: `ValueMatrixBackend` checks the traits the core needs, `InvertibleValueMatrixBackend` additionally the inverses, and `UnitSystem` that the units of a units backend are consistent, e.g. that a velocity is a length divided by a time, and that torque is the unit of energy.
+  The value matrix concepts check the traits on scalars, vectors, covectors and square matrices of `double` and `int`.
+* The tests check that every backend satisfies its concept (`tests/src/ValueMatrixBackends.cpp`, `tests/src/Unit.cpp`), so a backend that misses a trait fails there, and authors of other backends check theirs the same way, e.g. `static_assert(wuzp::ValueMatrixBackend<my_backend::ValueMatrix>);`.
+  The backends do not check it in their headers: the check instantiates many expressions of the backend, which made every translation unit with Eigen compile about 0.7 s longer (see the [benchmarks](benchmarks/README.md#compile-time)), a cost that only backend authors benefit from.
+  The core constrains its parameters that take a value matrix backend, e.g. of the tensor aliases and transformations, with the cheap `AnyValueMatrix`, which only checks that the parameter is the `ValueMatrix` of a backend, e.g. not `Eigen::Array`.
+  A trait that is not specialized at all fails with the `static_assert` of its primary template, which names it, rather than making the concept unsatisfied: these messages also help users of the core, e.g. when they combine values of different backends.
+  Blitz++ does not satisfy `InvertibleValueMatrixBackend` yet (see [Backend support for inverses](#todo-backend-support-for-inverses)).
+* Elements are accessed through the trait `Coefficient`, so that a library whose element access differs from `matrix(row, col)` can be adapted.
+* The Eigen backend evaluates expressions into arrays with Eigen's default [storage order](https://eigen.tuxfamily.org/dox/group__TopicStorageOrders.html), so that results have one type: e.g. the transpose of a `ValueMatrix<double, 3, 2>` is a `ValueMatrix<double, 2, 3>`, rather than the row-major array of Eigen's `eval()`.
 
 ### Results of operations are evaluated
 
@@ -244,7 +271,7 @@ Recommendation: document this clearly; consider dedicated twist and wrench types
 
 ### TODO: Backend support for inverses
 
-Blitz++ provides neither inverses nor determinants, so transformations of (0,1), (1,1) and (0,2) tensors only work with Eigen.
+Blitz++ provides neither inverses nor determinants, so transformations of (0,1), (1,1) and (0,2) tensors only work with Eigen, and the Blitz++ backend does not satisfy `InvertibleValueMatrixBackend`.
 This weakens the goal that every feature works with every backend.
 Recommendation: implement small fixed-size inverses for Blitz++ in *wuzp*, or document the restriction per backend.
 

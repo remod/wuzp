@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#include "wuzp/core/Quantities.hpp"
+#include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/PassiveLinearTransformation.hpp"
@@ -19,10 +21,10 @@ using LorentzTransformation3 = LorentzTransformation<ValuesT_, ValueT_, Coordina
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_>
 using LorentzTransformation4 = LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, 4>;
 
-template <typename ValueT_>
+//! The speed of light, as a quantity of the value matrix backend ValuesT_, e.g. getSpeedOfLight<wuzp_eigen::ValueMatrix, double>().
+template <template <typename, int, int> typename ValuesT_, typename ValueT_>
 auto getSpeedOfLight() {
-  return Quantity<typename AccessValues<AccessImplementation<ValueT_>>::template Value<ValueT_>,
-                  typename AccessUnits<AccessImplementation<ValueT_>>::Velocity>{static_cast<ValueT_>(299792458)};
+  return Quantity<ValuesT_<ValueT_, 1, 1>, typename AccessUnits<AccessImplementation<ValueT_>>::Velocity>{static_cast<ValueT_>(299792458)};
 }
 
 //! The Minkowski invariant v_0^2 - v_1^2 - ... - v_n^2 of a vector whose first component is the time component, e.g. of a
@@ -48,9 +50,8 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
 LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_> createBoostMatrix(
     const VelocityVector<DimensionV_ - 1, ValuesT_, ValueT_, CoordinateSystemT_>& velocity) {
   using QuantitiesT = typename LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_>::QuantitiesT;
-  using QuantityT = Quantity<typename AccessValues<AccessImplementation<ValueT_>>::template Value<ValueT_>,
-                             typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
-  const QuantityT squaredBeta{velocity.squaredNorm() / pow<2>(getSpeedOfLight<ValueT_>())};
+  using QuantityT = Quantity<ValuesT_<ValueT_, 1, 1>, typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
+  const QuantityT squaredBeta{velocity.squaredNorm() / pow<2>(getSpeedOfLight<ValuesT_, ValueT_>())};
   // Also rejects NaN.
   if (!(squaredBeta.getValue() < 1)) {
     throw std::invalid_argument("The magnitude of the velocity of a Lorentz boost must be smaller than the speed of light.");
@@ -58,7 +59,7 @@ LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, Dimen
   const auto lorentzFactor{pow<-1, 2>(QuantityT{1.0} - squaredBeta)};
   // The spatial part uses (lorentzFactor - 1) / |v|^2 = lorentzFactor^2 / ((lorentzFactor + 1) c^2). The right-hand side is
   // finite for v = 0, where the left-hand side divides zero by zero, and numerically more stable for small velocities.
-  const auto spatialFactor{pow<2>(lorentzFactor) / ((lorentzFactor + QuantityT{1.0}) * pow<2>(getSpeedOfLight<ValueT_>()))};
+  const auto spatialFactor{pow<2>(lorentzFactor) / ((lorentzFactor + QuantityT{1.0}) * pow<2>(getSpeedOfLight<ValuesT_, ValueT_>()))};
   QuantitiesT quantities;
   // Set the lower left matrix inclusive the diagonal.
   for (int row = 0; row < DimensionV_; ++row) {
@@ -68,7 +69,7 @@ LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, Dimen
       if (row == 0) {
         quantity = lorentzFactor;
       } else if (col == 0) {
-        quantity = -lorentzFactor / getSpeedOfLight<ValueT_>() * velocity.getQuantities().get(row - 1, 0);
+        quantity = -lorentzFactor / getSpeedOfLight<ValuesT_, ValueT_>() * velocity.getQuantities().get(row - 1, 0);
       } else if (col == row) {
         quantity = QuantityT{1.0} + spatialFactor * pow<2>(velocity.getQuantities().get(row - 1, 0));
       } else {

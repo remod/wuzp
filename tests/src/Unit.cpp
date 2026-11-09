@@ -3,11 +3,36 @@
 #include <gtest/gtest.h>
 
 #include "wuzp/core/Integer.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/core/traits.hpp"
 
 #include "Unit.hpp"
 
 using namespace wuzp;  // NOLINT
+
+// The units of the units backend are consistent. The backends do not check this in their headers, see UnitSystem.
+static_assert(UnitSystem<AccessUnits<AccessImplementation<double>>>);
+
+namespace {
+
+// The units of the units backend, except that torque is a force rather than the unit of energy.
+struct InconsistentUnits : AccessUnits<AccessImplementation<double>> {
+  using Torque = Force;
+};
+
+// No units at all.
+struct MissingUnits {};
+
+// The units of the units backend, except that the length is a value type rather than a unit.
+struct LengthNotAUnit : AccessUnits<AccessImplementation<double>> {
+  using Length = double;
+};
+
+}  // namespace
+
+static_assert(!UnitSystem<InconsistentUnits>);
+static_assert(!UnitSystem<MissingUnits>);
+static_assert(!UnitSystem<LengthNotAUnit>);
 
 TEST(TestUnit, Sum) {  // NOLINT
   static_assert(std::is_same<Sum<Length, Length>::type, Length>::value);

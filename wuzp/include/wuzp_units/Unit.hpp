@@ -10,14 +10,16 @@
 
 namespace wuzp_units {
 
-template <typename Time, typename Length, typename Mass, typename ElectricCurrent, typename ThermodynamicTemperature,
-          typename AmountOfSubstance, typename LuminousIntensity>
+//! A unit, given by the rational exponents of the seven SI base units.
+template <typename TimeT_, typename LengthT_, typename MassT_, typename ElectricCurrentT_, typename ThermodynamicTemperatureT_,
+          typename AmountOfSubstanceT_, typename LuminousIntensityT_>
 struct UnitImpl;
 
-template <int Time, int Length, int Mass, int ElectricCurrent, int ThermodynamicTemperature, int AmountOfSubstance, int LuminousIntensity>
+template <int TimeV_, int LengthV_, int MassV_, int ElectricCurrentV_, int ThermodynamicTemperatureV_, int AmountOfSubstanceV_,
+          int LuminousIntensityV_>
 using CreateIntegerUnitImpl =
-    UnitImpl<wuzp::Integer<Time>, wuzp::Integer<Length>, wuzp::Integer<Mass>, wuzp::Integer<ElectricCurrent>,
-             wuzp::Integer<ThermodynamicTemperature>, wuzp::Integer<AmountOfSubstance>, wuzp::Integer<LuminousIntensity>>;
+    UnitImpl<wuzp::Integer<TimeV_>, wuzp::Integer<LengthV_>, wuzp::Integer<MassV_>, wuzp::Integer<ElectricCurrentV_>,
+             wuzp::Integer<ThermodynamicTemperatureV_>, wuzp::Integer<AmountOfSubstanceV_>, wuzp::Integer<LuminousIntensityV_>>;
 
 using Acceleration = wuzp::Unit<CreateIntegerUnitImpl<-2, 1, 0, 0, 0, 0, 0>>;
 using Angle = wuzp::Unit<CreateIntegerUnitImpl<0, 0, 0, 0, 0, 0, 0>>;
@@ -39,45 +41,45 @@ using Volume = wuzp::Unit<CreateIntegerUnitImpl<0, 3, 0, 0, 0, 0, 0>>;
 
 namespace wuzp {
 
-template <typename... ExponentsLhs, typename... ExponentsRhs>
-struct Sum<Unit<wuzp_units::UnitImpl<ExponentsLhs...>>, Unit<wuzp_units::UnitImpl<ExponentsRhs...>>> {
-  static_assert(std::is_same_v<std::tuple<ExponentsLhs...>, std::tuple<ExponentsRhs...>>, "Units do not match.");
-  using type = Unit<wuzp_units::UnitImpl<ExponentsLhs...>>;
+template <typename... ExponentsLhsT_, typename... ExponentsRhsT_>
+struct Sum<Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>, Unit<wuzp_units::UnitImpl<ExponentsRhsT_...>>> {
+  static_assert(std::is_same_v<std::tuple<ExponentsLhsT_...>, std::tuple<ExponentsRhsT_...>>, "Units do not match.");
+  using type = Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>;
 };
 
-template <typename... ExponentsLhs, typename... ExponentsRhs>
-struct Difference<Unit<wuzp_units::UnitImpl<ExponentsLhs...>>, Unit<wuzp_units::UnitImpl<ExponentsRhs...>>> {
-  static_assert(std::is_same_v<std::tuple<ExponentsLhs...>, std::tuple<ExponentsRhs...>>, "Units do not match.");
-  using type = Unit<wuzp_units::UnitImpl<ExponentsLhs...>>;
+template <typename... ExponentsLhsT_, typename... ExponentsRhsT_>
+struct Difference<Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>, Unit<wuzp_units::UnitImpl<ExponentsRhsT_...>>> {
+  static_assert(std::is_same_v<std::tuple<ExponentsLhsT_...>, std::tuple<ExponentsRhsT_...>>, "Units do not match.");
+  using type = Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>;
 };
 
-template <typename... ExponentsLhs, typename... ExponentsRhs>
-struct Product<Unit<wuzp_units::UnitImpl<ExponentsLhs...>>, Unit<wuzp_units::UnitImpl<ExponentsRhs...>>> {
-  using type = Unit<wuzp_units::UnitImpl<typename Sum<ExponentsLhs, ExponentsRhs>::type...>>;
+template <typename... ExponentsLhsT_, typename... ExponentsRhsT_>
+struct Product<Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>, Unit<wuzp_units::UnitImpl<ExponentsRhsT_...>>> {
+  using type = Unit<wuzp_units::UnitImpl<typename Sum<ExponentsLhsT_, ExponentsRhsT_>::type...>>;
 };
 
-template <typename... ExponentsLhs, typename... ExponentsRhs>
-struct Division<Unit<wuzp_units::UnitImpl<ExponentsLhs...>>, Unit<wuzp_units::UnitImpl<ExponentsRhs...>>> {
-  using type = Unit<wuzp_units::UnitImpl<typename Difference<ExponentsLhs, ExponentsRhs>::type...>>;
+template <typename... ExponentsLhsT_, typename... ExponentsRhsT_>
+struct Division<Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>, Unit<wuzp_units::UnitImpl<ExponentsRhsT_...>>> {
+  using type = Unit<wuzp_units::UnitImpl<typename Difference<ExponentsLhsT_, ExponentsRhsT_>::type...>>;
 };
 
-template <typename... ExponentsT, typename ExponentT>
-struct Power<Unit<wuzp_units::UnitImpl<ExponentsT...>>, ExponentT> {
-  using type = Unit<wuzp_units::UnitImpl<typename Product<ExponentT, ExponentsT>::type...>>;
+template <typename... ExponentsT_, typename ExponentT_>
+struct Power<Unit<wuzp_units::UnitImpl<ExponentsT_...>>, ExponentT_> {
+  using type = Unit<wuzp_units::UnitImpl<typename Product<ExponentT_, ExponentsT_>::type...>>;
 };
 
-template <typename... Exponents>
-struct Identity<Unit<wuzp_units::UnitImpl<Exponents...>>> {
+template <typename... ExponentsT_>
+struct Identity<Unit<wuzp_units::UnitImpl<ExponentsT_...>>> {
   using type = Unit<wuzp_units::CreateIntegerUnitImpl<0, 0, 0, 0, 0, 0, 0>>;
 };
 
-template <typename... Exponents>
-struct Inverse<Unit<wuzp_units::UnitImpl<Exponents...>>> {
-  using type = Unit<wuzp_units::UnitImpl<typename Negation<Exponents>::type...>>;
+template <typename... ExponentsT_>
+struct Inverse<Unit<wuzp_units::UnitImpl<ExponentsT_...>>> {
+  using type = Unit<wuzp_units::UnitImpl<typename Negation<ExponentsT_>::type...>>;
 };
 
-template <typename T>
-struct AccessUnits<AccessImplementation<T>> {
+template <typename ValueT_>
+struct AccessUnits<AccessImplementation<ValueT_>> {
   using Acceleration = wuzp_units::Acceleration;
   using Angle = wuzp_units::Angle;
   using AngularAcceleration = wuzp_units::AngularAcceleration;

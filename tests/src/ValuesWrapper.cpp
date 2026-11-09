@@ -4,7 +4,6 @@
 
 #include <gtest/gtest.h>
 
-#include "wuzp/core/ValueWrapper.hpp"
 #include "wuzp/core/traits.hpp"
 
 #include "ValueMatrix.hpp"
@@ -320,6 +319,15 @@ TEST(TestValuesWrapper, OuterProductOfVectorAndCovector) {  // NOLINT
   EXPECT_EQ(outerProduct(lhs, rhs), result);
 }
 
+// The outer product of a vector and a covector of the same dimension is a square matrix, like a linear map. ValueMatrixBackend
+// requires it of every backend.
+TEST(TestValuesWrapper, OuterProductOfVectorAndCovectorOfSameDimension) {  // NOLINT
+  const ValueMatrix<int, 3, 1> lhs{-1, 3, 4};
+  const ValueMatrix<int, 1, 3> rhs{1, 2, -2};
+  const ValueMatrix<int, 3, 3> result{-1, -2, 2, 3, 6, -6, 4, 8, -8};
+  EXPECT_EQ(outerProduct(lhs, rhs), result);
+}
+
 TEST(TestValuesWrapper, OuterProductOfScalarAndMatrix) {  // NOLINT
   const ValueMatrix<int, 1, 1> lhs{2};
   const ValueMatrix<int, 2, 2> rhs{-1, 3, 4, 2};
@@ -351,14 +359,14 @@ TEST(TestValuesWrapper, NormsKeepTheValueType) {  // NOLINT
 TEST(TestValuesWrapper, DotProduct) {  // NOLINT
   const ValueMatrix<int, 4, 1> lhs{1, 2, 3, 4};
   const ValueMatrix<int, 4, 1> rhs{0, 3, -1, 2};
-  const ValueWrapper<int> result{11};
+  const Value<int> result{11};
   EXPECT_EQ(lhs.dotProduct(rhs), result);
 }
 
 TEST(TestValuesWrapper, DotProduct1x1Matrices) {  // NOLINT
   const ValueMatrix<int, 1, 1> lhs{1};
   const ValueMatrix<int, 1, 1> rhs{2};
-  const ValueWrapper<int> result{2};
+  const Value<int> result{2};
   EXPECT_EQ(lhs.dotProduct(rhs), result);
 }
 
@@ -506,9 +514,9 @@ TEST(TestValuesWrapper, ResultsAreEvaluated) {  // NOLINT
   static_assert(std::is_same_v<decltype(values / values), MyValueMatrix>);
   static_assert(std::is_same_v<decltype(values.getBlock<0, 1, 2, 2>()), ValueMatrix<int, 2, 2>>);
   static_assert(std::is_same_v<decltype(values.innerProduct(values.transpose())), ValueMatrix<int, 2, 2>>);
-  // With Eigen 3.4, the evaluated transpose is stored row by row, so its type differs from ValueMatrix<int, 3, 2>.
-  using TransposeT = decltype(values.transpose());
-  static_assert(std::is_same_v<Evaluate<TransposeT>::type, TransposeT>);
+  // Evaluated results have the default storage order, also the transpose, which Eigen's eval() stores row by row.
+  static_assert(std::is_same_v<decltype(values.transpose()), ValueMatrix<int, 3, 2>>);
+  static_assert(std::is_same_v<decltype(values.transpose().transpose()), MyValueMatrix>);
   EXPECT_EQ(values.transpose(), (ValueMatrix<int, 3, 2>{1, 4, 2, 5, 3, 6}));
 }
 

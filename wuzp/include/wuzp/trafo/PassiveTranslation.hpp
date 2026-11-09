@@ -17,6 +17,7 @@ namespace wuzp {
 
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, AnyCoordinateSystem CoordinateSystemT_,
           AnyCoordinateSystem FromT_, AnyCoordinateSystem ToT_, typename... UnitsT_>
+  requires AnyValueMatrix<ValuesT_>
 class PassiveTranslation
     : public PassiveTransformation<PassiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, FromT_, ToT_, UnitsT_...>, FromT_,
                                    ToT_> {

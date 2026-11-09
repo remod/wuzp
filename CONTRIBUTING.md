@@ -40,7 +40,8 @@ If the Dockerfile or its build arguments in `ci/image.sh` were changed locally, 
 ## Building and testing
 
 The test suite runs against every combination of units backend and value matrix backend, to make sure *wuzp* does not depend on one particular implementation.
-Each combination has a CMake preset named `<compiler>-<units>-<values>`, e.g. `gcc-wuzp-eigen` or `clang-boost-blitz` (see `cmake --list-presets`):
+Each combination has a CMake preset named `<compiler>-<units>-<values>`, e.g. `gcc-wuzp-eigen` or `clang-boost-blitz` (see `cmake --list-presets`).
+Building the tests needs both Eigen and Blitz++, whatever the preset: `tests/src/ValueMatrixBackends.cpp` uses both value matrix backends in one translation unit, and every preset enables both.
 
 ```bash
 cmake --preset gcc-wuzp-eigen
@@ -51,6 +52,11 @@ ctest --preset gcc-wuzp-eigen
 On macOS, the `clang-*` presets use Apple Clang.
 On Windows, the `msvc-*` presets use MSVC from a developer command prompt.
 The `macos` and `windows` jobs in `.github/workflows/ci.yml` show how to get the dependencies with Homebrew and vcpkg.
+
+## Backends
+
+A backend adapts another library by specializing the traits of the core (`wuzp/core/traits.hpp`): a value matrix backend for the matrices and expressions of a linear algebra library, constrained to them, and a units backend for the units of a units library.
+The concepts `ValueMatrixBackend`, `InvertibleValueMatrixBackend` and `UnitSystem` in `wuzp/core/concepts.hpp` define what the core needs, and the tests check that every backend satisfies its concept with a `static_assert` (`tests/src/ValueMatrixBackends.cpp`, `tests/src/Unit.cpp`), rather than its header, where the check would cost compile time in every translation unit of the users (see "The backend interface" in [DESIGN.md](DESIGN.md#the-backend-interface)).
 
 ## Compile tests
 

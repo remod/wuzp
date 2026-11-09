@@ -12,6 +12,6 @@
 
 int main() {
   using Implementation = ValueMatrix<double, 3, 1>::ImplementationT;
-  [[maybe_unused]] constexpr auto size = sizeof(wuzp::ValuesWrapper<wuzp::MatrixSize<3, 1>, wuzp::QuantityD<Length>, Implementation>);
+  [[maybe_unused]] constexpr auto size = sizeof(wuzp::ValuesWrapper<wuzp::MatrixSize<3, 1>, QuantityD<Length>, Implementation>);
   return 0;
 }

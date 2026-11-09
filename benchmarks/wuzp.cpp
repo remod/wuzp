@@ -21,8 +21,8 @@ template <typename CoordinateSystem>
 using Position = wuzp::PositionPoint3<ValueMatrix, double, CoordinateSystem>;
 using Acceleration = wuzp::AccelerationVector3<ValueMatrix, double, CoordinateSystemA>;
 using Force = wuzp::ForceVector3<ValueMatrix, double, CoordinateSystemA>;
-using Mass = wuzp::QuantityD<wuzp_units::Mass>;
-using Speed = wuzp::QuantityD<wuzp_units::Velocity>;
+using Mass = QuantityD<wuzp_units::Mass>;
+using Speed = QuantityD<wuzp_units::Velocity>;
 using Transformation =
     wuzp::PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemA, CoordinateSystemB, double>;
 

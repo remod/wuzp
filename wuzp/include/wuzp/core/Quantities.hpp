@@ -238,9 +238,7 @@ struct IsHomogeneous<Quantities<ValuesT_, UnitsT_>> {
 template <typename ValuesT_, typename UnitsT_>
 struct GetType<Quantities<ValuesT_, UnitsT_>> {
   static_assert(IsHomogeneous<Quantities<ValuesT_, UnitsT_>>::value, "Quantities are not homogeneous.");
-  using type =
-      Quantity<typename AccessValues<AccessImplementation<ValuesT_>>::template Value<typename Quantities<ValuesT_, UnitsT_>::ValueT>,
-               typename GetType<UnitsT_>::type>;
+  using type = Quantity<ScalarValues<ValuesT_, typename ValuesT_::ValueT>, typename GetType<UnitsT_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
@@ -321,8 +319,7 @@ struct Transpose<Quantities<ValuesT_, UnitsT_>> {
 
 template <typename ValuesT_, typename UnitsT_, int ElementRowIdV_, int ElementColIdV_>
 struct Element<Quantities<ValuesT_, UnitsT_>, ElementRowIdV_, ElementColIdV_> {
-  using type = Quantity<typename AccessValues<AccessImplementation<ValuesT_>>::template Value<typename ValuesT_::ValueT>,
-                        typename Element<UnitsT_, ElementRowIdV_, ElementColIdV_>::type>;
+  using type = Quantity<ScalarValues<ValuesT_, typename ValuesT_::ValueT>, typename Element<UnitsT_, ElementRowIdV_, ElementColIdV_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
@@ -337,8 +334,7 @@ struct TensorInverse<Quantities<ValuesT_, UnitsT_>> {
 
 template <typename ValuesT_, typename UnitsT_>
 struct Determinant<Quantities<ValuesT_, UnitsT_>> {
-  using type = Quantity<typename AccessValues<AccessImplementation<ValuesT_>>::template Value<typename ValuesT_::ValueT>,
-                        typename Determinant<UnitsT_>::type>;
+  using type = Quantity<ScalarValues<ValuesT_, typename ValuesT_::ValueT>, typename Determinant<UnitsT_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
@@ -383,8 +379,9 @@ auto operator-(const Quantities<ValuesT_, UnitsT_>& rhs) {
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto product(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
-  return product(lhs, Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>,
-                               typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs));
+  // The scalar has the value matrix backend of the quantities.
+  return product(
+      lhs, Quantity<ScalarValues<ValuesLhsT_, ValueRhsT_>, typename AccessUnits<AccessImplementation<ValueRhsT_>>::Dimensionless>(rhs));
 }
 template <typename ValueLhsT_, typename ValuesRhsT_, typename UnitsRhsT_>
 auto product(const ValueLhsT_ lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
@@ -445,7 +442,8 @@ auto outerProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantiti
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {
   using Dimensionless = typename Identity<typename Element<UnitsLhsT_, 0, 0>::type>::type;
-  return division(lhs, Quantity<typename AccessValues<AccessImplementation<ValueRhsT_>>::template Value<ValueRhsT_>, Dimensionless>(rhs));
+  // The scalar has the value matrix backend of the quantities.
+  return division(lhs, Quantity<ScalarValues<ValuesLhsT_, ValueRhsT_>, Dimensionless>(rhs));
 }
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
 auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>& rhs) {
