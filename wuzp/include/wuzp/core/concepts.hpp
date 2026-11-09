@@ -33,13 +33,13 @@ namespace internal {
 
 template <typename T>
 struct IsUnitMatrix : std::false_type {};
-template <int Rows, int Cols, typename... Units>
-struct IsUnitMatrix<TypeMatrixImpl<Rows, Cols, std::tuple<Units...>>> : std::bool_constant<(AnyUnit<Units> && ...)> {};
+template <int RowsV_, int ColsV_, typename... UnitsT_>
+struct IsUnitMatrix<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<UnitsT_...>>> : std::bool_constant<(AnyUnit<UnitsT_> && ...)> {};
 
 template <typename T>
 struct IsMatrixSize : std::false_type {};
-template <int Rows, int Cols>
-struct IsMatrixSize<MatrixSize<Rows, Cols>> : std::true_type {};
+template <int RowsV_, int ColsV_>
+struct IsMatrixSize<MatrixSize<RowsV_, ColsV_>> : std::true_type {};
 
 }  // namespace internal
 
@@ -71,7 +71,7 @@ class Quantities;
 template <typename T>
 concept AnyQuantities = IsSpecialization<T, Quantities>::value;
 
-template <int ContravariantIndices, int CovariantIndices, AnyQuantities QuantitiesT_, AnyCoordinateSystem CoordinateSystemT_,
+template <int ContravariantIndicesV_, int CovariantIndicesV_, AnyQuantities QuantitiesT_, AnyCoordinateSystem CoordinateSystemT_,
           AbsoluteOrRelative AbsoluteT_>
 class Tensor;
 

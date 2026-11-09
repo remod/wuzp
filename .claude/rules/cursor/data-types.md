@@ -13,4 +13,4 @@ paths:
   - Constrain template parameters with the concepts in `wuzp/core/concepts.hpp` (e.g. `AnyCoordinateSystem`), so that a parameter of the wrong kind fails with a constraint error.
   - Reject invalid combinations of valid types (e.g. matrix sizes that do not match) with a `static_assert` and a clear message.
 - Use `requires` clauses instead of `std::enable_if`. For members that only depend on the parameters of their class, e.g. its dimension, use a trailing `requires` on the member instead of a defaulted template parameter.
-- Name template parameters after their meaning (`CoordinateSystemT_`, `UnitsT_`), not `T`, `U`.
+- Name template parameters after their meaning (`CoordinateSystemT_`, `UnitsT_`), not `T`, `U`. Type parameters end in `T_`, value parameters in `V_` (`DimensionV_`, `RowsV_`), so that they do not shadow the names of wuzp, e.g. the traits `Dimension` and `Rows` or the class `Unit`.

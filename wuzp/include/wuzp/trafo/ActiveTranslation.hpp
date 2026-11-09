@@ -14,12 +14,12 @@
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, AnyCoordinateSystem CoordinateSystemT_,
-          typename... Units>
-class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystemT_, Units...>> {
+template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, AnyCoordinateSystem CoordinateSystemT_,
+          typename... UnitsT_>
+class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>> {
  public:
-  using ValuesT = ValuesT_<Value, Dimension, 1>;
-  using UnitsT = TypeMatrix<Dimension, 1, Units...>;
+  using ValuesT = ValuesT_<ValueT_, DimensionV_, 1>;
+  using UnitsT = TypeMatrix<DimensionV_, 1, UnitsT_...>;
   using QuantitiesT = Quantities<ValuesT, UnitsT>;
   using CoordinateSystemT = CoordinateSystemT_;
   using TensorT = Tensor<1, 0, QuantitiesT, CoordinateSystemT, Relative>;
@@ -36,15 +36,16 @@ class ActiveTranslation : public ActiveTransformation<ActiveTranslation<ValuesT_
   TensorT tensor_;
 };
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystem, typename... Units>
-struct GetCoordinateSystem<ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>> {
-  using type = CoordinateSystem;
+template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
+          typename... UnitsT_>
+struct GetCoordinateSystem<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>> {
+  using type = CoordinateSystemT_;
 };
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystem, typename... Units,
-          typename NewCoordinateSystem>
-struct CastCoordinateSystem<ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>, NewCoordinateSystem> {
-  using type = ActiveTranslation<ValuesT_, Dimension, Value, NewCoordinateSystem, Units...>;
+template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
+          typename... UnitsT_, typename NewCoordinateSystemT_>
+struct CastCoordinateSystem<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>, NewCoordinateSystemT_> {
+  using type = ActiveTranslation<ValuesT_, DimensionV_, ValueT_, NewCoordinateSystemT_, UnitsT_...>;
 };
 
 }  // namespace wuzp
@@ -53,70 +54,72 @@ struct CastCoordinateSystem<ActiveTranslation<ValuesT_, Dimension, Value, Coordi
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystem, typename... Units,
-          typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
-struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>,
-                            Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
-  static auto transform(const ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>& transformation,
-                        const Tensor<1, 0, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& object) {
-    static_assert(std::is_same_v<CoordinateSystem, CoordinateSystemT_>, "Coordinate systems do not match.");
+template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
+          typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
+struct TransformationTraits<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>,
+                            Tensor<1, 0, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
+  static auto transform(const ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>& transformation,
+                        const Tensor<1, 0, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+    static_assert(std::is_same_v<CoordinateSystemT_, CoordinateSystemOtherT_>, "Coordinate systems do not match.");
     return internal::translate(object, transformation.getTensor().getQuantities());
   }
 };
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystem, typename... Units,
-          template <typename, int, int> typename ValuesOtherT_, int DimensionOther, typename ValueOther, typename CoordinateSystemOther,
-          typename... UnitsOther>
-struct TransformationTraits<ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>,
-                            ActiveTranslation<ValuesOtherT_, DimensionOther, ValueOther, CoordinateSystemOther, UnitsOther...>> {
-  static auto transform(const ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>& transformation,
-                        const ActiveTranslation<ValuesOtherT_, DimensionOther, ValueOther, CoordinateSystemOther, UnitsOther...>& object) {
-    return ActiveTranslation<ValuesOtherT_, DimensionOther, ValueOther, CoordinateSystemOther, UnitsOther...>(
+template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
+          typename... UnitsT_, template <typename, int, int> typename ValuesOtherT_, int DimensionOtherV_, typename ValueOtherT_,
+          typename CoordinateSystemOtherT_, typename... UnitsOtherT_>
+struct TransformationTraits<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>,
+                            ActiveTranslation<ValuesOtherT_, DimensionOtherV_, ValueOtherT_, CoordinateSystemOtherT_, UnitsOtherT_...>> {
+  static auto transform(
+      const ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>& transformation,
+      const ActiveTranslation<ValuesOtherT_, DimensionOtherV_, ValueOtherT_, CoordinateSystemOtherT_, UnitsOtherT_...>& object) {
+    return ActiveTranslation<ValuesOtherT_, DimensionOtherV_, ValueOtherT_, CoordinateSystemOtherT_, UnitsOtherT_...>(
         transformation.transform(object.getTensor()));
   }
 };
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystem, typename... Units,
-          template <typename, int, int> typename ValuesOtherT_, typename ValueOther, typename CoordinateSystemOther, int DimensionFromOther,
-          int DimensionToOther, typename... UnitsOther>
-struct TransformationTraits<
-    ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>,
-    ActiveLinearTransformation<ValuesOtherT_, ValueOther, CoordinateSystemOther, DimensionFromOther, DimensionToOther, UnitsOther...>> {
-  static auto transform(const ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>& /*transformation*/,
-                        const ActiveLinearTransformation<ValuesOtherT_, ValueOther, CoordinateSystemOther, DimensionFromOther,
-                                                         DimensionToOther, UnitsOther...>& object) {
+template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
+          typename... UnitsT_, template <typename, int, int> typename ValuesOtherT_, typename ValueOtherT_,
+          typename CoordinateSystemOtherT_, int DimensionFromOtherV_, int DimensionToOtherV_, typename... UnitsOtherT_>
+struct TransformationTraits<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>,
+                            ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_,
+                                                       DimensionToOtherV_, UnitsOtherT_...>> {
+  static auto transform(const ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>& /*transformation*/,
+                        const ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_,
+                                                         DimensionToOtherV_, UnitsOtherT_...>& object) {
     return object;
   }
 };
 
-template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhs, typename ValueLhs, typename CoordinateSystemLhs,
-          typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs, typename ValueRhs,
-          typename CoordinateSystemRhs, typename... UnitsRhsT_>
-bool operator==(const ActiveTranslation<ValuesLhsT_, DimensionLhs, ValueLhs, CoordinateSystemLhs, UnitsLhsT_...>& lhs,
-                const ActiveTranslation<ValuesRhsT_, DimensionRhs, ValueRhs, CoordinateSystemRhs, UnitsRhsT_...>& rhs) {
+template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhsV_, typename ValueLhsT_, typename CoordinateSystemLhsT_,
+          typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, int DimensionRhsV_, typename ValueRhsT_,
+          typename CoordinateSystemRhsT_, typename... UnitsRhsT_>
+bool operator==(const ActiveTranslation<ValuesLhsT_, DimensionLhsV_, ValueLhsT_, CoordinateSystemLhsT_, UnitsLhsT_...>& lhs,
+                const ActiveTranslation<ValuesRhsT_, DimensionRhsV_, ValueRhsT_, CoordinateSystemRhsT_, UnitsRhsT_...>& rhs) {
   return lhs.getTensor() == rhs.getTensor();
 }
 
-template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhs, typename ValueLhs, typename CoordinateSystemLhs,
-          typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, int DimensionRhs, typename ValueRhs,
-          typename CoordinateSystemRhs, typename... UnitsRhsT_>
-bool operator!=(const ActiveTranslation<ValuesLhsT_, DimensionLhs, ValueLhs, CoordinateSystemLhs, UnitsLhsT_...>& lhs,
-                const ActiveTranslation<ValuesRhsT_, DimensionRhs, ValueRhs, CoordinateSystemRhs, UnitsRhsT_...>& rhs) {
+template <template <typename, int, int> typename ValuesLhsT_, int DimensionLhsV_, typename ValueLhsT_, typename CoordinateSystemLhsT_,
+          typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, int DimensionRhsV_, typename ValueRhsT_,
+          typename CoordinateSystemRhsT_, typename... UnitsRhsT_>
+bool operator!=(const ActiveTranslation<ValuesLhsT_, DimensionLhsV_, ValueLhsT_, CoordinateSystemLhsT_, UnitsLhsT_...>& lhs,
+                const ActiveTranslation<ValuesRhsT_, DimensionRhsV_, ValueRhsT_, CoordinateSystemRhsT_, UnitsRhsT_...>& rhs) {
   return !(lhs == rhs);
 }
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystem, typename... Units>
-std::ostream& operator<<(std::ostream& lhs, const ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, Units...>& rhs) {
+template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
+          typename... UnitsT_>
+std::ostream& operator<<(std::ostream& lhs, const ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>& rhs) {
   lhs << rhs.getTensor();
   return lhs;
 }
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename Value, typename CoordinateSystem>
+template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_>
 using ActiveSpatialTranslation =
-    ActiveTranslation<ValuesT_, Dimension, Value, CoordinateSystem, typename AccessUnits<AccessImplementation<Value>>::Length>;
-template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
-using ActiveSpatialTranslation2 = ActiveSpatialTranslation<ValuesT_, 2, Value, CoordinateSystem>;
-template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem>
-using ActiveSpatialTranslation3 = ActiveSpatialTranslation<ValuesT_, 3, Value, CoordinateSystem>;
+    ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, typename AccessUnits<AccessImplementation<ValueT_>>::Length>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
+using ActiveSpatialTranslation2 = ActiveSpatialTranslation<ValuesT_, 2, ValueT_, CoordinateSystemT_>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
+using ActiveSpatialTranslation3 = ActiveSpatialTranslation<ValuesT_, 3, ValueT_, CoordinateSystemT_>;
 
 }  // namespace wuzp

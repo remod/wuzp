@@ -4,9 +4,10 @@
 
 namespace wuzp {
 
-template <typename Transformation, typename Object>
+template <typename TransformationT_, typename Object>
 struct TransformationTraits {
-  static_assert(FailOnInstantiation<TransformationTraits<Transformation, Object>>::value, "'TransformationTraits' trait not specialized.");
+  static_assert(FailOnInstantiation<TransformationTraits<TransformationT_, Object>>::value,
+                "'TransformationTraits' trait not specialized.");
 };
 
 }  // namespace wuzp

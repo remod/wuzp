@@ -150,9 +150,9 @@ struct Division<ValueType<Lhs>, ValueType<Rhs>> {
 template <typename Lhs, typename Rhs>
 auto division(const Lhs& lhs, const Rhs& rhs);
 
-template <typename T, typename ExponentT>
+template <typename T, typename ExponentT_>
 struct Power {
-  static_assert(FailOnInstantiation<Power<T, ExponentT>>::value, "'Power' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Power<T, ExponentT_>>::value, "'Power' trait not specialized for given type.");
 };
 
 template <typename T>
@@ -160,14 +160,15 @@ struct Transpose {
   static_assert(FailOnInstantiation<Transpose<T>>::value, "'Transpose' trait not specialized for given type.");
 };
 
-template <typename Object, int ElementRowId, int ElementColId>
+template <typename Object, int ElementRowIdV_, int ElementColIdV_>
 struct Element {
-  static_assert(FailOnInstantiation<Element<Object, ElementRowId, ElementColId>>::value, "'Element' trait not specialized for given type.");
+  static_assert(FailOnInstantiation<Element<Object, ElementRowIdV_, ElementColIdV_>>::value,
+                "'Element' trait not specialized for given type.");
 };
 
-template <typename Object, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+template <typename Object, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
 struct Block {
-  static_assert(FailOnInstantiation<Block<Object, BlockRowId, BlockColId, BlockRows, BlockCols>>::value,
+  static_assert(FailOnInstantiation<Block<Object, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>>::value,
                 "'Block' trait not specialized for given type.");
 };
 
@@ -216,18 +217,26 @@ struct Evaluate {
   using type = std::decay_t<T>;  // Default e.g. for arithmetic types.
 };
 
-//! Copies a matrix of a value matrix backend. The copy must not share its values with the original, so that value matrices,
-//! quantities and tensors have value semantics with every backend. Each backend specializes it for its matrices: Eigen copies
-//! with the copy constructor, Blitz++, whose copy constructor shares the values, makes a deep copy.
+// Value matrices, quantities and tensors have value semantics with every backend: they never share their values with another
+// object (see "Results of operations are evaluated" in DESIGN.md). A value matrix backend provides this with Copy and Move,
+// which it specializes for AccessImplementation<ImplementationT_> of all its implementation types, including expressions. The
+// results of its other traits, e.g. Transpose<AccessImplementation<ImplementationT_>>::value() or Evaluate, may be lazy
+// expressions, which the core evaluates into new matrices, but must not be matrices that share the values of their operands:
+// the core moves such results instead of copying them. E.g. Blitz++'s transpose() and slices are arrays that share the values
+// of the original, so the Blitz++ backend copies them.
+
+//! Copies a matrix of a value matrix backend: `value` returns the copy, which must not share its values with the original.
+//! Eigen copies with the copy constructor; Blitz++, whose copy constructor shares the values, makes a deep copy. A copy of an
+//! expression may refer to the same operands, like the expression itself.
 template <typename T>
 struct Copy {
   static_assert(FailOnInstantiation<Copy<T>>::value, "'Copy' trait not specialized for given type.");
 };
 
 //! Moves a matrix of a value matrix backend: `construct` returns the moved matrix, `assign` moves it into another one. The
-//! moved-from matrix may be left empty, like a moved-from dynamic Eigen matrix, so it can only be assigned to or destroyed. Each
-//! backend specializes it: Eigen with its move constructor and assignment, Blitz++, which cannot move arrays, by handing the
-//! values over and leaving the moved-from array empty, so that no two arrays share them.
+//! moved-from matrix may be left empty, like a moved-from dynamic Eigen matrix, so it can only be assigned to or destroyed.
+//! Eigen moves with its move constructor and assignment; Blitz++, which cannot move arrays, hands the values over and leaves the
+//! moved-from array empty, so that no two arrays share them.
 template <typename T>
 struct Move {
   static_assert(FailOnInstantiation<Move<T>>::value, "'Move' trait not specialized for given type.");
@@ -236,7 +245,8 @@ struct Move {
 //! Whether converting a From into a To passes the checks of the converting constructor of To, e.g. whether the units of two
 //! quantity matrices match. The converting constructors between similar types are explicit if the conversion is invalid, so
 //! that type traits such as std::is_convertible report it as invalid and overloads such as f(VectorInA) and f(VectorInB) are
-//! not ambiguous. Direct initialization still reaches the constructor, whose static_assert explains what does not match.
+//! not ambiguous. Direct initialization still reaches the constructor, whose static_assert explains what does not match. A
+//! specialization defines each check as a named constant, e.g. RowsMatchV, which the static_asserts reuse.
 template <typename To, typename... From>
 struct IsValidConversion : std::false_type {};
 
@@ -268,9 +278,9 @@ struct GetCoordinateSystem {
   static_assert(FailOnInstantiation<GetCoordinateSystem<T>>::value, "'GetCoordinateSystem' trait not specialized for given type.");
 };
 
-template <typename T, typename NewCoordinateSystem>
+template <typename T, typename NewCoordinateSystemT_>
 struct CastCoordinateSystem {
-  static_assert(FailOnInstantiation<CastCoordinateSystem<T, NewCoordinateSystem>>::value,
+  static_assert(FailOnInstantiation<CastCoordinateSystem<T, NewCoordinateSystemT_>>::value,
                 "'CastCoordinateSystem' trait not specialized for given types.");
 };
 // TODO(remod): turn this (and other free functions?) into a member
@@ -285,21 +295,21 @@ struct ReserveMemory;
 template <typename ImplementationT_, typename ArgsTupleT_>
 struct Initialize;
 
-template <typename UnitT>
+template <typename UnitT_>
 struct AccessUnits {
-  static_assert(FailOnInstantiation<AccessUnits<UnitT>>::value,
+  static_assert(FailOnInstantiation<AccessUnits<UnitT_>>::value,
                 "'AccessUnits' trait not specialized for given type. Make sure you included the necessary unit headers.");
 };
 
-template <typename ValueT>
+template <typename ValueT_>
 struct AccessValues {
-  static_assert(FailOnInstantiation<AccessValues<ValueT>>::value,
+  static_assert(FailOnInstantiation<AccessValues<ValueT_>>::value,
                 "'AccessValues' trait not specialized for given type. Make sure you included the necessary value headers.");
 };
 
-template <typename ValueT>
+template <typename ValueT_>
 struct Precision {
-  static_assert(FailOnInstantiation<Precision<ValueT>>::value, "'Precision' trait not specialized for given types.");
+  static_assert(FailOnInstantiation<Precision<ValueT_>>::value, "'Precision' trait not specialized for given types.");
 };
 
 template <>

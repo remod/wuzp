@@ -14,9 +14,9 @@ namespace wuzp {
 // First rotate, then translate.
 // TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
 // TODO(remod): Add test which checks that active and passive transformation cancel each other (to proof order).
-template <AnyCoordinateSystem CoordinateSystem, typename Rotation_, typename Translation_>
+template <AnyCoordinateSystem CoordinateSystemT_, typename Rotation_, typename Translation_>
 class ActiveProperRigidTransformationTemplate
-    : public ActiveTransformation<ActiveProperRigidTransformationTemplate<CoordinateSystem, Rotation_, Translation_>> {
+    : public ActiveTransformation<ActiveProperRigidTransformationTemplate<CoordinateSystemT_, Rotation_, Translation_>> {
  public:
   using Rotation = Rotation_;
   using Translation = Translation_;
@@ -36,18 +36,18 @@ class ActiveProperRigidTransformationTemplate
   Translation translation_;
 };
 
-template <template <typename, int, int> typename ValuesT_, int Dimension, typename CoordinateSystem, typename Value>
+template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename CoordinateSystemT_, typename ValueT_>
 using ActiveProperRigidTransformation =
-    ActiveProperRigidTransformationTemplate<CoordinateSystem, ActiveSpatialRotation<ValuesT_, Value, CoordinateSystem, Dimension>,
-                                            ActiveSpatialTranslation<ValuesT_, Dimension, Value, CoordinateSystem>>;
-template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename Value>
-using ActiveProperRigidTransformation2 = ActiveProperRigidTransformation<ValuesT_, 2, CoordinateSystem, Value>;
-template <template <typename, int, int> typename ValuesT_, typename CoordinateSystem, typename Value>
-using ActiveProperRigidTransformation3 = ActiveProperRigidTransformation<ValuesT_, 3, CoordinateSystem, Value>;
+    ActiveProperRigidTransformationTemplate<CoordinateSystemT_, ActiveSpatialRotation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionV_>,
+                                            ActiveSpatialTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_>>;
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystemT_, typename ValueT_>
+using ActiveProperRigidTransformation2 = ActiveProperRigidTransformation<ValuesT_, 2, CoordinateSystemT_, ValueT_>;
+template <template <typename, int, int> typename ValuesT_, typename CoordinateSystemT_, typename ValueT_>
+using ActiveProperRigidTransformation3 = ActiveProperRigidTransformation<ValuesT_, 3, CoordinateSystemT_, ValueT_>;
 
-template <typename CoordinateSystem, typename Rotation, typename Translation, typename Object>
-struct TransformationTraits<ActiveProperRigidTransformationTemplate<CoordinateSystem, Rotation, Translation>, Object> {
-  static auto transform(const ActiveProperRigidTransformationTemplate<CoordinateSystem, Rotation, Translation>& transformation,
+template <typename CoordinateSystemT_, typename RotationT_, typename TranslationT_, typename Object>
+struct TransformationTraits<ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>, Object> {
+  static auto transform(const ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>& transformation,
                         const Object& object) {
     return transformation.getTranslation().transform(transformation.getRotation().transform(object));
   }

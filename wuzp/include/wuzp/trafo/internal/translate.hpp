@@ -8,8 +8,9 @@
 namespace wuzp {
 namespace internal {
 
-// Translations move points and leave vectors unchanged. The translation is given as quantities: the translations check the
-// coordinate systems themselves. The result is a new tensor, so a translation never changes its input.
+// Translations move points and leave vectors unchanged (see the conventions in DESIGN.md). The translation is given as
+// quantities: the translations check the coordinate systems themselves. The result is a new tensor, so a translation never
+// changes its input.
 // These are overloads rather than one function with `if constexpr`, like mapRelative(): MSVC compiles both branches of an
 // `if constexpr` in member functions of class templates, and the sum of a point and a translation does not compile for vectors
 // or point clouds.

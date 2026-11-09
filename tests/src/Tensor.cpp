@@ -654,3 +654,41 @@ TEST(TestTensor, ConversionsAreImplicitOnlyIfValid) {  // NOLINT
   EXPECT_EQ(getCoordinateSystemId(makeVector() + makeVector()), 0);
   EXPECT_EQ(getCoordinateSystemId(VectorInB{1.0, 2.0, 3.0}), 1);
 }
+
+namespace {
+
+template <typename TensorT_>
+concept HasGetQuantity = requires(const TensorT_& tensor) { tensor.getQuantity(); };
+template <typename TensorT_>
+concept HasSetQuantity = requires(TensorT_& tensor) { tensor.setQuantity(QuantityD<Length>{1.0}); };
+template <typename TensorT_>
+concept HasNorm = requires(const TensorT_& tensor) { tensor.norm(); };
+template <typename TensorT_>
+concept HasSquaredNorm = requires(const TensorT_& tensor) { tensor.squaredNorm(); };
+template <typename TensorT_>
+concept HasDeterminant = requires(const TensorT_& tensor) { tensor.determinant(); };
+
+using ScalarInA = Tensor<0, 0, TestQuantities<1, 1>, CoordinateSystemA, Relative>;
+using MatrixInA = Tensor<1, 1, TestQuantities<3, 3>, CoordinateSystemA, Relative>;
+
+}  // namespace
+
+// The members for single quantities only exist for tensors of dimension 0, the norms for dimensions 0 and 1, and the determinant
+// for dimension 2: their requires clauses remove them from the others.
+TEST(TestTensor, MembersRequireTheirDimension) {  // NOLINT
+  static_assert(HasGetQuantity<ScalarInA>);
+  static_assert(!HasGetQuantity<VectorInA>);
+  static_assert(HasSetQuantity<ScalarInA>);
+  static_assert(!HasSetQuantity<VectorInA>);
+  static_assert(HasNorm<ScalarInA>);
+  static_assert(HasNorm<VectorInA>);
+  static_assert(!HasNorm<MatrixInA>);
+  static_assert(HasSquaredNorm<ScalarInA>);
+  static_assert(HasSquaredNorm<VectorInA>);
+  static_assert(!HasSquaredNorm<MatrixInA>);
+  static_assert(!HasDeterminant<VectorInA>);
+  // The Blitz++ backend implements no determinants.
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+  static_assert(HasDeterminant<MatrixInA>);
+#endif
+}

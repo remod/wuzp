@@ -8,16 +8,16 @@
 
 namespace wuzp {
 
-template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To,
-          int Dimension>
-using LorentzTransformation = PassiveLinearTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension, Dimension,
-                                                          typename AccessUnits<AccessImplementation<Value>>::Dimensionless>;
-template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To>
-using LorentzTransformation2 = LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, 2>;
-template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To>
-using LorentzTransformation3 = LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, 3>;
-template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To>
-using LorentzTransformation4 = LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, 4>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_,
+          int DimensionV_>
+using LorentzTransformation = PassiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_, DimensionV_,
+                                                          typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_>
+using LorentzTransformation2 = LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, 2>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_>
+using LorentzTransformation3 = LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, 3>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_>
+using LorentzTransformation4 = LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, 4>;
 
 template <typename ValueT_>
 auto getSpeedOfLight() {
@@ -32,8 +32,7 @@ template <typename QuantitiesT_, typename CoordinateSystemT_>
 auto getInvariant(const Vector<QuantitiesT_, CoordinateSystemT_>& vector) {
   constexpr int dimension = Rows<QuantitiesT_>::value;
   const auto& quantities = vector.getQuantities();
-  // Evaluate the result, which would otherwise refer to the quantities after returning.
-  return (pow<2>(quantities.template get<0, 0>()) - quantities.template block<1, 0, dimension - 1, 1>().squaredNorm()).evaluate();
+  return pow<2>(quantities.template get<0, 0>()) - quantities.template block<1, 0, dimension - 1, 1>().squaredNorm();
 }
 
 /**
@@ -44,14 +43,14 @@ auto getInvariant(const Vector<QuantitiesT_, CoordinateSystemT_>& vector) {
  * @throws std::invalid_argument If the magnitude of the velocity is not smaller than the speed of light, for which there is no
  * Lorentz boost (the Lorentz factor is infinite or not real).
  */
-template <template <typename, int, int> typename ValuesT_, typename Value, typename CoordinateSystem, typename From, typename To,
-          int Dimension>
-LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> createBoostMatrix(
-    const VelocityVector<Dimension - 1, ValuesT_, Value, CoordinateSystem>& velocity) {
-  using QuantitiesT = typename LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension>::QuantitiesT;
-  using QuantityT = Quantity<typename AccessValues<AccessImplementation<Value>>::template Value<Value>,
-                             typename AccessUnits<AccessImplementation<Value>>::Dimensionless>;
-  const QuantityT squaredBeta{velocity.squaredNorm() / pow<2>(getSpeedOfLight<Value>())};
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_,
+          int DimensionV_>
+LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_> createBoostMatrix(
+    const VelocityVector<DimensionV_ - 1, ValuesT_, ValueT_, CoordinateSystemT_>& velocity) {
+  using QuantitiesT = typename LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_>::QuantitiesT;
+  using QuantityT = Quantity<typename AccessValues<AccessImplementation<ValueT_>>::template Value<ValueT_>,
+                             typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
+  const QuantityT squaredBeta{velocity.squaredNorm() / pow<2>(getSpeedOfLight<ValueT_>())};
   // Also rejects NaN.
   if (!(squaredBeta.getValue() < 1)) {
     throw std::invalid_argument("The magnitude of the velocity of a Lorentz boost must be smaller than the speed of light.");
@@ -59,17 +58,17 @@ LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> cr
   const auto lorentzFactor{pow<-1, 2>(QuantityT{1.0} - squaredBeta)};
   // The spatial part uses (lorentzFactor - 1) / |v|^2 = lorentzFactor^2 / ((lorentzFactor + 1) c^2). The right-hand side is
   // finite for v = 0, where the left-hand side divides zero by zero, and numerically more stable for small velocities.
-  const auto spatialFactor{(pow<2>(lorentzFactor) / ((lorentzFactor + QuantityT{1.0}) * pow<2>(getSpeedOfLight<Value>()))).evaluate()};
+  const auto spatialFactor{pow<2>(lorentzFactor) / ((lorentzFactor + QuantityT{1.0}) * pow<2>(getSpeedOfLight<ValueT_>()))};
   QuantitiesT quantities;
   // Set the lower left matrix inclusive the diagonal.
-  for (int row = 0; row < Dimension; ++row) {
+  for (int row = 0; row < DimensionV_; ++row) {
     for (int col = 0; col < row + 1; ++col) {
       QuantityT quantity;
       // For row 0, the column is 0 too.
       if (row == 0) {
         quantity = lorentzFactor;
       } else if (col == 0) {
-        quantity = -lorentzFactor / getSpeedOfLight<Value>() * velocity.getQuantities().get(row - 1, 0);
+        quantity = -lorentzFactor / getSpeedOfLight<ValueT_>() * velocity.getQuantities().get(row - 1, 0);
       } else if (col == row) {
         quantity = QuantityT{1.0} + spatialFactor * pow<2>(velocity.getQuantities().get(row - 1, 0));
       } else {
@@ -79,12 +78,12 @@ LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension> cr
     }
   }
   // Upper right matrix is mirrored.
-  for (int row = 0; row < Dimension; ++row) {
-    for (int col = row + 1; col < Dimension; ++col) {
+  for (int row = 0; row < DimensionV_; ++row) {
+    for (int col = row + 1; col < DimensionV_; ++col) {
       quantities.set(row, col, quantities.get(col, row));
     }
   }
-  return LorentzTransformation<ValuesT_, Value, CoordinateSystem, From, To, Dimension>{quantities};
+  return LorentzTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionV_>{quantities};
 }
 
 }  // namespace wuzp

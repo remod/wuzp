@@ -37,6 +37,8 @@ class ValuesWrapper {
   //! or destroyed.
   ValuesWrapper(ValuesWrapper&& other) noexcept
       : implementation_(Move<AccessImplementation<ImplementationT>>::construct(other.implementation_)) {}
+  //! Only evaluated values can be assigned to: an unevaluated value, e.g. the lazy sum of two matrices of the backend, refers to
+  //! its operands, so assigning to it would write into them (Blitz++) or does not compile (Eigen).
   ValuesWrapper& operator=(const ValuesWrapper& other) {
     if (this != &other) {
       *this = ValuesWrapper(other);
@@ -44,6 +46,8 @@ class ValuesWrapper {
     return *this;
   }
   ValuesWrapper& operator=(ValuesWrapper&& other) noexcept {
+    static_assert(std::is_same_v<ImplementationT, typename Evaluate<AccessImplementation<ImplementationT>>::type>,
+                  "Unevaluated values cannot be assigned to. Evaluate them first.");
     if (this != &other) {
       Move<AccessImplementation<ImplementationT>>::assign(implementation_, other.implementation_);
     }
@@ -73,10 +77,10 @@ class ValuesWrapper {
     return result;
   }
 
-  template <int RowId, int ColId>
+  template <int RowIdV_, int ColIdV_>
   auto get() const {
     // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
-    return implementation_(RowId, ColId);
+    return implementation_(RowIdV_, ColIdV_);
   }
 
   auto get() const
@@ -87,22 +91,22 @@ class ValuesWrapper {
 
   auto get(int rowId, int colId) const { return implementation_(rowId, colId); }
 
-  template <int RowId, int ColId, typename ValueT>
-  ThisT& set(ValueT value) {
+  template <int RowIdV_, int ColIdV_, typename ValueOtherT_>
+  ThisT& set(ValueOtherT_ value) {
     // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
-    implementation_(RowId, ColId) = value;
+    implementation_(RowIdV_, ColIdV_) = value;
     return *this;
   }
 
-  template <typename ValueT>
-  ThisT& set(ValueT value)
+  template <typename ValueOtherT_>
+  ThisT& set(ValueOtherT_ value)
     requires(Dimension<ThisT>::value == 0)
   {
     return set<0, 0>(value);
   }
 
-  template <typename ValueT>
-  ThisT& set(int rowId, int colId, ValueT value) {
+  template <typename ValueOtherT_>
+  ThisT& set(int rowId, int colId, ValueOtherT_ value) {
     // TODO(remod): This is an assumption which works for Eigen and Blitz, one could generalize it.
     implementation_(rowId, colId) = value;
     return *this;
@@ -116,20 +120,20 @@ class ValuesWrapper {
     return implementation_(0, 0);
   }
 
-  template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOther_>
-  bool isApprox(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOther_>& other,
+  template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
+  bool isApprox(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other,
                 const ValueT precision = Precision<ValueT>::value()) const {
-    return Comparison<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOther_>>::approxEqual(
+    return Comparison<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOtherT_>>::approxEqual(
         implementation_, other.getImplementation(), precision);
   }
 
   // The member functions and operators return evaluated results, which do not refer to their operands, so that they can be
   // stored, e.g. in `auto` variables. The traits, e.g. Block<ThisT, ...>::type, are the lazy types they evaluate.
 
-  template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+  template <int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
   auto getBlock() const {
-    return typename Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type(
-               Block<AccessImplementation<ImplementationT>, BlockRowId, BlockColId, BlockRows, BlockCols>::value(implementation_))
+    return typename Block<ThisT, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>::type(
+               Block<AccessImplementation<ImplementationT>, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>::value(implementation_))
         .evaluate();
   }
 
@@ -209,8 +213,9 @@ class ValuesWrapper {
   // Allow other implementation types to support lazy evaluation.
   ValuesWrapper(FromSimilar /*tag*/, const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other)
       : implementation_(copyImplementation(other.getImplementation())) {
-    static_assert(Rows<MatrixSizeT>::value == Rows<MatrixSizeOtherT_>::value, "Number of rows do not match.");
-    static_assert(Cols<MatrixSizeT>::value == Cols<MatrixSizeOtherT_>::value, "Number of cols do not match.");
+    using ConversionT = IsValidConversion<ThisT, ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>>;
+    static_assert(ConversionT::RowsMatchV, "Number of rows do not match.");
+    static_assert(ConversionT::ColsMatchV, "Number of cols do not match.");
   }
 
   //! Constructor for non-arithmetic types, e.g. expressions.
@@ -244,8 +249,10 @@ template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_, ty
           typename ImplementationOtherT_>
 struct IsValidConversion<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>,
                          ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>> {
-  static constexpr bool value =
-      Rows<MatrixSizeT_>::value == Rows<MatrixSizeOtherT_>::value && Cols<MatrixSizeT_>::value == Cols<MatrixSizeOtherT_>::value;
+  // The converting constructor checks these with static_asserts, which explain why a conversion fails.
+  static constexpr bool RowsMatchV = Rows<MatrixSizeT_>::value == Rows<MatrixSizeOtherT_>::value;
+  static constexpr bool ColsMatchV = Cols<MatrixSizeT_>::value == Cols<MatrixSizeOtherT_>::value;
+  static constexpr bool value = RowsMatchV && ColsMatchV;
 };
 
 template <typename... Xs, typename... Ts>
@@ -425,10 +432,10 @@ struct CrossProduct<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhs
                     typename CrossProduct<AccessImplementation<ImplementationLhsT_>, AccessImplementation<ImplementationRhsT_>>::type>;
 };
 
-template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename ValueRhs_>
-struct Division<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>, ValueRhs_> {
-  using type = ValuesWrapper<MatrixSizeLhsT_, typename Division<ValueType<ValueLhsT_>, ValueType<ValueRhs_>>::type,
-                             typename Division<AccessImplementation<ImplementationLhsT_>, ValueRhs_>::type>;
+template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename ValueRhsT_>
+struct Division<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>, ValueRhsT_> {
+  using type = ValuesWrapper<MatrixSizeLhsT_, typename Division<ValueType<ValueLhsT_>, ValueType<ValueRhsT_>>::type,
+                             typename Division<AccessImplementation<ImplementationLhsT_>, ValueRhsT_>::type>;
 };
 template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
 struct Division<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>,
@@ -463,10 +470,12 @@ struct TensorInverse<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
                              typename TensorInverse<AccessImplementation<ImplementationT_>>::type>;
 };
 
-template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct Block<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type = ValuesWrapper<typename Block<MatrixSizeT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type, ValueT_,
-                             typename Block<AccessImplementation<ImplementationT_>, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_,
+          int BlockColsV_>
+struct Block<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_> {
+  using type =
+      ValuesWrapper<typename Block<MatrixSizeT_, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>::type, ValueT_,
+                    typename Block<AccessImplementation<ImplementationT_>, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>::type>;
 };
 
 template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>

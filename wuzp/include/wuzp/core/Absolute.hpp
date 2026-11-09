@@ -32,8 +32,8 @@ struct Division<internal::AbsoluteImpl<ValueLhs_>, internal::AbsoluteImpl<ValueR
   using type = Relative;
 };
 
-template <bool Value_, typename ExponentT>
-struct Power<internal::AbsoluteImpl<Value_>, ExponentT> {
+template <bool Value_, typename ExponentT_>
+struct Power<internal::AbsoluteImpl<Value_>, ExponentT_> {
   static_assert(!Value_, "An absolute object cannot be powered.");
   using type = Relative;
 };

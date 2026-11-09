@@ -5,7 +5,7 @@
 namespace wuzp {
 
 // Rational traits also apply for integers.
-template <int Value>
-using Integer = Rational<Value, 1>;
+template <int ValueV_>
+using Integer = Rational<ValueV_, 1>;
 
 }  // namespace wuzp

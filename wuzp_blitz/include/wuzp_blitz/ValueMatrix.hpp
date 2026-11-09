@@ -151,13 +151,10 @@ struct Move<AccessImplementation<ImplementationT_>> {
       return source;
     }
   }
+  // Only arrays are assigned: the core rejects assigning to unevaluated values, i.e. expressions.
   static void assign(ImplementationT_& target, ImplementationT_& source) {
-    if constexpr (wuzp_blitz::internal::isArray<ImplementationT_>) {
-      target.reference(source);
-      source.free();
-    } else {
-      target = source;
-    }
+    target.reference(source);
+    source.free();
   }
 };
 

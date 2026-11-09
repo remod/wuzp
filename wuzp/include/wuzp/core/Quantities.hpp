@@ -53,9 +53,9 @@ class Quantities {
     return get<0, 0>();
   }
 
-  template <int RowId, int ColId>
+  template <int RowIdV_, int ColIdV_>
   auto get() const {
-    return typename Element<ThisT, RowId, ColId>::type{values_.template get<RowId, ColId>()};
+    return typename Element<ThisT, RowIdV_, ColIdV_>::type{values_.template get<RowIdV_, ColIdV_>()};
   }
 
   auto get(const int rowId, const int colId) const { return typename GetType<ThisT>::type{values_.get(rowId, colId)}; }
@@ -67,10 +67,10 @@ class Quantities {
     return set<0, 0>(quantity);
   }
 
-  template <int RowId, int ColId, typename ValueT_, typename UnitT_>
+  template <int RowIdV_, int ColIdV_, typename ValueT_, typename UnitT_>
   void set(const Quantity<ValueT_, UnitT_>& quantity) {
-    static_assert(std::is_same<typename Element<UnitsT, RowId, ColId>::type, UnitT_>::value, "Units do not match.");
-    values_.template set<RowId, ColId>(quantity.getValue());
+    static_assert(std::is_same<typename Element<UnitsT, RowIdV_, ColIdV_>::type, UnitT_>::value, "Units do not match.");
+    values_.template set<RowIdV_, ColIdV_>(quantity.getValue());
   }
 
   template <typename ValueT_, typename UnitT_>
@@ -123,10 +123,10 @@ class Quantities {
 
   // The member functions and operators return evaluated results (see ValuesWrapper), of the evaluated types of the traits.
 
-  template <int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
+  template <int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
   auto block() const {
-    return typename Evaluate<typename Block<ThisT, BlockRowId, BlockColId, BlockRows, BlockCols>::type>::type(
-        values_.template getBlock<BlockRowId, BlockColId, BlockRows, BlockCols>());
+    return typename Evaluate<typename Block<ThisT, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>::type>::type(
+        values_.template getBlock<BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>());
   }
 
   auto transpose() const { return typename Evaluate<typename Transpose<ThisT>::type>::type{values_.transpose()}; }
@@ -183,12 +183,12 @@ class Quantities {
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   // Allow other values types to support lazy evaluation.
   Quantities(FromSimilar /*tag*/, const Quantities<ValuesOtherT_, UnitsOtherT_>& other) : values_(other.getValues()) {
-    static_assert(std::is_same<UnitsT, UnitsOtherT_>::value, "Units do not match.");
+    static_assert(IsValidConversion<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::UnitsMatchV, "Units do not match.");
   }
 
   /**
    * Constructor from individual quantities.
-   * @tparam Units Units of the quantities, order and types must correspond to the units of the quantities.
+   * @tparam QuantityUnitsT_ Units of the quantities, order and types must correspond to the units of the quantities.
    * @param quantities Quantities.
    */
   template <typename... QuantityValueT_, typename... QuantityUnitsT_>
@@ -205,8 +205,10 @@ class Quantities {
 
 template <typename ValuesT_, typename UnitsT_, typename ValuesOtherT_, typename UnitsOtherT_>
 struct IsValidConversion<Quantities<ValuesT_, UnitsT_>, Quantities<ValuesOtherT_, UnitsOtherT_>> {
-  // The value matrices have the sizes of the unit matrices, so they match if the units match.
-  static constexpr bool value = std::is_same_v<UnitsT_, UnitsOtherT_>;
+  // The converting constructor checks this with a static_assert, which explains why a conversion fails. The value matrices
+  // have the sizes of the unit matrices, so they match if the units match.
+  static constexpr bool UnitsMatchV = std::is_same_v<UnitsT_, UnitsOtherT_>;
+  static constexpr bool value = UnitsMatchV;
 };
 
 template <typename ValuesT_, typename UnitsT_, typename... Ts>
@@ -214,8 +216,8 @@ struct GetTag<Quantities<ValuesT_, UnitsT_>, Ts...> {
  private:
   template <typename T>
   struct IsQuantity : std::false_type {};
-  template <typename Value, typename Unit>
-  struct IsQuantity<Quantity<Value, Unit>> : std::true_type {};
+  template <typename ValueT_, typename UnitT_>
+  struct IsQuantity<Quantity<ValueT_, UnitT_>> : std::true_type {};
   using first = std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>;
 
  public:
@@ -307,9 +309,9 @@ struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantity<ValueRhsT_, UnitRh
       Quantities<typename Division<ValuesLhsT_, typename ValueRhsT_::ValueT>::type, typename Division<UnitsLhsT_, UnitRhsT_>::type>;
 };
 
-template <typename ValueT_, typename UnitT_, typename ExponentT>
-struct Power<Quantity<ValueT_, UnitT_>, ExponentT> {
-  using type = Quantity<ValueT_, typename Power<UnitT_, ExponentT>::type>;
+template <typename ValueT_, typename UnitT_, typename ExponentT_>
+struct Power<Quantity<ValueT_, UnitT_>, ExponentT_> {
+  using type = Quantity<ValueT_, typename Power<UnitT_, ExponentT_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
@@ -317,10 +319,10 @@ struct Transpose<Quantities<ValuesT_, UnitsT_>> {
   using type = Quantities<typename Transpose<ValuesT_>::type, typename Transpose<UnitsT_>::type>;
 };
 
-template <typename ValuesT_, typename UnitsT_, int ElementRowId, int ElementColId>
-struct Element<Quantities<ValuesT_, UnitsT_>, ElementRowId, ElementColId> {
+template <typename ValuesT_, typename UnitsT_, int ElementRowIdV_, int ElementColIdV_>
+struct Element<Quantities<ValuesT_, UnitsT_>, ElementRowIdV_, ElementColIdV_> {
   using type = Quantity<typename AccessValues<AccessImplementation<ValuesT_>>::template Value<typename ValuesT_::ValueT>,
-                        typename Element<UnitsT_, ElementRowId, ElementColId>::type>;
+                        typename Element<UnitsT_, ElementRowIdV_, ElementColIdV_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
@@ -339,10 +341,10 @@ struct Determinant<Quantities<ValuesT_, UnitsT_>> {
                         typename Determinant<UnitsT_>::type>;
 };
 
-template <typename ValuesT_, typename UnitsT_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct Block<Quantities<ValuesT_, UnitsT_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  using type = Quantities<typename Block<ValuesT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type,
-                          typename Block<UnitsT_, BlockRowId, BlockColId, BlockRows, BlockCols>::type>;
+template <typename ValuesT_, typename UnitsT_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
+struct Block<Quantities<ValuesT_, UnitsT_>, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_> {
+  using type = Quantities<typename Block<ValuesT_, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>::type,
+                          typename Block<UnitsT_, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
@@ -489,42 +491,43 @@ std::ostream& operator<<(std::ostream& lhs, const Quantities<ValuesT_, UnitsT_>&
 /**
  * The quantity raised to a rational power, e.g. pow<Rational<1, 2>>(area) is a length.
  * The power is computed in floating point and converted to the value type. For integer values, a result that is not an integer
- * is truncated, like the norm of integer vectors, which follows Eigen's norm(): pow<1, 2>(QuantityI<Area>(5)) is 2 m.
+ * is truncated, like the norm of integer vectors, which follows Eigen's norm(): pow<1, 2>(QuantityI<Area>(5)) is 2 m (see
+ * "Integer values" in DESIGN.md).
  * The exponent comes first, as the value and the unit can be deduced.
  */
-template <typename ExponentT, typename Value, typename Unit>
-auto pow(const Quantity<Value, Unit>& quantity) {
-  using ValueT = typename Value::ValueT;
+template <typename ExponentT_, typename ValueT_, typename UnitT_>
+auto pow(const Quantity<ValueT_, UnitT_>& quantity) {
+  using ValueT = typename ValueT_::ValueT;
   // An exponent of an integer type would truncate a non-integer exponent, e.g. 1/2 to 0.
   using ExponentValueT = std::conditional_t<std::is_floating_point_v<ValueT>, ValueT, double>;
   // Evaluate the value here, as we need the result to have a constructor which can take a scalar, which expressions do not have.
-  return typename Power<Quantity<typename Evaluate<Value>::type, Unit>, ExponentT>::type(
-      static_cast<ValueT>(std::pow(quantity.getValue(), ExponentT::template value<ExponentValueT>())));
+  return typename Power<Quantity<typename Evaluate<ValueT_>::type, UnitT_>, ExponentT_>::type(
+      static_cast<ValueT>(std::pow(quantity.getValue(), ExponentT_::template value<ExponentValueT>())));
 }
 
 // Convenience definition, so one can write pow<2>() to get pow<Integer<2>>().
-template <int ExponentV, typename Value, typename Unit>
-auto pow(const Quantity<Value, Unit>& quantity) {
-  return pow<Integer<ExponentV>>(quantity);
+template <int ExponentV_, typename ValueT_, typename UnitT_>
+auto pow(const Quantity<ValueT_, UnitT_>& quantity) {
+  return pow<Integer<ExponentV_>>(quantity);
 }
 
 // Convenience definition, so one can write pow<1, 2>() to get pow<Rational<1, 2>>().
-template <int ExponentDividendV, int ExponentDivisorV, typename Value, typename Unit>
-auto pow(const Quantity<Value, Unit>& quantity) {
-  return pow<Rational<ExponentDividendV, ExponentDivisorV>>(quantity);
+template <int ExponentDividendV_, int ExponentDivisorV_, typename ValueT_, typename UnitT_>
+auto pow(const Quantity<ValueT_, UnitT_>& quantity) {
+  return pow<Rational<ExponentDividendV_, ExponentDivisorV_>>(quantity);
 }
 
 // The results of sin and cos are constructed from a scalar, so they have the evaluated value type: an expression, e.g. of the
 // sum of two angles, has no constructor from a scalar.
-template <typename Value>
-auto sin(const Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Angle>& angle) {
-  return Quantity<typename Evaluate<Value>::type, typename AccessUnits<AccessImplementation<Value>>::Dimensionless>(
+template <typename ValueT_>
+auto sin(const Quantity<ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Angle>& angle) {
+  return Quantity<typename Evaluate<ValueT_>::type, typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>(
       std::sin(angle.getValue()));
 }
 
-template <typename Value>
-auto cos(const Quantity<Value, typename AccessUnits<AccessImplementation<Value>>::Angle>& angle) {
-  return Quantity<typename Evaluate<Value>::type, typename AccessUnits<AccessImplementation<Value>>::Dimensionless>(
+template <typename ValueT_>
+auto cos(const Quantity<ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Angle>& angle) {
+  return Quantity<typename Evaluate<ValueT_>::type, typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>(
       std::cos(angle.getValue()));
 }
 

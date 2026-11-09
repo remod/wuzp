@@ -469,6 +469,17 @@ TEST(TestValuesWrapper, MoveAndSwap) {  // NOLINT
   EXPECT_EQ(moved, (ValueMatrix<int, 2, 1>{3, 4}));
 }
 
+// Self-assignment keeps the values, also with Blitz++, whose move empties the moved-from array (#60). The values are
+// assigned through an alias, since compilers warn about assigning a variable to itself.
+TEST(TestValuesWrapper, SelfAssignment) {  // NOLINT
+  ValueMatrix<int, 2, 1> values{1, 2};
+  ValueMatrix<int, 2, 1>& alias = values;
+  values = alias;
+  EXPECT_EQ(values, (ValueMatrix<int, 2, 1>{1, 2}));
+  values = std::move(alias);
+  EXPECT_EQ(values, (ValueMatrix<int, 2, 1>{1, 2}));
+}
+
 // The transpose and a block are copies, not views that share the values of the original, e.g. with Blitz++ (#60).
 TEST(TestValuesWrapper, TransposeAndBlockAreIndependentOfTheOriginal) {  // NOLINT
   ValueMatrix<int, 2, 2> original{1, 2, 3, 4};
@@ -512,12 +523,16 @@ TEST(TestValuesWrapper, OperationsOnUnevaluatedValues) {  // NOLINT
       Sum<AccessImplementation<Implementation>, AccessImplementation<Implementation>>::value(lhs.getImplementation(),
                                                                                              rhs.getImplementation())};
   EXPECT_EQ(unevaluated, (MyValueMatrix{4, 4, 4}));
-  const Sum<MyValueMatrix, MyValueMatrix>::type copy{unevaluated};
+  Sum<MyValueMatrix, MyValueMatrix>::type copy{unevaluated};
   EXPECT_EQ(copy, (MyValueMatrix{4, 4, 4}));
+  const Sum<MyValueMatrix, MyValueMatrix>::type moved{std::move(copy)};
+  EXPECT_EQ(moved, (MyValueMatrix{4, 4, 4}));
   EXPECT_EQ(-unevaluated, (MyValueMatrix{-4, -4, -4}));
   EXPECT_EQ(unevaluated.transpose(), (ValueMatrix<int, 1, 3>{4, 4, 4}));
   EXPECT_EQ((unevaluated.getBlock<1, 0, 2, 1>()), (ValueMatrix<int, 2, 1>{4, 4}));
   EXPECT_EQ(unevaluated.dotProduct(lhs), (Value<int>{24}));
+  EXPECT_EQ(lhs.transpose().innerProduct(unevaluated), (Value<int>{24}));
+  EXPECT_EQ(unevaluated.innerProduct(lhs.transpose()), (ValueMatrix<int, 3, 3>{4, 8, 12, 4, 8, 12, 4, 8, 12}));
   EXPECT_EQ(unevaluated.crossProduct(lhs), (MyValueMatrix{4, -8, 4}));
   EXPECT_EQ(unevaluated.evaluate(), (MyValueMatrix{4, 4, 4}));
 }
@@ -529,6 +544,25 @@ TEST(TestValuesWrapper, ConversionsAreImplicitOnlyIfValid) {  // NOLINT
   static_assert(std::is_convertible_v<Sum<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>);
   static_assert(!std::is_convertible_v<ValueMatrix<int, 2, 1>, MyValueMatrix>);
   static_assert(!std::is_convertible_v<ValueMatrix<int, 3, 2>, MyValueMatrix>);
+}
+
+namespace {
+
+template <typename ValuesT_>
+concept HasGet = requires(const ValuesT_& values) { values.get(); };
+template <typename ValuesT_>
+concept HasSet = requires(ValuesT_& values) { values.set(1.0); };
+
+}  // namespace
+
+// The members for single values only exist for values of dimension 0: their requires clauses remove them from the others.
+TEST(TestValuesWrapper, MembersRequireTheirDimension) {  // NOLINT
+  static_assert(HasGet<ValueMatrix<double, 1, 1>>);
+  static_assert(!HasGet<ValueMatrix<double, 3, 1>>);
+  static_assert(HasSet<ValueMatrix<double, 1, 1>>);
+  static_assert(!HasSet<ValueMatrix<double, 3, 1>>);
+  static_assert(std::is_convertible_v<ValueMatrix<double, 1, 1>, double>);
+  static_assert(!std::is_convertible_v<ValueMatrix<double, 3, 1>, double>);
 }
 
 // TODO(remod): Compile-time check number of constructor arguments and test it.

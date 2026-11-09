@@ -68,32 +68,32 @@ struct TensorProduct<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, Col
   using type = MatrixSize<RowsLhsV_, ColsLhsV_>;
 };
 
-template <int RowsLhs, int ColsLhs, int RowsRhs, int ColsRhs>
-struct InnerProduct<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> {
-  static_assert(ColsLhs == RowsRhs, "Number of LHS cols does not match number of RHS rows.");
-  using type = MatrixSize<RowsLhs, ColsRhs>;
+template <int RowsLhsV_, int ColsLhsV_, int RowsRhsV_, int ColsRhsV_>
+struct InnerProduct<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
+  static_assert(ColsLhsV_ == RowsRhsV_, "Number of LHS cols does not match number of RHS rows.");
+  using type = MatrixSize<RowsLhsV_, ColsRhsV_>;
 };
 
-template <int RowsLhs, int ColsLhs, int RowsRhs, int ColsRhs>
-struct OuterProduct<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> {
-  static_assert(std::min(RowsLhs, RowsRhs) <= 1,
+template <int RowsLhsV_, int ColsLhsV_, int RowsRhsV_, int ColsRhsV_>
+struct OuterProduct<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
+  static_assert(std::min(RowsLhsV_, RowsRhsV_) <= 1,
                 "Hypermatrices are not supported. At least one of the matrices must be a scalar or a vector.");
-  static_assert(std::min(ColsLhs, ColsRhs) <= 1,
+  static_assert(std::min(ColsLhsV_, ColsRhsV_) <= 1,
                 "Hypermatrices are not supported. At least one of the matrices must be a scalar or a vector.");
-  using type = MatrixSize<RowsLhs + RowsRhs - 1, ColsLhs + ColsRhs - 1>;
+  using type = MatrixSize<RowsLhsV_ + RowsRhsV_ - 1, ColsLhsV_ + ColsRhsV_ - 1>;
 };
 
-template <int RowsLhs, int ColsLhs, int RowsRhs, int ColsRhs>
-struct DotProduct<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> {
-  static_assert(RowsLhs == RowsRhs, "Matrix sizes do not match.");
-  static_assert(ColsLhs == 1, "Dot product is only defined for vectors.");
-  static_assert(ColsRhs == 1, "Dot product is only defined for vectors.");
+template <int RowsLhsV_, int ColsLhsV_, int RowsRhsV_, int ColsRhsV_>
+struct DotProduct<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
+  static_assert(RowsLhsV_ == RowsRhsV_, "Matrix sizes do not match.");
+  static_assert(ColsLhsV_ == 1, "Dot product is only defined for vectors.");
+  static_assert(ColsRhsV_ == 1, "Dot product is only defined for vectors.");
   using type = MatrixSize<1, 1>;
 };
 
-template <int RowsLhs, int ColsLhs, int RowsRhs, int ColsRhs>
-struct CrossProduct<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<RowsRhs, ColsRhs>> {
-  static_assert(RowsLhs == 3 && RowsRhs == 3 && ColsLhs == 1 && ColsRhs == 1,
+template <int RowsLhsV_, int ColsLhsV_, int RowsRhsV_, int ColsRhsV_>
+struct CrossProduct<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV_>> {
+  static_assert(RowsLhsV_ == 3 && RowsRhsV_ == 3 && ColsLhsV_ == 1 && ColsRhsV_ == 1,
                 "Cross product is only defined for three-dimensional vectors.");
   using type = MatrixSize<3, 1>;
 };
@@ -104,9 +104,9 @@ struct Division<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<RowsRhsV_, ColsRhsV
   static_assert(ColsLhsV_ == ColsRhsV_, "Number of cols do not match.");
   using type = MatrixSize<RowsLhsV_, ColsLhsV_>;
 };
-template <int RowsLhs, int ColsLhs>
-struct Division<MatrixSize<RowsLhs, ColsLhs>, MatrixSize<1, 1>> {
-  using type = MatrixSize<RowsLhs, ColsLhs>;
+template <int RowsLhsV_, int ColsLhsV_>
+struct Division<MatrixSize<RowsLhsV_, ColsLhsV_>, MatrixSize<1, 1>> {
+  using type = MatrixSize<RowsLhsV_, ColsLhsV_>;
 };
 
 template <int RowsV_, int ColsV_>
@@ -125,11 +125,11 @@ struct TensorInverse<MatrixSize<RowsV_, ColsV_>> {
   using type = MatrixSize<RowsV_, ColsV_>;
 };
 
-template <int RowsV_, int ColsV_, int BlockRowId, int BlockColId, int BlockRows, int BlockCols>
-struct Block<MatrixSize<RowsV_, ColsV_>, BlockRowId, BlockColId, BlockRows, BlockCols> {
-  static_assert(BlockRowId >= 0 && BlockColId >= 0, "Block top left corner is out of range.");
-  static_assert(BlockRowId + BlockRows <= RowsV_ && BlockColId + BlockCols <= ColsV_, "Block bottom right corner is out of range.");
-  using type = MatrixSize<BlockRows, BlockCols>;
+template <int RowsV_, int ColsV_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
+struct Block<MatrixSize<RowsV_, ColsV_>, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_> {
+  static_assert(BlockRowIdV_ >= 0 && BlockColIdV_ >= 0, "Block top left corner is out of range.");
+  static_assert(BlockRowIdV_ + BlockRowsV_ <= RowsV_ && BlockColIdV_ + BlockColsV_ <= ColsV_, "Block bottom right corner is out of range.");
+  using type = MatrixSize<BlockRowsV_, BlockColsV_>;
 };
 
 }  // namespace wuzp

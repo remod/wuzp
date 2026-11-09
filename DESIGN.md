@@ -91,7 +91,7 @@ The price: `rad/s` cannot be told apart from `Hz`, nor torque from energy, so *w
 Template parameters used to be unconstrained: a test passed a `TypeMatrix` of coordinate systems as the coordinate system of a tensor by accident, and it compiled.
 
 Decision: the template parameters are constrained with C++20 concepts (`wuzp/core/concepts.hpp`, #36), e.g. the coordinate system of a tensor must be a `CoordinateSystem`.
-A parameter of the wrong kind fails with a constraint error that names the unsatisfied concept.
+A parameter of the wrong kind fails with a constraint error, whose notes name the unsatisfied concept.
 Invalid combinations of valid types, e.g. matrix sizes that do not match, are rejected with a `static_assert` and a clear message instead.
 
 ### Results of operations are evaluated
@@ -107,6 +107,7 @@ With Blitz++, every evaluation allocates an array.
 
 Values, quantities and tensors have value semantics with every backend: a copy, a transpose or a block never shares the values of the original, although Blitz++'s copies, transposes and slices are views of the original (#60).
 Blitz++ arrays cannot be moved, so a move hands the values over and leaves the moved-from array empty, like a moved-from dynamic Eigen matrix: a moved-from object can only be assigned to or destroyed.
+Value matrix backends implement this with the traits `Copy` and `Move`, and their other traits must not return matrices that share the values of their operands (see `wuzp/core/traits.hpp`).
 
 ### Invalid conversions are explicit
 
@@ -116,6 +117,7 @@ Those that fail their checks were implicit too, and failed with a `static_assert
 Decision: they are `explicit` (`explicit(!IsValidConversion<...>::value)`).
 Type traits report them as invalid, and copy initialization fails with the compiler's conversion error.
 Direct initialization still reaches the constructor, whose `static_assert` explains what does not match, e.g. "Coordinate systems do not match.".
+The specializations of `IsValidConversion` name each check, e.g. `CoordinateSystemsMatchV`, and the `static_assert`s use them, so that the two cannot drift apart.
 
 ### Integer values
 

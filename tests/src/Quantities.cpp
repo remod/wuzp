@@ -453,3 +453,36 @@ TEST(TestQuantities, DeterminantOfMassMatrix) {  // NOLINT
   EXPECT_EQ(quantities.determinant(), DeterminantQuantity{1});
 }
 #endif
+
+namespace {
+
+template <typename QuantitiesT_>
+concept HasGet = requires(const QuantitiesT_& quantities) { quantities.get(); };
+template <typename QuantitiesT_>
+concept HasSet = requires(QuantitiesT_& quantities) { quantities.set(QuantityD<Length>{1.0}); };
+template <typename QuantitiesT_>
+concept HasGetValue = requires(const QuantitiesT_& quantities) { quantities.getValue(); };
+template <typename QuantitiesT_>
+concept HasSetValue = requires(QuantitiesT_& quantities) { quantities.setValue(1.0); };
+template <typename QuantitiesT_>
+concept HasDeterminant = requires(const QuantitiesT_& quantities) { quantities.determinant(); };
+
+}  // namespace
+
+// The members for single quantities only exist for quantities of dimension 0, and the determinant only for dimension 2: their
+// requires clauses remove them from the others.
+TEST(TestQuantities, MembersRequireTheirDimension) {  // NOLINT
+  static_assert(HasGet<TestQuantities<1, 1>>);
+  static_assert(!HasGet<TestQuantities<3, 1>>);
+  static_assert(HasSet<TestQuantities<1, 1>>);
+  static_assert(!HasSet<TestQuantities<3, 1>>);
+  static_assert(HasGetValue<TestQuantities<1, 1>>);
+  static_assert(!HasGetValue<TestQuantities<3, 1>>);
+  static_assert(HasSetValue<TestQuantities<1, 1>>);
+  static_assert(!HasSetValue<TestQuantities<3, 1>>);
+  static_assert(!HasDeterminant<TestQuantities<3, 1>>);
+  // The Blitz++ backend implements no determinants.
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+  static_assert(HasDeterminant<TestQuantities<3, 3>>);
+#endif
+}

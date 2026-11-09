@@ -11,15 +11,15 @@
 
 namespace wuzp {
 
-template <int Rows, int Cols, typename... UnitImplementations>
-struct TensorInverse<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
-  static_assert(Rows == Cols, "Matrix is not square.");
+template <int RowsV_, int ColsV_, typename... UnitImplementationsT_>
+struct TensorInverse<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Unit<UnitImplementationsT_>...>>> {
+  static_assert(RowsV_ == ColsV_, "Matrix is not square.");
   // Invert the types individually and transpose to get a candidate for the result of the inversion.
-  using type = typename Transpose<TypeMatrixImpl<Rows, Cols, std::tuple<typename Inverse<Unit<UnitImplementations>>::type...>>>::type;
+  using type = typename Transpose<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<typename Inverse<Unit<UnitImplementationsT_>>::type...>>>::type;
 
  private:
   // Verify the candidate: If the candidate contracted by itself is idempotent (A^2 == A), it is valid.
-  using Identity = typename InnerProduct<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>, type>::type;
+  using Identity = typename InnerProduct<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Unit<UnitImplementationsT_>...>>, type>::type;
   static_assert(std::is_same<typename InnerProduct<Identity, Identity>::type, Identity>::value, "Matrix is not invertible.");
 
   /* Proof:
@@ -67,17 +67,17 @@ struct DiagonalProductImpl<Matrix, std::index_sequence<Is...>> {
  * term of the determinant then has the unit (a_0 * ... * a_n-1) / (b_0 * ... * b_n-1), which is the product of the units
  * on the diagonal. For a matrix with a single unit u, this is u^n.
  */
-template <int Rows, int Cols, typename... UnitImplementations>
-struct Determinant<TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>> {
-  static_assert(Rows == Cols, "Matrix is not square.");
+template <int RowsV_, int ColsV_, typename... UnitImplementationsT_>
+struct Determinant<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Unit<UnitImplementationsT_>...>>> {
+  static_assert(RowsV_ == ColsV_, "Matrix is not square.");
 
  private:
-  using MatrixT = TypeMatrixImpl<Rows, Cols, std::tuple<Unit<UnitImplementations>...>>;
+  using MatrixT = TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Unit<UnitImplementationsT_>...>>;
   // Inverting the units checks that they describe a linear map.
   using InverseT = typename TensorInverse<MatrixT>::type;
 
  public:
-  using type = typename DiagonalProductImpl<MatrixT, std::make_index_sequence<std::size_t{Rows}>>::type;
+  using type = typename DiagonalProductImpl<MatrixT, std::make_index_sequence<std::size_t{RowsV_}>>::type;
 };
 
 }  // namespace wuzp

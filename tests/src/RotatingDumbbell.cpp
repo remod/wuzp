@@ -124,13 +124,8 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const MassMatrix massMatrix{massMatrix00, massMatrix01, massMatrix02, massMatrix01, massMatrix00,
                               massMatrix12, massMatrix02, massMatrix12, massMatrix22};
 
-  const EnergyQuantity energyMinimalCoordinates2{0.5 * innerProduct(
-                                                           minimalCoordinatesDt.transpose(), innerProduct(massMatrix, minimalCoordinatesDt)
-#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
-                                                                                                 .evaluate()
-#endif
-                                                               )
-                                                           .getQuantity()};
+  const EnergyQuantity energyMinimalCoordinates2{
+      0.5 * innerProduct(minimalCoordinatesDt.transpose(), innerProduct(massMatrix, minimalCoordinatesDt)).getQuantity()};
 
   EXPECT_TRUE(energyCartesianCoordinates.isApprox(energyMinimalCoordinates1))
       << energyCartesianCoordinates << " is not approximately " << energyMinimalCoordinates1;
