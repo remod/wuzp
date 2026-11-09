@@ -36,8 +36,8 @@ jobs:
       min: ${{ steps.publish.outputs.min }}
       latest: ${{ steps.publish.outputs.latest }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -58,7 +58,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: ci/check_format.sh
 
   tidy:
@@ -76,7 +76,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: ci/tidy.sh clang-${{ matrix.units }}-${{ matrix.values }}
 
   test:
@@ -102,7 +102,7 @@ jobs:
           - variant: min
             units: mp_units
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: ci/test.sh ${{ matrix.compiler }}-${{ matrix.units }}-${{ matrix.values }}
 
   coverage:
@@ -114,7 +114,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: ci/coverage.sh
       - name: Upload coverage
         uses: codecov/codecov-action@v5
@@ -132,7 +132,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: ci/sanitizers.sh
 
   install:
@@ -145,7 +145,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: ci/install_and_consume.sh
 
   benchmarks:
@@ -157,7 +157,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Only checks that the benchmarks build and run: the times on shared runners are too noisy to compare.
       - run: ci/benchmarks.sh --benchmark_min_time=0.01s
 
@@ -175,7 +175,7 @@ jobs:
         units: [wuzp, boost]
         values: [eigen, blitz]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: brew install blitz boost eigen googletest ninja
       - run: ci/test.sh clang-${{ matrix.units }}-${{ matrix.values }}
 
@@ -194,7 +194,7 @@ jobs:
       # The CI scripts count the cores with getconf, which Git Bash on Windows may not have. The runners have 4 cores.
       WUZP_JOBS: 4
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756  # v1.13.0
       - run: vcpkg install --triplet x64-windows blitz boost-units eigen3 gtest
       - run: |
