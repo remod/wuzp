@@ -24,12 +24,19 @@ force = mass * acceleration  // OK.
 ```
 
 While relative quantities can be operated on freely, there are some restrictions for absolute quantities.[^1]
-For example, it does not make sense to add two absolute quantities ([code example](examples/absolute_quantity.cpp)):
+Absolute quantities are points, relative quantities are vectors, and points follow the rules of affine spaces, like [CGAL's points](https://doc.cgal.org/latest/Kernel_23/index.html) and [mp-units' quantity points](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/): only the operations whose result does not depend on the origin of the coordinate system compile ([code example](examples/absolute_quantity.cpp), [DESIGN.md](DESIGN.md#points-and-vectors)).
+For example, it does not make sense to add two absolute quantities, or to scale one:
 
 ```cpp
-time_point + time_point  // Error: Cannot add two absolute quantities!
-time_point + duration  // OK.
+time_point + time_point      // Error: Two absolute objects cannot be summed.
+time_point * 2.0             // Error: An absolute object cannot appear in a multiplication.
+time_point + duration        // OK: a time point.
+end - start                  // OK: a duration.
+start + (end - start) * 0.5  // OK: the time point halfway between start and end.
 ```
+
+An absolute scalar, e.g. a time point, is a point in a one-dimensional coordinate system whose origin is its zero, e.g. an epoch.
+`makeRelative(point)` is the vector from the origin of the coordinate system to the point, and `makeAbsolute(vector)` the point at the vector from the origin.
 
 When operating with different coordinate systems, it is crucial to prevent mixing them up:
 

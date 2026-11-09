@@ -8,7 +8,7 @@
 #include "Unit.hpp"
 
 int main() {
-  using Type = wuzp::TensorInverse<wuzp::TypeMatrix<2, 3, Length>>::type;
+  using Type = wuzp::Inverse<wuzp::TypeMatrix<2, 3, Length>>::type;
   [[maybe_unused]] constexpr auto size = sizeof(Type);
   return 0;
 }

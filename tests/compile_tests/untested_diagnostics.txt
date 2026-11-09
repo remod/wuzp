@@ -1,6 +1,2 @@
 # static_assert messages without a compile test. Known gaps: remove a line when adding its test.
 # Checked by compile.diagnostics_coverage (tests/compile_tests/check_diagnostics.cmake).
-
-# Unreachable: for unit matrices that do not describe a linear map, computing the candidate inverse already fails with
-# "Units do not match.", and all other unit matrices pass this check. See the open questions in DESIGN.md.
-Matrix is not invertible.

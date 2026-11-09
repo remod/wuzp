@@ -382,9 +382,7 @@ TEST(TestQuantities2, Chain) {  // NOLINT
   EXPECT_EQ(quantities2 + quantities1 * quantities1, (MyQuantityMatrixResult{2, 6, 12, 20}));
 }
 
-// The Blitz++ backend implements neither inverses nor determinants.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
-TEST(TestQuantities, Inverse) {  // NOLINT
+TEST(TestQuantities, CwiseInverse) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyUnitMatrix = TypeMatrix<3, 2, Time>;
   using MyUnitMatrixResult = TypeMatrix<3, 2, Frequency>;
@@ -392,8 +390,17 @@ TEST(TestQuantities, Inverse) {  // NOLINT
   using MyQuantityMatrixResult = Quantities<MyValueMatrix, MyUnitMatrixResult>;
   const MyQuantityMatrix quantities{1.0, 2.0, 4.0, 0.5, 10.0, 0.2};
   const MyQuantityMatrixResult result{1.0, 0.5, 0.25, 2.0, 0.1, 5.0};
-  EXPECT_TRUE(quantities.inverse().isApprox(result));
+  EXPECT_TRUE(quantities.cwiseInverse().isApprox(result));
+  // The units are inverted elementwise, not transposed like those of the matrix inverse.
+  using MixedQuantities = Quantities<ValueMatrix<double, 2, 2>, TypeMatrix<2, 2, Length, Mass, Time, Area>>;
+  using MixedReciprocals =
+      Quantities<ValueMatrix<double, 2, 2>,
+                 TypeMatrix<2, 2, Inverse<Length>::type, Inverse<Mass>::type, Inverse<Time>::type, Inverse<Area>::type>>;
+  EXPECT_TRUE((MixedQuantities{1.0, 2.0, 4.0, 0.5}.cwiseInverse().isApprox(MixedReciprocals{1.0, 0.5, 0.25, 2.0})));
 }
+
+// The Blitz++ backend implements neither matrix inverses nor determinants.
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 
 class TestQuantitiesInvertible : public ::testing::Test {
  public:
@@ -412,12 +419,12 @@ class TestQuantitiesInvertible : public ::testing::Test {
   MyQuantityMatrix quantities_;
 };
 
-TEST_F(TestQuantitiesInvertible, TensorInverse) {  // NOLINT
+TEST_F(TestQuantitiesInvertible, Inverse) {  // NOLINT
   using MyUnitMatrixInv = TypeMatrix<2, 2, Frequency>;
   using MyQuantityMatrixInv = Quantities<MyValueMatrix, MyUnitMatrixInv>;
   const MyValueMatrix valuesInv{0.6, -0.7, -0.2, 0.4};
   const MyQuantityMatrixInv quantitiesInv{valuesInv};
-  EXPECT_TRUE(getQuantities().tensorInverse().isApprox(quantitiesInv));
+  EXPECT_TRUE(getQuantities().inverse().isApprox(quantitiesInv));
 }
 
 #endif
@@ -438,7 +445,7 @@ TEST(TestQuantities, SquaredNorm) {  // NOLINT
   EXPECT_EQ(quantities.squaredNorm(), SquaredLengthQuantityI{25});
 }
 
-// The Blitz++ backend implements neither inverses nor determinants.
+// The Blitz++ backend implements neither matrix inverses nor determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantities, Determinant) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
@@ -460,6 +467,24 @@ TEST(TestQuantities, DeterminantOfMassMatrix) {  // NOLINT
   const MyQuantityMatrix quantities{2, 3, 3, 5};
   EXPECT_EQ(quantities.determinant(), DeterminantQuantity{1});
 }
+
+// The inverse of a mass matrix maps forces and torques back to accelerations: its units are the transposed reciprocals,
+// [[1/kg, 1/(kg m)], [1/(kg m), 1/(kg m^2)]] (Hart, Multidimensional Analysis, 1995).
+TEST(TestQuantities, InverseOfMassMatrix) {  // NOLINT
+  using MassLength = Product<Mass, Length>::type;
+  using MassArea = Product<Mass, Area>::type;
+  using MyQuantityMatrix = Quantities<ValueMatrix<double, 2, 2>, TypeMatrix<2, 2, Mass, MassLength, MassLength, MassArea>>;
+  using MyInverseMatrix =
+      Quantities<ValueMatrix<double, 2, 2>,
+                 TypeMatrix<2, 2, Inverse<Mass>::type, Inverse<MassLength>::type, Inverse<MassLength>::type, Inverse<MassArea>::type>>;
+  const MyQuantityMatrix quantities{2.0, 3.0, 3.0, 5.0};
+  EXPECT_TRUE(quantities.inverse().isApprox(MyInverseMatrix{5.0, -3.0, -3.0, 2.0}, 1e-12));
+}
+
+// The determinant of a 1x1 matrix is its element.
+TEST(TestQuantities, DeterminantOfScalar) {  // NOLINT
+  EXPECT_EQ((Quantities<ValueMatrix<int, 1, 1>, TypeMatrix<1, 1, Length>>{3}.determinant()), LengthQuantityI{3});
+}
 #endif
 
 namespace {
@@ -477,8 +502,8 @@ concept HasDeterminant = requires(const QuantitiesT_& quantities) { quantities.d
 
 }  // namespace
 
-// The members for single quantities only exist for quantities of dimension 0, and the determinant only for dimension 2: their
-// requires clauses remove them from the others.
+// The members for single quantities only exist for quantities of dimension 0, and the determinant only for square matrices,
+// including 1x1 matrices: their requires clauses remove them from the others.
 TEST(TestQuantities, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasGet<TestQuantities<1, 1>>);
   static_assert(!HasGet<TestQuantities<3, 1>>);
@@ -491,6 +516,7 @@ TEST(TestQuantities, MembersRequireTheirDimension) {  // NOLINT
   static_assert(!HasDeterminant<TestQuantities<3, 1>>);
   // The Blitz++ backend implements no determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+  static_assert(HasDeterminant<TestQuantities<1, 1>>);
   static_assert(HasDeterminant<TestQuantities<3, 3>>);
 #endif
 }

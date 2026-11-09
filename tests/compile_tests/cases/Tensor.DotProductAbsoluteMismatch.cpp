@@ -1,7 +1,7 @@
 // wuzp-expect: error
-// wuzp-static-assert: Absolute/relative mismatch\.
+// wuzp-static-assert: An absolute object cannot appear in a multiplication\.
 
-// The dot product of a point and a vector is not defined.
+// The dot product of a point and a vector depends on the origin, so it is not defined.
 
 #include "compile_test_types.hpp"
 

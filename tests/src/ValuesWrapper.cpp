@@ -55,16 +55,16 @@ TEST(TestValuesWrapper, LazyDivision) {  // NOLINT
   static_assert(!std::is_same<Division<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
-// The Blitz++ backend implements neither inverses nor determinants.
+TEST(TestValuesWrapper, LazyCwiseInverse) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<double, 2, 2>;
+  static_assert(!std::is_same<CwiseInverse<MyValueMatrix>::type, MyValueMatrix>::value);
+}
+
+// The Blitz++ backend implements neither matrix inverses nor determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, LazyInverse) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 2, 2>;
   static_assert(!std::is_same<Inverse<MyValueMatrix>::type, MyValueMatrix>::value);
-}
-
-TEST(TestValuesWrapper, LazyTensorInverse) {  // NOLINT
-  using MyValueMatrix = ValueMatrix<double, 2, 2>;
-  static_assert(!std::is_same<TensorInverse<MyValueMatrix>::type, MyValueMatrix>::value);
 }
 #endif
 
@@ -408,18 +408,18 @@ TEST(TestValuesWrapper, Division) {  // NOLINT
   EXPECT_EQ(lhs / rhs, result);
 }
 
-// The Blitz++ backend implements neither inverses nor determinants.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
-TEST(TestValuesWrapper, Inverse) {  // NOLINT
+TEST(TestValuesWrapper, CwiseInverse) {  // NOLINT
   const ValueMatrix<double, 3, 2> matrix{1.0, 2.0, 4.0, 0.5, 10.0, 0.2};
   const ValueMatrix<double, 3, 2> result{1.0, 0.5, 0.25, 2.0, 0.1, 5.0};
-  EXPECT_TRUE(matrix.inverse().isApprox(result));
+  EXPECT_TRUE(matrix.cwiseInverse().isApprox(result));
 }
 
-TEST(TestValuesWrapper, TensorInverse) {  // NOLINT
+// The Blitz++ backend implements neither matrix inverses nor determinants.
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+TEST(TestValuesWrapper, Inverse) {  // NOLINT
   const ValueMatrix<double, 2, 2> matrix{4.0, 7.0, 2.0, 6.0};
   const ValueMatrix<double, 2, 2> result{0.6, -0.7, -0.2, 0.4};
-  EXPECT_TRUE(matrix.tensorInverse().isApprox(result));
+  EXPECT_TRUE(matrix.inverse().isApprox(result));
 }
 #endif
 

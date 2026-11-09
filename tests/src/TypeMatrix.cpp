@@ -192,14 +192,14 @@ TEST(TestTypeMatrix, Transpose) {  // NOLINT
   static_assert(std::is_same<Transpose<A>::type, B>::value);
 }
 
-TEST(TestTypeMatrix, Inverse) {  // NOLINT
+TEST(TestTypeMatrix, CwiseInverse) {  // NOLINT
   using A = TypeMatrix<2, 3, Integer<1>, Integer<2>, Integer<3>, Integer<10>, Rational<1, 2>, Integer<5>>;
   using B = TypeMatrix<2, 3, Integer<1>, Rational<1, 2>, Rational<1, 3>, Rational<1, 10>, Integer<2>, Rational<1, 5>>;
-  static_assert(std::is_same<Inverse<A>::type, B>::value);
+  static_assert(std::is_same<CwiseInverse<A>::type, B>::value);
 }
 
-TEST(TestTypeMatrix, TensorInverse) {  // NOLINT
-  // The tensor inverse is only implemented for unit matrices, not for rational/integer numbers.
+TEST(TestTypeMatrix, Inverse) {  // NOLINT
+  // The matrix inverse is only implemented for unit matrices, not for rational/integer numbers.
   using MassLength = Product<Mass, Length>::type;
   using MassLength2 = Product<MassLength, Length>::type;
   using MassInverse = Inverse<Mass>::type;

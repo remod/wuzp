@@ -76,20 +76,19 @@ TEST(TestTensor, UnitsOfAliases) {  // NOLINT
   EXPECT_TRUE((std::is_same_v<UnitOf<SpacetimeVector4<ValueMatrix, double, CS>>, Length>));
 }
 
-// The aliases have the indices of their names: vectors and points an upper index, covectors and copoints a lower one.
+// The aliases have the indices of their names: vectors and points an upper index, covectors a lower one.
 TEST(TestTensor, IndicesOfAliases) {  // NOLINT
   using CS = CoordinateSystemA;
   static_assert(std::is_same_v<PositionVector3<ValueMatrix, double, CS>::IndicesT, Indices<Up>>);
   static_assert(std::is_same_v<PositionPoint3<ValueMatrix, double, CS>::IndicesT, Indices<Up>>);
   static_assert(std::is_same_v<HomogeneousCovector<3, ValueMatrix, double, Force, CS>::IndicesT, Indices<Down>>);
-  static_assert(std::is_same_v<HomogeneousCopoint<3, ValueMatrix, double, Force, CS>::IndicesT, Indices<Down>>);
   static_assert(Indices<>::RankV == 0);
   static_assert(Indices<Up, Down>::RankV == 2);
 }
 
 // The indices of the results of operations (see Indices.hpp). A contraction removes the last index of the left-hand side and the
 // first index of the right-hand side, which must be an upper and a lower one; the transpose swaps the indices, and the inverse
-// swaps and flips them.
+// of a tensor of rank 0 or 2 swaps and flips them (Carroll, eq. 1.56).
 TEST(TestTensor, IndicesOfOperations) {  // NOLINT
   static_assert(std::is_same_v<InnerProduct<Indices<Down>, Indices<Up>>::type, Indices<>>);
   static_assert(std::is_same_v<InnerProduct<Indices<Up>, Indices<Down>>::type, Indices<>>);
@@ -109,10 +108,34 @@ TEST(TestTensor, IndicesOfOperations) {  // NOLINT
   static_assert(std::is_same_v<Transpose<Indices<Down>>::type, Indices<Up>>);
   static_assert(std::is_same_v<Transpose<Indices<Up, Down>>::type, Indices<Down, Up>>);
   static_assert(std::is_same_v<Inverse<Indices<>>::type, Indices<>>);
-  static_assert(std::is_same_v<Inverse<Indices<Up>>::type, Indices<Down>>);
   static_assert(std::is_same_v<Inverse<Indices<Up, Down>>::type, Indices<Up, Down>>);
+  static_assert(std::is_same_v<Inverse<Indices<Down, Up>>::type, Indices<Down, Up>>);
   static_assert(std::is_same_v<Inverse<Indices<Down, Down>>::type, Indices<Up, Up>>);
-  static_assert(std::is_same_v<TensorInverse<Indices<Down, Up>>::type, Indices<Down, Up>>);
+  static_assert(std::is_same_v<Inverse<Indices<Up, Up>>::type, Indices<Down, Down>>);
+  static_assert(std::is_same_v<Determinant<Indices<>>::type, Indices<>>);
+  static_assert(std::is_same_v<Determinant<Indices<Up, Down>>::type, Indices<>>);
+  static_assert(std::is_same_v<Determinant<Indices<Down, Up>>::type, Indices<>>);
+}
+
+// The absoluteness of the results of operations (see Absolute.hpp): p - q is a vector, p + v, v + p and p - v are points, and the
+// other operations are only defined for vectors, whose results are vectors. The operations that depend on the origin reject
+// points (compile tests Tensor.*OfPoint).
+TEST(TestTensor, AbsolutenessOfOperations) {  // NOLINT
+  static_assert(std::is_same_v<Sum<Relative, Relative>::type, Relative>);
+  static_assert(std::is_same_v<Sum<Absolute, Relative>::type, Absolute>);
+  static_assert(std::is_same_v<Sum<Relative, Absolute>::type, Absolute>);
+  static_assert(std::is_same_v<Difference<Relative, Relative>::type, Relative>);
+  static_assert(std::is_same_v<Difference<Absolute, Relative>::type, Absolute>);
+  static_assert(std::is_same_v<Difference<Absolute, Absolute>::type, Relative>);
+  static_assert(std::is_same_v<Negation<Relative>::type, Relative>);
+  static_assert(std::is_same_v<Product<Relative, Relative>::type, Relative>);
+  static_assert(std::is_same_v<Division<Relative, Relative>::type, Relative>);
+  static_assert(std::is_same_v<Inverse<Relative>::type, Relative>);
+  static_assert(std::is_same_v<Norm<Relative>::type, Relative>);
+  static_assert(std::is_same_v<MakeRelative<Absolute>::type, Relative>);
+  static_assert(std::is_same_v<MakeAbsolute<Relative>::type, Absolute>);
+  static_assert(IsAbsolute<Absolute>::value);
+  static_assert(!IsAbsolute<Relative>::value);
 }
 
 TEST(TestTensor2, Dimension) {  // NOLINT
@@ -184,12 +207,24 @@ TEST(TestTensor2, ConstructExplicitlyFromCsv) {  // NOLINT
   EXPECT_EQ(tensor.getValues(), values);
 }
 
-// A tensor with an upper index may store a batch of vectors or points, one per column, e.g. a point cloud.
+// A tensor with an upper index may store a batch of vectors or points, one per column, e.g. a point cloud. A batch of points
+// follows the rules of points column by column: p - q is a batch of vectors, p + v, v + p and p - v are batches of points.
 TEST(TestTensor2, BatchOfPoints) {  // NOLINT
   using PointCloud = Tensor<Indices<Up>, Quantities<ValueMatrix<int, 3, 2>, TypeMatrix<3, 2, Length>>, CoordinateSystemA, Absolute>;
   using Displacements = Tensor<Indices<Up>, Quantities<ValueMatrix<int, 3, 2>, TypeMatrix<3, 2, Length>>, CoordinateSystemA, Relative>;
   const PointCloud points{1, 4, 2, 5, 3, 6};
-  EXPECT_EQ((points + Displacements{1, 1, 1, 1, 1, 1}), (PointCloud{2, 5, 3, 6, 4, 7}));
+  const Displacements displacements{1, 1, 1, 1, 1, 1};
+  const PointCloud moved{2, 5, 3, 6, 4, 7};
+  EXPECT_EQ(points + displacements, moved);
+  EXPECT_EQ(displacements + points, moved);
+  EXPECT_EQ(moved - displacements, points);
+  EXPECT_EQ(moved - points, displacements);
+  EXPECT_NE(moved, points);
+  // The affine combination p + (q - p) * t of two batches of points, column by column, e.g. their midpoints.
+  using PointCloudD = Tensor<Indices<Up>, Quantities<ValueMatrix<double, 3, 2>, TypeMatrix<3, 2, Length>>, CoordinateSystemA, Absolute>;
+  const PointCloudD starts{1.0, 4.0, 2.0, 5.0, 3.0, 6.0};
+  const PointCloudD ends{3.0, 8.0, 4.0, 9.0, 5.0, 10.0};
+  EXPECT_EQ(starts + (ends - starts) * 0.5, (PointCloudD{2.0, 6.0, 3.0, 7.0, 4.0, 8.0}));
 }
 
 // A batch of vectors supports sums, differences, comparisons, and products and quotients with scalars, which apply to each
@@ -349,6 +384,45 @@ TEST_F(TestPointF, DifferenceAbsoluteAndAbsolute) {  // NOLINT
   EXPECT_EQ((getAbsoluteTensor() - getAbsoluteTensor()).getQuantities(), result);
 }
 
+// makeRelative() is the vector from the origin of the coordinate system to a point, makeAbsolute() the point at a vector from
+// the origin: both keep the components.
+TEST_F(TestPointF, MakeRelativeAndMakeAbsolute) {  // NOLINT
+  EXPECT_EQ(makeRelative(getAbsoluteTensor()), (MyTensor{1, 4, 2}));
+  EXPECT_EQ(makeAbsolute(getTensor()), (MyAbsoluteTensor{1, 2, 3}));
+}
+
+// The difference of two points is a vector, the sum of a point and a vector and the difference of a point and a vector are
+// points.
+TEST_F(TestPointF, AbsolutenessOfResults) {  // NOLINT
+  EXPECT_EQ(getAbsoluteTensor() - getAbsoluteTensor(), (MyTensor{0, 0, 0}));
+  EXPECT_EQ(getAbsoluteTensor() + getTensor(), (MyAbsoluteTensor{2, 6, 5}));
+  EXPECT_EQ(getTensor() + getAbsoluteTensor(), (MyAbsoluteTensor{2, 6, 5}));
+  EXPECT_EQ(getAbsoluteTensor() - getTensor(), (MyAbsoluteTensor{0, 2, -1}));
+}
+
+// An affine combination of points is written as a point plus a vector: p + (q - p) * t. It does not depend on the origin, unlike
+// p * (1 - t) + q * t, which does not compile (compile tests Tensor.*OfPoint).
+TEST(TestTensor2, AffineCombinationOfPoints) {  // NOLINT
+  using MyPoint = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
+  const MyPoint start{1.0, 2.0, 3.0};
+  const MyPoint end{3.0, 6.0, 11.0};
+  EXPECT_EQ(start + (end - start) * 0.5, (MyPoint{2.0, 4.0, 7.0}));
+  EXPECT_EQ(start + (end - start) * 0.25, (MyPoint{1.5, 3.0, 5.0}));
+  EXPECT_EQ(end - (end - start) * 0.5, (MyPoint{2.0, 4.0, 7.0}));
+}
+
+// An absolute scalar, e.g. a time point, is a point in a one-dimensional coordinate system whose origin is its zero, e.g. an
+// epoch: the difference of two time points is a duration.
+TEST(TestTensor2, TimePoints) {  // NOLINT
+  using TimePointD = TimePoint<ValueMatrix, double, CoordinateSystemA>;
+  using DurationD = Duration<ValueMatrix, double, CoordinateSystemA>;
+  const TimePointD start{2.0};
+  const TimePointD end{5.0};
+  EXPECT_EQ(end - start, DurationD{3.0});
+  EXPECT_EQ(start + DurationD{3.0}, end);
+  EXPECT_EQ(start + (end - start) / 3.0, TimePointD{3.0});
+}
+
 TEST(TestTensor2, ProductWithBuiltinValue) {  // NOLINT
   using MyTensor = VectorI<4, Length>;
   using MyValue = int;
@@ -444,6 +518,21 @@ TEST(TestTensor2, CwiseQuotient) {  // NOLINT
   const VectorI<3, Length> lhs{6, 4, 3};
   const VectorI<3, Time> rhs{3, 2, 1};
   EXPECT_EQ(cwiseQuotient(lhs, rhs), (Quantities<ValueMatrix<int, 3, 1>, TypeMatrix<3, 1, Velocity>>{2, 2, 3}));
+}
+
+// The elementwise reciprocal of the components of a tensor is not a tensor, so it is a quantity matrix, like cwiseProduct.
+TEST(TestTensor2, CwiseInverse) {  // NOLINT
+  const PositionVector3<ValueMatrix, double, CoordinateSystemA> vector{1.0, 2.0, 4.0};
+  EXPECT_TRUE(vector.cwiseInverse().isApprox(Quantities<TestValues<3, 1>, TypeMatrix<3, 1, Inverse<Length>::type>>{1.0, 0.5, 0.25}, 1e-12));
+  using Metric = Tensor<Indices<Down, Down>, TestQuantities<2, 2>, CoordinateSystemA, Relative>;
+  EXPECT_TRUE((Metric{1.0, 2.0, 4.0, 8.0}.cwiseInverse().isApprox(
+      Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Inverse<Length>::type>>{1.0, 0.5, 0.25, 0.125}, 1e-12)));
+  // The components of a covector stay a row, unlike those of the matrix inverse, and the units are inverted elementwise.
+  const Tensor<Indices<Down>, Quantities<TestValues<1, 3>, TypeMatrix<1, 3, Length, Mass, Time>>, CoordinateSystemA, Relative> covector{
+      1.0, 2.0, 4.0};
+  EXPECT_TRUE(covector.cwiseInverse().isApprox(
+      Quantities<TestValues<1, 3>, TypeMatrix<1, 3, Inverse<Length>::type, Inverse<Mass>::type, Inverse<Time>::type>>{1.0, 0.5, 0.25},
+      1e-12));
 }
 
 // The inner product contracts the last index of the left-hand side with the first index of the right-hand side, whatever the
@@ -652,38 +741,116 @@ TEST(TestTensor2, SquaredNorm) {  // NOLINT
   EXPECT_EQ(vector.squaredNorm(), SquaredLengthQuantityI{25});
 }
 
-// The Blitz++ backend implements neither inverses nor determinants.
+// The Blitz++ backend implements neither matrix inverses nor determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+// The determinant of a tensor of rank 0 or of a mixed tensor of rank 2 is invariant, so it is defined for them.
 TEST(TestTensor2, Determinant) {  // NOLINT
-  using MyValueMatrix = ValueMatrix<int, 2, 2>;
-  using MyUnitMatrix = TypeMatrix<2, 2, Length>;
-  using MyQuantityMatrix = Quantities<MyValueMatrix, MyUnitMatrix>;
-  using MyTensor = Tensor<Indices<Up, Down>, MyQuantityMatrix, CoordinateSystemA, Relative>;
-  const MyTensor tensor{-1, 2, 3, 1};
-  EXPECT_EQ(tensor.determinant(), AreaQuantityI{-7});
+  const MatrixI<Indices<Up, Down>, 2, Length> linearMap{-1, 2, 3, 1};
+  EXPECT_EQ(linearMap.determinant(), AreaQuantityI{-7});
+  const MatrixI<Indices<Down, Up>, 2, Length> transposedLinearMap{-1, 3, 2, 1};
+  EXPECT_EQ(transposedLinearMap.determinant(), AreaQuantityI{-7});
+  EXPECT_EQ((MatrixI<Indices<Up, Down>, 1, Length>{3}.determinant()), LengthQuantityI{3});
+  EXPECT_EQ(ScalarI<Length>{3}.determinant(), LengthQuantityI{3});
 }
 
-// The inverse of a tensor of rank 2 swaps and flips its indices, e.g. the inverse of a metric g_ij is g^ij.
-TEST(TestTensor2, TensorInverse) {  // NOLINT
+// The inverse of a tensor of rank 2 swaps and flips its indices, e.g. the inverse of a metric g_ij is g^ij (Carroll, eq. 1.56),
+// and its units are (M^-1)_ij = b_i / a_j for M_ij = a_i / b_j (Hart, Multidimensional Analysis, 1995).
+TEST(TestTensor2, Inverse) {  // NOLINT
   using Metric = Tensor<Indices<Down, Down>, TestQuantities<2, 2>, CoordinateSystemA, Relative>;
   using InverseMetric =
       Tensor<Indices<Up, Up>, Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Inverse<Length>::type>>, CoordinateSystemA, Relative>;
   const Metric metric{2.0, 0.0, 0.0, 4.0};
-  EXPECT_TRUE(metric.tensorInverse().isApprox(InverseMetric{0.5, 0.0, 0.0, 0.25}, 1e-12));
+  EXPECT_TRUE(metric.inverse().isApprox(InverseMetric{0.5, 0.0, 0.0, 0.25}, 1e-12));
   using LinearMap = Tensor<Indices<Up, Down>, Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Dimensionless>>, CoordinateSystemA, Relative>;
-  EXPECT_TRUE((LinearMap{2.0, 0.0, 0.0, 4.0}.tensorInverse().isApprox(LinearMap{0.5, 0.0, 0.0, 0.25}, 1e-12)));
+  EXPECT_TRUE((LinearMap{2.0, 1.0, 0.0, 4.0}.inverse().isApprox(LinearMap{0.5, -0.125, 0.0, 0.25}, 1e-12)));
+  // A linear map from (mass, dimensionless) to (length, time), M_ij = a_i / b_j with a = (m, s) and b = (kg, 1). Its inverse maps
+  // (length, time) back to (mass, dimensionless): (M^-1)_ij = b_i / a_j.
+  using MixedLinearMap =
+      Tensor<Indices<Up, Down>,
+             Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Division<Length, Mass>::type, Length, Division<Time, Mass>::type, Time>>,
+             CoordinateSystemA, Relative>;
+  using MixedInverse = Tensor<Indices<Up, Down>,
+                              Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Division<Mass, Length>::type, Division<Mass, Time>::type,
+                                                                      Inverse<Length>::type, Inverse<Time>::type>>,
+                              CoordinateSystemA, Relative>;
+  EXPECT_TRUE((MixedLinearMap{2.0, 0.0, 0.0, 4.0}.inverse().isApprox(MixedInverse{0.5, 0.0, 0.0, 0.25}, 1e-12)));
+  // The inverse of a tensor of rank 0 is its reciprocal.
+  EXPECT_TRUE((TestTensor<Indices<>, 1, 1>{4.0}.inverse().isApprox(
+      Tensor<Indices<>, Quantities<TestValues<1, 1>, TypeMatrix<1, 1, Inverse<Length>::type>>, CoordinateSystemA, Relative>{0.25}, 1e-12)));
 }
 
-// The elementwise reciprocal has the indices of the inverse, so the reciprocal of a vector, a column, is a covector, a row.
-TEST(TestTensor2, Inverse) {  // NOLINT
-  using Reciprocal =
-      Tensor<Indices<Down>, Quantities<TestValues<1, 3>, TypeMatrix<1, 3, Inverse<Length>::type>>, CoordinateSystemA, Relative>;
-  const PositionVector3<ValueMatrix, double, CoordinateSystemA> vector{1.0, 2.0, 4.0};
-  EXPECT_TRUE(vector.inverse().isApprox(Reciprocal{1.0, 0.5, 0.25}, 1e-12));
-  using Metric = Tensor<Indices<Down, Down>, TestQuantities<2, 2>, CoordinateSystemA, Relative>;
-  using ReciprocalMetric =
-      Tensor<Indices<Up, Up>, Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Inverse<Length>::type>>, CoordinateSystemA, Relative>;
-  EXPECT_TRUE((Metric{1.0, 2.0, 4.0, 8.0}.inverse().isApprox(ReciprocalMetric{1.0, 0.5, 0.25, 0.125}, 1e-12)));
+// The unit of the determinant is the product of the units on the diagonal, which is the unit of every term if the units describe
+// a linear map, M_ij = a_i / b_j: (a_0 a_1) / (b_0 b_1).
+TEST(TestTensor2, DeterminantOfHeterogeneousUnits) {  // NOLINT
+  // a = (m, s), b = (kg, 1): det = 1 * 4 - 2 * 3 = -2, in m s / kg.
+  using LinearMap =
+      Tensor<Indices<Up, Down>,
+             Quantities<ValueMatrix<int, 2, 2>, TypeMatrix<2, 2, Division<Length, Mass>::type, Length, Division<Time, Mass>::type, Time>>,
+             CoordinateSystemA, Relative>;
+  EXPECT_EQ((LinearMap{1, 2, 3, 4}.determinant()), (QuantityI<Division<Product<Length, Time>::type, Mass>::type>{-2}));
+  // a = (m, 1), b = (1, 1/m): det = 1 * 4 - 2 * 3 = -2, in m^2.
+  using TransposedLinearMap =
+      Tensor<Indices<Down, Up>, Quantities<ValueMatrix<int, 2, 2>, TypeMatrix<2, 2, Length, Area, Dimensionless, Length>>,
+             CoordinateSystemA, Relative>;
+  EXPECT_EQ((TransposedLinearMap{1, 2, 3, 4}.determinant()), AreaQuantityI{-2});
+}
+
+// The inverse of every index pattern of rank 2: (X, Y) becomes (not Y, not X), and the units M_ij = a_i / b_j become
+// (M^-1)_ij = b_i / a_j. The inverse of [[1, 2], [3, 4]] is [[-2, 1], [1.5, -0.5]].
+TEST(TestTensor2, InverseOfEachIndexPattern) {  // NOLINT
+  // a = (m, s), b = (kg, 1).
+  using Units = TypeMatrix<2, 2, Division<Length, Mass>::type, Length, Division<Time, Mass>::type, Time>;
+  using InverseUnits =
+      TypeMatrix<2, 2, Division<Mass, Length>::type, Division<Mass, Time>::type, Inverse<Length>::type, Inverse<Time>::type>;
+  using LinearMap = Tensor<Indices<Up, Down>, Quantities<TestValues<2, 2>, Units>, CoordinateSystemA, Relative>;
+  using InverseLinearMap = Tensor<Indices<Up, Down>, Quantities<TestValues<2, 2>, InverseUnits>, CoordinateSystemA, Relative>;
+  const InverseLinearMap inverseLinearMap = LinearMap{1.0, 2.0, 3.0, 4.0}.inverse();
+  EXPECT_TRUE(inverseLinearMap.isApprox(InverseLinearMap{-2.0, 1.0, 1.5, -0.5}, 1e-12));
+  using TransposedLinearMap = Tensor<Indices<Down, Up>, Quantities<TestValues<2, 2>, Units>, CoordinateSystemA, Relative>;
+  using InverseTransposedLinearMap = Tensor<Indices<Down, Up>, Quantities<TestValues<2, 2>, InverseUnits>, CoordinateSystemA, Relative>;
+  const InverseTransposedLinearMap inverseTransposedLinearMap = TransposedLinearMap{1.0, 2.0, 3.0, 4.0}.inverse();
+  EXPECT_TRUE(inverseTransposedLinearMap.isApprox(InverseTransposedLinearMap{-2.0, 1.0, 1.5, -0.5}, 1e-12));
+  using UpperTensor = Tensor<Indices<Up, Up>, Quantities<TestValues<2, 2>, Units>, CoordinateSystemA, Relative>;
+  using InverseUpperTensor = Tensor<Indices<Down, Down>, Quantities<TestValues<2, 2>, InverseUnits>, CoordinateSystemA, Relative>;
+  const InverseUpperTensor inverseUpperTensor = UpperTensor{1.0, 2.0, 3.0, 4.0}.inverse();
+  EXPECT_TRUE(inverseUpperTensor.isApprox(InverseUpperTensor{-2.0, 1.0, 1.5, -0.5}, 1e-12));
+  using LowerTensor = Tensor<Indices<Down, Down>, Quantities<TestValues<2, 2>, Units>, CoordinateSystemA, Relative>;
+  using InverseLowerTensor = Tensor<Indices<Up, Up>, Quantities<TestValues<2, 2>, InverseUnits>, CoordinateSystemA, Relative>;
+  const InverseLowerTensor inverseLowerTensor = LowerTensor{1.0, 2.0, 3.0, 4.0}.inverse();
+  EXPECT_TRUE(inverseLowerTensor.isApprox(InverseLowerTensor{-2.0, 1.0, 1.5, -0.5}, 1e-12));
+  // The product of a linear map and its inverse is the identity, T^i_j (T^-1)^j_k = delta^i_k, whose units are a_i / a_k.
+  using Identity =
+      Tensor<Indices<Up, Down>,
+             Quantities<TestValues<2, 2>,
+                        TypeMatrix<2, 2, Dimensionless, Division<Length, Time>::type, Division<Time, Length>::type, Dimensionless>>,
+             CoordinateSystemA, Relative>;
+  EXPECT_TRUE(innerProduct(LinearMap{1.0, 2.0, 3.0, 4.0}, inverseLinearMap).isApprox(Identity{1.0, 0.0, 0.0, 1.0}, 1e-12));
+}
+
+// The inverse of a mass matrix M_ij, which maps accelerations to forces and torques, M_ij = a_i / b_j with a = (N, N m) and
+// b = (m/s^2, 1/s^2), has two upper indices and the units b_i / a_j: [[1/kg, 1/(kg m)], [1/(kg m), 1/(kg m^2)]]. Its products
+// with the mass matrix are the Kronecker delta, M_ij (M^-1)^jk = delta_i^k with the units a_i / a_k, and (M^-1)^ij M_jk =
+// delta^i_k with the units b_i / b_k.
+TEST(TestTensor2, InverseOfMassMatrix) {  // NOLINT
+  using MassLength = Product<Mass, Length>::type;
+  using MassArea = Product<Mass, Area>::type;
+  using MassMatrix = Tensor<Indices<Down, Down>, Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Mass, MassLength, MassLength, MassArea>>,
+                            CoordinateSystemA, Relative>;
+  using InverseMassMatrix = Tensor<Indices<Up, Up>,
+                                   Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Inverse<Mass>::type, Inverse<MassLength>::type,
+                                                                           Inverse<MassLength>::type, Inverse<MassArea>::type>>,
+                                   CoordinateSystemA, Relative>;
+  const MassMatrix massMatrix{2.0, 3.0, 3.0, 5.0};
+  const InverseMassMatrix inverse = massMatrix.inverse();
+  EXPECT_TRUE(inverse.isApprox(InverseMassMatrix{5.0, -3.0, -3.0, 2.0}, 1e-12));
+  using LowerDelta =
+      Tensor<Indices<Down, Up>, Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Dimensionless, Inverse<Length>::type, Length, Dimensionless>>,
+             CoordinateSystemA, Relative>;
+  EXPECT_TRUE(innerProduct(massMatrix, inverse).isApprox(LowerDelta{1.0, 0.0, 0.0, 1.0}, 1e-12));
+  using UpperDelta =
+      Tensor<Indices<Up, Down>, Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Dimensionless, Length, Inverse<Length>::type, Dimensionless>>,
+             CoordinateSystemA, Relative>;
+  EXPECT_TRUE(innerProduct(inverse, massMatrix).isApprox(UpperDelta{1.0, 0.0, 0.0, 1.0}, 1e-12));
 }
 #endif
 
@@ -784,8 +951,9 @@ using MatrixInA = Tensor<Indices<Up, Down>, TestQuantities<3, 3>, CoordinateSyst
 
 }  // namespace
 
-// The members for single quantities only exist for tensors of dimension 0, the norms for dimensions 0 and 1, and the determinant
-// for dimension 2: their requires clauses remove them from the others.
+// The members for single quantities only exist for tensors of dimension 0, and the norms for dimensions 0 and 1: their requires
+// clauses remove them from the others. The determinant exists for every tensor, like the inverse, and rejects vectors and
+// covectors with a static_assert (compile test Tensor.DeterminantOfVector).
 TEST(TestTensor, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasGetQuantity<ScalarInA>);
   static_assert(!HasGetQuantity<VectorInA>);
@@ -797,9 +965,9 @@ TEST(TestTensor, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasSquaredNorm<ScalarInA>);
   static_assert(HasSquaredNorm<VectorInA>);
   static_assert(!HasSquaredNorm<MatrixInA>);
-  static_assert(!HasDeterminant<VectorInA>);
   // The Blitz++ backend implements no determinants.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+  static_assert(HasDeterminant<ScalarInA>);
   static_assert(HasDeterminant<MatrixInA>);
 #endif
 }

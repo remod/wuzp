@@ -20,8 +20,8 @@
 #include "Unit.hpp"
 
 // The backends implement the interface of the core. They do not check this in their headers, since it would cost compile
-// time in every translation unit of their users (see ValueMatrixBackend). Blitz++ provides no inverses yet (see "Backend
-// support for inverses" in DESIGN.md).
+// time in every translation unit of their users (see ValueMatrixBackend). Blitz++ provides no matrix inverses yet (see
+// "Backend support for inverses" in DESIGN.md).
 static_assert(wuzp::ValueMatrixBackend<wuzp_eigen::ValueMatrix>);
 static_assert(wuzp::InvertibleValueMatrixBackend<wuzp_eigen::ValueMatrix>);
 static_assert(wuzp::ValueMatrixBackend<wuzp_blitz::ValueMatrix>);

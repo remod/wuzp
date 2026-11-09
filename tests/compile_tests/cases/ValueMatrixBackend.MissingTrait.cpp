@@ -2,7 +2,7 @@
 // wuzp-static-assert: Inverse is not implemented for blitz\.
 
 // Checking the interface of a value matrix backend that misses a trait fails with the message of the trait (see "The backend
-// interface" in concepts.hpp): Blitz++ provides no inverses (see "Backend support for inverses" in DESIGN.md), so it is a
+// interface" in concepts.hpp): Blitz++ provides no matrix inverses (see "Backend support for inverses" in DESIGN.md), so it is a
 // ValueMatrixBackend, but not an InvertibleValueMatrixBackend.
 
 #include "wuzp/core/concepts.hpp"

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <boost/units/absolute.hpp>
 #include <boost/units/dimensionless_type.hpp>
 #include <boost/units/operators.hpp>
 #include <boost/units/static_rational.hpp>
@@ -64,10 +63,6 @@ struct Power<Unit<ImplementationT_>, ExponentT_> {
 template <typename DimensionT_, typename SystemT_>
 struct Identity<Unit<boost::units::unit<DimensionT_, SystemT_>>> {
   using type = Unit<boost::units::unit<boost::units::dimensionless_type, SystemT_>>;
-};
-template <typename DimensionT_, typename SystemT_>
-struct Identity<Unit<boost::units::absolute<boost::units::unit<DimensionT_, SystemT_>>>> {
-  using type = Unit<boost::units::absolute<boost::units::unit<boost::units::dimensionless_type, SystemT_>>>;
 };
 
 template <typename ImplementationT_>

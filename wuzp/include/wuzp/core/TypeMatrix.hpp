@@ -331,8 +331,9 @@ struct Division<TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<TypesLhs...>>,
   using type = TypeMatrixImpl<RowsLhsV_, ColsLhsV_, std::tuple<typename Division<TypesLhs, TypesRhs>::type...>>;
 };
 
+//! The elementwise reciprocal. The matrix inverse is only defined for matrices of units (see Units.hpp).
 template <int RowsV_, int ColsV_, typename... Types>
-struct Inverse<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Types...>>> {
+struct CwiseInverse<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Types...>>> {
   using type = TypeMatrixImpl<RowsV_, ColsV_, std::tuple<typename Inverse<Types>::type...>>;
 };
 

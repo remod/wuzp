@@ -75,19 +75,16 @@ struct CastCoordinateSystem<
 };
 
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, typename FromT_, typename ToT_,
-          int DimensionFromV_, int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_,
-          typename AbsoluteOtherT_>
+          int DimensionFromV_, int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
 struct TransformationTraits<
     PassiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
-    Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
+    Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>> {
   static auto transform(const PassiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, FromT_, ToT_, DimensionFromV_,
                                                           DimensionToV_, UnitsT_...>& transformation,
-                        const Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+                        const Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A covector transforms with the inverse: w' = w A^-1.
-    return castCoordinateSystem<ToT_>(internal::mapRelative(object, [&transformation](const auto& relative) {
-      return internal::withQuantities<CoordinateSystemT_>(
-          relative, innerProduct(relative.getQuantities(), transformation.getQuantities().tensorInverse()));
-    }));
+    return castCoordinateSystem<ToT_>(internal::withQuantities<CoordinateSystemT_>(
+        object, innerProduct(object.getQuantities(), transformation.getQuantities().inverse())));
   }
 };
 
@@ -100,7 +97,7 @@ struct TransformationTraits<
                                                           DimensionToV_, UnitsT_...>& transformation,
                         const Tensor<Indices<Down, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A tensor with two lower indices, e.g. a mass matrix, transforms like M' = A^-T M A^-1.
-    const auto inverse = transformation.getQuantities().tensorInverse();
+    const auto inverse = transformation.getQuantities().inverse();
     return castCoordinateSystem<ToT_>(internal::withQuantities<CoordinateSystemT_>(
         object, innerProduct(inverse.transpose(), innerProduct(object.getQuantities(), inverse))));
   }
@@ -132,8 +129,8 @@ struct TransformationTraits<
                         const Tensor<Indices<Up, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A linear map transforms like T' = A T A^-1.
     return castCoordinateSystem<ToT_>(internal::withQuantities<CoordinateSystemT_>(
-        object, innerProduct(transformation.getQuantities(),
-                             innerProduct(object.getQuantities(), transformation.getQuantities().tensorInverse()))));
+        object,
+        innerProduct(transformation.getQuantities(), innerProduct(object.getQuantities(), transformation.getQuantities().inverse()))));
   }
 };
 

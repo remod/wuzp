@@ -1,5 +1,5 @@
-// This example shows how wuzp prevents invalid operations on absolute quantities.
-// To introduce an absolute quantity, it is required to use the Tensor class, which also specifies the corresponding coordinate system.
+// This example shows how wuzp prevents invalid operations on absolute quantities, which follow the rules of affine spaces.
+// An absolute quantity, e.g. a time point, is a point in a one-dimensional coordinate system whose origin is its zero, here an epoch.
 
 #include <iostream>
 
@@ -23,5 +23,9 @@ int main() {
   // EpochTimePointD timePoint2 = timePoint + timePoint;  // error: static assertion failed: Two absolute objects cannot be summed.
   EpochTimePointD timePoint2 = timePoint + duration;
   std::cout << "Resulting time point: " << timePoint2 << std::endl;
+  // Scaling a time point depends on the epoch, so it does not compile; an affine combination is a time point plus a duration.
+  // EpochTimePointD half = timePoint2 * 0.5;  // error: static assertion failed: An absolute object cannot appear in a multiplication.
+  EpochTimePointD midpoint = timePoint + (timePoint2 - timePoint) * 0.5;
+  std::cout << "Midpoint: " << midpoint << std::endl;
   return 0;
 }

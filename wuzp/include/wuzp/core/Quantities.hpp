@@ -156,16 +156,20 @@ class Quantities {
         values_.crossProduct(other.getValues())};
   }
 
+  //! The matrix inverse of a square matrix, whose units must describe a linear map, M_ij = a_i / b_j: the units of the inverse are
+  //! (M^-1)_ij = b_i / a_j (see Inverse<TypeMatrixImpl<...>> in Units.hpp).
   auto inverse() const { return typename Evaluate<typename Inverse<ThisT>::type>::type{values_.inverse()}; }
-  auto tensorInverse() const { return typename Evaluate<typename TensorInverse<ThisT>::type>::type{values_.tensorInverse()}; }
+  //! The elementwise reciprocal, whose units are the reciprocals of the units.
+  auto cwiseInverse() const { return typename Evaluate<typename CwiseInverse<ThisT>::type>::type{values_.cwiseInverse()}; }
 
   auto norm() const { return typename GetType<ThisT>::type{values_.norm()}; }
 
   auto squaredNorm() const { return typename Power<typename GetType<ThisT>::type, Integer<2>>::type{values_.squaredNorm()}; }
 
-  //! Get the determinant. Its unit is the product of the units on the diagonal, e.g. u^n for a matrix with a single unit u.
+  //! Get the determinant of a square matrix, including a 1x1 matrix, whose units must describe a linear map. Its unit is the
+  //! product of the units on the diagonal, e.g. u^n for a matrix with a single unit u (see Determinant<TypeMatrixImpl<...>>).
   auto determinant() const
-    requires(Dimension<ThisT>::value == 2)
+    requires(Dimension<ThisT>::value != 1)
   {
     return typename Determinant<ThisT>::type{values_.determinant()};
   }
@@ -318,12 +322,14 @@ struct Element<Quantities<ValuesT_, UnitsT_>, ElementRowIdV_, ElementColIdV_> {
 
 template <typename ValuesT_, typename UnitsT_>
 struct Inverse<Quantities<ValuesT_, UnitsT_>> {
-  using type = Quantities<typename Inverse<ValuesT_>::type, typename Inverse<UnitsT_>::type>;
+  // The units first, which also check that the matrix is square.
+  using UnitsT = typename Inverse<UnitsT_>::type;
+  using type = Quantities<typename Inverse<ValuesT_>::type, UnitsT>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
-struct TensorInverse<Quantities<ValuesT_, UnitsT_>> {
-  using type = Quantities<typename TensorInverse<ValuesT_>::type, typename TensorInverse<UnitsT_>::type>;
+struct CwiseInverse<Quantities<ValuesT_, UnitsT_>> {
+  using type = Quantities<typename CwiseInverse<ValuesT_>::type, typename CwiseInverse<UnitsT_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>

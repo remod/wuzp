@@ -16,7 +16,8 @@ Open questions are marked with **TODO** and must be decided before 1.0.
 * **Coordinate systems.** Every tensor is expressed in a coordinate system, a type without runtime cost.
   Operations combining tensors require them to be expressed in the same coordinate system.
   A coordinate system means axes and an origin; it is not a moving observer.
-* **Absolute and relative tensors.** Absolute tensors are points, relative tensors are vectors (like temperatures and temperature differences).
+* **Points and vectors.** Absolute tensors are points, relative tensors are vectors and all other tensors (like temperatures and temperature differences).
+  Points follow the rules of affine spaces: operations whose result depends on the origin of the coordinate system are rejected (see [Points and vectors](#points-and-vectors)).
 * **Transformations.** Rotations, translations, proper rigid transformations (first rotation, then translation), Jacobians and Lorentz transformations, each in an active and a passive form.
 
 ## Conventions
@@ -45,17 +46,23 @@ Active and passive transformations with the same parameters cancel each other.
 
 `transformation.transform(otherTransformation)` re-expresses the other transformation in another coordinate system (conjugation); it does not compose them.
 
-**Absolute and relative tensors.**
-The rules follow affine geometry (and Boost.Units' absolute quantities):
+**Points and vectors.**
+The rules follow affine geometry (see [Points and vectors](#points-and-vectors)), where `o` is the origin of the coordinate system:
 
 | Operation | Result |
 | --- | --- |
 | point + vector, vector + point | point |
-| point + point | error |
 | point - vector | point |
 | point - point | vector |
-| vector - point | error |
-| product with a tensor of rank 0, quotient by it, `cwiseProduct`, `cwiseQuotient`, norm, cross product | only for vectors |
+| point + point, vector - point | error |
+| affine combination, e.g. the midpoint `p + (q - p) * 0.5` | point |
+| `makeRelative(point)` | the vector `p - o`, with the components of the point |
+| `makeAbsolute(vector)` | the point `o + v`, with the components of the vector |
+| `makeRelative(vector)`, `makeAbsolute(point)` | error |
+| negation, product with a scalar or a quantity, quotient by them | error for points |
+| dot, inner, outer and cross product, `cwiseProduct`, `cwiseQuotient` | error for points |
+| norm, `inverse()`, `cwiseInverse()`, transpose | error for points |
+| absolute tensors other than vectors, e.g. an absolute covector or scalar | error |
 
 ## Decisions
 
@@ -111,7 +118,7 @@ Decision:
   `AccessUnits` keeps a single specialization for all value types, and the units backends specialize the arithmetic traits for their units, partly for all units (Boost.Units).
   Including two units backends in one translation unit is a redefinition error, and using them in different translation units of one program an ODR violation.
   Quantities of different units backends could not be combined anyway, so constraining the units backends like the value matrix backends would add complexity without a use.
-* The interface is defined by concepts in `wuzp/core/concepts.hpp`: `ValueMatrixBackend` checks the traits the core needs, `InvertibleValueMatrixBackend` additionally the inverses, and `UnitSystem` that the units of a units backend are consistent, e.g. that a velocity is a length divided by a time, and that torque is the unit of energy.
+* The interface is defined by concepts in `wuzp/core/concepts.hpp`: `ValueMatrixBackend` checks the traits the core needs, `InvertibleValueMatrixBackend` additionally the matrix inverses and determinants, and `UnitSystem` that the units of a units backend are consistent, e.g. that a velocity is a length divided by a time, and that torque is the unit of energy.
   The value matrix concepts check the traits on scalars, vectors, covectors and square matrices of `double` and `int`.
 * The tests check that every backend satisfies its concept (`tests/src/ValueMatrixBackends.cpp`, `tests/src/Unit.cpp`), so a backend that misses a trait fails there, and authors of other backends check theirs the same way, e.g. `static_assert(wuzp::ValueMatrixBackend<my_backend::ValueMatrix>);`.
   The backends do not check it in their headers: the check instantiates many expressions of the backend, which made every translation unit with Eigen compile about 0.7 s longer (see the [benchmarks](benchmarks/README.md#compile-time)), a cost that only backend authors benefit from.
@@ -157,7 +164,7 @@ Libraries for symbolic tensor algebra, e.g. SymPy and xAct, likewise record the 
 
 * The components are stored in a canonical shape, checked with a `static_assert`: a tensor of rank 0 is a 1x1 matrix, a vector a column, a covector a row, and a tensor of rank 2 a square matrix.
   A tensor with an upper index may also store a batch of vectors or points, one per column, e.g. a point cloud, which the transformations transform at once.
-  Transformations, sums, differences, comparisons, and products and quotients with scalars accept batches; the operations that are only defined for a single vector reject them with a `static_assert`: `innerProduct`, `outerProduct`, `dotProduct`, `crossProduct`, `norm()`, `squaredNorm()`, `transpose()`, `inverse()`, `tensorInverse()`, `determinant()` and `getInvariant()`.
+  Transformations, sums, differences, comparisons, and products and quotients with scalars accept batches; the operations that are only defined for a single vector reject them with a `static_assert`: `innerProduct`, `outerProduct`, `dotProduct`, `crossProduct`, `norm()`, `squaredNorm()`, `transpose()`, `inverse()`, `determinant()` and `getInvariant()`.
 * `transpose()` swaps the indices of a tensor of rank 2, e.g. `(T^T)_j^i = T^i_j`, and turns a vector, a column, into a covector, a row, and vice versa.
   The latter lowers or raises the index with the Euclidean metric, which keeps the components (Carroll, eq. 1.62 and the text after it; see [Metric](#todo-metric)).
 * `innerProduct` contracts the last index of the left-hand side with the first index of the right-hand side, which must be an upper and a lower index, since a contraction pairs an upper with a lower index, and the order of the indices matters (Carroll, eqs. 1.59 and 1.60).
@@ -165,7 +172,7 @@ Libraries for symbolic tensor algebra, e.g. SymPy and xAct, likewise record the 
   It is computed as the product of the matrices of the components, with a vector on the left-hand side transposed into a row and a covector on the right-hand side into a column.
   The result keeps the remaining indices in their order and is stored in its canonical shape: e.g. `innerProduct(M, v)` is the covector `M_ij v^j`, a row, although the product of the matrices is a column, and the kinetic energy is `innerProduct(v, innerProduct(M, v)) / 2`.
 * `outerProduct` concatenates the indices, e.g. `v^i w_j`, so that both operands are vectors or covectors: tensors have rank 2 at most.
-* `inverse()` and `tensorInverse()` swap and flip the indices, like the matrix inverse, which maps a metric `g_ij` to `g^ij` (Carroll, eq. 1.56).
+* `inverse()`, the matrix inverse of a tensor of rank 0 or 2, maps the indices `(X, Y)` to `(not Y, not X)`, e.g. a metric `g_ij` to `g^ij` (Carroll, eq. 1.56; see [Inverses and determinants](#inverses-and-determinants)).
 
 The matrices of the transformations map one coordinate system into another, possibly of another dimension, so they are not tensors in one coordinate system: the transformations multiply their matrix with the quantities of the tensors they transform, and `getTensor()` only exists for square matrices.
 
@@ -186,6 +193,46 @@ Decision: `*` and `/` only take scalars, so that neither the elementwise product
 * `tensorProduct` is removed: `outerProduct` is the tensor product of tensors of rank 2 at most.
 * The units of a product of matrices must be equal in all summands of an element, which holds for the matrices of linear maps, whose units are `u_i / v_j` (Hart, Multidimensional Analysis, 1995).
 
+### Points and vectors
+
+The rules for `+` and `-` of points and vectors were correct, but other operations on points compiled although their result depends on the origin of the coordinate system: `point * 2.0`, `point * quantity`, `point / quantity`, `-point`, `point.dotProduct(point)` and `point.inverse()`.
+`makeRelative()` of a vector and `makeAbsolute()` of a point were accepted, and tensors of every rank could be absolute, e.g. the aliases `Copoint` and `HomogeneousCopoint`, which have no affine meaning.
+
+Decision: points follow the rules of affine spaces, like CGAL's points and vectors ([2D and 3D Linear Geometry Kernel](https://doc.cgal.org/latest/Kernel_23/index.html)), mp-units' quantity points ([The Affine Space](https://mpusz.github.io/mp-units/latest/users_guide/framework_basics/the_affine_space/)) and Boost.Units' absolute quantities.
+
+* `p - q` is a vector, `p + v`, `v + p` and `p - v` are points.
+  Every other operation whose result depends on the origin is rejected with a `static_assert` (see the table in [Conventions](#conventions)): the result must be invariant under translations of the origin, in the terms of Atkey, Johann and Kennedy, ["Abstraction and invariance for algebraically indexed types"](https://doi.org/10.1145/2429069.2429082) (POPL 2013).
+* The rules are traits of `Absolute` and `Relative` (`Absolute.hpp`), e.g. `Product<Absolute, Relative>` and `Negation<Absolute>`, which the traits of tensors combine like those of their indices, e.g. `Product<Tensor, Quantities>` with `Product<AbsoluteT, Relative>`, rather than checks in each operator.
+* Affine combinations are written `p + (q - p) * t`, e.g. the midpoint `p + (q - p) * 0.5`; there are no barycentric operators.
+* `makeRelative()` and `makeAbsolute()` are relative to the origin `o` of the coordinate system: `makeRelative(p)` is the vector `p - o`, `makeAbsolute(v)` the point `o + v`, both with the same components.
+  `makeRelative()` rejects a vector, and `makeAbsolute()` a point.
+* Only a tensor with one upper index, a vector or a batch of vectors, can be absolute: a covector pairs with vectors, not with points, and the aliases `Copoint` and `HomogeneousCopoint` are removed.
+* An absolute scalar, e.g. a time point or a temperature on the Celsius scale, is a point in a one-dimensional affine space, whose coordinate system is its origin, e.g. an epoch, absolute zero or the ice point: `TimePoint` is a point in a one-dimensional coordinate system such as `CoordinateSystem<Epoch>`, the difference of two time points is a `Duration`, and a change of the origin is a one-dimensional translation.
+  The SI defines the Celsius temperature like this, `t = T - T0` with `T0 = 273.15 K` ([SI Brochure](https://www.bipm.org/en/publications/si-brochure), section 2.3.1): the thermodynamic temperature `T` has a natural zero, and the Celsius scale moves the origin to the ice point.
+  Libraries with absolute scalars give them an origin, too: the clocks of `std::chrono`, the point origins of mp-units and Boost.Units' `absolute`.
+  An absolute tensor of rank 0 is rejected, and there are no temperature aliases, since nothing needs them yet.
+
+### Inverses and determinants
+
+`inverse()` computed the elementwise reciprocal, but swapped and flipped the indices like the matrix inverse, which has no tensor meaning: the inverse of a vector was a covector of reciprocals.
+`tensorInverse()` computed the matrix inverse.
+The check of the units of the inverse, "Matrix is not invertible.", could never fail: for units that do not describe a linear map, computing the candidate inverse already failed with "Units do not match.", and all other units passed the check, which was also wrong in kind, since units cannot tell whether a matrix is invertible.
+
+Decision:
+
+* `inverse()` is the matrix inverse of values, quantities and tensors, like Eigen's `MatrixBase::inverse()`, and `tensorInverse()` is removed.
+  The elementwise reciprocal is `cwiseInverse()`, like Eigen's `cwiseInverse()`; for tensors it depends on the basis, so it returns quantities, like `cwiseProduct`.
+* The inverse of a tensor exists for rank 0 and 2, and maps the indices `(X, Y)` to `(not Y, not X)`, since `(M^-1)^ij M_jk = δ^i_k`: the inverse of a linear map `T^i_j` is a linear map, and the inverse of a metric or a mass matrix `M_ij` has two upper indices (Carroll, eq. 1.56).
+  Vectors, covectors and points have no inverse.
+* The units of the inverse are `(M^-1)_ij = b_i / a_j` for `M_ij = a_i / b_j` (Hart, [Multidimensional Analysis](https://doi.org/10.1007/978-1-4612-4208-6), 1995, sections 3.1 and 3.3): the inverse maps the units `a` back to `b`.
+  The trait `UnitsDescribeLinearMap` checks that the units of a matrix have this form, `M_ij M_00 = M_i0 M_0j`, i.e. that the unit matrix is the outer product of a column of units and a row of inverse units.
+  `inverse()` and `determinant()` check it first, with the message "The units of the matrix do not describe a linear map (M_ij = a_i / b_j).".
+  Whether the values are invertible is only known at run time.
+* `determinant()` of a tensor is only defined for rank 0 and the mixed tensors of rank 2, `Indices<Up, Down>` and `Indices<Down, Up>`, whose determinant is invariant: `det(A T A^-1) = det(T)`.
+  The determinant of a tensor with two lower indices changes by `det(A)^-2` under a linear transformation `A` (`M' = A^-T M A^-1`), and that of a tensor with two upper indices by `det(A)^2`: they are scalar densities of weight -2 and 2, not scalars (Carroll, eq. 2.41).
+  It is rejected with a `static_assert`, and `getQuantities().determinant()` computes the determinant of the components; the determinants of values and quantities are not restricted.
+  Vectors and covectors have no determinant, like they have no inverse: `determinant()` and `inverse()` exist for every tensor and reject them with a `static_assert`, rather than a constraint, so that the error says why.
+
 ### Integer values
 
 Decision: operations whose result is not an integer, such as the norm or a power with a non-integer exponent, are computed in floating point and truncated to the value type, like the norm of integer vectors in Eigen: `pow<1, 2>()` of 5 m² is 2 m (#63).
@@ -197,7 +244,7 @@ The library was reviewed for mathematical and physical soundness, with claims ve
 **Sound:**
 
 * The unit exponent algebra and the canonical reduction of rational exponents.
-* The unit inverse of matrices and its invertibility check, which accepts exactly the matrices with units of the form `u_i / v_j`, i.e. matrices that describe a linear map.
+* The units of the matrix inverse, `(M^-1)_ij = b_i / a_j` for the matrices with units of the form `M_ij = a_i / b_j`, i.e. matrices that describe a linear map; the units of other matrices are rejected (see [Inverses and determinants](#inverses-and-determinants)).
 * The transformation rules for vectors, points, (1,1) and (0,2) tensors (`A^-T M A^-1` matches `R M R^T` to 1e-15 for a general rotation).
 * Active and passive transformations cancel each other; the order of rotation and translation in rigid transformations; translations moving points but not vectors.
 * The passive Lorentz boost matrix (standard form, `x^0 = c t` in length units, signature `(+,-,-,-)`, `Λ_0i = -γ β_i`), for the velocity of `To` relative to `From`, expressed in `From`, which must be smaller than the speed of light (#67).
@@ -241,22 +288,6 @@ A code audit (November 2026) found these defects, all fixed:
 
 ## Open design questions
 
-### TODO: Meaning of `Tensor::inverse()`
-
-`inverse()` computes the elementwise reciprocal but swaps and flips the indices like the matrix inverse, which has no tensor meaning (the `inverse()` of a vector is a covector of reciprocals).
-`tensorInverse()` is the matrix inverse.
-
-Options: (a) `inverse()` is the matrix inverse of (1,1) tensors (mapping `T` to `T^-1`), and the elementwise reciprocal gets a different name; (b) keep both with clearer names.
-Recommendation: (a).
-
-### TODO: Operations on points
-
-The rules for `+` and `-` are correct, but these operations on points compile although their result depends on the origin: `point * 2.0`, `point * quantity`, `point / quantity`, `-point`, `point.dotProduct(point)`.
-`norm()`, the cross product, `cwiseProduct`, `cwiseQuotient` and the product with a tensor of rank 0 correctly reject points.
-
-Recommendation: reject all of them, with compile tests.
-In the same spirit, `makeRelative()` of a relative tensor and `makeAbsolute()` of an absolute tensor are silently accepted, although the corresponding traits (`Absolute.hpp`) reject them; recommendation: reject them as well.
-
 ### TODO: Jacobians
 
 A Jacobian is a `PassiveLinearTransformation`, so it also maps points: the Jacobian of polar to Cartesian coordinates at `r = 2` maps the point `(2 m, π/2)` to `(2, 3.14) m` instead of `(0, 2) m`.
@@ -290,26 +321,16 @@ Recommendation: add both, type-checked through the coordinate systems; they are 
 
 Coordinate systems are axes and an origin, not moving observers.
 A passive transformation of a velocity re-expresses it; it does not add `ω × r` or the velocity of the coordinate system, and a rigid transformation of a torque ignores the moment arm (`t × F`).
+The rigid transformation of a mass or inertia tensor does not compile, which is arguably safer than guessing the parallel axis term.
 The transport formulas exist only in the tests.
 Recommendation: document this clearly; consider dedicated twist and wrench types later.
 
 ### TODO: Backend support for inverses
 
-Blitz++ provides neither inverses nor determinants, so transformations of covectors, linear maps and bilinear forms only work with Eigen, and the Blitz++ backend does not satisfy `InvertibleValueMatrixBackend`.
+Blitz++ provides neither matrix inverses nor determinants, so transformations of covectors, linear maps and bilinear forms only work with Eigen, and the Blitz++ backend does not satisfy `InvertibleValueMatrixBackend`.
+Of the inverses, the Blitz++ backend only implements the elementwise reciprocal, `cwiseInverse()`.
 This weakens the goal that every feature works with every backend.
 Recommendation: implement small fixed-size inverses for Blitz++ in *wuzp*, or document the restriction per backend.
-
-### TODO: Absolute scalars
-
-Absolute and relative only exist for tensors, so an absolute scalar (e.g. a time point or a temperature) needs a coordinate system, and there is no temperature alias.
-The rigid transformation of a mass or inertia tensor does not compile, which is arguably safer than guessing the parallel axis term.
-Recommendation: decide whether absolute quantities without a coordinate system are needed.
-
-### TODO: Unreachable invertibility check
-
-The check "Matrix is not invertible." (`Units.hpp`) can probably never fail: for matrices whose units do not describe a linear map, computing the candidate inverse already fails with "Units do not match.", and for all others, the check passes.
-The unit of `determinant()` relies on the same computation to reject such matrices, and reports the same message (with Boost.Units, an error without a `static_assert`).
-Recommendation: verify, then replace it with a check that runs first and reports a clear message, such as "The units of the matrix do not describe a linear map."
 
 ## Notes on tensor calculus
 

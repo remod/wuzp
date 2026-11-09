@@ -293,9 +293,11 @@ struct SquaredNorm<AccessImplementation<ImplementationT_>> {
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
+// Blitz++ provides neither determinants nor matrix inverses (see "Backend support for inverses" in DESIGN.md).
 template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Determinant<AccessImplementation<ImplementationT_>> {
-  static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value, "Determinant is not implemented for blitz.");
+  static_assert(FailOnInstantiation<Determinant<AccessImplementation<ImplementationT_>>>::value,
+                "Determinant is not implemented for blitz.");
 };
 
 template <wuzp_blitz::BlitzArray ImplementationT_>
@@ -304,9 +306,10 @@ struct Inverse<AccessImplementation<ImplementationT_>> {
 };
 
 template <wuzp_blitz::BlitzArray ImplementationT_>
-struct TensorInverse<AccessImplementation<ImplementationT_>> {
-  static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value,
-                "Tensor inverse is not implemented for blitz.");
+struct CwiseInverse<AccessImplementation<ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return static_cast<typename ImplementationT_::T_numtype>(1) / impl; }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <wuzp_blitz::BlitzArray ImplementationT_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>

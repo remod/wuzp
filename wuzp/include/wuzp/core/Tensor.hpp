@@ -68,7 +68,11 @@ struct RejectBatch {
  * a row for a covector, a square matrix for rank 2. A tensor with an upper index may also store a batch of vectors or points,
  * one per column, e.g. a point cloud.
  * @tparam CoordinateSystemT_ The coordinate system that the components are expressed in.
- * @tparam AbsoluteT_ Absolute for points, Relative for vectors (see Absolute.hpp).
+ * @tparam AbsoluteT_ Absolute for points, Relative for vectors and all other tensors (see Absolute.hpp). Only a tensor with one
+ * upper index, a vector or a batch of vectors, can be absolute: the components of a point are those of the vector from the
+ * origin of the coordinate system to it. An absolute scalar, e.g. a time point or a temperature on the Celsius scale, is a point
+ * in a one-dimensional coordinate system whose origin is its zero, e.g. an epoch or the ice point, like the Celsius temperature
+ * t = T - T0 of the SI Brochure, section 2.3.1 (https://www.bipm.org/en/publications/si-brochure) (see TimePoint).
  */
 template <AnyIndices IndicesT_, AnyQuantities QuantitiesT_, AnyCoordinateSystem CoordinateSystemT_, AbsoluteOrRelative AbsoluteT_>
 class Tensor {
@@ -90,6 +94,10 @@ class Tensor {
                 "A covector, a tensor with one lower index, is stored as a row.");
   static_assert(IndicesT::RankV != 2 || Rows<QuantitiesT>::value == Cols<QuantitiesT>::value,
                 "A tensor of rank 2 is stored as a square matrix.");
+  // Points have no counterpart in other ranks: e.g. a covector pairs with vectors, not with points, and an absolute scalar is a
+  // one-dimensional point (see "Points and vectors" in DESIGN.md).
+  static_assert(!AbsoluteT::value || std::is_same_v<IndicesT, Indices<Up>>,
+                "Only a tensor with one upper index, a vector or a batch of vectors, can be absolute (a point).");
 
   Tensor() = default;
 
@@ -195,26 +203,30 @@ class Tensor {
         quantities_.crossProduct(other.getQuantities())};
   }
 
-  //! The elementwise reciprocal. Its indices are swapped and flipped, like those of the inverse (see Inverse<Indices<...>>), so
-  //! a vector becomes a covector, a row.
-  auto inverse() const {
-    return
-        typename Evaluate<typename Inverse<ThisT>::type>::type{internal::TransposeIf<IndicesT::RankV == 1>::value(quantities_.inverse())};
-  }
-  //! The matrix inverse, e.g. of a linear map T^i_j, or of a metric g_ij, which is g^ij (see Inverse<Indices<...>>).
-  auto tensorInverse() const {
-    return typename Evaluate<typename TensorInverse<ThisT>::type>::type{
-        internal::TransposeIf<IndicesT::RankV == 1>::value(quantities_.tensorInverse())};
+  /**
+   * The matrix inverse of a tensor of rank 0 or 2, like Eigen's MatrixBase::inverse(): e.g. the inverse of a linear map T^i_j is
+   * a linear map, and the inverse of a metric g_ij, or of a mass matrix M_ij, has two upper indices, g^ij (see
+   * Inverse<Indices<...>>). The units of the components must describe a linear map, M_ij = a_i / b_j, and those of the inverse
+   * are (M^-1)_ij = b_i / a_j (see Inverse<TypeMatrixImpl<...>> in Units.hpp). Vectors, covectors and points have no inverse.
+   */
+  auto inverse() const { return typename Evaluate<typename Inverse<ThisT>::type>::type{quantities_.inverse()}; }
+
+  //! The elementwise reciprocal of the components, like Eigen's ArrayBase::inverse(). It depends on the basis, so it is not a
+  //! tensor: it returns quantities, without indices or a coordinate system, like cwiseProduct(). Points are rejected, since their
+  //! components depend on the origin.
+  auto cwiseInverse() const {
+    static_assert(std::is_same_v<typename Inverse<AbsoluteT>::type, Relative>);
+    return quantities_.cwiseInverse();
   }
 
-  // The norms are defined for tensors of dimension 0 and 1, and the determinant for dimension 2. Batches of vectors have them
-  // too, so that they are rejected with a clear message.
+  // The norms are defined for tensors of dimension 0 and 1. Batches of vectors have them too, so that they are rejected with a
+  // clear message. The norms of a point depend on the origin, so Norm<Absolute> rejects them.
 
   auto norm() const
     requires(Dimension<ThisT>::value <= 1 || internal::isBatch<IndicesT, QuantitiesT>)
   {
     static_assert(internal::RejectBatch<IndicesT, QuantitiesT>::value);
-    static_assert(!AbsoluteT_::value, "Tensor is not relative.");
+    static_assert(std::is_same_v<typename Norm<AbsoluteT>::type, Relative>);
     return quantities_.norm();
   }
 
@@ -222,17 +234,15 @@ class Tensor {
     requires(Dimension<ThisT>::value <= 1 || internal::isBatch<IndicesT, QuantitiesT>)
   {
     static_assert(internal::RejectBatch<IndicesT, QuantitiesT>::value);
-    static_assert(!AbsoluteT_::value, "Tensor is not relative.");
+    static_assert(std::is_same_v<typename Norm<AbsoluteT>::type, Relative>);
     return quantities_.squaredNorm();
   }
 
-  //! Get the determinant of a tensor of rank 2.
-  auto determinant() const
-    requires(Dimension<ThisT>::value == 2)
-  {
-    static_assert(internal::RejectBatch<IndicesT, QuantitiesT>::value);
-    return quantities_.determinant();
-  }
+  //! The determinant of a tensor of rank 0 or of a mixed tensor of rank 2, e.g. a linear map T^i_j, which is invariant. The
+  //! determinant of a tensor with two upper or two lower indices depends on the basis, so it is rejected (see
+  //! Determinant<Indices<...>>); getQuantities().determinant() computes the determinant of its components. Like inverse(), it
+  //! exists for every tensor, so that vectors, covectors and batches are rejected with a clear message.
+  auto determinant() const { return typename Determinant<ThisT>::type{quantities_.determinant()}; }
 
   void hyperdeterminant() const { static_assert(FailOnInstantiation<ThisT>::value, "Not implemented"); }
 
@@ -311,7 +321,7 @@ struct Difference<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, A
 
 template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct Negation<Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
-  using type = Tensor<IndicesT_, typename Negation<QuantitiesT_>::type, CoordinateSystemT_, AbsoluteT_>;
+  using type = Tensor<IndicesT_, typename Negation<QuantitiesT_>::type, CoordinateSystemT_, typename Negation<AbsoluteT_>::type>;
 };
 
 //! The product of two tensors, one of which has rank 0, e.g. of a scalar field and a vector. It has the indices of the other
@@ -326,7 +336,8 @@ struct Product<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, Abso
 };
 
 //! The product of a tensor and a quantity, a 1x1 matrix of quantities. The quantities of other sizes have no indices, so their
-//! elementwise product with a tensor is not a tensor (see Product<Indices<...>, Indices<...>>).
+//! elementwise product with a tensor is not a tensor (see Product<Indices<...>, Indices<...>>). A quantity is relative, so the
+//! product of a point is rejected (see Product<Absolute, Relative>): it depends on the origin.
 template <typename IndicesLhsT_, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_, typename AbsoluteLhsT_, typename ValuesRhsT_,
           typename UnitsRhsT_>
 struct Product<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
@@ -334,7 +345,7 @@ struct Product<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, Abso
                 "A tensor can only be multiplied by a scalar, a quantity or a tensor of rank 0. Use innerProduct, outerProduct or "
                 "cwiseProduct for other products.");
   using type = Tensor<IndicesLhsT_, typename Product<QuantitiesLhsT_, Quantities<ValuesRhsT_, UnitsRhsT_>>::type, CoordinateSystemLhsT_,
-                      AbsoluteLhsT_>;
+                      typename Product<AbsoluteLhsT_, Relative>::type>;
 };
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename IndicesRhsT_, typename QuantitiesRhsT_, typename CoordinateSystemRhsT_,
           typename AbsoluteRhsT_>
@@ -393,7 +404,8 @@ struct DotProduct<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, A
   static_assert(std::is_same_v<IndicesLhsT_, IndicesRhsT_>, "Indices do not match.");
   static_assert(internal::RejectBatch<IndicesLhsT_, QuantitiesLhsT_>::value && internal::RejectBatch<IndicesRhsT_, QuantitiesRhsT_>::value);
   static_assert(std::is_same_v<CoordinateSystemLhsT_, CoordinateSystemRhsT_>, "Coordinate systems do not match.");
-  static_assert(std::is_same_v<AbsoluteLhsT_, AbsoluteRhsT_>, "Absolute/relative mismatch.");
+  //! The dot product of a point depends on the origin, so Product<Absolute, ...> rejects it.
+  using AbsoluteT = typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type;
   using type = typename DotProduct<QuantitiesLhsT_, QuantitiesRhsT_>::type;
 };
 
@@ -403,9 +415,10 @@ struct CrossProduct<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_,
                     Tensor<IndicesRhsT_, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
   static_assert(internal::RejectBatch<IndicesLhsT_, QuantitiesLhsT_>::value && internal::RejectBatch<IndicesRhsT_, QuantitiesRhsT_>::value);
   static_assert(std::is_same_v<CoordinateSystemLhsT_, CoordinateSystemRhsT_>, "Coordinate systems do not match.");
-  static_assert(!AbsoluteLhsT_::value && !AbsoluteRhsT_::value, "Cross product is only defined for relative tensors.");
+  //! The cross product of a point depends on the origin, so Product<Absolute, ...> rejects it.
+  using AbsoluteT = typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type;
   using type = Tensor<typename CrossProduct<IndicesLhsT_, IndicesRhsT_>::type,
-                      typename CrossProduct<QuantitiesLhsT_, QuantitiesRhsT_>::type, CoordinateSystemLhsT_, AbsoluteLhsT_>;
+                      typename CrossProduct<QuantitiesLhsT_, QuantitiesRhsT_>::type, CoordinateSystemLhsT_, AbsoluteT>;
 };
 
 //! The quotient of a tensor and a tensor of rank 0 (see Division<Indices<...>, Indices<...>>).
@@ -417,7 +430,8 @@ struct Division<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, Abs
       Tensor<typename Division<IndicesLhsT_, IndicesRhsT_>::type, typename Division<QuantitiesLhsT_, QuantitiesRhsT_>::type,
              typename Division<CoordinateSystemLhsT_, CoordinateSystemRhsT_>::type, typename Division<AbsoluteLhsT_, AbsoluteRhsT_>::type>;
 };
-//! The quotient of a tensor and a quantity, a 1x1 matrix of quantities (see Product<Tensor<...>, Quantities<...>>).
+//! The quotient of a tensor and a quantity, a 1x1 matrix of quantities (see Product<Tensor<...>, Quantities<...>>). The quotient
+//! of a point is rejected (see Division<Absolute, Relative>).
 template <typename IndicesLhsT_, typename QuantitiesLhsT_, typename CoordinateSystemLhsT_, typename AbsoluteLhsT_, typename ValuesRhsT_,
           typename UnitsRhsT_>
 struct Division<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>, Quantities<ValuesRhsT_, UnitsRhsT_>> {
@@ -425,7 +439,7 @@ struct Division<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, Abs
                 "A tensor can only be divided by a scalar, a quantity or a tensor of rank 0. Use cwiseQuotient for elementwise "
                 "quotients.");
   using type = Tensor<IndicesLhsT_, typename Division<QuantitiesLhsT_, Quantities<ValuesRhsT_, UnitsRhsT_>>::type, CoordinateSystemLhsT_,
-                      AbsoluteLhsT_>;
+                      typename Division<AbsoluteLhsT_, Relative>::type>;
 };
 
 template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
@@ -441,21 +455,23 @@ struct Block<Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>, Bl
                       CoordinateSystemT_, AbsoluteT_>;
 };
 
-//! The elementwise reciprocal, whose indices are those of the inverse (see Tensor::inverse()).
+//! The matrix inverse of a tensor of rank 0 or 2 (see Tensor::inverse()).
 template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct Inverse<Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static_assert(internal::RejectBatch<IndicesT_, QuantitiesT_>::value);
-  using type = Tensor<typename Inverse<IndicesT_>::type,
-                      typename internal::TransposeIf<IndicesT_::RankV == 1>::template type<typename Inverse<QuantitiesT_>::type>,
-                      CoordinateSystemT_, typename Inverse<AbsoluteT_>::type>;
+  // The absoluteness and the indices first, which reject points, vectors and covectors with a clearer message than the size of
+  // their components.
+  using AbsoluteT = typename Inverse<AbsoluteT_>::type;
+  using IndicesT = typename Inverse<IndicesT_>::type;
+  using type = Tensor<IndicesT, typename Inverse<QuantitiesT_>::type, CoordinateSystemT_, AbsoluteT>;
 };
 
+//! The determinant of a tensor of rank 0 or of a mixed tensor of rank 2, a quantity (see Tensor::determinant()).
 template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
-struct TensorInverse<Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
+struct Determinant<Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static_assert(internal::RejectBatch<IndicesT_, QuantitiesT_>::value);
-  using type = Tensor<typename TensorInverse<IndicesT_>::type,
-                      typename internal::TransposeIf<IndicesT_::RankV == 1>::template type<typename TensorInverse<QuantitiesT_>::type>,
-                      CoordinateSystemT_, typename Inverse<AbsoluteT_>::type>;
+  using IndicesT = typename Determinant<IndicesT_>::type;
+  using type = typename Determinant<QuantitiesT_>::type;
 };
 
 template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
@@ -467,16 +483,22 @@ template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_
 struct IsAbsolute<Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static constexpr bool value = AbsoluteT_::value;
 };
+//! The vector from the origin of the coordinate system to a point, p - o, which has the components of the point. A vector is
+//! rejected (see MakeRelative<Relative>).
 template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct MakeRelative<Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto make(Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_> object) {
-    return Tensor<IndicesT_, typename Evaluate<QuantitiesT_>::type, CoordinateSystemT_, Relative>(std::move(object).getQuantities());
+    return Tensor<IndicesT_, typename Evaluate<QuantitiesT_>::type, CoordinateSystemT_, typename MakeRelative<AbsoluteT_>::type>(
+        std::move(object).getQuantities());
   }
 };
+//! The point at a vector from the origin of the coordinate system, o + v, which has the components of the vector. A point is
+//! rejected (see MakeAbsolute<Absolute>).
 template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct MakeAbsolute<Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static auto make(Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_> object) {
-    return Tensor<IndicesT_, typename Evaluate<QuantitiesT_>::type, CoordinateSystemT_, Absolute>(std::move(object).getQuantities());
+    return Tensor<IndicesT_, typename Evaluate<QuantitiesT_>::type, CoordinateSystemT_, typename MakeAbsolute<AbsoluteT_>::type>(
+        std::move(object).getQuantities());
   }
 };
 
@@ -531,7 +553,8 @@ auto operator-(const Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, Absolut
 }
 
 // The products with scalars: arithmetic values, values and quantities of size 1x1, and tensors of rank 0. The result has the
-// indices, the coordinate system and the absoluteness of the tensor (see Product<Indices<...>, Indices<...>>).
+// indices and the coordinate system of the tensor (see Product<Indices<...>, Indices<...>>). The product of a point depends on
+// the origin, so it is rejected (see Product<Absolute, Relative>).
 
 //! The product with an arithmetic scalar, which is converted into the value type of the tensor if their common type is the value
 //! type, e.g. 2 * vector for a vector of doubles (see internal::toDimensionlessQuantity).
@@ -663,7 +686,7 @@ template <typename IndicesLhsT_, typename QuantitiesLhsT_, typename CoordinateSy
 auto cwiseProduct(const Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                   const Tensor<IndicesRhsT_, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
   static_assert(std::is_same_v<CoordinateSystemLhsT_, CoordinateSystemRhsT_>, "Coordinate systems do not match.");
-  static_assert(!AbsoluteLhsT_::value && !AbsoluteRhsT_::value, "An absolute object cannot appear in a multiplication.");
+  static_assert(std::is_same_v<typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type, Relative>);
   return product(lhs.getQuantities(), rhs.getQuantities());
 }
 
@@ -674,7 +697,7 @@ template <typename IndicesLhsT_, typename QuantitiesLhsT_, typename CoordinateSy
 auto cwiseQuotient(const Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, AbsoluteLhsT_>& lhs,
                    const Tensor<IndicesRhsT_, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>& rhs) {
   static_assert(std::is_same_v<CoordinateSystemLhsT_, CoordinateSystemRhsT_>, "Coordinate systems do not match.");
-  static_assert(!AbsoluteLhsT_::value && !AbsoluteRhsT_::value, "An absolute object cannot appear in a division.");
+  static_assert(std::is_same_v<typename Division<AbsoluteLhsT_, AbsoluteRhsT_>::type, Relative>);
   return division(lhs.getQuantities(), rhs.getQuantities());
 }
 
@@ -773,17 +796,17 @@ template <int DimensionV_, template <typename, int, int> typename ValuesT_, type
   requires AnyValueMatrix<ValuesT_>
 using HomogeneousCovector = Covector<Quantities<ValuesT_<ValueT_, 1, DimensionV_>, TypeMatrix<1, DimensionV_, UnitT_>>, CoordinateSystemT_>;
 
+/**
+ * A point, or a batch of points, one per column, e.g. a point cloud. Its components are those of the vector from the origin of the
+ * coordinate system to it. Points follow the rules of affine spaces (see Absolute.hpp): p - q is a vector, p + v, v + p and p - v
+ * are points, and everything else that depends on the origin is rejected, e.g. p * 2.0, -p or the norm of p. Affine combinations
+ * are written p + (q - p) * t, e.g. the midpoint p + (q - p) * 0.5.
+ */
 template <typename QuantityVectorT_, typename CoordinateSystemT_>
 using Point = Tensor<Indices<Up>, QuantityVectorT_, CoordinateSystemT_, Absolute>;
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename UnitT_, typename CoordinateSystemT_>
   requires AnyValueMatrix<ValuesT_>
 using HomogeneousPoint = Point<Quantities<ValuesT_<ValueT_, DimensionV_, 1>, TypeMatrix<DimensionV_, 1, UnitT_>>, CoordinateSystemT_>;
-
-template <typename QuantityVectorT_, typename CoordinateSystemT_>
-using Copoint = Tensor<Indices<Down>, QuantityVectorT_, CoordinateSystemT_, Absolute>;
-template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename UnitT_, typename CoordinateSystemT_>
-  requires AnyValueMatrix<ValuesT_>
-using HomogeneousCopoint = Copoint<Quantities<ValuesT_<ValueT_, 1, DimensionV_>, TypeMatrix<1, DimensionV_, UnitT_>>, CoordinateSystemT_>;
 
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using DirectionVector = HomogeneousVector<DimensionV_, ValuesT_, ValueT_,
@@ -858,6 +881,8 @@ using TorqueVector2 = TorqueVector<2, ValuesT_, ValueT_, CoordinateSystemT_>;
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using TorqueVector3 = TorqueVector<3, ValuesT_, ValueT_, CoordinateSystemT_>;
 
+//! A point in time, a one-dimensional point in a coordinate system whose origin is an epoch, e.g. CoordinateSystem<Epoch>. The
+//! difference of two time points is a Duration; a change of the epoch is a translation.
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using TimePoint = HomogeneousPoint<1, ValuesT_, ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Time, CoordinateSystemT_>;
 

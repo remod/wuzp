@@ -1,7 +1,7 @@
 // wuzp-expect: error
-// wuzp-static-assert: Cross product is only defined for relative tensors\.
+// wuzp-static-assert: An absolute object cannot appear in a multiplication\.
 
-// The cross product of a point is not defined, only of vectors.
+// The cross product of a point depends on the origin, so it is not defined, only of vectors.
 
 #include "compile_test_types.hpp"
 

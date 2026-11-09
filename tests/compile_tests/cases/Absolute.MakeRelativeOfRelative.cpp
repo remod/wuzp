@@ -1,5 +1,5 @@
 // wuzp-expect: error
-// wuzp-static-assert: Unit is already relative\.
+// wuzp-static-assert: The object is already relative\.
 
 // Making a relative object relative again is a mistake.
 

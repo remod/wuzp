@@ -146,8 +146,9 @@ template <typename ImplementationT_, typename... ArgsT_>
 struct IsInitializable<ImplementationT_, std::tuple<ArgsT_...>> : std::true_type {};
 
 //! The requirements on the matrices of a value matrix backend with one value type and size: they are allocated, initialized,
-//! evaluated, copied and moved, their elements are accessed, and they are combined elementwise, transposed, multiplied with
-//! their transposes, compared and printed. Lazy results evaluate to the matrix of the backend with the size of the result.
+//! evaluated, copied and moved, their elements are accessed, and they are combined elementwise, inverted elementwise, transposed,
+//! multiplied with their transposes, compared and printed. Lazy results evaluate to the matrix of the backend with the size of
+//! the result.
 template <typename ImplementationT_, template <typename, int, int> typename ValueMatrixT_, typename ValueT_, int RowsV_, int ColsV_>
 concept BackendMatrix =
     std::same_as<ValueMatrixT_<ValueT_, RowsV_, ColsV_>, ValuesWrapper<MatrixSize<RowsV_, ColsV_>, ValueT_, ImplementationT_>> &&
@@ -205,6 +206,9 @@ concept BackendMatrix =
         Division<AccessImplementation<ImplementationT_>, AccessImplementation<ImplementationT_>>::value(impl, impl)
       } -> TraitResult<Division<AccessImplementation<ImplementationT_>, AccessImplementation<ImplementationT_>>, ImplementationT_>;
       {
+        CwiseInverse<AccessImplementation<ImplementationT_>>::value(impl)
+      } -> TraitResult<CwiseInverse<AccessImplementation<ImplementationT_>>, ImplementationT_>;
+      {
         Transpose<AccessImplementation<ImplementationT_>>::value(impl)
       } -> TraitResult<Transpose<AccessImplementation<ImplementationT_>>, ImplementationOf<ValueMatrixT_, ValueT_, ColsV_, RowsV_>>;
       {
@@ -252,17 +256,12 @@ concept BackendValues = BackendMatrixOfSize<ValueMatrixT_, ValueT_, 1, 1> && Bac
                         BackendMatrixOfSize<ValueMatrixT_, ValueT_, 1, 3> && BackendMatrixOfSize<ValueMatrixT_, ValueT_, 3, 3> &&
                         BackendVectorProducts<ValueMatrixT_, ValueT_>;
 
-//! The inverses of square matrices of a value matrix backend: the elementwise inverse, the matrix inverse (TensorInverse) and
-//! the determinant.
+//! The inverses of square matrices of a value matrix backend: the matrix inverse (Inverse) and the determinant.
 template <template <typename, int, int> typename ValueMatrixT_, typename ValueT_, int DimensionV_>
 concept BackendInverses = requires(const ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>& impl) {
   {
     Inverse<AccessImplementation<ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>>::value(impl)
   } -> TraitResult<Inverse<AccessImplementation<ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>>,
-                   ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>;
-  {
-    TensorInverse<AccessImplementation<ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>>::value(impl)
-  } -> TraitResult<TensorInverse<AccessImplementation<ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>>,
                    ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>;
   {
     Determinant<AccessImplementation<ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>>::value(impl)
@@ -276,8 +275,9 @@ concept BackendInverses = requires(const ImplementationOf<ValueMatrixT_, ValueT_
  * value matrices are ValuesWrappers of the given value type and size, and it specializes the traits the core needs for their
  * implementation types. They are checked for scalars, vectors, covectors and square matrices of double and int: allocation,
  * initialization, evaluation, Copy and Move, element access (Coefficient), Rebind, Zero and Random, elementwise Sum,
- * Difference, Negation, Product and Division (also with a scalar), Transpose, Block, InnerProduct, OuterProduct and
- * CrossProduct, Norm and SquaredNorm, Comparison and printing. Inverses are checked by InvertibleValueMatrixBackend.
+ * Difference, Negation, Product and Division (also with a scalar), the elementwise reciprocal CwiseInverse, Transpose, Block,
+ * InnerProduct, OuterProduct and CrossProduct, Norm and SquaredNorm, Comparison and printing. The matrix inverse and the
+ * determinant are checked by InvertibleValueMatrixBackend.
  *
  * A backend checks it in its tests, e.g. `static_assert(wuzp::ValueMatrixBackend<wuzp_eigen::ValueMatrix>);`: the check
  * instantiates many expressions of the backend, which takes about 0.7 s with Eigen. The core constrains its parameters with
@@ -287,9 +287,9 @@ template <template <typename, int, int> typename ValueMatrixT_>
 concept ValueMatrixBackend =
     AnyValueMatrix<ValueMatrixT_> && internal::BackendValues<ValueMatrixT_, double> && internal::BackendValues<ValueMatrixT_, int>;
 
-//! A value matrix backend that also provides the inverses of floating point matrices: Inverse (elementwise), TensorInverse (the
-//! matrix inverse) and Determinant. The transformations of covectors and of tensors with covariant indices need them. A
-//! backend checks it in its tests, like ValueMatrixBackend.
+//! A value matrix backend that also provides the matrix inverse (Inverse) and the determinant (Determinant) of floating point
+//! matrices. The transformations of covectors and of tensors with covariant indices need them. A backend checks it in its
+//! tests, like ValueMatrixBackend.
 template <template <typename, int, int> typename ValueMatrixT_>
 concept InvertibleValueMatrixBackend = ValueMatrixBackend<ValueMatrixT_> && internal::BackendInverses<ValueMatrixT_, double, 1> &&
                                        internal::BackendInverses<ValueMatrixT_, double, 3>;

@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include "wuzp/core/concepts.hpp"
+#include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
 
 // The indices of a tensor, and how operations combine them. The index placement follows chapter 1 of Carroll, Lecture Notes on
@@ -202,24 +203,50 @@ struct Transpose<Indices<Variance0T_, Variance1T_>> {
   using type = Indices<Variance1T_, Variance0T_>;
 };
 
-//! The indices of the inverse: the indices are swapped and flipped, e.g. the inverse of a linear map T^i_j is a linear map, and
-//! the inverse of a metric g_ij is g^ij (Carroll, eq. 1.56, https://arxiv.org/abs/gr-qc/9712019).
+/**
+ * The indices of the matrix inverse, which exists for tensors of rank 0 and 2: the indices (X, Y) become (not Y, not X), since
+ * (M^-1)^ij M_jk = delta^i_k contracts the second index of the inverse with the first index of M. E.g. the inverse of a linear map
+ * T^i_j is a linear map, and the inverse of a metric g_ij, or of a mass matrix M_ij, has two upper indices, g^ij (Carroll, eq.
+ * 1.56, https://arxiv.org/abs/gr-qc/9712019). A vector or a covector is not a square matrix, so it has no inverse.
+ */
 template <>
 struct Inverse<Indices<>> {
   using type = Indices<>;
 };
 template <typename VarianceT_>
 struct Inverse<Indices<VarianceT_>> {
-  using type = Indices<typename internal::Flip<VarianceT_>::type>;
+  static_assert(FailOnInstantiation<VarianceT_>::value,
+                "A vector or a covector has no inverse. Use cwiseInverse() for the reciprocals of its components.");
+  using type = Indices<VarianceT_>;
 };
 template <typename Variance0T_, typename Variance1T_>
 struct Inverse<Indices<Variance0T_, Variance1T_>> {
   using type = Indices<typename internal::Flip<Variance1T_>::type, typename internal::Flip<Variance0T_>::type>;
 };
 
-template <typename... VariancesT_>
-struct TensorInverse<Indices<VariancesT_...>> {
-  using type = typename Inverse<Indices<VariancesT_...>>::type;
+/**
+ * The indices of the determinant, a scalar. Only the determinant of a tensor of rank 0 or of a mixed tensor of rank 2, e.g. a
+ * linear map T^i_j, is invariant: a linear transformation with the matrix A transforms it into T' = A T A^-1, so det(T') =
+ * det(T). The determinant of a tensor with two lower indices, e.g. of a metric or of a mass matrix, M' = A^-T M A^-1, changes by
+ * the factor det(A)^-2, and that of a tensor with two upper indices, T' = A T A^T, by det(A)^2: they are scalar densities of
+ * weight -2 and 2, not scalars (Carroll, eq. 2.41, https://arxiv.org/abs/gr-qc/9712019). A vector or a covector is not a square
+ * matrix, so it has no determinant, like it has no inverse.
+ */
+template <>
+struct Determinant<Indices<>> {
+  using type = Indices<>;
+};
+template <typename VarianceT_>
+struct Determinant<Indices<VarianceT_>> {
+  static_assert(FailOnInstantiation<VarianceT_>::value, "A vector or a covector has no determinant.");
+  using type = Indices<>;
+};
+template <typename Variance0T_, typename Variance1T_>
+struct Determinant<Indices<Variance0T_, Variance1T_>> {
+  static_assert(!std::is_same_v<Variance0T_, Variance1T_>,
+                "The determinant of a tensor with two upper or two lower indices depends on the basis. Use getQuantities().determinant() "
+                "for the determinant of its components.");
+  using type = Indices<>;
 };
 
 }  // namespace wuzp

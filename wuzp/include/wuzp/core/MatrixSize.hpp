@@ -107,13 +107,9 @@ struct Transpose<MatrixSize<RowsV_, ColsV_>> {
   using type = MatrixSize<ColsV_, RowsV_>;
 };
 
+//! The size of the matrix inverse. The elementwise reciprocal keeps the size of any matrix.
 template <int RowsV_, int ColsV_>
 struct Inverse<MatrixSize<RowsV_, ColsV_>> {
-  using type = MatrixSize<RowsV_, ColsV_>;
-};
-
-template <int RowsV_, int ColsV_>
-struct TensorInverse<MatrixSize<RowsV_, ColsV_>> {
   static_assert(RowsV_ == ColsV_, "Matrix is not square.");
   using type = MatrixSize<RowsV_, ColsV_>;
 };

@@ -190,16 +190,17 @@ struct Determinant<AccessImplementation<ImplementationT_>> {
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
+// The matrix inverse. Eigen's arrays name the elementwise reciprocal inverse(), its matrices the matrix inverse.
 template <wuzp_eigen::EigenArray ImplementationT_>
 struct Inverse<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return impl.inverse(); }
+  static auto value(const ImplementationT_& impl) { return impl.matrix().inverse().array(); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <wuzp_eigen::EigenArray ImplementationT_>
-struct TensorInverse<AccessImplementation<ImplementationT_>> {
-  static auto value(const ImplementationT_& impl) { return impl.matrix().inverse().array(); }
+struct CwiseInverse<AccessImplementation<ImplementationT_>> {
+  static auto value(const ImplementationT_& impl) { return impl.inverse(); }
   // Use decltype/declval to allow for lazy evaluation.
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };

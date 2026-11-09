@@ -171,11 +171,13 @@ class ValuesWrapper {
   auto squaredNorm() const { return SquaredNorm<AccessImplementation<ImplementationT>>::value(implementation_); }
   auto determinant() const { return Determinant<AccessImplementation<ImplementationT>>::value(implementation_); }
 
+  //! The matrix inverse of a square matrix, like Eigen's MatrixBase::inverse().
   auto inverse() const {
     return typename Inverse<ThisT>::type{Inverse<AccessImplementation<ImplementationT>>::value(implementation_)}.evaluate();
   }
-  auto tensorInverse() const {
-    return typename TensorInverse<ThisT>::type{TensorInverse<AccessImplementation<ImplementationT>>::value(implementation_)}.evaluate();
+  //! The elementwise reciprocal, like Eigen's ArrayBase::inverse() or MatrixBase::cwiseInverse().
+  auto cwiseInverse() const {
+    return typename CwiseInverse<ThisT>::type{CwiseInverse<AccessImplementation<ImplementationT>>::value(implementation_)}.evaluate();
   }
 
   ThisT& setImplementation(const ImplementationT& implementation) {
@@ -454,9 +456,8 @@ struct Inverse<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
 };
 
 template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>
-struct TensorInverse<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
-  using type = ValuesWrapper<typename TensorInverse<MatrixSizeT_>::type, ValueT_,
-                             typename TensorInverse<AccessImplementation<ImplementationT_>>::type>;
+struct CwiseInverse<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
+  using type = ValuesWrapper<MatrixSizeT_, ValueT_, typename CwiseInverse<AccessImplementation<ImplementationT_>>::type>;
 };
 
 template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_,

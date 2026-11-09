@@ -1,5 +1,5 @@
 // wuzp-expect: error
-// wuzp-static-assert: 'TensorInverse' trait not specialized for given type\.
+// wuzp-static-assert: 'CwiseInverse' trait not specialized for given type\.
 
 // Using a trait with a type it is not specialized for fails with a clear message.
 
@@ -8,6 +8,6 @@
 struct NotSupported {};
 
 int main() {
-  [[maybe_unused]] constexpr auto size = sizeof(wuzp::TensorInverse<NotSupported>);
+  [[maybe_unused]] constexpr auto size = sizeof(wuzp::CwiseInverse<NotSupported>);
   return 0;
 }

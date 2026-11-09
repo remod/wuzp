@@ -183,14 +183,16 @@ struct Determinant {
   static_assert(FailOnInstantiation<Determinant<T>>::value, "'Determinant' trait not specialized for given type.");
 };
 
+//! The inverse: the matrix inverse of a matrix, like Eigen's MatrixBase::inverse(), and the reciprocal of a single unit or number.
 template <typename T>
 struct Inverse {
   static_assert(FailOnInstantiation<Inverse<T>>::value, "'Inverse' trait not specialized for given type.");
 };
 
+//! The elementwise reciprocal of a matrix, like Eigen's ArrayBase::inverse() or cwiseInverse().
 template <typename T>
-struct TensorInverse {
-  static_assert(FailOnInstantiation<TensorInverse<T>>::value, "'TensorInverse' trait not specialized for given type.");
+struct CwiseInverse {
+  static_assert(FailOnInstantiation<CwiseInverse<T>>::value, "'CwiseInverse' trait not specialized for given type.");
 };
 
 template <typename T>
@@ -262,6 +264,7 @@ template <typename T>
 struct MakeRelative {
   static_assert(FailOnInstantiation<MakeRelative<T>>::value, "'MakeRelative' trait not specialized for given type.");
 };
+//! The vector from the origin of the coordinate system to a point, p - o: the same components, as a relative object.
 template <typename T>
 auto makeRelative(T t) {
   return MakeRelative<T>::make(std::move(t));
@@ -271,6 +274,7 @@ template <typename T>
 struct MakeAbsolute {
   static_assert(FailOnInstantiation<MakeAbsolute<T>>::value, "'MakeAbsolute' trait not specialized for given type.");
 };
+//! The point at a vector from the origin of the coordinate system, o + v: the same components, as an absolute object.
 template <typename T>
 auto makeAbsolute(T t) {
   return MakeAbsolute<T>::make(std::move(t));

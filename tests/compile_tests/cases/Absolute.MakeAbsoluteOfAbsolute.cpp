@@ -1,5 +1,5 @@
 // wuzp-expect: error
-// wuzp-static-assert: Unit is already absolute\.
+// wuzp-static-assert: The object is already absolute\.
 
 // Making an absolute object absolute again is a mistake.
 

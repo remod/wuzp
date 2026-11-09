@@ -40,13 +40,6 @@ TEST(TestPassiveLinearTransformation, TransformCovector) {  // NOLINT
   EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
 }
 
-TEST(TestPassiveLinearTransformation, TransformCopoint) {  // NOLINT
-  // An absolute covector transforms like a relative one, since a linear transformation has no translation.
-  const HomogeneousCopoint<3, ValueMatrix, double, Force, CoordinateSystemA> object{8.0, 8.0, 8.0};
-  const HomogeneousCopoint<3, ValueMatrix, double, Force, CoordinateSystemB> transformedObject{4.0, 2.0, 1.0};
-  EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
-}
-
 TEST(TestPassiveLinearTransformation, TransformCovectorAndVectorPreservesTheirPairing) {  // NOLINT
   // The work done by a force along a displacement does not depend on the coordinates: w' v' = w A^-1 A v = w v.
   const ForceCovector<CoordinateSystemA> force{1.0, 2.0, 3.0};
