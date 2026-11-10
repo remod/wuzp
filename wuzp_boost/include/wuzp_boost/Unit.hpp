@@ -34,16 +34,6 @@ using Volume = wuzp::Unit<boost::units::si::volume>;
 namespace wuzp {
 
 template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct Sum<Unit<ImplementationLhsT_>, Unit<ImplementationRhsT_>> {
-  using type = Unit<typename boost::units::add_typeof_helper<ImplementationLhsT_, ImplementationRhsT_>::type>;
-};
-
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
-struct Difference<Unit<ImplementationLhsT_>, Unit<ImplementationRhsT_>> {
-  using type = Unit<typename boost::units::subtract_typeof_helper<ImplementationLhsT_, ImplementationRhsT_>::type>;
-};
-
-template <typename ImplementationLhsT_, typename ImplementationRhsT_>
 struct Product<Unit<ImplementationLhsT_>, Unit<ImplementationRhsT_>> {
   using type = Unit<typename boost::units::multiply_typeof_helper<ImplementationLhsT_, ImplementationRhsT_>::type>;
 };

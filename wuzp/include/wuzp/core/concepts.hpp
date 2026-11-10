@@ -10,6 +10,7 @@
 #include "wuzp/core/CoordinateSystem.hpp"
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/MatrixSize.hpp"
+#include "wuzp/core/Rational.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Unit.hpp"
 #include "wuzp/core/helpers.hpp"
@@ -125,9 +126,12 @@ concept AnyTensor = IsSpecialization<T, Tensor>::value;
 // implementation types), and provides an alias template ValueMatrix<ValueT_, RowsV_, ColsV_> of the ValuesWrapper of its
 // matrices. Its specializations are constrained to its own implementation types, so that several value matrix backends can be
 // used in one program. A units backend specializes the arithmetic traits for its units, e.g. Product<Unit<...>, Unit<...>>, and
-// AccessUnits for its units. A program uses exactly one units backend.
+// AccessUnits for its units. A program uses exactly one units backend. The core uses nothing beyond these concepts: the tests
+// pass with the archetypes, minimal backends that provide exactly what the concepts require (tests/src/archetype_values and
+// tests/src/archetype_units). See "Writing a backend" in CONTRIBUTING.md.
 //
-// The concepts check the traits on representative matrices. A backend checks them in its tests, e.g.
+// The concepts check the syntax of the traits, on representative matrices and units; the tests check their semantics, e.g. that
+// Copy does not share the values. A backend checks the concepts in its tests, e.g.
 // `static_assert(wuzp::ValueMatrixBackend<wuzp_eigen::ValueMatrix>);`, so that a backend that misses a trait fails there,
 // rather than deep inside the core in the code of its users. The checks instantiate many expressions of the backend, so the
 // backends do not check them in their headers, which would cost compile time in every translation unit of their users. A trait
@@ -141,10 +145,16 @@ template <template <typename, int, int> typename ValueMatrixT_, typename ValueT_
 using ImplementationOf = typename ValueMatrixT_<ValueT_, RowsV_, ColsV_>::ImplementationT;
 
 //! The result of a trait of a value matrix backend, e.g. of Sum<AccessImplementation<ImplementationT_>, ...>: `value` returns
-//! `type`, a matrix or a lazy expression of the backend, which Evaluate evaluates into EvaluatedT_.
+//! `type`, a matrix or a lazy expression of the backend, which Evaluate evaluates into EvaluatedT_. The core moves the result
+//! into the values of its type, and the converting constructor of ValuesWrapper constructs the matrix EvaluatedT_ from a lazy
+//! result, e.g. when an unevaluated sum is converted into a vector, so a lazy result must be move constructible and the matrix
+//! constructible from it.
 template <typename ResultT_, typename TraitT_, typename EvaluatedT_>
 concept TraitResult =
-    std::same_as<ResultT_, typename TraitT_::type> && std::same_as<typename Evaluate<AccessImplementation<ResultT_>>::type, EvaluatedT_>;
+    std::same_as<ResultT_, typename TraitT_::type> && std::same_as<typename Evaluate<AccessImplementation<ResultT_>>::type, EvaluatedT_> &&
+    std::move_constructible<ResultT_> &&
+    (std::same_as<ResultT_, EvaluatedT_> ||
+     (std::constructible_from<EvaluatedT_, ResultT_> && std::constructible_from<EvaluatedT_, const ResultT_&>));
 
 //! Whether Initialize initializes a matrix with the arguments, as the constructor of ValuesWrapper does with its elements.
 template <typename ImplementationT_, typename ArgsTupleT_>
@@ -155,13 +165,24 @@ template <typename ImplementationT_, typename... ArgsT_>
   }
 struct IsInitializable<ImplementationT_, std::tuple<ArgsT_...>> : std::true_type {};
 
+//! Random values of the matrices of a value matrix backend, which are only supported for floating point types. A disjunction of
+//! concepts rather than a nested requirement of BackendMatrix: Clang 14 checked both operands of a disjunction in a nested
+//! requirement, which instantiated Random for integer matrices too, and failed for the backends that only provide it for
+//! floating point matrices.
+template <typename ImplementationT_, typename ValueT_>
+concept BackendRandom =
+    !std::floating_point<ValueT_> || requires(ImplementationT_& target) { Random<AccessImplementation<ImplementationT_>>::run(target); };
+
 //! The requirements on the matrices of a value matrix backend with one value type and size: they are allocated, initialized,
 //! evaluated, copied and moved, their elements are accessed, and they are combined elementwise, inverted elementwise, transposed,
 //! multiplied with their transposes, compared and printed. Lazy results evaluate to the matrix of the backend with the size of
-//! the result.
+//! the result, which is constructible from them (see TraitResult).
 template <typename ImplementationT_, template <typename, int, int> typename ValueMatrixT_, typename ValueT_, int RowsV_, int ColsV_>
 concept BackendMatrix =
     std::same_as<ValueMatrixT_<ValueT_, RowsV_, ColsV_>, ValuesWrapper<MatrixSize<RowsV_, ColsV_>, ValueT_, ImplementationT_>> &&
+    // The core default constructs a matrix before it initializes it, and moves the results of the traits. It copies and assigns
+    // matrices only with Copy and Move, so they need not be copyable or assignable.
+    std::default_initializable<ImplementationT_> && std::move_constructible<ImplementationT_> &&
     requires(const ImplementationT_& impl, ImplementationT_& target,
              const ImplementationOf<ValueMatrixT_, ValueT_, ColsV_, RowsV_>& transposed, const ValueT_ value, const int index,
              std::ostream& stream) {
@@ -179,9 +200,6 @@ concept BackendMatrix =
       { Coefficient<AccessImplementation<ImplementationT_>>::get(impl, index, index) } -> std::same_as<ValueT_>;
       Coefficient<AccessImplementation<ImplementationT_>>::set(target, index, index, value);
       Zero<AccessImplementation<ImplementationT_>>::run(target);
-      // Random values are only supported for floating point types.
-      requires(!std::floating_point<ValueT_>) ||
-                  requires { Random<AccessImplementation<ImplementationT_>>::run(std::declval<ImplementationT_&>()); };
       {
         Comparison<AccessImplementation<ImplementationT_>, AccessImplementation<ImplementationT_>>::equal(impl, impl)
       } -> std::same_as<bool>;
@@ -233,7 +251,8 @@ concept BackendMatrix =
       { Norm<AccessImplementation<ImplementationT_>>::value(impl) } -> std::same_as<ValueT_>;
       { SquaredNorm<AccessImplementation<ImplementationT_>>::value(impl) } -> std::same_as<ValueT_>;
       stream << impl;
-    };
+    } &&
+    BackendRandom<ImplementationT_, ValueT_>;
 
 //! The matrices of a value matrix backend with a value type and a size.
 template <template <typename, int, int> typename ValueMatrixT_, typename ValueT_, int RowsV_, int ColsV_>
@@ -266,13 +285,18 @@ concept BackendValues = BackendMatrixOfSize<ValueMatrixT_, ValueT_, 1, 1> && Bac
                         BackendMatrixOfSize<ValueMatrixT_, ValueT_, 1, 3> && BackendMatrixOfSize<ValueMatrixT_, ValueT_, 3, 3> &&
                         BackendVectorProducts<ValueMatrixT_, ValueT_>;
 
-//! The inverses of square matrices of a value matrix backend: the matrix inverse (Inverse) and the determinant.
+//! The matrix inverse (Inverse) of square matrices of a value matrix backend.
 template <template <typename, int, int> typename ValueMatrixT_, typename ValueT_, int DimensionV_>
-concept BackendInverses = requires(const ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>& impl) {
+concept BackendInverse = requires(const ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>& impl) {
   {
     Inverse<AccessImplementation<ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>>::value(impl)
   } -> TraitResult<Inverse<AccessImplementation<ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>>,
                    ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>;
+};
+
+//! The determinant (Determinant) of square matrices of a value matrix backend, of the value type.
+template <template <typename, int, int> typename ValueMatrixT_, typename ValueT_, int DimensionV_>
+concept BackendDeterminant = requires(const ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>& impl) {
   {
     Determinant<AccessImplementation<ImplementationOf<ValueMatrixT_, ValueT_, DimensionV_, DimensionV_>>>::value(impl)
   } -> std::same_as<ValueT_>;
@@ -283,11 +307,13 @@ concept BackendInverses = requires(const ImplementationOf<ValueMatrixT_, ValueT_
 /**
  * A value matrix backend, given as its alias template ValueMatrix<ValueT_, RowsV_, ColsV_>, e.g. wuzp_eigen::ValueMatrix: its
  * value matrices are ValuesWrappers of the given value type and size, and it specializes the traits the core needs for their
- * implementation types. They are checked for scalars, vectors, covectors and square matrices of double and int: allocation,
- * initialization, evaluation, Copy and Move, element access (Coefficient), Rebind, Zero and Random, elementwise Sum,
- * Difference, Negation, Product and Division (also with a scalar), the elementwise reciprocal CwiseInverse, Transpose, Block,
- * InnerProduct, OuterProduct and CrossProduct, Norm and SquaredNorm, Comparison and printing. The matrix inverse and the
- * determinant are checked by InvertibleValueMatrixBackend.
+ * implementation types. They are checked for scalars, vectors, covectors and square matrices of double and int: allocation
+ * (default construction and ReserveMemory), initialization with the elements as values of the value type (Initialize),
+ * evaluation (Evaluate of the results of the traits, which may be lazy: they are move constructible, and the matrices are
+ * constructible from them), Copy and Move (the matrices need a move constructor, but need not be copyable or assignable), element access
+ * (Coefficient), Rebind, Zero and Random, elementwise Sum, Difference, Negation, Product and Division (also with a scalar of the
+ * value type), the elementwise reciprocal CwiseInverse, Transpose, Block, InnerProduct, OuterProduct and CrossProduct, Norm and
+ * SquaredNorm, Comparison and printing. The matrix inverse and the determinant are checked by InvertibleValueMatrixBackend.
  *
  * A backend checks it in its tests, e.g. `static_assert(wuzp::ValueMatrixBackend<wuzp_eigen::ValueMatrix>);`: the check
  * instantiates many expressions of the backend, which takes about 0.7 s with Eigen. The core constrains its parameters with
@@ -297,12 +323,16 @@ template <template <typename, int, int> typename ValueMatrixT_>
 concept ValueMatrixBackend =
     AnyValueMatrix<ValueMatrixT_> && internal::BackendValues<ValueMatrixT_, double> && internal::BackendValues<ValueMatrixT_, int>;
 
-//! A value matrix backend that also provides the matrix inverse (Inverse) and the determinant (Determinant) of floating point
-//! matrices. The transformations of covectors and of tensors with covariant indices need them. A backend checks it in its
-//! tests, like ValueMatrixBackend.
+//! A value matrix backend that also provides the matrix inverse (Inverse) of floating point matrices, and the determinant
+//! (Determinant) of floating point and integer matrices: the core rejects the inverse of an integer matrix, which is not an
+//! integer matrix in general, but not its determinant (see "Inverses and determinants" in DESIGN.md). The transformations of
+//! covectors and of tensors with covariant indices need them. A backend checks it in its tests, like ValueMatrixBackend.
 template <template <typename, int, int> typename ValueMatrixT_>
-concept InvertibleValueMatrixBackend = ValueMatrixBackend<ValueMatrixT_> && internal::BackendInverses<ValueMatrixT_, double, 1> &&
-                                       internal::BackendInverses<ValueMatrixT_, double, 3>;
+concept InvertibleValueMatrixBackend =
+    ValueMatrixBackend<ValueMatrixT_> && internal::BackendInverse<ValueMatrixT_, double, 1> &&
+    internal::BackendInverse<ValueMatrixT_, double, 3> && internal::BackendDeterminant<ValueMatrixT_, double, 1> &&
+    internal::BackendDeterminant<ValueMatrixT_, double, 3> && internal::BackendDeterminant<ValueMatrixT_, int, 1> &&
+    internal::BackendDeterminant<ValueMatrixT_, int, 3>;
 
 namespace internal {
 
@@ -325,9 +355,9 @@ concept ConsistentUnits =
     // Angles are dimensionless (see "Angles are dimensionless" in DESIGN.md).
     std::same_as<typename UnitsT_::Angle, typename UnitsT_::Dimensionless> &&
     std::same_as<typename Identity<typename UnitsT_::Length>::type, typename UnitsT_::Dimensionless> &&
-    std::same_as<typename Sum<typename UnitsT_::Length, typename UnitsT_::Length>::type, typename UnitsT_::Length> &&
-    std::same_as<typename Difference<typename UnitsT_::Length, typename UnitsT_::Length>::type, typename UnitsT_::Length> &&
     std::same_as<typename Power<typename UnitsT_::Length, Integer<2>>::type, typename UnitsT_::Area> &&
+    // Exponents are rational, e.g. for pow<1, 2>().
+    std::same_as<typename Power<typename UnitsT_::Area, Rational<1, 2>>::type, typename UnitsT_::Length> &&
     std::same_as<UnitProduct<typename UnitsT_::Area, typename UnitsT_::Length>, typename UnitsT_::Volume> &&
     std::same_as<UnitQuotient<typename UnitsT_::Length, typename UnitsT_::Time>, typename UnitsT_::Velocity> &&
     std::same_as<UnitQuotient<typename UnitsT_::Velocity, typename UnitsT_::Time>, typename UnitsT_::Acceleration> &&
@@ -344,8 +374,11 @@ concept ConsistentUnits =
 
 /**
  * The units of a units backend, e.g. AccessUnits<AccessImplementation<double>>: the base and derived units that the core and
- * its aliases use, e.g. `Length` and `Force`, which are consistent with the arithmetic traits of the backend, e.g. `Velocity`
- * is `Length` divided by `Time`. A backend checks it in its tests, e.g.
+ * its aliases use, e.g. `Length` and `Force`, which are consistent with the arithmetic traits of the backend, Product,
+ * Division, Power (with rational exponents), Inverse and Identity, e.g. `Velocity` is `Length` divided by `Time`. The core
+ * defines the sum and the difference of units, and compares units by their types, so equal units must have the same type,
+ * however they are computed, e.g. `Torque` and `Energy`. The backend specializes AccessUnits<AccessImplementation<ValueT_>>
+ * for every arithmetic value type. A backend checks it in its tests, e.g.
  * `static_assert(wuzp::UnitSystem<wuzp::AccessUnits<wuzp::AccessImplementation<double>>>);`.
  */
 template <typename UnitsT_>

@@ -213,8 +213,8 @@ The value matrix backend defines the quantities with a value type, e.g. `wuzp_ei
 A program can use several value matrix backends, also in one translation unit, but values of different backends cannot be combined.
 A program uses exactly one units backend: using two of them, also in different translation units, violates the [one definition rule](https://en.cppreference.com/w/cpp/language/definition#One_Definition_Rule).
 
-To adapt another library, specialize the traits of the core like the existing backends do: the concepts `ValueMatrixBackend`, `InvertibleValueMatrixBackend` and `UnitSystem` in [`wuzp/core/concepts.hpp`](wuzp/include/wuzp/core/concepts.hpp) list what the core needs (see "The backend interface" in [DESIGN.md](DESIGN.md#the-backend-interface)).
-Check them in the tests of the backend, e.g. `static_assert(wuzp::ValueMatrixBackend<my_backend::ValueMatrix>);` or `static_assert(wuzp::UnitSystem<wuzp::AccessUnits<wuzp::AccessImplementation<double>>>);`, rather than in its headers, where the check would cost compile time in every translation unit of its users.
+To adapt another library, specialize the traits of the core like the existing backends do: the concepts `ValueMatrixBackend`, `InvertibleValueMatrixBackend` and `UnitSystem` in [`wuzp/core/concepts.hpp`](wuzp/include/wuzp/core/concepts.hpp) list what the core needs, and [Writing a backend](CONTRIBUTING.md#writing-a-backend) explains what a backend provides and how to check it, with minimal example backends.
+Check the concepts in the tests of the backend, e.g. `static_assert(wuzp::ValueMatrixBackend<my_backend::ValueMatrix>);` or `static_assert(wuzp::UnitSystem<wuzp::AccessUnits<wuzp::AccessImplementation<double>>>);`, rather than in its headers, where the check would cost compile time in every translation unit of its users.
 
 ## Examples
 
@@ -259,7 +259,7 @@ Instead, it needs to be cloned from GitHub and then built and installed manually
 
 ## Contributing
 
-Contributions are welcome! [CONTRIBUTING.md](CONTRIBUTING.md) describes the development environment, the tests and the CI, and [CHANGELOG.md](CHANGELOG.md) lists the changes.
+Contributions are welcome! [CONTRIBUTING.md](CONTRIBUTING.md) describes the development environment, the tests and the CI, how to write a backend, and [CHANGELOG.md](CHANGELOG.md) lists the changes.
 
 [^1]: Inspired by [Boost units](https://www.boost.org/doc/libs/1_61_0/doc/html/boost_units/Examples.html#boost_units.Examples.AbsoluteRelativeTemperatureExample).
 

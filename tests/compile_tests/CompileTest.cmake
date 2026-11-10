@@ -13,7 +13,7 @@
 #       A static assertion that must fail, with a message matching <regex>.
 #
 # Conditions are comma-separated key=value pairs, all of which must hold. A value may list alternatives with "|".
-# Keys: units (wuzp, boost, mp_units), values (eigen, blitz), compiler (gnu, clang, appleclang, msvc).
+# Keys: units (wuzp, boost, mp_units, archetype), values (eigen, blitz, archetype), compiler (gnu, clang, appleclang, msvc).
 #
 # A case that must fail needs at least one expected error that applies to the configuration, so that a case can never
 # pass because it fails for an unrelated reason. Annotations must not contain ";", since CMake uses it as list separator.

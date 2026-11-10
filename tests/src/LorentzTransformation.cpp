@@ -101,6 +101,16 @@ TEST(TestLorentzTransformation, VelocityOfToRelativeToFrom) {  // NOLINT
   EXPECT_TRUE(transformation.transform(event).isApprox(transformedEvent, 1e-12));
 }
 
+// A boost is computed in the value type, also for float: for v = 0.6 c along x, gamma = 1.25 and gamma v / c = 0.75.
+TEST(TestLorentzTransformation, BoostOfFloats) {  // NOLINT
+  using LorentzBoostF = LorentzTransformation4<ValueMatrix, float, SpacetimeA, SpacetimeB>;
+  const float c = getSpeedOfLight<ValueMatrix, float>().getValue();
+  const LorentzBoostF transformation{createBoostMatrix<ValueMatrix, float, SpacetimeA, SpacetimeB, 4>(
+      VelocityVector3<ValueMatrix, float, SpacetimeA>{0.6F * c, 0.0F, 0.0F})};
+  const LorentzBoostF expected{1.25F, -0.75F, 0.0F, 0.0F, -0.75F, 1.25F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F};
+  EXPECT_TRUE(transformation.isApprox(expected, 1e-5F));
+}
+
 // The composition of two boosts along the same direction is the boost with the relativistic sum of their velocities,
 // (v1 + v2) / (1 + v1 v2 / c^2): 0.5 c and 0.5 c give 0.8 c.
 TEST(TestLorentzTransformation, ComposeCollinearBoosts) {  // NOLINT

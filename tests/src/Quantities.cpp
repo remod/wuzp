@@ -169,6 +169,15 @@ TEST_F(TestQuantitiesFixture, SetGetQuantity) {  // NOLINT
   EXPECT_EQ((getQuantities1().get<1, 2>()), quantity);
 }
 
+// A quantity of another value type is set like an element of the values (see ValuesWrapper::set()), e.g. an int quantity for
+// double quantities. Compile test ValuesWrapper.SetWiderElement checks that the others are rejected.
+TEST(TestQuantities2, SetQuantityOfAnotherValueType) {  // NOLINT
+  auto quantities = TestQuantities<2, 1>::zero();
+  quantities.set<0, 0>(LengthQuantityI{2});
+  quantities.set(1, 0, LengthQuantityI{3});
+  EXPECT_EQ(quantities, (TestQuantities<2, 1>{2.0, 3.0}));
+}
+
 TEST_F(TestQuantitiesFixture, Sum) {  // NOLINT
   EXPECT_EQ(getQuantities1() + getQuantities2(), (MyQuantityMatrix{4, 3, 7, 5, 10, 15}));
 }

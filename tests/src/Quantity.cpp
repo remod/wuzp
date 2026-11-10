@@ -34,6 +34,9 @@ TEST(TestQuantity, ValueAccess) {  // NOLINT
   EXPECT_EQ(time.getValue(), 1.0);
   time.setValue(2.0);
   EXPECT_EQ(time.getValue(), 2.0);
+  // An int is converted into the double values; a double for int values is rejected (compile test Quantity.SetWiderValue).
+  time.setValue(3);
+  EXPECT_EQ(time.getValue(), 3.0);
 }
 
 TEST(TestQuantity, Sum) {  // NOLINT
@@ -88,6 +91,16 @@ TEST(TestQuantity, OperationsOnSums) {  // NOLINT
   EXPECT_TRUE((-(lhs + rhs)).isApprox(AngleQuantity{-0.3}, 1e-12));
   EXPECT_TRUE(sin(lhs + rhs).isApprox(DimensionlessQuantity{std::sin(0.3)}, 1e-12));
   EXPECT_TRUE(cos(lhs + rhs).isApprox(DimensionlessQuantity{std::cos(0.3)}, 1e-12));
+}
+
+// The sine and the cosine are computed in the value type, also for float. Compile tests Quantity.SinOfIntegerAngle and
+// Quantity.CosOfIntegerAngle check that integer values are rejected.
+TEST(TestQuantity, SineAndCosineOfFloats) {  // NOLINT
+  const QuantityF<Angle> angle{0.5F};
+  const QuantityF<Dimensionless> sine = sin(angle);
+  const QuantityF<Dimensionless> cosine = cos(angle);
+  EXPECT_TRUE(sine.isApprox(QuantityF<Dimensionless>{std::sin(0.5F)}, 1e-6F));
+  EXPECT_TRUE(cosine.isApprox(QuantityF<Dimensionless>{std::cos(0.5F)}, 1e-6F));
 }
 
 // Powers are computed in floating point, also for integer values, and converted to the value type, which truncates like the

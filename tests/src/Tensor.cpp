@@ -963,7 +963,10 @@ TEST(TestTensor, ConversionsAreImplicitOnlyIfValid) {  // NOLINT
   static_assert(!std::is_convertible_v<VelocityVector3<ValueMatrix, double, CoordinateSystemA>, VectorInA>);
   // An unevaluated sum, of the type the traits compute, converts implicitly into a vector in the same coordinate system only.
   using UnevaluatedSum = Sum<VectorInA, VectorInA>::type;
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_ARCHETYPE
+  // The archetype evaluates its sums (tests/src/archetype_values), so its sum is a vector already.
   static_assert(!std::is_same_v<UnevaluatedSum, VectorInA>);
+#endif
   static_assert(std::is_convertible_v<UnevaluatedSum, VectorInA>);
   static_assert(!std::is_convertible_v<UnevaluatedSum, VectorInB>);
   static_assert(requires(const UnevaluatedSum& unevaluatedSum) { getCoordinateSystemId(unevaluatedSum); });

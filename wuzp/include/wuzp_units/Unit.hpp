@@ -1,8 +1,5 @@
 #pragma once
 
-#include <tuple>
-#include <type_traits>
-
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/Rational.hpp"
 #include "wuzp/core/Unit.hpp"
@@ -40,18 +37,6 @@ using Volume = wuzp::Unit<CreateIntegerUnitImpl<0, 3, 0, 0, 0, 0, 0>>;
 }  // namespace wuzp_units
 
 namespace wuzp {
-
-template <typename... ExponentsLhsT_, typename... ExponentsRhsT_>
-struct Sum<Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>, Unit<wuzp_units::UnitImpl<ExponentsRhsT_...>>> {
-  static_assert(std::is_same_v<std::tuple<ExponentsLhsT_...>, std::tuple<ExponentsRhsT_...>>, "Units do not match.");
-  using type = Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>;
-};
-
-template <typename... ExponentsLhsT_, typename... ExponentsRhsT_>
-struct Difference<Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>, Unit<wuzp_units::UnitImpl<ExponentsRhsT_...>>> {
-  static_assert(std::is_same_v<std::tuple<ExponentsLhsT_...>, std::tuple<ExponentsRhsT_...>>, "Units do not match.");
-  using type = Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>;
-};
 
 template <typename... ExponentsLhsT_, typename... ExponentsRhsT_>
 struct Product<Unit<wuzp_units::UnitImpl<ExponentsLhsT_...>>, Unit<wuzp_units::UnitImpl<ExponentsRhsT_...>>> {

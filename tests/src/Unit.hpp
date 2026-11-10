@@ -9,6 +9,9 @@ using namespace wuzp_boost;  // NOLINT
 #elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_MP_UNITS
 #include "wuzp_mp_units/Unit.hpp"
 using namespace wuzp_mp_units;  // NOLINT
+#elif UNITS_IMPLEMENTATION == UNITS_IMPLEMENTATION_ARCHETYPE
+#include "archetype_units/Unit.hpp"
+using namespace archetype_units;  // NOLINT
 #else
 #error "Unknown UNITS_IMPLEMENTATION"
 #endif

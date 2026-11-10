@@ -70,6 +70,10 @@ jobs:
       matrix:
         units: [wuzp, boost, mp_units]
         values: [eigen, blitz]
+        include:
+          # The archetypes of the tests (see the test job).
+          - units: archetype
+            values: archetype
     container:
       image: ${{ needs.image.outputs.latest }}
       credentials:
@@ -101,6 +105,17 @@ jobs:
           # mp-units needs GCC 12 or Clang 16, newer than those of the min variant.
           - variant: min
             units: mp_units
+        include:
+          # The archetypes: minimal backends in the tests, which provide exactly what the concepts of the backend interface
+          # require, so the tests pass with them only if wuzp uses nothing beyond the interface.
+          - variant: latest
+            compiler: gcc
+            units: archetype
+            values: archetype
+          - variant: latest
+            compiler: clang
+            units: archetype
+            values: archetype
     steps:
       - uses: actions/checkout@v7
       - run: ci/test.sh ${{ matrix.compiler }}-${{ matrix.units }}-${{ matrix.values }}

@@ -1,6 +1,7 @@
-// Both value matrix backends in one translation unit. Their trait specializations are constrained to their own matrices, so
-// they can be used side by side, and operations derive scalars from the backend of their operands (see "The backend
-// interface" in DESIGN.md). The other tests run against the backend of the configuration (ValueMatrix.hpp).
+// Both value matrix backends, and the value matrix archetype of the tests, in one translation unit. Their trait specializations
+// are constrained to their own matrices, so they can be used side by side, and operations derive scalars from the backend of
+// their operands (see "The backend interface" in DESIGN.md). The other tests run against the backend of the configuration
+// (ValueMatrix.hpp).
 
 #include <array>
 #include <cmath>
@@ -18,6 +19,7 @@
 #include "wuzp_blitz/ValueMatrix.hpp"
 #include "wuzp_eigen/ValueMatrix.hpp"
 
+#include "archetype_values/ValueMatrix.hpp"
 #include "coordinate_systems.hpp"
 
 #include "Unit.hpp"
@@ -29,6 +31,10 @@ static_assert(wuzp::ValueMatrixBackend<wuzp_eigen::ValueMatrix>);
 static_assert(wuzp::InvertibleValueMatrixBackend<wuzp_eigen::ValueMatrix>);
 static_assert(wuzp::ValueMatrixBackend<wuzp_blitz::ValueMatrix>);
 static_assert(wuzp::InvertibleValueMatrixBackend<wuzp_blitz::ValueMatrix>);
+// The archetype provides exactly what the concepts require: the tests pass with it (the presets *-archetype-archetype) if the
+// core uses nothing beyond them.
+static_assert(wuzp::ValueMatrixBackend<archetype_values::ValueMatrix>);
+static_assert(wuzp::InvertibleValueMatrixBackend<archetype_values::ValueMatrix>);
 
 namespace {
 
@@ -173,18 +179,21 @@ void expectInverseAndDeterminantLikeEigen(const std::array<double, static_cast<s
   }
 }
 
-// Whether the inverse and the determinant of a matrix of each backend, given row by row, are those computed by hand, exactly with
-// fractions, up to rounding.
+// Whether the inverse and the determinant of a matrix of each backend and of the archetype, given row by row, are those computed
+// by hand, exactly with fractions, up to rounding.
 template <int DimensionV_>
 void expectInverseAndDeterminant(const std::array<double, static_cast<std::size_t>(DimensionV_* DimensionV_)>& elements,
                                  const std::array<double, static_cast<std::size_t>(DimensionV_* DimensionV_)>& inverse,
                                  const double determinant) {
   const auto eigenMatrix = makeMatrix<wuzp_eigen::ValueMatrix, DimensionV_>(elements);
   const auto blitzMatrix = makeMatrix<wuzp_blitz::ValueMatrix, DimensionV_>(elements);
+  const auto archetypeMatrix = makeMatrix<archetype_values::ValueMatrix, DimensionV_>(elements);
   EXPECT_TRUE(eigenMatrix.inverse().isApprox(makeMatrix<wuzp_eigen::ValueMatrix, DimensionV_>(inverse), 1e-14));
   EXPECT_TRUE(blitzMatrix.inverse().isApprox(makeMatrix<wuzp_blitz::ValueMatrix, DimensionV_>(inverse), 1e-14));
+  EXPECT_TRUE(archetypeMatrix.inverse().isApprox(makeMatrix<archetype_values::ValueMatrix, DimensionV_>(inverse), 1e-14));
   EXPECT_NEAR(eigenMatrix.determinant(), determinant, 1e-14 * std::abs(determinant));
   EXPECT_NEAR(blitzMatrix.determinant(), determinant, 1e-14 * std::abs(determinant));
+  EXPECT_NEAR(archetypeMatrix.determinant(), determinant, 1e-14 * std::abs(determinant));
 }
 
 }  // namespace
@@ -253,18 +262,24 @@ TEST(TestValueMatrixBackends, InverseAndDeterminantOfSingularMatrix) {  // NOLIN
   }
 }
 
-// The determinant of an integer matrix is computed in floating point and rounded to the nearest integer.
+// The determinant of an integer matrix is computed in floating point and rounded to the nearest integer, and with the archetype
+// exactly, by Laplace expansion.
 TEST(TestValueMatrixBackends, DeterminantOfIntegerMatrix) {  // NOLINT
   const wuzp_eigen::ValueMatrix<int, 3, 3> eigenMatrix{2, 3, 1, 3, 5, 2, 1, 4, 7};
   const wuzp_blitz::ValueMatrix<int, 3, 3> blitzMatrix{2, 3, 1, 3, 5, 2, 1, 4, 7};
+  const archetype_values::ValueMatrix<int, 3, 3> archetypeMatrix{2, 3, 1, 3, 5, 2, 1, 4, 7};
   EXPECT_EQ(eigenMatrix.determinant(), 4);
   EXPECT_EQ(blitzMatrix.determinant(), 4);
+  EXPECT_EQ(archetypeMatrix.determinant(), 4);
   // With a row swap, and with a negative determinant.
   EXPECT_EQ((wuzp_eigen::ValueMatrix<int, 3, 3>{0, 2, 1, 1, 0, 3, 4, -2, 0}.determinant()), 22);
   EXPECT_EQ((wuzp_blitz::ValueMatrix<int, 3, 3>{0, 2, 1, 1, 0, 3, 4, -2, 0}.determinant()), 22);
+  EXPECT_EQ((archetype_values::ValueMatrix<int, 3, 3>{0, 2, 1, 1, 0, 3, 4, -2, 0}.determinant()), 22);
   EXPECT_EQ((wuzp_eigen::ValueMatrix<int, 4, 4>{0, 1, 0, 2, 1, 0, 1, 0, 0, 2, 0, 1, 1, 0, 2, 0}.determinant()), -3);
   EXPECT_EQ((wuzp_blitz::ValueMatrix<int, 4, 4>{0, 1, 0, 2, 1, 0, 1, 0, 0, 2, 0, 1, 1, 0, 2, 0}.determinant()), -3);
+  EXPECT_EQ((archetype_values::ValueMatrix<int, 4, 4>{0, 1, 0, 2, 1, 0, 1, 0, 0, 2, 0, 1, 1, 0, 2, 0}.determinant()), -3);
   // A singular matrix, with two equal rows.
   EXPECT_EQ((wuzp_eigen::ValueMatrix<int, 3, 3>{1, 2, 3, 1, 2, 3, 4, 5, 6}.determinant()), 0);
   EXPECT_EQ((wuzp_blitz::ValueMatrix<int, 3, 3>{1, 2, 3, 1, 2, 3, 4, 5, 6}.determinant()), 0);
+  EXPECT_EQ((archetype_values::ValueMatrix<int, 3, 3>{1, 2, 3, 1, 2, 3, 4, 5, 6}.determinant()), 0);
 }

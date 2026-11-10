@@ -10,7 +10,9 @@
 
 using namespace wuzp;  // NOLINT
 
-// The units of the units backend are consistent. The backends do not check this in their headers, see UnitSystem.
+// The units of the units backend are consistent. The backends do not check this in their headers, see UnitSystem. With the
+// presets *-archetype-archetype, these are the units of the archetype, which provides exactly what UnitSystem requires
+// (tests/src/archetype_units).
 static_assert(UnitSystem<AccessUnits<AccessImplementation<double>>>);
 
 namespace {

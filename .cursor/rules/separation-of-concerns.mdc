@@ -12,3 +12,4 @@ Follow separation of concerns:
 
 Backend-specific behavior is selected through trait specializations, never with `#if` in the core.
 A value matrix backend constrains its specializations to its own implementation types (e.g. `EigenArray`), so that several value matrix backends can be used in one program, and the tests check that every backend satisfies its concept from `wuzp/core/concepts.hpp` (`ValueMatrixBackend`, `UnitSystem`), not its header, where the check would cost compile time in every translation unit.
+The archetypes `tests/src/archetype_values/` and `tests/src/archetype_units/` are minimal backends that provide exactly what the concepts require: if a test fails only with them, the core uses something the concepts do not promise, so fix the core or extend the concept, not the archetype (see "Writing a backend" in `CONTRIBUTING.md`).

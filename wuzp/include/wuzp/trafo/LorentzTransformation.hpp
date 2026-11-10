@@ -243,10 +243,11 @@ LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_> createBoostM
   if (!(squaredBeta.getValue() < 1)) {
     throw std::invalid_argument("The magnitude of the velocity of a Lorentz boost must be smaller than the speed of light.");
   }
-  const auto lorentzFactor{pow<-1, 2>(QuantityT{1.0} - squaredBeta)};
+  const auto lorentzFactor{pow<-1, 2>(QuantityT{ValueT_{1}} - squaredBeta)};
   // The spatial part uses (lorentzFactor - 1) / |v|^2 = lorentzFactor^2 / ((lorentzFactor + 1) c^2). The right-hand side is
   // finite for v = 0, where the left-hand side divides zero by zero, and numerically more stable for small velocities.
-  const auto spatialFactor{pow<2>(lorentzFactor) / ((lorentzFactor + QuantityT{1.0}) * pow<2>(getSpeedOfLight<ValuesT_, ValueT_>()))};
+  const auto spatialFactor{pow<2>(lorentzFactor) /
+                           ((lorentzFactor + QuantityT{ValueT_{1}}) * pow<2>(getSpeedOfLight<ValuesT_, ValueT_>()))};
   QuantitiesT quantities;
   // Set the lower left matrix inclusive the diagonal.
   for (int row = 0; row < DimensionV_; ++row) {
@@ -258,7 +259,7 @@ LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_> createBoostM
       } else if (col == 0) {
         quantity = -lorentzFactor / getSpeedOfLight<ValuesT_, ValueT_>() * velocity.getQuantities().get(row - 1, 0);
       } else if (col == row) {
-        quantity = QuantityT{1.0} + spatialFactor * pow<2>(velocity.getQuantities().get(row - 1, 0));
+        quantity = QuantityT{ValueT_{1}} + spatialFactor * pow<2>(velocity.getQuantities().get(row - 1, 0));
       } else {
         quantity = spatialFactor * velocity.getQuantities().get(col - 1, 0) * velocity.getQuantities().get(row - 1, 0);
       }

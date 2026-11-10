@@ -291,6 +291,34 @@
       }
     },
     {
+      "name": "gcc-archetype-archetype",
+      "displayName": "gcc, archetype units, archetype values",
+      "description": "The minimal backends of the tests, which provide exactly what the concepts of the backend interface require.",
+      "inherits": [
+        "base",
+        "gcc"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "archetype",
+        "WUZP_TEST_VALUES": "archetype",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
+      "name": "clang-archetype-archetype",
+      "displayName": "clang, archetype units, archetype values",
+      "description": "The minimal backends of the tests, which provide exactly what the concepts of the backend interface require.",
+      "inherits": [
+        "base",
+        "clang"
+      ],
+      "cacheVariables": {
+        "WUZP_TEST_UNITS": "archetype",
+        "WUZP_TEST_VALUES": "archetype",
+        "WUZP_BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
       "name": "gcc-wuzp-eigen-release",
       "displayName": "gcc, wuzp units, eigen values (release)",
       "inherits": [
@@ -373,6 +401,14 @@
     {
       "name": "clang-mp_units-blitz",
       "configurePreset": "clang-mp_units-blitz"
+    },
+    {
+      "name": "gcc-archetype-archetype",
+      "configurePreset": "gcc-archetype-archetype"
+    },
+    {
+      "name": "clang-archetype-archetype",
+      "configurePreset": "clang-archetype-archetype"
     },
     {
       "name": "gcc-wuzp-eigen-release",
@@ -533,6 +569,26 @@
     {
       "name": "clang-mp_units-blitz",
       "configurePreset": "clang-mp_units-blitz",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "gcc-archetype-archetype",
+      "configurePreset": "gcc-archetype-archetype",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "clang-archetype-archetype",
+      "configurePreset": "clang-archetype-archetype",
       "output": {
         "outputOnFailure": true
       },

@@ -1,7 +1,9 @@
 // wuzp-expect: error
+// wuzp-requires: values=eigen|blitz
 // wuzp-static-assert: Unevaluated values cannot be assigned to\. Evaluate them first\.
 
 // An unevaluated value refers to its operands, so assigning to it would write into them (Blitz++) or does not compile (Eigen).
+// The value matrix archetype has no unevaluated values: it evaluates every operation (tests/src/archetype_values).
 
 #include <utility>
 

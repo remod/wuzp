@@ -25,6 +25,9 @@ TEST(TestValuesWrapper, Cols) {  // NOLINT
   static_assert(Cols<ValueMatrix<double, 3, 2>>::value == 2);
 }
 
+// The traits of Eigen and Blitz++ are lazy: their types are the expressions of the library, which the operations evaluate (see
+// ResultsAreEvaluated). The archetype has no expressions: it evaluates every trait (tests/src/archetype_values).
+#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_ARCHETYPE
 TEST(TestValuesWrapper, LazyBlock) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   static_assert(!std::is_same<Block<MyValueMatrix, 0, 0, 1, 1>::type, MyValueMatrix>::value);
@@ -83,6 +86,20 @@ TEST(TestValuesWrapper, LazyInnerProduct) {  // NOLINT
 TEST(TestValuesWrapper, EvaluatedInnerProduct) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 2, 2>;
   static_assert(std::is_same<InnerProduct<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>::value);
+}
+#endif
+#else
+TEST(TestValuesWrapper, EvaluatedTraitsOfTheArchetype) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<double, 2, 2>;
+  static_assert(std::is_same_v<Block<MyValueMatrix, 0, 0, 1, 1>::type, ValueMatrix<double, 1, 1>>);
+  static_assert(std::is_same_v<Transpose<ValueMatrix<double, 3, 2>>::type, ValueMatrix<double, 2, 3>>);
+  static_assert(std::is_same_v<Sum<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>);
+  static_assert(std::is_same_v<Difference<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>);
+  static_assert(std::is_same_v<Product<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>);
+  static_assert(std::is_same_v<Division<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>);
+  static_assert(std::is_same_v<CwiseInverse<MyValueMatrix>::type, MyValueMatrix>);
+  static_assert(std::is_same_v<Inverse<MyValueMatrix>::type, MyValueMatrix>);
+  static_assert(std::is_same_v<InnerProduct<MyValueMatrix, MyValueMatrix>::type, MyValueMatrix>);
 }
 #endif
 
@@ -434,6 +451,32 @@ TEST(TestValuesWrapper, InitializeMatrix) {  // NOLINT
 TEST(TestValuesWrapper, InitializeValue) {  // NOLINT
   const Value<int> value{1};
   EXPECT_EQ(value.get(), 1);
+}
+
+// Elements of another type are converted into the value type if their common type is the value type, like the scalars of
+// operations, e.g. int elements for double values. Compile tests ValuesWrapper.InitializeWithWider*Element check that the others
+// are rejected.
+TEST(TestValuesWrapper, InitializeWithElementsOfAnotherType) {  // NOLINT
+  const ValueMatrix<double, 2, 1> doubles{1, 2};
+  EXPECT_EQ(doubles, (ValueMatrix<double, 2, 1>{1.0, 2.0}));
+  static_assert(std::is_same_v<decltype(doubles.get<0, 0>()), double>);
+  const ValueMatrix<float, 2, 1> floats{1, 2};
+  EXPECT_EQ(floats, (ValueMatrix<float, 2, 1>{1.0F, 2.0F}));
+  const short element{3};
+  const Value<int> value{element};
+  EXPECT_EQ(value.get(), 3);
+}
+
+// An element of another type is set like the elements of the constructor, e.g. an int element for double values. Compile test
+// ValuesWrapper.SetWiderElement checks that the others are rejected.
+TEST(TestValuesWrapper, SetElementOfAnotherType) {  // NOLINT
+  auto doubles = ValueMatrix<double, 2, 1>::zero();
+  doubles.set<0, 0>(1);
+  doubles.set(1, 0, 2);
+  EXPECT_EQ(doubles, (ValueMatrix<double, 2, 1>{1.0, 2.0}));
+  Value<float> value{0.0F};
+  value.set(3);
+  EXPECT_EQ(value.get(), 3.0F);
 }
 
 TEST(TestValuesWrapper, Evaluate) {  // NOLINT

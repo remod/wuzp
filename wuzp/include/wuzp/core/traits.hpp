@@ -296,9 +296,14 @@ auto castCoordinateSystem(T t) {
   return typename Evaluate<typename CastCoordinateSystem<T, To>::type>::type{std::move(t).getValues()};
 }
 
+//! Allocates a default constructed matrix of a value matrix backend for the size MatrixSizeT_: `run(impl)`, e.g. nothing for the
+//! fixed-size arrays of Eigen, and resize() for Blitz++.
 template <typename ImplementationT_, typename MatrixSizeT_>
 struct ReserveMemory;
 
+//! Initializes an allocated matrix of a value matrix backend with its elements, row by row: `run(impl, values...)`, where
+//! ArgsTupleT_ is the std::tuple of their types. The core converts the elements into the value type first, so ArgsTupleT_ is
+//! always a HomogeneousTuple of the value type with one element per element of the matrix.
 template <typename ImplementationT_, typename ArgsTupleT_>
 struct Initialize;
 
@@ -318,9 +323,9 @@ struct Rebind {
   static_assert(FailOnInstantiation<Rebind<T, ValueT_, RowsV_, ColsV_>>::value, "'Rebind' trait not specialized for given type.");
 };
 
-//! The units for values of the type ValueT_, specialized for AccessImplementation<ValueT_> by the units backend, e.g. `Length`
-//! and `Force` (see UnitSystem in concepts.hpp). A program uses exactly one units backend: the specializations of the
-//! backends are the same template for every value type, so two of them cannot be used together.
+//! The units for values of the arithmetic type ValueT_, e.g. double, specialized for AccessImplementation<ValueT_> by the units
+//! backend, e.g. `Length` and `Force` (see UnitSystem in concepts.hpp). A program uses exactly one units backend: the
+//! specializations of the backends are the same template for every value type, so two of them cannot be used together.
 template <typename UnitT_>
 struct AccessUnits {
   static_assert(FailOnInstantiation<AccessUnits<UnitT_>>::value,

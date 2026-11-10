@@ -19,7 +19,7 @@ struct ValueMatrixWithoutTraits {
 
 }  // namespace
 
-static_assert(wuzp::internal::BackendInverses<ValueMatrixWithoutTraits, double, 3>);
+static_assert(wuzp::internal::BackendInverse<ValueMatrixWithoutTraits, double, 3>);
 
 int main() {
   return 0;

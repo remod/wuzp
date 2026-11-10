@@ -93,7 +93,10 @@ class Quantities {
     values_ = ValuesT(values);
   }
 
-  void setValue(ValueT value)
+  //! Sets the value of a quantity. Like ValuesWrapper::set(), it converts the value into the value type only if their common type
+  //! is the value type (see isConvertedToValueType), e.g. not a double for int values, which could truncate it.
+  template <typename ValueOtherT_>
+  void setValue(ValueOtherT_ value)
     requires(Dimension<ThisT>::value == 0)
   {
     values_.set(value);
@@ -355,12 +358,12 @@ namespace internal {
  * An arithmetic scalar as a dimensionless quantity of the value matrix backend and the value type of ValuesT_, e.g. for 2 * v.
  * The scalar is converted into the value type if their common type (the type of their sum in C++) is the value type, e.g. an int
  * scalar with double values, but not a double scalar with int values, nor an unsigned scalar with int values, whose sum would
- * be unsigned.
+ * be unsigned (see isConvertedToValueType).
  */
 template <typename ValuesT_, ArithmeticValue ScalarT_>
 auto toDimensionlessQuantity(const ScalarT_ scalar) {
   using ValueT = typename ValuesT_::ValueT;
-  static_assert(std::is_same_v<std::common_type_t<ScalarT_, ValueT>, ValueT>,
+  static_assert(isConvertedToValueType<ScalarT_, ValueT>,
                 "The common type of the scalar and the value type is not the value type, e.g. a double scalar with int values.");
   return Quantity<ScalarValues<ValuesT_, ValueT>, typename AccessUnits<AccessImplementation<ValueT>>::Dimensionless>(
       static_cast<ValueT>(scalar));
@@ -572,16 +575,20 @@ auto pow(const Quantity<ValueT_, UnitT_>& quantity) {
 
 // The sine and the cosine of an angle. Angles are dimensionless (see "Angles are dimensionless" in DESIGN.md), so they take any
 // dimensionless quantity, e.g. also a ratio of lengths. The results are constructed from a scalar, so they have the evaluated
-// value type: an expression, e.g. of the sum of two angles, has no constructor from a scalar.
-template <typename ValueT_>
-auto sin(const Quantity<ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Angle>& angle) {
-  return Quantity<typename Evaluate<ValueT_>::type, typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>(
+// values: an expression, e.g. of the sum of two angles, has no constructor from a scalar. The units are those of the value type,
+// e.g. double, of the values. Integer values are rejected: their sine and cosine are not integers in general, and would be
+// truncated.
+template <typename ValuesT_>
+auto sin(const Quantity<ValuesT_, typename AccessUnits<AccessImplementation<typename ValuesT_::ValueT>>::Angle>& angle) {
+  static_assert(std::is_floating_point_v<typename ValuesT_::ValueT>, "sin and cos need floating-point values.");
+  return Quantity<typename Evaluate<ValuesT_>::type, typename AccessUnits<AccessImplementation<typename ValuesT_::ValueT>>::Dimensionless>(
       std::sin(angle.getValue()));
 }
 
-template <typename ValueT_>
-auto cos(const Quantity<ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Angle>& angle) {
-  return Quantity<typename Evaluate<ValueT_>::type, typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>(
+template <typename ValuesT_>
+auto cos(const Quantity<ValuesT_, typename AccessUnits<AccessImplementation<typename ValuesT_::ValueT>>::Angle>& angle) {
+  static_assert(std::is_floating_point_v<typename ValuesT_::ValueT>, "sin and cos need floating-point values.");
+  return Quantity<typename Evaluate<ValuesT_>::type, typename AccessUnits<AccessImplementation<typename ValuesT_::ValueT>>::Dimensionless>(
       std::cos(angle.getValue()));
 }
 

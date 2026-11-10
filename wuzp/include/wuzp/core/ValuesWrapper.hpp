@@ -102,9 +102,14 @@ class ValuesWrapper {
     return set<0, 0>(value);
   }
 
+  //! Sets an element. Like the elements of the constructor, it is converted into the value type only if their common type is the
+  //! value type (see isConvertedToValueType), e.g. an int for double values, but not a double for int values, which could
+  //! truncate it.
   template <typename ValueOtherT_>
   ThisT& set(int rowId, int colId, ValueOtherT_ value) {
-    Coefficient<AccessImplementation<ImplementationT>>::set(implementation_, rowId, colId, value);
+    static_assert(isConvertedToValueType<ValueOtherT_, ValueT>,
+                  "The common type of the element and the value type is not the value type, e.g. a double element with int values.");
+    Coefficient<AccessImplementation<ImplementationT>>::set(implementation_, rowId, colId, static_cast<ValueT>(value));
     return *this;
   }
 
@@ -215,12 +220,23 @@ class ValuesWrapper {
   template <typename T0>
     requires(!ArithmeticValue<std::remove_cvref_t<T0>>)
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0) : implementation_(copyImplementation(std::forward<T0>(t0))) {}
-  //! Constructor for a set of objects to initialize the values.
+  //! Constructor from the elements, row by row. They are converted into the value type, so that Initialize always gets
+  //! RowsV_ * ColsV_ values of the value type, as ValueMatrixBackend requires, whatever the types of the arguments, e.g. const
+  //! references or integers for floating point values. Like the scalars of operations, an element is only converted if its
+  //! common type with the value type is the value type (see isConvertedToValueType), e.g. a double element is rejected for int
+  //! values, which could truncate it.
   template <typename T0, typename... Ts>
   ValuesWrapper(FromImplementationArgs /*tag*/, T0&& t0, Ts&&... ts) {
     static_assert(sizeof...(Ts) + 1 == MatrixSizeT::NumElementsV, "Number of arguments does not match size of matrix.");
-    ReserveMemory<ImplementationT_, MatrixSizeT_>::run(implementation_);
-    Initialize<ImplementationT_, std::tuple<T0, Ts...>>::run(implementation_, std::forward<T0>(t0), std::forward<Ts>(ts)...);
+    static_assert(
+        isConvertedToValueType<std::remove_cvref_t<T0>, ValueT> && (isConvertedToValueType<std::remove_cvref_t<Ts>, ValueT> && ...),
+        "The common type of the element and the value type is not the value type, e.g. a double element with int values.");
+    // Only reports the static_assert above if the number does not match, not also that Initialize takes another number.
+    if constexpr (sizeof...(Ts) + 1 == MatrixSizeT::NumElementsV) {
+      ReserveMemory<ImplementationT_, MatrixSizeT_>::run(implementation_);
+      Initialize<ImplementationT_, HomogeneousTuple<MatrixSizeT::NumElementsV, ValueT>>::run(
+          implementation_, static_cast<ValueT>(std::forward<T0>(t0)), static_cast<ValueT>(std::forward<Ts>(ts))...);
+    }
   }
 
   //! An implementation constructed from another one. It copies an object of the same type with Copy, so that it does not share

@@ -79,6 +79,13 @@ using GetSubset = GetSubsetImpl<Start, End, Increment, Tuple, std::make_index_se
 template <typename T, typename... Ts>
 inline constexpr bool areSame = std::conjunction_v<std::is_same<T, Ts>...>;
 
+//! Whether an arithmetic scalar of the type ScalarT_ is converted into the value type ValueT_: if their common type (the type of
+//! their sum in C++) is the value type, e.g. an int scalar with double values, but not a double scalar with int or float values,
+//! nor an unsigned scalar with int values, whose sum would be unsigned. The scalars of operations, e.g. 2 * v, and the elements
+//! that values are constructed from or that set() sets follow this rule.
+template <typename ScalarT_, typename ValueT_>
+inline constexpr bool isConvertedToValueType = std::is_same_v<std::common_type_t<ScalarT_, ValueT_>, ValueT_>;
+
 template <typename... Ts>
 struct IsHomogeneous {
   static constexpr bool value = areSame<Ts...>;

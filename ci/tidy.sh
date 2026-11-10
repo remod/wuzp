@@ -6,7 +6,8 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 PRESETS=("$@")
 if [[ ${#PRESETS[@]} -eq 0 ]]; then
-  PRESETS=(clang-wuzp-eigen clang-wuzp-blitz clang-boost-eigen clang-boost-blitz clang-mp_units-eigen clang-mp_units-blitz)
+  PRESETS=(clang-wuzp-eigen clang-wuzp-blitz clang-boost-eigen clang-boost-blitz clang-mp_units-eigen clang-mp_units-blitz
+    clang-archetype-archetype)
 fi
 
 # Like the test jobs, a failing preset does not stop the others.

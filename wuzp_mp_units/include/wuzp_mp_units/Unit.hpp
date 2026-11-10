@@ -121,18 +121,6 @@ using Volume = wuzp::Unit<UnitType<mp_units::cubic(mp_units::si::metre)>>;
 
 namespace wuzp {
 
-template <mp_units::Unit UnitLhsT_, mp_units::Unit UnitRhsT_>
-struct Sum<Unit<UnitLhsT_>, Unit<UnitRhsT_>> {
-  static_assert(std::is_same_v<UnitLhsT_, UnitRhsT_>, "Units do not match.");
-  using type = Unit<UnitLhsT_>;
-};
-
-template <mp_units::Unit UnitLhsT_, mp_units::Unit UnitRhsT_>
-struct Difference<Unit<UnitLhsT_>, Unit<UnitRhsT_>> {
-  static_assert(std::is_same_v<UnitLhsT_, UnitRhsT_>, "Units do not match.");
-  using type = Unit<UnitLhsT_>;
-};
-
 // The results of unit arithmetic are normalized like the units themselves, see wuzp_mp_units::UnitType.
 template <mp_units::Unit UnitLhsT_, mp_units::Unit UnitRhsT_>
 struct Product<Unit<UnitLhsT_>, Unit<UnitRhsT_>> {
