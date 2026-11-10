@@ -15,7 +15,7 @@
 using namespace wuzp;  // NOLINT
 
 int main() {
-  const PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB, 3, 3, Dimensionless> scalingBA{
+  const PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB, 3, Dimensionless> scalingBA{
       2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0};
   const PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC> translationCB{0.0, 0.0, 1.0};
   [[maybe_unused]] const auto result = translationCB * scalingBA;

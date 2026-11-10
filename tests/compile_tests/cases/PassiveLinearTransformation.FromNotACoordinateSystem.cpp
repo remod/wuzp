@@ -13,6 +13,6 @@ using namespace wuzp;  // NOLINT
 
 int main() {
   [[maybe_unused]] constexpr auto size =
-      sizeof(PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemAId, CoordinateSystemB, 3, 3, Dimensionless>);
+      sizeof(PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemAId, CoordinateSystemB, 3, Dimensionless>);
   return 0;
 }

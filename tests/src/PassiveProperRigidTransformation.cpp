@@ -58,6 +58,33 @@ TEST(TestPassiveProperRigidTransformation3, TransformVelocityVector) {  // NOLIN
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+// The translation leaves covectors and tensors with two upper indices unchanged, so a rigid transformation only rotates them: a
+// covector w into w R^T, with the same components as the vector, since R^-T = R, and a covariance S into R S R^T. The covector
+// still pairs with the vectors like before.
+TEST(TestPassiveProperRigidTransformation3, TransformCovector) {  // NOLINT
+  using Transformation = PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemB, double>;
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const Transformation::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
+  const Transformation transformation{rotation, translation};
+  const HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA> force{1.0, 2.0, 3.0};
+  const HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemB> transformedForce = transformation.transform(force);
+  EXPECT_EQ(transformedForce, (HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemB>{1.0, 3.0, -2.0}));
+  const PositionVector3<ValueMatrix, double, CoordinateSystemA> displacement{4.0, 5.0, 6.0};
+  EXPECT_EQ(innerProduct(transformedForce, transformation.transform(displacement)),
+            castCoordinateSystem<CoordinateSystemB>(innerProduct(force, displacement)));
+}
+
+TEST(TestPassiveProperRigidTransformation3, TransformCovariance) {  // NOLINT
+  using Transformation = PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemB, double>;
+  using QuantitiesT = Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Area>>;
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const Transformation::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
+  const Transformation transformation{rotation, translation};
+  const Tensor<Indices<Up, Up>, QuantitiesT, CoordinateSystemA, Relative> object{1.0, 0.5, 0.0, 0.5, 2.0, 0.0, 0.0, 0.0, 3.0};
+  EXPECT_EQ(transformation.transform(object),
+            (Tensor<Indices<Up, Up>, QuantitiesT, CoordinateSystemB, Relative>{1.0, 0.0, -0.5, 0.0, 3.0, 0.0, -0.5, 0.0, 2.0}));
+}
+
 TEST(TestPassiveProperRigidTransformation3, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, Length>>;

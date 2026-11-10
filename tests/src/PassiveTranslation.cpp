@@ -62,6 +62,24 @@ TEST(TestPassiveTranslation, TransformPointCloud) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+// A translation leaves covectors, e.g. gradients, and tensors with two upper indices, e.g. covariances, unchanged, like vectors:
+// their components do not depend on the origin.
+TEST(TestPassiveTranslation, TransformCovector) {  // NOLINT
+  using Transformation = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB>;
+  const Transformation transformation{0.0, 0.0, -1.0};  // Passive translation of 1 along z.
+  const HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA> object{1.0, 2.0, 3.0};
+  EXPECT_EQ(transformation.transform(object), (HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemB>{1.0, 2.0, 3.0}));
+}
+
+TEST(TestPassiveTranslation, TransformCovariance) {  // NOLINT
+  using Transformation = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB>;
+  using QuantitiesT = Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Area>>;
+  const Transformation transformation{0.0, 0.0, -1.0};  // Passive translation of 1 along z.
+  const Tensor<Indices<Up, Up>, QuantitiesT, CoordinateSystemA, Relative> object{1.0, 0.5, 0.0, 0.5, 2.0, 0.0, 0.0, 0.0, 3.0};
+  EXPECT_EQ(transformation.transform(object),
+            (Tensor<Indices<Up, Up>, QuantitiesT, CoordinateSystemB, Relative>{1.0, 0.5, 0.0, 0.5, 2.0, 0.0, 0.0, 0.0, 3.0}));
+}
+
 // The vector of the translation is the vector from the origin of To to the origin of From, expressed in To, which has the axes
 // of From: the origin of A is at (0, 0, -1) in B.
 TEST(TestPassiveTranslation, TranslationExpressedInTo) {  // NOLINT

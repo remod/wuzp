@@ -49,6 +49,24 @@ TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+// A translation leaves covectors, e.g. gradients, and tensors with two upper indices, e.g. covariances, unchanged, like vectors:
+// their components do not depend on the origin.
+TEST(TestActiveTranslation, TransformCovector) {  // NOLINT
+  using Object = HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA>;
+  const ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA> transformation{0.0, 0.0,
+                                                                                         1.0};  // Active translation of 1 along z.
+  const Object object{1.0, 2.0, 3.0};
+  EXPECT_EQ(transformation.transform(object), object);
+}
+
+TEST(TestActiveTranslation, TransformCovariance) {  // NOLINT
+  using Object = Tensor<Indices<Up, Up>, Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Area>>, CoordinateSystemA, Relative>;
+  const ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA> transformation{0.0, 0.0,
+                                                                                         1.0};  // Active translation of 1 along z.
+  const Object object{1.0, 0.5, 0.0, 0.5, 2.0, 0.0, 0.0, 0.0, 3.0};
+  EXPECT_EQ(transformation.transform(object), object);
+}
+
 TEST(TestActiveTranslation, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, Length>>;

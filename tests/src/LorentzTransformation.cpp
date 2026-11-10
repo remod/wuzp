@@ -239,10 +239,10 @@ TEST(TestLorentzTransformation, IsValid) {  // NOLINT
 // A Lorentz transformation is a linear transformation: it composes with linear transformations into linear transformations, in
 // both orders.
 TEST(TestLorentzTransformation, ComposeWithLinearTransformation) {  // NOLINT
-  using ScalingCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 4, 4, Dimensionless>;
-  using ScalingAD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, 4, 4, Dimensionless>;
-  using ScalingCA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 4, 4, Dimensionless>;
-  using ScalingBD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemB, 4, 4, Dimensionless>;
+  using ScalingCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 4, Dimensionless>;
+  using ScalingAD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, 4, Dimensionless>;
+  using ScalingCA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 4, Dimensionless>;
+  using ScalingBD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemB, 4, Dimensionless>;
   const double c = getSpeedOfLight<ValueMatrix, double>().getValue();
   const LorentzBoost boost{createBoost(Velocity3{0.6 * c, 0.0, 0.0})};
   const ScalingCB scalingCB{2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};

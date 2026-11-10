@@ -18,8 +18,10 @@
 namespace wuzp {
 
 /**
- * An active translation, which moves points by a vector t, p' = p + t, and leaves vectors unchanged (see the conventions in
- * DESIGN.md). It only transforms objects expressed in its coordinate system.
+ * An active translation, which moves points by a vector t, p' = p + t, and leaves vectors, covectors and tensors with two upper
+ * indices, e.g. covariances, unchanged (see the conventions in DESIGN.md). Other tensors are rejected, since they may depend on
+ * the origin, e.g. an inertia about it (see internal::isTranslationInvariant). It only transforms objects expressed in its
+ * coordinate system.
  */
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, AnyCoordinateSystem CoordinateSystemT_,
           typename... UnitsT_>
@@ -65,12 +67,15 @@ struct GetCoordinateSystem<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, Coo
   using type = CoordinateSystemT_;
 };
 
+// An active translation moves points, leaves vectors, covectors and tensors with two upper indices unchanged, and rejects the
+// other tensors (see internal::translate()).
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
-          typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
+          typename... UnitsT_, typename IndicesOtherT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_,
+          typename AbsoluteOtherT_>
 struct TransformationTraits<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>,
-                            Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
+                            Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
   static auto transform(const ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>& transformation,
-                        const Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+                        const Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
     static_assert(std::is_same_v<CoordinateSystemT_, CoordinateSystemOtherT_>, "Coordinate systems do not match.");
     return internal::translate(object, transformation.getTensor().getQuantities());
   }

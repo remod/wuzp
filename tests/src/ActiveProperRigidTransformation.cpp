@@ -56,6 +56,31 @@ TEST(TestActiveProperRigidTransformation3, TransformVelocityVector) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+// The translation leaves covectors and tensors with two upper indices unchanged, so a rigid transformation only rotates them: a
+// covector w into w R^T, with the same components as the vector, since R^-T = R, and a covariance S into R S R^T. The covector
+// still pairs with the vectors like before.
+TEST(TestActiveProperRigidTransformation3, TransformCovector) {  // NOLINT
+  using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
+  using Object = HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA>;
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
+  const Transformation::Translation translation{0.0, 0.0, 1.0};                           // Active translation of 1 along z.
+  const Transformation transformation{rotation, translation};
+  const Object force{1.0, 2.0, 3.0};
+  EXPECT_EQ(transformation.transform(force), (Object{1.0, -3.0, 2.0}));
+  const PositionVector3<ValueMatrix, double, CoordinateSystemA> displacement{4.0, 5.0, 6.0};
+  EXPECT_EQ(innerProduct(transformation.transform(force), transformation.transform(displacement)), innerProduct(force, displacement));
+}
+
+TEST(TestActiveProperRigidTransformation3, TransformCovariance) {  // NOLINT
+  using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
+  using Object = Tensor<Indices<Up, Up>, Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Area>>, CoordinateSystemA, Relative>;
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
+  const Transformation::Translation translation{0.0, 0.0, 1.0};                           // Active translation of 1 along z.
+  const Transformation transformation{rotation, translation};
+  const Object object{1.0, 0.5, 0.0, 0.5, 2.0, 0.0, 0.0, 0.0, 3.0};
+  EXPECT_EQ(transformation.transform(object), (Object{1.0, 0.0, 0.5, 0.0, 3.0, 0.0, 0.5, 0.0, 2.0}));
+}
+
 TEST(TestActiveProperRigidTransformation3, TransformPointCloud) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 3, 2>;
   using MyQuantityMatrix = Quantities<MyValueMatrix, TypeMatrix<3, 2, Length>>;

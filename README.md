@@ -75,14 +75,15 @@ In general, a transformation can be one or a combination of the following base t
 * Jacobian
 * Lorentz transformation
 
-These transformations are supported in their **active** and **passive** form.
+Rotations, translations and proper rigid transformations are supported in their **active** and **passive** form, Jacobians and Lorentz transformations in their passive form.
 In the **active** case the object is transformed, resulting in a new object.
 In the **passive** case there is only a single object, but the coordinate system which it is expressed in is transformed.[^2]
 
 As mentioned above, *wuzp* distinguishes between absolute and relative quantities.
 In geometric terms, absolute positions can be interpreted as points, while relative positions can be interpreted as vectors.
 This distinction becomes important when transforming points and vectors:
-Unlike points, vectors are agnostic to their position and therefore unaffectd by translations.
+Unlike points, vectors are agnostic to their position and therefore unaffected by translations.
+So are covectors and tensors with two upper indices, e.g. covariances, which a proper rigid transformation therefore only rotates; translations reject the other tensors, e.g. an inertia, which may depend on the origin ([DESIGN.md](DESIGN.md#translations-of-tensors)).
 
 The following table visualizes how a proper rigid transformation transforms a point and a vector in the active and passive case:
 
@@ -102,6 +103,20 @@ X_AB.inverse()                 // OK: X_BA, from A to B.
 rotation_in_A * rotation_in_B  // Error: Coordinate systems do not match.
 rotation * translation         // OK: a proper rigid transformation.
 translation * scaling          // Error: These transformations cannot be composed.
+```
+
+A Jacobian `J = d(To)/d(From)`, e.g. of the task space coordinates of a robot with respect to its joint coordinates, maps vectors, not points, also between coordinate systems of different dimensions ([DESIGN.md](DESIGN.md#jacobians)):
+
+```cpp
+jacobian.transform(jointVelocity)    // OK: the task space velocity J q'.
+jacobian.transform(jointCovariance)  // OK: the task space covariance J S J^T.
+jacobian.pullback(taskForce)         // OK: the joint torques J^T F of a force, a covector.
+jacobian.pullback(taskMassMatrix)    // OK: the joint space inertia J^T M J.
+jacobian.transform(jointMassMatrix.inverse()).inverse()  // OK: the operational space inertia (J M^-1 J^T)^-1 of Khatib.
+jacobian.transform(jointPosition)    // Error: A Jacobian maps vectors, not points: ...
+jacobian.transform(jointMassMatrix)  // Error: ... Use pullback() for covectors and tensors with two lower indices.
+jacobianAB * jacobianBC              // OK: the chain rule, J_AC.
+rotationEW * jacobianWQ              // OK: the Jacobian J_EQ, expressed in E instead of W.
 ```
 
 Rotations and Lorentz transformations check that they are valid, e.g. that the matrix of a rotation is orthogonal with determinant 1, in debug builds, like [Drake's](https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rotation_matrix.html), and throw `std::invalid_argument` otherwise (see [DESIGN.md](DESIGN.md#validity-of-rotations-and-lorentz-transformations)):

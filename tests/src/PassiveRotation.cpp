@@ -182,10 +182,10 @@ TEST(TestPassiveRotation, ProjectToRotation) {                                //
 // A rotation is a linear transformation: it composes with linear transformations into linear transformations, e.g. with a
 // scaling, in both orders.
 TEST(TestPassiveRotation, ComposeWithLinearTransformation) {  // NOLINT
-  using ScalingCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 3, 3, Dimensionless>;
-  using ScalingAD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, 3, 3, Dimensionless>;
-  using ScalingCA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 3, 3, Dimensionless>;
-  using ScalingBD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemB, 3, 3, Dimensionless>;
+  using ScalingCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 3, Dimensionless>;
+  using ScalingAD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, 3, Dimensionless>;
+  using ScalingCA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 3, Dimensionless>;
+  using ScalingBD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemB, 3, Dimensionless>;
   const RotationBA rotationBA{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
   const ScalingCB scalingCB{2.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 8.0};
   const ScalingAD scalingAD{2.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 8.0};

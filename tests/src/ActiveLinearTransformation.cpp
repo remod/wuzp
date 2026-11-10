@@ -3,6 +3,7 @@
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
+#include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/ActiveLinearTransformation.hpp"
 
 #include "coordinate_systems.hpp"
@@ -63,6 +64,50 @@ TEST(TestActiveLinearTransformation, TransformTensorWithTwoContravariantIndices)
   const Covariance<CoordinateSystemA> object{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
   const Covariance<CoordinateSystemA> transformedObject{4.0, 8.0, 16.0, 8.0, 16.0, 32.0, 16.0, 32.0, 64.0};
   EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
+}
+
+// The formulas keep heterogeneous units: a map A of the coordinates (r, phi), with the units [x_i] / [x_j] of a linear map, i.e. 1
+// and m / rad, which is not symmetric, so that a transposed matrix would give other values: A = ((2, 1), (3, 2)), whose inverse is
+// ((2, -1), (-3, 2)). v' = A v and T' = A T A^T, with the units of v and T, and w' = w A^-1 and M' = A^-T M A^-1, with the units
+// of w and M. The power w v and the kinetic energy v^T M v / 2 do not change.
+TEST(TestActiveLinearTransformation, TransformWithHeterogeneousUnits) {  // NOLINT
+  using LengthOverAngle = Division<Length, Angle>::type;
+  using AngleOverLength = Inverse<LengthOverAngle>::type;
+  using LengthAngle = Product<Length, Angle>::type;
+  using MassLength = Product<Mass, LengthOverAngle>::type;
+  using MassLength2 = Product<MassLength, LengthOverAngle>::type;
+  using PolarMap = ActiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, 2, 2, Dimensionless, LengthOverAngle, AngleOverLength,
+                                              Dimensionless>;
+  using PolarPoint = Point<Quantities<ValueMatrix<double, 2, 1>, TypeMatrix<2, 1, Length, Angle>>, CoordinateSystemA>;
+  using PolarVelocity = Vector<Quantities<ValueMatrix<double, 2, 1>, TypeMatrix<2, 1, Velocity, AngularVelocity>>, CoordinateSystemA>;
+  using GeneralizedForce =
+      Covector<Quantities<ValueMatrix<double, 1, 2>, TypeMatrix<1, 2, Force, Division<Torque, Angle>::type>>, CoordinateSystemA>;
+  using PolarCovariance =
+      Tensor<Indices<Up, Up>,
+             Quantities<ValueMatrix<double, 2, 2>, TypeMatrix<2, 2, Area, LengthAngle, LengthAngle, Product<Angle, Angle>::type>>,
+             CoordinateSystemA, Relative>;
+  using PolarMassMatrix =
+      Tensor<Indices<Down, Down>, Quantities<ValueMatrix<double, 2, 2>, TypeMatrix<2, 2, Mass, MassLength, MassLength, MassLength2>>,
+             CoordinateSystemA, Relative>;
+  const PolarMap map{2.0, 1.0, 3.0, 2.0};
+
+  const PolarPoint transformedPoint = map.transform(PolarPoint{1.0, 2.0});
+  EXPECT_EQ(transformedPoint, (PolarPoint{4.0, 7.0}));
+  const PolarVelocity velocity{1.0, 2.0};
+  const PolarVelocity transformedVelocity = map.transform(velocity);
+  EXPECT_EQ(transformedVelocity, (PolarVelocity{4.0, 7.0}));
+  const PolarCovariance transformedCovariance = map.transform(PolarCovariance{1.0, 0.0, 0.0, 1.0});
+  EXPECT_EQ(transformedCovariance, (PolarCovariance{5.0, 8.0, 8.0, 13.0}));
+
+  const GeneralizedForce force{3.0, 4.0};
+  const GeneralizedForce transformedForce = map.transform(force);
+  EXPECT_TRUE(transformedForce.isApprox(GeneralizedForce{-6.0, 5.0}, 1e-12));
+  EXPECT_TRUE(innerProduct(transformedForce, transformedVelocity).isApprox(innerProduct(force, velocity), 1e-12));
+  const PolarMassMatrix massMatrix{1.0, 0.0, 0.0, 1.0};
+  const PolarMassMatrix transformedMassMatrix = map.transform(massMatrix);
+  EXPECT_TRUE(transformedMassMatrix.isApprox(PolarMassMatrix{13.0, -8.0, -8.0, 5.0}, 1e-12));
+  EXPECT_TRUE(innerProduct(transformedVelocity, innerProduct(transformedMassMatrix, transformedVelocity))
+                  .isApprox(innerProduct(velocity, innerProduct(massMatrix, velocity)), 1e-12));
 }
 
 TEST(TestActiveLinearTransformation, TransformOuterProductOfVectors) {  // NOLINT

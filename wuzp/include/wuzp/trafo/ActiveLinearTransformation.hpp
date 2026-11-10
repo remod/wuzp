@@ -14,7 +14,8 @@
 #include "wuzp/trafo/ActiveTransformation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
 #include "wuzp/trafo/internal/apply_units.hpp"
-#include "wuzp/trafo/internal/map_relative.hpp"
+#include "wuzp/trafo/internal/pull_back.hpp"
+#include "wuzp/trafo/internal/push_forward.hpp"
 #include "wuzp/trafo/internal/with_quantities.hpp"
 #include "wuzp/trafo/traits.hpp"
 
@@ -108,6 +109,9 @@ struct GetCoordinateSystem<ActiveLinearTransformation<ValuesT_, ValueT_, Coordin
 // of the linear transformation, so that those of the rotations, which are linear transformations too, inherit them (see
 // ActiveSpatialRotation). The inverse of a rotation is its transpose, so a rotation transforms covectors and tensors with lower
 // indices without a matrix inverse: without its rounding errors, and also for integer matrices.
+// Like a passive linear transformation, it pushes vectors and tensors with two upper indices forward by its matrix, and pulls
+// covectors and tensors with two lower indices back by its inverse (see internal::pushForward() and internal::pullBack()), within
+// its coordinate system.
 
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, int DimensionFromV_,
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
@@ -116,9 +120,8 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, Coordi
   template <typename TransformationT_>
   static auto transform(const TransformationT_& transformation,
                         const Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
-    // A covector transforms with the inverse: w' = w A^-1.
-    return internal::withQuantities<CoordinateSystemT_>(object,
-                                                        innerProduct(object.getQuantities(), transformation.inverse().getQuantities()));
+    // A covector transforms with the inverse, w' = w A^-1: it is pulled back by A^-1.
+    return internal::pullBack<CoordinateSystemT_, CoordinateSystemT_>(transformation.inverse().getQuantities(), object);
   }
 };
 
@@ -129,10 +132,8 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, Coordi
   template <typename TransformationT_>
   static auto transform(const TransformationT_& transformation,
                         const Tensor<Indices<Down, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
-    // A tensor with two lower indices, e.g. a mass matrix, transforms like M' = A^-T M A^-1.
-    const auto inverse = transformation.inverse().getQuantities();
-    return internal::withQuantities<CoordinateSystemT_>(object,
-                                                        innerProduct(inverse.transpose(), innerProduct(object.getQuantities(), inverse)));
+    // A tensor with two lower indices, e.g. a mass matrix, transforms like M' = A^-T M A^-1: it is pulled back by A^-1.
+    return internal::pullBack<CoordinateSystemT_, CoordinateSystemT_>(transformation.inverse().getQuantities(), object);
   }
 };
 
@@ -143,10 +144,8 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, Coordi
   template <typename TransformationT_>
   static auto transform(const TransformationT_& transformation,
                         const Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
-    // A vector transforms like v' = A v.
-    return internal::mapRelative(object, [&transformation](const auto& relative) {
-      return internal::withQuantities<CoordinateSystemT_>(relative, innerProduct(transformation.getQuantities(), relative.getQuantities()));
-    });
+    // A vector transforms like v' = A v, also a point, through its coordinates relative to the origin.
+    return internal::pushForward<CoordinateSystemT_, CoordinateSystemT_>(transformation.getQuantities(), object);
   }
 };
 
@@ -172,9 +171,7 @@ struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, Coordi
   static auto transform(const TransformationT_& transformation,
                         const Tensor<Indices<Up, Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A tensor with two upper indices, e.g. a covariance matrix, transforms like T' = A T A^T.
-    return internal::withQuantities<CoordinateSystemT_>(
-        object,
-        innerProduct(innerProduct(transformation.getQuantities(), object.getQuantities()), transformation.getQuantities().transpose()));
+    return internal::pushForward<CoordinateSystemT_, CoordinateSystemT_>(transformation.getQuantities(), object);
   }
 };
 

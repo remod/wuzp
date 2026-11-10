@@ -27,10 +27,11 @@ struct TransformationTraits {
  * it. The operators check the coordinate systems first (see ActiveTransformation.hpp and PassiveTransformation.hpp).
  * It is specialized where the result is again a transformation of wuzp: linear transformations, including rotations and
  * Lorentz transformations, with linear transformations (a rotation with a rotation is a rotation, a Lorentz transformation with
- * a Lorentz transformation a Lorentz transformation), translations with translations, and proper rigid transformations,
- * rotations and translations with each other, except a translation with a translation, into proper rigid transformations.
- * Every other combination is rejected, e.g. a translation with a linear transformation that is not a rotation, whose
- * composition is affine but not rigid, or an active with a passive transformation.
+ * a Lorentz transformation a Lorentz transformation), translations with translations, proper rigid transformations,
+ * rotations and translations with each other, except a translation with a translation, into proper rigid transformations, and
+ * Jacobians with Jacobians and with passive linear transformations, including rotations and Lorentz transformations, into
+ * Jacobians, by the chain rule. Every other combination is rejected, e.g. a translation with a linear transformation that is not a
+ * rotation, whose composition is affine but not rigid, a Jacobian with a translation, or an active with a passive transformation.
  */
 template <typename LhsT_, typename RhsT_>
 struct CompositionTraits {
@@ -72,6 +73,12 @@ namespace internal {
 //! Whether T is a rotation, i.e. an ActiveSpatialRotation or a PassiveSpatialRotation. Specialized in their headers.
 template <typename T>
 struct IsRotation : std::false_type {};
+
+//! Whether T is a passive change of basis, i.e. a PassiveLinearTransformation, a PassiveSpatialRotation or a LorentzTransformation,
+//! whose matrix is the Jacobian of the identity map from From to To, so that it composes with Jacobians into Jacobians (see
+//! Jacobian). Specialized in their headers.
+template <typename T>
+struct IsChangeOfBasis : std::false_type {};
 
 }  // namespace internal
 

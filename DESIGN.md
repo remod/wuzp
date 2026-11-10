@@ -18,7 +18,7 @@ Open questions are marked with **TODO** and must be decided before 1.0.
   A coordinate system means axes and an origin; it is not a moving observer.
 * **Points and vectors.** Absolute tensors are points, relative tensors are vectors and all other tensors (like temperatures and temperature differences).
   Points follow the rules of affine spaces: operations whose result depends on the origin of the coordinate system are rejected (see [Points and vectors](#points-and-vectors)).
-* **Transformations.** Rotations, translations, proper rigid transformations (first rotation, then translation), Jacobians and Lorentz transformations, each in an active and a passive form.
+* **Transformations.** Rotations, translations and proper rigid transformations (first rotation, then translation), each in an active and a passive form, Lorentz transformations, and Jacobians, which push forward vectors and pull back covectors (see [Jacobians](#jacobians)).
   They compose with `*`, in the order of Drake's monogram notation, and have an `inverse()` (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
   Rotations and Lorentz transformations are classes of their own, which check their validity in debug builds and invert without a matrix inverse (see [Validity of rotations and Lorentz transformations](#validity-of-rotations-and-lorentz-transformations)).
 
@@ -40,8 +40,8 @@ For a linear transformation with component matrix `A` (contravariant components 
 Equivalently, `A^-1` is the change-of-basis matrix `P` used by Wikipedia ("old = P new").
 The notes at the end of this document start with the opposite convention (`M' = A^-1 M A`, `A^T M A`); the code follows the table above.
 
-Translations move points and leave vectors unchanged.
-A proper rigid transformation first rotates, then translates: `x -> R x + t`.
+Translations move points, leave vectors, covectors and tensors with two upper indices unchanged, and reject the other tensors, which may depend on the origin (see [Translations of tensors](#translations-of-tensors)).
+A proper rigid transformation first rotates, then translates: `x -> R x + t`, so it only rotates the tensors that translations leave unchanged.
 An active transformation moves the objects expressed in its coordinate system.
 A passive transformation from `From` to `To` expresses the objects of `From` in `To`, and only takes objects expressed in `From`.
 `PassiveTransformation<From = B, To = A>` is `X_AB` in the [monogram notation of Drake](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html) and `^A_B T` in the notation of Craig (Introduction to Robotics, chapter 2): it maps the coordinates of a point in `B` to its coordinates in `A`.
@@ -57,7 +57,18 @@ Its matrix and vector are those of the inverse:
 * The active proper rigid transformation `(R, t)` and the passive one with the same rotation and translation, `(R^T, -R^T t)`, whose translation `-R^T t` is expressed in `To`.
   It is not `-t`, unless `R t = t`: the passive transformation `(R^T, -t)` maps the point `(1, 2, 3)`, moved by the rotation of `pi/2` around `x` and the translation `(0, 0, 1)`, to `(1, 3, 2)` (`tests/src/ActiveAndPassiveProperRigidTransformation.cpp`).
 
-Transformations compose with `*` and have an `inverse()` (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
+A Jacobian `J` of a change of coordinates from `From` to `To` maps tangent objects, not points: `transform()` pushes vectors and tensors with two upper indices forward, `pullback()` pulls covectors and tensors with two lower indices back (see [Jacobians](#jacobians)):
+
+| Object | Indices | `transform()`, from `From` to `To` | `pullback()`, from `To` to `From` |
+| --- | --- | --- | --- |
+| Vector, e.g. a velocity | `Indices<Up>` | `v' = J v` | error |
+| Point | `Indices<Up>`, absolute | error | error |
+| Covector, e.g. a force | `Indices<Down>` | error | `w' = w J`, i.e. `J^T w` for columns |
+| E.g. a covariance matrix | `Indices<Up, Up>` | `T' = J T J^T` | error |
+| E.g. a mass matrix | `Indices<Down, Down>` | error | `M' = J^T M J` |
+| Linear map, scalar | `Indices<Up, Down>`, `Indices<Down, Up>`, `Indices<>` | error | error |
+
+Transformations compose with `*` and have an `inverse()`, except Jacobians that are not square (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
 `activeTransformation.transform(otherTransformation)` is the conjugation `a b a^-1`, which re-expresses the other transformation; it is defined where the result is a transformation of the same kind: a linear transformation or a translation conjugated by a linear transformation or a rotation, a rotation conjugated by a rotation, and a translation conjugated by a translation or a proper rigid transformation.
 
 **Points and vectors.**
@@ -270,12 +281,12 @@ Decision:
   Passive transformations compose in the order of the [monogram notation of Drake](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html), `X_AB * X_BC = X_AC`, i.e. `^A_C T = ^A_B T ^B_C T` in the notation of Craig.
   The coordinate systems that meet, `From` of `lhs` and `To` of `rhs`, must be the same, which is checked at compile time with the message "Adjacent frames do not match.", like [wave_geometry](https://github.com/wavelab/wave_geometry) does.
   Active transformations compose within their coordinate system.
-* The compositions that are again transformations of *wuzp* are defined, by specializations of the trait `CompositionTraits`: linear transformations with linear transformations (the product of their matrices, e.g. the chain rule for Jacobians), rotations with rotations and Lorentz transformations with Lorentz transformations (likewise, but of their own type), translations with translations (the sum of their vectors), and proper rigid transformations, rotations and translations with each other into proper rigid transformations, `(R1, t1) * (R2, t2) = (R1 R2, R1 t2 + t1)`, where a rotation `R` is `(R, 0)` and a translation `t` is `(I, t)` (Sola, Deray and Atchuthan, ["A micro Lie theory for state estimation in robotics"](https://arxiv.org/abs/1812.01537), eq. 171, and Drake's [RigidTransform](https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html)).
+* The compositions that are again transformations of *wuzp* are defined, by specializations of the trait `CompositionTraits`: linear transformations with linear transformations (the product of their matrices), Jacobians with Jacobians and with passive linear transformations, including rotations and Lorentz transformations, into Jacobians (likewise, the chain rule, see [Jacobians](#jacobians)), rotations with rotations and Lorentz transformations with Lorentz transformations (likewise, but of their own type), translations with translations (the sum of their vectors), and proper rigid transformations, rotations and translations with each other into proper rigid transformations, `(R1, t1) * (R2, t2) = (R1 R2, R1 t2 + t1)`, where a rotation `R` is `(R, 0)` and a translation `t` is `(I, t)` (Sola, Deray and Atchuthan, ["A micro Lie theory for state estimation in robotics"](https://arxiv.org/abs/1812.01537), eq. 171, and Drake's [RigidTransform](https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html)).
   The result of linear transformations has the type of the aliases, e.g. the product of two dimensionless linear transformations has a single dimensionless unit, since homogeneous units are given as a single unit.
   A rotation or a Lorentz transformation is a linear transformation, so its compositions with linear transformations are linear transformations.
   The compositions of rotations with translations and proper rigid transformations are defined in the headers of the rotations, which include the class templates of the proper rigid transformations (`ActiveProperRigidTransformationTemplate.hpp`, `PassiveProperRigidTransformationTemplate.hpp`).
 * Other combinations are rejected with "These transformations cannot be composed.", e.g. a translation with a linear transformation that may not be a rotation, e.g. a scaling, whose composition is affine but not rigid, and an active with a passive transformation.
-* `inverse()` inverts every transformation; a passive inverse transforms from `To` to `From`.
+* `inverse()` inverts every transformation, except Jacobians that are not square (see [Jacobians](#jacobians)); a passive inverse transforms from `To` to `From`.
   The inverse of a linear transformation has the matrix inverse, which needs a value matrix backend with matrix inverses, which both backends are (see [Backend support for inverses](#backend-support-for-inverses)); that of a translation is `-t`, and that of a proper rigid transformation `(R^T, -R^T t)` (Sola et al., eq. 170), which only needs the transpose of the rotation.
   The inverses of rotations, `R^T`, and of Lorentz transformations, `eta Lambda^T eta`, which follows from `eta = Lambda^T eta Lambda` (Carroll, eq. 1.14), are structural: they need no matrix inverse, and add no rounding errors.
 * The conjugations of linear transformations by translations and proper rigid transformations, and all transformations of passive transformations by passive transformations, are removed: users compose with `*` and `inverse()`, e.g. `t * r * t.inverse()` for a rotation `r`.
@@ -334,6 +345,61 @@ It is linear algebra, so it belongs in the backend, not in the core.
   A matrix that is singular only up to rounding has a tiny pivot: its inverse has huge elements, with both backends.
 * The tests compare the inverses and the determinants of both backends with values computed by hand, and with each other for well and badly conditioned matrices of the sizes 1 to 4, also with zeros on the diagonal, which need row swaps (`tests/src/ValueMatrixBackends.cpp`).
 
+### Jacobians
+
+A Jacobian was an alias of `PassiveLinearTransformation`, so it transformed everything that a change of basis transforms.
+It mapped points: the Jacobian of the Cartesian coordinates with respect to the polar coordinates at the point `(2 m, π/2)` mapped that point to `(-3.14, 2) m` instead of `(0, 2) m`.
+It transformed covectors and tensors with two lower indices with its inverse, `w J^-1` and `J^-T M J^-1`, which only exists for square Jacobians, so the mass matrix test was commented out, and the physically meaningful operations on them, the pullbacks `w J` and `J^T M J`, did not exist.
+
+A Jacobian `J = d(To)/d(From)` of a change of coordinates, e.g. of the task space coordinates of a robot with respect to its joint coordinates, is its linearization at one point, possibly between coordinate systems of different dimensions.
+It maps the tangent objects at that point, not the points: contravariant tensors are pushed forward from `From` to `To`, covariant ones are pulled back from `To` to `From` (Lee, Introduction to Smooth Manifolds, 2nd ed., Springer, 2013, chapters 3, 11 and 12; [Pullback (differential geometry)](https://en.wikipedia.org/wiki/Pullback_(differential_geometry))).
+
+Decision: `Jacobian<ValuesT, ValueT, From, To, DimensionFrom, DimensionTo, Units...>` is a class of its own, with the template parameters of the alias, which maps the tensors as in the table in [Conventions](#conventions).
+Its matrix `J_ij = dx_i / dq_j`, for the coordinates `q` of `From` and `x` of `To`, is stored as quantities with the units `[x_i] / [q_j]`.
+
+* `transform()` is the pushforward of relative vectors, `v' = J v`, also of batches, and of tensors with two upper indices, `T' = J T J^T`, e.g. of a covariance `S_x = J S_q J^T`, like the passive linear transformation with the matrix of the Jacobian.
+  It rejects points with "A Jacobian maps vectors, not points: the change of coordinates whose derivative it is maps the points.", and every other tensor with "A Jacobian pushes forward vectors and tensors with two upper indices. Use pullback() for covectors and tensors with two lower indices.".
+* `pullback()` pulls covectors, `w' = w J`, and tensors with two lower indices, `M' = J^T M J`, back from `To` to `From`, and rejects every other tensor with "The pullback by a Jacobian maps covectors and tensors with two lower indices. Use transform() for vectors and tensors with two upper indices.".
+  It needs no inverse, so it also works for Jacobians that are not square, e.g. for the joint torques `τ = J^T F` that balance a force `F` at the end effector, a covector in task space, or for the joint space inertia `J^T M J` of a mass matrix `M` in Cartesian coordinates.
+  The test of the rotating dumbbell checks that the pullback of the diagonal mass matrix of the Cartesian coordinates of both masses is the mass matrix of its minimal coordinates (`tests/src/RotatingDumbbell.cpp`).
+* The units of the results follow from those of the matrix products: e.g. the pullback of a force in `N` by the Jacobian of the Cartesian coordinates with respect to the polar coordinates is a force in `N` along `r` and a torque in `N m` about the origin, and the pushforward of a covariance of a length and an angle is a covariance in `m^2` (`tests/src/Jacobian.cpp`).
+* A mixed tensor, e.g. a linear map, would need its upper index pushed forward and its lower index pulled back, in opposite directions, so both reject it, and scalars too, like the linear transformations do.
+  A square Jacobian that is a change of basis can be turned into a `PassiveLinearTransformation`, which transforms every tensor: `PassiveLinearTransformation<...>{jacobian.getQuantities()}`.
+* Jacobians compose with Jacobians by the chain rule, `J_AC = J_AB * J_BC`, in the order of Drake's monogram notation, and the coordinate systems that meet must match ("Adjacent frames do not match."), like for the other passive transformations.
+  A change of basis, i.e. a passive linear transformation, a rotation or a Lorentz transformation, is the Jacobian of the identity map between two coordinate systems, so its compositions with Jacobians, in both orders, are Jacobians too, by the chain rule: e.g. `R_EW * J_W` expresses the task space Jacobian `J_W` in the coordinate system `E` instead of `W`.
+  The trait `internal::IsChangeOfBasis` marks the changes of basis.
+  Jacobians do not compose with translations or proper rigid transformations, which move points: "These transformations cannot be composed.".
+* A passive linear transformation is a change of basis, so its matrix is square: `PassiveLinearTransformation<ValuesT, ValueT, From, To, Dimension, Units...>` has one dimension, like the rotations and the Lorentz transformations, instead of the two of the alias of the Jacobian.
+  A linear map between coordinate systems of different dimensions is a Jacobian.
+  Jacobians and linear transformations, active and passive, share the pushforward of vectors and tensors with two upper indices (`internal::pushForward()`), which linear transformations also apply to points, and the pullback of covectors and tensors with two lower indices (`internal::pullBack()`): a linear transformation `A` transforms them by pulling them back by its inverse, `w A^-1` and `A^-T M A^-1`, which for a change of basis maps `To` into `From`, so the formulas exist once.
+* `inverse()`, the Jacobian of the inverse change of coordinates, is the matrix inverse, which both value matrix backends provide (see [Backend support for inverses](#backend-support-for-inverses)).
+  Only square Jacobians have one: the others are rejected with "Only a square Jacobian, between coordinate systems of the same dimension, has an inverse.".
+* The operational space inertia of Khatib, `Λ = (J M^-1 J^T)^-1` for the joint space inertia `M` and a Jacobian `J` of full row rank ("A unified approach for motion and force control of robot manipulators: The operational space formulation", IEEE Journal on Robotics and Automation 3(1), 1987, [doi:10.1109/JRA.1987.1087068](https://doi.org/10.1109/JRA.1987.1087068); Featherstone and Orin, "Dynamics", in Siciliano and Khatib (eds.), Springer Handbook of Robotics, Springer, 2008, section 2.5.4, "Operational-Space Inertia Matrix"), needs no operation of its own: `M.inverse()` has two upper indices (see [Inverses and determinants](#inverses-and-determinants)), `transform()` pushes it forward into the task space, and its inverse has two lower indices again, `jacobian.transform(massMatrix.inverse()).inverse()`.
+  The test of the rotating dumbbell checks it at one mass against the closed form `(m1 + m2) u u^T + m1 n n^T`, for the direction `u` of the rod and its normal `n`: the massless rod only transmits forces along itself.
+* The matrix maps one coordinate system into another, so it is not a tensor in one coordinate system: `getQuantities()` returns it, and there is no `getTensor()`, like for the passive linear transformations.
+
+### Translations of tensors
+
+Translations only transformed points and vectors.
+Covectors and tensors with two upper indices, e.g. covariances, failed with "'TransformationTraits' trait not specialized.", and so did proper rigid transformations, although their rotations transform them.
+
+The Jacobian of a translation `x -> x + t` is the identity, so it leaves the tensors at a point, whose components do not depend on the origin, unchanged, and only moves the points.
+Some quantities are about a point rather than at one, though, e.g. the inertia of a body about the origin, which changes with the origin by the parallel axis theorem, `I_o = I_c + m (|c|^2 1 - c c^T)` for the inertia `I_c` about the center of mass `c`, and the type of a tensor cannot tell them apart.
+
+Decision: translations decide by the variance of the indices, conservatively:
+
+* They leave vectors, covectors, e.g. gradients and forces as covectors, and tensors with two upper indices, e.g. covariances, which are about the mean, unchanged, and move points (`internal::isTranslationInvariant`).
+  Proper rigid transformations therefore transform vectors, covectors and tensors with two upper indices by their rotation alone, e.g. `w R^T` and `R S R^T`.
+* They reject the other tensors with "A translation only transforms points, vectors, covectors and tensors with two upper indices: other tensors may depend on the origin, e.g. an inertia about it.", since for each of them a common quantity depends on the origin, and the type cannot tell it from one that does not:
+  * Tensors with two lower indices, e.g. an inertia about a point or a mass matrix, which the parallel axis theorem shifts, rather than a metric.
+  * Mixed tensors, e.g. the inertia written as the linear map from the angular velocity to the angular momentum about a point, rather than a velocity gradient.
+  * Scalars, e.g. a potential energy `m g z`, which depends on the origin of `z`, or a moment of a force about a point in two dimensions, rather than a mass.
+
+  So does a proper rigid transformation: its translation rejects tensors with two lower indices and tensors with an upper and then a lower index after the rotation, while scalars and tensors with a lower and then an upper index already fail at the rotation, which, like the other linear transformations, does not transform them ("'TransformationTraits' trait not specialized for given type.").
+  The rule is conservative: it errs on the side of rejecting a tensor that a translation would leave unchanged, which the user can then transform by the rotation alone, rather than silently leaving a quantity about the origin unchanged.
+* A tensor with two upper indices that is about a point, e.g. the second moment `Σ m p p^T` of points about the origin, is left unchanged too, which is wrong for it: it is computed from the points after transforming them.
+  Likewise, a moment about a point, e.g. a torque `r × F`, is a vector, which translations leave unchanged (see [Moving coordinate systems](#todo-moving-coordinate-systems)).
+
 ## Review of mathematical and physical soundness (November 2026)
 
 The library was reviewed for mathematical and physical soundness, with claims verified by compiling and running programs.
@@ -388,16 +454,6 @@ A code audit (November 2026) found these defects, all fixed:
 
 ## Open design questions
 
-### TODO: Jacobians
-
-A Jacobian is a `PassiveLinearTransformation`, so it also maps points: the Jacobian of polar to Cartesian coordinates at `r = 2` maps the point `(2 m, π/2)` to `(2, 3.14) m` instead of `(0, 2) m`.
-A Jacobian is a local linearization and must only map tangent vectors.
-The rule `A^-T M A^-1` cannot handle non-square Jacobians, and the check of the mass matrix test (`TestJacobian.TransformMassMatrix`) is commented out.
-The physically meaningful operations are the pullback `M_q = J^T M_x J` (no inverse needed) and the operational space inertia `Λ = (J M^-1 J^T)^-1`.
-The composition of Jacobians is the chain rule, `J_AB * J_BC = J_AC` (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
-
-Recommendation: a separate Jacobian type that rejects points and provides the pullback.
-
 ### TODO: Metric
 
 `dotProduct` and `norm` use the Euclidean metric and contract two vectors, i.e. two upper indices, and `transpose()` of a vector or a covector lowers or raises its index with it.
@@ -411,7 +467,7 @@ Recommendation: (c) for 1.0, (a) later.
 
 Coordinate systems are axes and an origin, not moving observers.
 A passive transformation of a velocity re-expresses it; it does not add `ω × r` or the velocity of the coordinate system, and a rigid transformation of a torque ignores the moment arm (`t × F`).
-The rigid transformation of a mass or inertia tensor does not compile, which is arguably safer than guessing the parallel axis term.
+The rigid transformation of a mass or inertia tensor does not compile, which is arguably safer than guessing the parallel axis term (see [Translations of tensors](#translations-of-tensors)).
 The transport formulas exist only in the tests.
 Recommendation: document this clearly; consider dedicated twist and wrench types later.
 

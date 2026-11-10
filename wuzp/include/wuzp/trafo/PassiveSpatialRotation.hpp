@@ -24,9 +24,9 @@ namespace wuzp {
  * passive linear transformation whose matrix R, which transforms the components v of a vector in From into its components R v
  * in To, is orthogonal with determinant 1, R R^T = I and det(R) = 1. Its rows are the basis vectors of To, expressed in From. It
  * transforms the same tensors as the passive linear transformation with its matrix (see PassiveLinearTransformation). It
- * composes with rotations into rotations, with linear transformations into linear transformations, and with translations and
- * proper rigid transformations into proper rigid transformations (see CompositionTraits). Its inverse, from To to From, is its
- * transpose, which every value matrix backend provides, also for integer matrices, and with which it transforms covectors and
+ * composes with rotations into rotations, with linear transformations into linear transformations, with Jacobians into Jacobians,
+ * and with translations and proper rigid transformations into proper rigid transformations (see CompositionTraits). Its inverse, from To to
+ * From, is its transpose, which every value matrix backend provides, also for integer matrices, and with which it transforms covectors and
  * tensors with lower indices.
  * In debug builds, i.e. if NDEBUG is not defined, the constructors check that the matrix is a rotation (see isValid()), like
  * Drake's RotationMatrix (https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rotation_matrix.html): they throw
@@ -42,7 +42,7 @@ class PassiveSpatialRotation
     : public PassiveTransformation<PassiveSpatialRotation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>, FromT_, ToT_> {
  public:
   //! The passive linear transformation with the matrix of the rotation, whose transformations the rotation shares.
-  using LinearTransformationT = PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_, DimensionV_,
+  using LinearTransformationT = PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_,
                                                             typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
   using ValueT = ValueT_;
   using ValuesT = typename LinearTransformationT::ValuesT;
@@ -117,6 +117,9 @@ namespace internal {
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_, int DimensionV_>
 struct IsRotation<PassiveSpatialRotation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>> : std::true_type {};
 
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_, int DimensionV_>
+struct IsChangeOfBasis<PassiveSpatialRotation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>> : std::true_type {};
+
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_, int DimensionV_,
           typename NewFromT_, typename NewToT_>
 struct WithFrames<PassiveSpatialRotation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>, NewFromT_, NewToT_> {
@@ -146,23 +149,20 @@ struct CompositionTraits<PassiveSpatialRotation<ValuesLhsT_, ValueLhsT_, FromLhs
 // A rotation is a linear transformation: its compositions with linear transformations are those of the linear transformation with
 // its matrix, the products of the matrices.
 template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT_, typename FromLhsT_, typename ToLhsT_, int DimensionLhsV_,
-          template <typename, int, int> typename ValuesRhsT_, typename ValueRhsT_, typename FromRhsT_, typename ToRhsT_,
-          int DimensionFromRhsV_, int DimensionToRhsV_, typename... UnitsRhsT_>
-struct CompositionTraits<
-    PassiveSpatialRotation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_>,
-    PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionFromRhsV_, DimensionToRhsV_, UnitsRhsT_...>>
-    : CompositionTraits<
-          typename PassiveSpatialRotation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_>::LinearTransformationT,
-          PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionFromRhsV_, DimensionToRhsV_, UnitsRhsT_...>> {};
+          template <typename, int, int> typename ValuesRhsT_, typename ValueRhsT_, typename FromRhsT_, typename ToRhsT_, int DimensionRhsV_,
+          typename... UnitsRhsT_>
+struct CompositionTraits<PassiveSpatialRotation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_>,
+                         PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_, UnitsRhsT_...>>
+    : CompositionTraits<typename PassiveSpatialRotation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_>::LinearTransformationT,
+                        PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_, UnitsRhsT_...>> {};
 
-template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT_, typename FromLhsT_, typename ToLhsT_,
-          int DimensionFromLhsV_, int DimensionToLhsV_, typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_,
-          typename ValueRhsT_, typename FromRhsT_, typename ToRhsT_, int DimensionRhsV_>
-struct CompositionTraits<
-    PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionFromLhsV_, DimensionToLhsV_, UnitsLhsT_...>,
-    PassiveSpatialRotation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_>>
+template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT_, typename FromLhsT_, typename ToLhsT_, int DimensionLhsV_,
+          typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, typename ValueRhsT_, typename FromRhsT_,
+          typename ToRhsT_, int DimensionRhsV_>
+struct CompositionTraits<PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_, UnitsLhsT_...>,
+                         PassiveSpatialRotation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_>>
     : CompositionTraits<
-          PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionFromLhsV_, DimensionToLhsV_, UnitsLhsT_...>,
+          PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_, UnitsLhsT_...>,
           typename PassiveSpatialRotation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_>::LinearTransformationT> {};
 
 // The compositions X_AB * X_BC = X_AC of a rotation with a translation or a proper rigid transformation are proper rigid

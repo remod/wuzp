@@ -15,7 +15,7 @@
 using namespace wuzp;  // NOLINT
 
 using RigidTransformationBA = PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemB, double>;
-using ScalingCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 3, 3, Dimensionless>;
+using ScalingCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 3, Dimensionless>;
 
 int main() {
   const RigidTransformationBA rigidBA{RigidTransformationBA::Rotation{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0},

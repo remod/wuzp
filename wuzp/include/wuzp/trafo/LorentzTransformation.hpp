@@ -41,12 +41,11 @@ ValuesT_ minkowskiMetric() {
  * https://arxiv.org/abs/gr-qc/9712019, eq. 1.14, whose signature (-, +, +, +) has the metric -eta, which gives the same
  * condition), e.g. a boost (see createBoostMatrix()), a spatial rotation, or their compositions. It transforms the same tensors
  * as the passive linear transformation with its matrix (see PassiveLinearTransformation). It composes with Lorentz
- * transformations into Lorentz transformations, and with linear transformations into linear transformations (see
- * CompositionTraits). Its inverse is eta Lambda^T eta, which follows from eta = Lambda^T eta Lambda and needs no matrix inverse,
- * and with which it transforms covectors and tensors with lower indices.
- * In debug builds, i.e. if NDEBUG is not defined, the constructors check that the matrix preserves the metric (see isValid()),
- * and throw std::invalid_argument if it does not, like those of the rotations (see ActiveSpatialRotation). Release builds do not
- * check. makeUnchecked() skips the check, e.g. in hot paths.
+ * transformations into Lorentz transformations, with linear transformations into linear transformations, and with Jacobians into
+ * Jacobians (see CompositionTraits). Its inverse is eta Lambda^T eta, which follows from eta = Lambda^T eta Lambda and needs no matrix
+ * inverse, and with which it transforms covectors and tensors with lower indices. In debug builds, i.e. if NDEBUG is not defined, the
+ * constructors check that the matrix preserves the metric (see isValid()), and throw std::invalid_argument if it does not, like those of
+ * the rotations (see ActiveSpatialRotation). Release builds do not check. makeUnchecked() skips the check, e.g. in hot paths.
  */
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, AnyCoordinateSystem FromT_, AnyCoordinateSystem ToT_,
           int DimensionV_>
@@ -55,7 +54,7 @@ class LorentzTransformation
     : public PassiveTransformation<LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>, FromT_, ToT_> {
  public:
   //! The passive linear transformation with the matrix of the Lorentz transformation, whose transformations it shares.
-  using LinearTransformationT = PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_, DimensionV_,
+  using LinearTransformationT = PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_,
                                                             typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
   using ValueT = ValueT_;
   using ValuesT = typename LinearTransformationT::ValuesT;
@@ -119,6 +118,13 @@ class LorentzTransformation
   QuantitiesT quantities_;
 };
 
+namespace internal {
+
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_, int DimensionV_>
+struct IsChangeOfBasis<LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>> : std::true_type {};
+
+}  // namespace internal
+
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_>
 using LorentzTransformation2 = LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, 2>;
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_>
@@ -148,23 +154,20 @@ struct CompositionTraits<LorentzTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT
 // A Lorentz transformation is a linear transformation: its compositions with linear transformations are those of the linear
 // transformation with its matrix, the products of the matrices.
 template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT_, typename FromLhsT_, typename ToLhsT_, int DimensionLhsV_,
-          template <typename, int, int> typename ValuesRhsT_, typename ValueRhsT_, typename FromRhsT_, typename ToRhsT_,
-          int DimensionFromRhsV_, int DimensionToRhsV_, typename... UnitsRhsT_>
-struct CompositionTraits<
-    LorentzTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_>,
-    PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionFromRhsV_, DimensionToRhsV_, UnitsRhsT_...>>
-    : CompositionTraits<
-          typename LorentzTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_>::LinearTransformationT,
-          PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionFromRhsV_, DimensionToRhsV_, UnitsRhsT_...>> {};
+          template <typename, int, int> typename ValuesRhsT_, typename ValueRhsT_, typename FromRhsT_, typename ToRhsT_, int DimensionRhsV_,
+          typename... UnitsRhsT_>
+struct CompositionTraits<LorentzTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_>,
+                         PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_, UnitsRhsT_...>>
+    : CompositionTraits<typename LorentzTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_>::LinearTransformationT,
+                        PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_, UnitsRhsT_...>> {};
 
-template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT_, typename FromLhsT_, typename ToLhsT_,
-          int DimensionFromLhsV_, int DimensionToLhsV_, typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_,
-          typename ValueRhsT_, typename FromRhsT_, typename ToRhsT_, int DimensionRhsV_>
-struct CompositionTraits<
-    PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionFromLhsV_, DimensionToLhsV_, UnitsLhsT_...>,
-    LorentzTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_>>
+template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT_, typename FromLhsT_, typename ToLhsT_, int DimensionLhsV_,
+          typename... UnitsLhsT_, template <typename, int, int> typename ValuesRhsT_, typename ValueRhsT_, typename FromRhsT_,
+          typename ToRhsT_, int DimensionRhsV_>
+struct CompositionTraits<PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_, UnitsLhsT_...>,
+                         LorentzTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_>>
     : CompositionTraits<
-          PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionFromLhsV_, DimensionToLhsV_, UnitsLhsT_...>,
+          PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionLhsV_, UnitsLhsT_...>,
           typename LorentzTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionRhsV_>::LinearTransformationT> {};
 
 template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT_, typename FromLhsT_, typename ToLhsT_, int DimensionLhsV_,

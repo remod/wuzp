@@ -14,7 +14,7 @@
 using namespace wuzp;  // NOLINT
 
 // A general linear scaling, which is not orthogonal: A^-1 != A^T.
-using Scaling = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB, 3, 3, Dimensionless>;
+using Scaling = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB, 3, Dimensionless>;
 
 template <typename CoordinateSystemT>
 using ForceCovector = HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemT>;
@@ -90,8 +90,8 @@ TEST(TestPassiveLinearTransformation, IsApprox) {  // NOLINT
 
 // Composition in the order of Drake's monogram notation, X_CB * X_BA = X_CA: the product of the matrices.
 TEST(TestPassiveLinearTransformation, Compose) {  // NOLINT
-  using ScalingCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 3, 3, Dimensionless>;
-  using ScalingCA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 3, 3, Dimensionless>;
+  using ScalingCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 3, Dimensionless>;
+  using ScalingCA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 3, Dimensionless>;
   const ScalingCB scalingCB{0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
   const PositionVector3<ValueMatrix, double, CoordinateSystemA> vector{1.0, 2.0, 3.0};
   const ScalingCA scalingCA = scalingCB * scaling;
@@ -101,8 +101,8 @@ TEST(TestPassiveLinearTransformation, Compose) {  // NOLINT
 
 namespace {
 
-using SwapCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 3, 3, Dimensionless>;
-using ScalingCA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 3, 3, Dimensionless>;
+using SwapCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 3, Dimensionless>;
+using ScalingCA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 3, Dimensionless>;
 const SwapCB swapCB{0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};  // Swaps x and y.
 
 }  // namespace
@@ -145,7 +145,7 @@ TEST(TestPassiveLinearTransformation, ComposeTransformsCovectorsAndTensorsWithLo
 
 // The inverse transforms from To to From. It is the matrix inverse.
 TEST(TestPassiveLinearTransformation, Inverse) {  // NOLINT
-  using ScalingAB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemA, 3, 3, Dimensionless>;
+  using ScalingAB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemA, 3, Dimensionless>;
   const PositionVector3<ValueMatrix, double, CoordinateSystemA> vector{1.0, 2.0, 3.0};
   const ScalingAB inverse = scaling.inverse();
   EXPECT_TRUE(inverse.isApprox(ScalingAB{0.5, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.125}, 1e-12));
@@ -154,8 +154,8 @@ TEST(TestPassiveLinearTransformation, Inverse) {  // NOLINT
   const PositionPoint3<ValueMatrix, double, CoordinateSystemB> pointInB{1.0, 2.0, 3.0};
   EXPECT_TRUE(inverse.transform(scaling.transform(point)).isApprox(point, 1e-12));
   EXPECT_TRUE(scaling.transform(inverse.transform(pointInB)).isApprox(pointInB, 1e-12));
-  using ScalingAA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, 3, 3, Dimensionless>;
-  using ScalingBB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemB, 3, 3, Dimensionless>;
+  using ScalingAA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemA, 3, Dimensionless>;
+  using ScalingBB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemB, 3, Dimensionless>;
   EXPECT_TRUE((inverse * scaling).isApprox(ScalingAA{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}, 1e-12));
   EXPECT_TRUE((scaling * inverse).isApprox(ScalingBB{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}, 1e-12));
 }

@@ -14,7 +14,7 @@
 using namespace wuzp;  // NOLINT
 
 using Intermediate = wuzp::internal::Intermediate<CoordinateSystemA, CoordinateSystemB>;
-using LinearTransformation = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, Intermediate, 3, 3, Dimensionless>;
+using LinearTransformation = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, Intermediate, 3, Dimensionless>;
 using Translation = PassiveSpatialTranslation3<ValueMatrix, double, Intermediate, CoordinateSystemB>;
 
 int main() {

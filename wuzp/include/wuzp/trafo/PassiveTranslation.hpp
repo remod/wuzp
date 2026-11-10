@@ -19,8 +19,9 @@ namespace wuzp {
 
 /**
  * A passive translation from the coordinate system From to the coordinate system To, which have the same axes but different
- * origins: a point p in From is the point p + t in To, and vectors keep their components. The objects it transforms must be
- * expressed in From.
+ * origins: a point p in From is the point p + t in To, and vectors, covectors and tensors with two upper indices, e.g.
+ * covariances, keep their components. Other tensors are rejected, since they may depend on the origin, e.g. an inertia about it
+ * (see internal::isTranslationInvariant). The objects it transforms must be expressed in From.
  * Its vector t is the vector from the origin of To to the origin of From, expressed in To, i.e. p_AoBo_A of X_AB in the monogram
  * notation of Drake (https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html) for From = B and To = A. From and To have
  * the same axes, so it has the same components in From.
@@ -75,12 +76,15 @@ struct WithFrames<PassiveTranslation<ValuesT_, DimensionV_, ValueT_, FromT_, ToT
 
 }  // namespace internal
 
+// A passive translation moves points, leaves vectors, covectors and tensors with two upper indices unchanged, and rejects the
+// other tensors (see internal::translate()).
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename FromT_, typename ToT_,
-          typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
+          typename... UnitsT_, typename IndicesOtherT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_,
+          typename AbsoluteOtherT_>
 struct TransformationTraits<PassiveTranslation<ValuesT_, DimensionV_, ValueT_, FromT_, ToT_, UnitsT_...>,
-                            Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
+                            Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
   static auto transform(const PassiveTranslation<ValuesT_, DimensionV_, ValueT_, FromT_, ToT_, UnitsT_...>& transformation,
-                        const Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+                        const Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
     // The object is expressed in From (see PassiveTransformation::transform()), whose axes are those of To, in which the vector of
     // the translation is expressed.
     return castCoordinateSystem<ToT_>(internal::translate(object, transformation.getQuantities()));
