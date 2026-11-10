@@ -1,14 +1,25 @@
 // wuzp-expect: error
-// wuzp-static-assert: Inverse is not implemented for blitz\.
+// wuzp-static-assert: 'Inverse' trait not specialized for given type\.
 
-// Checking the interface of a value matrix backend that misses a trait fails with the message of the trait (see "The backend
-// interface" in concepts.hpp): Blitz++ provides no matrix inverses (see "Backend support for inverses" in DESIGN.md), so it is a
-// ValueMatrixBackend, but not an InvertibleValueMatrixBackend.
+// Checking the interface of a value matrix backend that misses a trait fails with the message of the primary template of the
+// trait, rather than making the concept unsatisfied (see "The backend interface" in concepts.hpp): no trait is specialized for
+// the matrices of this backend, so checking their inverses fails with the message of Inverse.
 
 #include "wuzp/core/concepts.hpp"
-#include "wuzp_blitz/ValueMatrix.hpp"
 
-static_assert(wuzp::InvertibleValueMatrixBackend<wuzp_blitz::ValueMatrix>);
+namespace {
+
+// The matrices of a linear algebra library, for which no trait is specialized.
+struct Matrix {};
+
+template <typename ValueT_, int RowsV_, int ColsV_>
+struct ValueMatrixWithoutTraits {
+  using ImplementationT = Matrix;
+};
+
+}  // namespace
+
+static_assert(wuzp::internal::BackendInverses<ValueMatrixWithoutTraits, double, 3>);
 
 int main() {
   return 0;

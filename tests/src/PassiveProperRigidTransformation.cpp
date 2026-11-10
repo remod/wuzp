@@ -173,3 +173,55 @@ TEST(TestPassiveProperRigidTransformation3, IsApprox) {  // NOLINT
   EXPECT_FALSE(rigidBA.isApprox(otherTranslation));
   EXPECT_TRUE(rigidBA.isApprox(otherTranslation, 1e-2));
 }
+
+namespace {
+
+using RotationBA = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB>;
+using RotationCB = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC>;
+using PointInC = PositionPoint3<ValueMatrix, double, CoordinateSystemC>;
+
+const RotationBA rotationBA{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+const RotationCB rotationCB{0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0};  // Passive rotation of pi/2 around z.
+
+}  // namespace
+
+// A rotation composes with a translation into a proper rigid transformation, in both orders: R_CB * t_BA = (R_CB, R_CB t_BA) and
+// t_CB * R_BA = (R_BA, t_CB).
+TEST(TestPassiveProperRigidTransformation3, ComposeRotationAndTranslation) {  // NOLINT
+  const PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB> translationBA{1.0, 2.0, 3.0};
+  const PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC> translationCB{1.0, 2.0, 3.0};
+  static_assert(std::is_same_v<decltype(rotationCB * translationBA), TransformationCA>);
+  static_assert(std::is_same_v<decltype(translationCB * rotationBA), TransformationCA>);
+  const TransformationCA translationFirst = rotationCB * translationBA;
+  const TransformationCA translationLast = translationCB * rotationBA;
+  const PointInA point{1.0, 2.0, 3.0};
+  EXPECT_EQ(translationFirst.transform(point), rotationCB.transform(translationBA.transform(point)));
+  EXPECT_EQ(translationLast.transform(point), translationCB.transform(rotationBA.transform(point)));
+  // (1, 2, 3) in A is (2, 4, 6) in B and (4, -2, 6) in C; (1, 2, 3) in A is (1, 3, -2) in B and (2, 5, 1) in C.
+  EXPECT_EQ(translationFirst.transform(point), (PointInC{4.0, -2.0, 6.0}));
+  EXPECT_EQ(translationLast.transform(point), (PointInC{2.0, 5.0, 1.0}));
+  EXPECT_EQ(translationFirst.getRotation().getQuantities(), rotationCB.getQuantities());
+  EXPECT_EQ(translationFirst.getTranslation().getQuantities(), (TransformationCA::Translation{2.0, -1.0, 3.0}.getQuantities()));
+  EXPECT_EQ(translationLast.getRotation().getQuantities(), rotationBA.getQuantities());
+  EXPECT_EQ(translationLast.getTranslation().getQuantities(), translationCB.getQuantities());
+}
+
+// A proper rigid transformation composes with a rotation, in both orders: X_CB * R_BA = (R_CB R_BA, t_CB) and
+// R_CB * X_BA = (R_CB R_BA, R_CB t_BA).
+TEST(TestPassiveProperRigidTransformation3, ComposeWithRotation) {  // NOLINT
+  static_assert(std::is_same_v<decltype(rigidCB * rotationBA), TransformationCA>);
+  static_assert(std::is_same_v<decltype(rotationCB * rigidBA), TransformationCA>);
+  const TransformationCA rotationFirst = rigidCB * rotationBA;
+  const TransformationCA rotationLast = rotationCB * rigidBA;
+  const PointInA point{1.0, 2.0, 3.0};
+  EXPECT_EQ(rotationFirst.transform(point), rigidCB.transform(rotationBA.transform(point)));
+  EXPECT_EQ(rotationLast.transform(point), rotationCB.transform(rigidBA.transform(point)));
+  // (1, 2, 3) in A is (1, 3, -2) in B and (3, -1, -2) + (1, 0, 0) in C; (1, 2, 3) in A is (1, 3, -3) in B and (3, -1, -3) in C.
+  EXPECT_EQ(rotationFirst.transform(point), (PointInC{4.0, -1.0, -2.0}));
+  EXPECT_EQ(rotationLast.transform(point), (PointInC{3.0, -1.0, -3.0}));
+  EXPECT_EQ(rotationFirst.getRotation().getQuantities(), (rotationCB * rotationBA).getQuantities());
+  EXPECT_EQ(rotationFirst.getTranslation().getQuantities(), rigidCB.getTranslation().getQuantities());
+  EXPECT_EQ(rotationLast.getRotation().getQuantities(), (rotationCB * rotationBA).getQuantities());
+  // R_CB t_BA = R_CB (0, 0, -1).
+  EXPECT_EQ(rotationLast.getTranslation().getQuantities(), (TransformationCA::Translation{0.0, 0.0, -1.0}.getQuantities()));
+}

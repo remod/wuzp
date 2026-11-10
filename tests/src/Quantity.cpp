@@ -70,11 +70,9 @@ TEST(TestQuantity, Chain) {  // NOLINT
   EXPECT_EQ(TimeQuantity{1.0} + TimeQuantity{2.0} * DimensionlessQuantity{3.0}, TimeQuantity{7.0});
 }
 
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantity, Inverse) {  // NOLINT
   EXPECT_EQ(TimeQuantity{2.0}.inverse(), FrequencyQuantity{0.5});
 }
-#endif
 
 TEST(TestQuantity, AreAnglesDimensionless) {  // NOLINT
   const LengthQuantity radius{2.0};

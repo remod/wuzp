@@ -60,11 +60,16 @@ TEST(TestValuesWrapper, LazyCwiseInverse) {  // NOLINT
   static_assert(!std::is_same<CwiseInverse<MyValueMatrix>::type, MyValueMatrix>::value);
 }
 
-// The Blitz++ backend implements neither matrix inverses nor determinants.
+// The Blitz++ backend evaluates matrix inverses, which it computes by Gauss-Jordan elimination.
 #if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, LazyInverse) {  // NOLINT
   using MyValueMatrix = ValueMatrix<double, 2, 2>;
   static_assert(!std::is_same<Inverse<MyValueMatrix>::type, MyValueMatrix>::value);
+}
+#else
+TEST(TestValuesWrapper, EvaluatedInverse) {  // NOLINT
+  using MyValueMatrix = ValueMatrix<double, 2, 2>;
+  static_assert(std::is_same<Inverse<MyValueMatrix>::type, MyValueMatrix>::value);
 }
 #endif
 
@@ -414,14 +419,11 @@ TEST(TestValuesWrapper, CwiseInverse) {  // NOLINT
   EXPECT_TRUE(matrix.cwiseInverse().isApprox(result));
 }
 
-// The Blitz++ backend implements neither matrix inverses nor determinants.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestValuesWrapper, Inverse) {  // NOLINT
   const ValueMatrix<double, 2, 2> matrix{4.0, 7.0, 2.0, 6.0};
   const ValueMatrix<double, 2, 2> result{0.6, -0.7, -0.2, 0.4};
   EXPECT_TRUE(matrix.inverse().isApprox(result));
 }
-#endif
 
 TEST(TestValuesWrapper, InitializeMatrix) {  // NOLINT
   const ValueMatrix<int, 3, 2> matrix{1, 2, 3, 4, 5, 6};

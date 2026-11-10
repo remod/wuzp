@@ -32,8 +32,7 @@ TEST(TestPassiveLinearTransformation, StreamOperator) {  // NOLINT
   EXPECT_EQ(toString(scaling), toString(scaling.getQuantities()));
 }
 
-// Covectors and (1,1) tensors transform with the inverse, which Blitz++ does not provide.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+// Covectors and (1,1) tensors transform with the inverse.
 TEST(TestPassiveLinearTransformation, TransformCovector) {  // NOLINT
   // A covector transforms with the inverse: w' = w A^-1.
   const ForceCovector<CoordinateSystemA> object{8.0, 8.0, 8.0};
@@ -57,7 +56,6 @@ TEST(TestPassiveLinearTransformation, TransformTensorWithOneContravariantAndOneC
   const VelocityGradient<CoordinateSystemB> transformedObject{1.0, 0.5, 0.25, 2.0, 1.0, 0.5, 4.0, 2.0, 1.0};
   EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
 }
-#endif
 
 TEST(TestPassiveLinearTransformation, TransformTensorWithTwoContravariantIndices) {  // NOLINT
   // A covariance transforms like T' = A T A^T, i.e. T'_ij = a_i a_j T_ij for a scaling A = diag(a).
@@ -125,9 +123,8 @@ TEST(TestPassiveLinearTransformation, ComposeTransformsPointsVectorsAndTensors) 
   EXPECT_EQ(composition.transform(covariance), (Covariance<CoordinateSystemC>{32.0, 8.0, 0.0, 8.0, 4.0, 0.0, 0.0, 0.0, 192.0}));
 }
 
-// Covectors and tensors with lower indices transform with the inverse, which Blitz++ does not provide. The inverse of the
-// composition is ((0, 1/2, 0), (1/4, 0, 0), (0, 0, 1/8)).
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+// Covectors and tensors with lower indices transform with the inverse. The inverse of the composition is ((0, 1/2, 0), (1/4, 0, 0), (0, 0,
+// 1/8)).
 TEST(TestPassiveLinearTransformation, ComposeTransformsCovectorsAndTensorsWithLowerIndices) {  // NOLINT
   const ScalingCA composition = swapCB * scaling;
   // w' = w A^-1.
@@ -146,7 +143,7 @@ TEST(TestPassiveLinearTransformation, ComposeTransformsCovectorsAndTensorsWithLo
                   .isApprox(MassMatrix<CoordinateSystemC>{0.125, 0.125, 0.0, 0.125, 0.25, 0.0, 0.0, 0.0, 0.046875}, 1e-12));
 }
 
-// The inverse transforms from To to From. It is the matrix inverse, which Blitz++ does not provide either.
+// The inverse transforms from To to From. It is the matrix inverse.
 TEST(TestPassiveLinearTransformation, Inverse) {  // NOLINT
   using ScalingAB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemA, 3, 3, Dimensionless>;
   const PositionVector3<ValueMatrix, double, CoordinateSystemA> vector{1.0, 2.0, 3.0};
@@ -162,7 +159,6 @@ TEST(TestPassiveLinearTransformation, Inverse) {  // NOLINT
   EXPECT_TRUE((inverse * scaling).isApprox(ScalingAA{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}, 1e-12));
   EXPECT_TRUE((scaling * inverse).isApprox(ScalingBB{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}, 1e-12));
 }
-#endif
 
 // The rows of the matrix are the dual basis covectors of To, and the columns of its inverse the basis vectors of To, both
 // expressed in From: for the scaling, the basis vectors of B are (0.5, 0, 0), (0, 0.25, 0) and (0, 0, 0.125) in A. Each basis

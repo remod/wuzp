@@ -1,12 +1,9 @@
 // wuzp-expect: error
-// wuzp-requires: values=eigen
 // wuzp-static-assert: This transformation does not transform this transformation\. Compose transformations with operator\*\.
 
 // The conjugation G Q G^-1 of a linear transformation Q by a proper rigid transformation G is affine, not linear: it returned
-// R Q R^-1, which is wrong for points (#72). Compose with operator* and inverse() instead.
-// Only with Eigen: the rotation conjugates Q first, which needs a matrix inverse, so with Blitz++ some compilers stop at its
-// error. ActiveTranslation.TransformLinearTransformation tests the same with every backend. Once rotations are a class of their
-// own, whose inverse is R^T, this case can run with Blitz++ too.
+// R Q R^-1, which is wrong for points (#72). Compose with operator* and inverse() instead. The rotation of G conjugates Q, a
+// rotation, first, which works, and the translation rejects the result.
 
 #include "wuzp/trafo/ActiveProperRigidTransformation.hpp"
 

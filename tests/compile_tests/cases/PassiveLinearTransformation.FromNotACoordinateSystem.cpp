@@ -3,7 +3,7 @@
 
 // A passive linear transformation transforms from a coordinate system, not from the identifier of one.
 
-#include "wuzp/trafo/PassiveSpatialRotation.hpp"
+#include "wuzp/trafo/PassiveLinearTransformation.hpp"
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
@@ -12,6 +12,7 @@
 using namespace wuzp;  // NOLINT
 
 int main() {
-  [[maybe_unused]] constexpr auto size = sizeof(PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemAId, CoordinateSystemB>);
+  [[maybe_unused]] constexpr auto size =
+      sizeof(PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemAId, CoordinateSystemB, 3, 3, Dimensionless>);
   return 0;
 }

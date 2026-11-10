@@ -741,8 +741,6 @@ TEST(TestTensor2, SquaredNorm) {  // NOLINT
   EXPECT_EQ(vector.squaredNorm(), SquaredLengthQuantityI{25});
 }
 
-// The Blitz++ backend implements neither matrix inverses nor determinants.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 // The determinant of a tensor of rank 0 or of a mixed tensor of rank 2 is invariant, so it is defined for them.
 TEST(TestTensor2, Determinant) {  // NOLINT
   const MatrixI<Indices<Up, Down>, 2, Length> linearMap{-1, 2, 3, 1};
@@ -852,7 +850,6 @@ TEST(TestTensor2, InverseOfMassMatrix) {  // NOLINT
              CoordinateSystemA, Relative>;
   EXPECT_TRUE(innerProduct(inverse, massMatrix).isApprox(UpperDelta{1.0, 0.0, 0.0, 1.0}, 1e-12));
 }
-#endif
 
 namespace {
 
@@ -965,9 +962,6 @@ TEST(TestTensor, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasSquaredNorm<ScalarInA>);
   static_assert(HasSquaredNorm<VectorInA>);
   static_assert(!HasSquaredNorm<MatrixInA>);
-  // The Blitz++ backend implements no determinants.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
   static_assert(HasDeterminant<ScalarInA>);
   static_assert(HasDeterminant<MatrixInA>);
-#endif
 }

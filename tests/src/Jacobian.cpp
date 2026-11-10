@@ -111,8 +111,7 @@ TEST(TestJacobian, ChainRule) {  // NOLINT
 
 // The inverse of a Jacobian is the Jacobian of the inverse coordinate change, J_AB = J_BA^-1, with the inverse units of the
 // transposed matrix: that of the polar coordinates with respect to the Cartesian ones, (cos(phi), sin(phi); -sin(phi) / r,
-// cos(phi) / r). It is the matrix inverse, which Blitz++ does not provide.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+// cos(phi) / r). It is the matrix inverse.
 TEST(TestJacobian, Inverse) {  // NOLINT
   using LengthInv = Inverse<Length>::type;
   using JacobianAB =
@@ -129,4 +128,3 @@ TEST(TestJacobian, Inverse) {  // NOLINT
   const VelocityVector2<ValueMatrix, double, CoordinateSystemB> velocityInB{1.0, 2.0};
   EXPECT_TRUE(jacobianBA.transform(jacobianAB.transform(velocityInB)).isApprox(velocityInB, 1e-12));
 }
-#endif

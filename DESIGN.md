@@ -20,6 +20,7 @@ Open questions are marked with **TODO** and must be decided before 1.0.
   Points follow the rules of affine spaces: operations whose result depends on the origin of the coordinate system are rejected (see [Points and vectors](#points-and-vectors)).
 * **Transformations.** Rotations, translations, proper rigid transformations (first rotation, then translation), Jacobians and Lorentz transformations, each in an active and a passive form.
   They compose with `*`, in the order of Drake's monogram notation, and have an `inverse()` (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
+  Rotations and Lorentz transformations are classes of their own, which check their validity in debug builds and invert without a matrix inverse (see [Validity of rotations and Lorentz transformations](#validity-of-rotations-and-lorentz-transformations)).
 
 ## Conventions
 
@@ -30,9 +31,9 @@ For a linear transformation with component matrix `A` (contravariant components 
 | --- | --- | --- | --- |
 | Vector | `Indices<Up>` | `v' = A v` | yes |
 | Point | `Indices<Up>`, absolute | `p' = A p` (via a relative intermediate) | yes |
-| Covector | `Indices<Down>` | `w' = w A^-1` | yes (Eigen only) |
-| Linear map | `Indices<Up, Down>` | `T' = A T A^-1` | yes (Eigen only) |
-| Bilinear form, e.g. mass matrix | `Indices<Down, Down>` | `M' = A^-T M A^-1` | yes (Eigen only) |
+| Covector | `Indices<Down>` | `w' = w A^-1` | yes |
+| Linear map | `Indices<Up, Down>` | `T' = A T A^-1` | yes |
+| Bilinear form, e.g. mass matrix | `Indices<Down, Down>` | `M' = A^-T M A^-1` | yes |
 | E.g. covariance matrix | `Indices<Up, Up>` | `T' = A T A^T` | yes |
 
 `A^-1` appears twice in the rule for bilinear forms because `A` transforms components, so covariant indices transform with `A^-1`.
@@ -57,7 +58,7 @@ Its matrix and vector are those of the inverse:
   It is not `-t`, unless `R t = t`: the passive transformation `(R^T, -t)` maps the point `(1, 2, 3)`, moved by the rotation of `pi/2` around `x` and the translation `(0, 0, 1)`, to `(1, 3, 2)` (`tests/src/ActiveAndPassiveProperRigidTransformation.cpp`).
 
 Transformations compose with `*` and have an `inverse()` (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
-`activeTransformation.transform(otherTransformation)` is the conjugation `a b a^-1`, which re-expresses the other transformation; it is defined where the result is a transformation of the same kind: a linear transformation or a translation conjugated by a linear transformation, and a translation conjugated by a translation or a proper rigid transformation.
+`activeTransformation.transform(otherTransformation)` is the conjugation `a b a^-1`, which re-expresses the other transformation; it is defined where the result is a transformation of the same kind: a linear transformation or a translation conjugated by a linear transformation or a rotation, a rotation conjugated by a rotation, and a translation conjugated by a translation or a proper rigid transformation.
 
 **Points and vectors.**
 The rules follow affine geometry (see [Points and vectors](#points-and-vectors)), where `o` is the origin of the coordinate system:
@@ -137,7 +138,7 @@ Decision:
   The backends do not check it in their headers: the check instantiates many expressions of the backend, which made every translation unit with Eigen compile about 0.7 s longer (see the [benchmarks](benchmarks/README.md#compile-time)), a cost that only backend authors benefit from.
   The core constrains its parameters that take a value matrix backend, e.g. of the tensor aliases and transformations, with the cheap `AnyValueMatrix`, which only checks that the parameter is the `ValueMatrix` of a backend, e.g. not `Eigen::Array`.
   A trait that is not specialized at all fails with the `static_assert` of its primary template, which names it, rather than making the concept unsatisfied: these messages also help users of the core, e.g. when they combine values of different backends.
-  Blitz++ does not satisfy `InvertibleValueMatrixBackend` yet (see [Backend support for inverses](#todo-backend-support-for-inverses)).
+  Both backends satisfy `InvertibleValueMatrixBackend`; the Blitz++ backend computes the inverses and determinants itself (see [Backend support for inverses](#backend-support-for-inverses)).
 * Elements are accessed through the trait `Coefficient`, so that a library whose element access differs from `matrix(row, col)` can be adapted.
 * The Eigen backend evaluates expressions into arrays with Eigen's default [storage order](https://eigen.tuxfamily.org/dox/group__TopicStorageOrders.html), so that results have one type: e.g. the transpose of a `ValueMatrix<double, 3, 2>` is a `ValueMatrix<double, 2, 3>`, rather than the row-major array of Eigen's `eval()`.
 
@@ -241,6 +242,8 @@ Decision:
   The trait `UnitsDescribeLinearMap` checks that the units of a matrix have this form, `M_ij M_00 = M_i0 M_0j`, i.e. that the unit matrix is the outer product of a column of units and a row of inverse units.
   `inverse()` and `determinant()` check it first, with the message "The units of the matrix do not describe a linear map (M_ij = a_i / b_j).".
   Whether the values are invertible is only known at run time.
+* The inverse of an integer matrix is rejected with "The inverse of an integer matrix is not an integer matrix. Use a floating-point value type.", in `ValuesWrapper::inverse()`, so with every value matrix backend: it is not an integer matrix in general, and a backend would truncate it, e.g. Eigen divides integers.
+  The determinant of an integer matrix is an integer, and is allowed.
 * `determinant()` of a tensor is only defined for rank 0 and the mixed tensors of rank 2, `Indices<Up, Down>` and `Indices<Down, Up>`, whose determinant is invariant: `det(A T A^-1) = det(T)`.
   The determinant of a tensor with two lower indices changes by `det(A)^-2` under a linear transformation `A` (`M' = A^-T M A^-1`), and that of a tensor with two upper indices by `det(A)^2`: they are scalar densities of weight -2 and 2, not scalars (Carroll, eq. 2.41).
   It is rejected with a `static_assert`, and `getQuantities().determinant()` computes the determinant of the components; the determinants of values and quantities are not restricted.
@@ -249,6 +252,7 @@ Decision:
 ### Integer values
 
 Decision: operations whose result is not an integer, such as the norm or a power with a non-integer exponent, are computed in floating point and truncated to the value type, like the norm of integer vectors in Eigen: `pow<1, 2>()` of 5 m² is 2 m (#63).
+The matrix inverse is rejected instead, since a truncated inverse does not invert the matrix (see [Inverses and determinants](#inverses-and-determinants)).
 
 ### Composition and inverse of transformations
 
@@ -266,21 +270,69 @@ Decision:
   Passive transformations compose in the order of the [monogram notation of Drake](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html), `X_AB * X_BC = X_AC`, i.e. `^A_C T = ^A_B T ^B_C T` in the notation of Craig.
   The coordinate systems that meet, `From` of `lhs` and `To` of `rhs`, must be the same, which is checked at compile time with the message "Adjacent frames do not match.", like [wave_geometry](https://github.com/wavelab/wave_geometry) does.
   Active transformations compose within their coordinate system.
-* The compositions that are again transformations of *wuzp* are defined, by specializations of the trait `CompositionTraits`: linear transformations with linear transformations (the product of their matrices, e.g. the chain rule for Jacobians, and the composition of Lorentz transformations), translations with translations (the sum of their vectors), and proper rigid transformations with proper rigid transformations and with translations, `(R1, t1) * (R2, t2) = (R1 R2, R1 t2 + t1)` (Sola, Deray and Atchuthan, ["A micro Lie theory for state estimation in robotics"](https://arxiv.org/abs/1812.01537), eq. 171, and Drake's [RigidTransform](https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html)).
-  The result has the type of the aliases, e.g. the product of two `ActiveSpatialRotation3` is an `ActiveSpatialRotation3`, since homogeneous units are given as a single unit.
-* Other combinations are rejected with "These transformations cannot be composed.", e.g. a translation with a rotation, and an active with a passive transformation.
-  A rotation is an alias of a linear transformation with dimensionless units, so it cannot be told apart from e.g. a scaling or a Lorentz transformation: composing it with a translation into a proper rigid transformation would make the inverse of that transformation, which relies on `R^-1 = R^T`, silently wrong until rotations are a class of their own (see [Validity of rotations and Lorentz transformations](#todo-validity-of-rotations-and-lorentz-transformations)).
+* The compositions that are again transformations of *wuzp* are defined, by specializations of the trait `CompositionTraits`: linear transformations with linear transformations (the product of their matrices, e.g. the chain rule for Jacobians), rotations with rotations and Lorentz transformations with Lorentz transformations (likewise, but of their own type), translations with translations (the sum of their vectors), and proper rigid transformations, rotations and translations with each other into proper rigid transformations, `(R1, t1) * (R2, t2) = (R1 R2, R1 t2 + t1)`, where a rotation `R` is `(R, 0)` and a translation `t` is `(I, t)` (Sola, Deray and Atchuthan, ["A micro Lie theory for state estimation in robotics"](https://arxiv.org/abs/1812.01537), eq. 171, and Drake's [RigidTransform](https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html)).
+  The result of linear transformations has the type of the aliases, e.g. the product of two dimensionless linear transformations has a single dimensionless unit, since homogeneous units are given as a single unit.
+  A rotation or a Lorentz transformation is a linear transformation, so its compositions with linear transformations are linear transformations.
+  The compositions of rotations with translations and proper rigid transformations are defined in the headers of the rotations, which include the class templates of the proper rigid transformations (`ActiveProperRigidTransformationTemplate.hpp`, `PassiveProperRigidTransformationTemplate.hpp`).
+* Other combinations are rejected with "These transformations cannot be composed.", e.g. a translation with a linear transformation that may not be a rotation, e.g. a scaling, whose composition is affine but not rigid, and an active with a passive transformation.
 * `inverse()` inverts every transformation; a passive inverse transforms from `To` to `From`.
-  The inverse of a linear transformation has the matrix inverse, which needs a value matrix backend with matrix inverses (see [Backend support for inverses](#todo-backend-support-for-inverses)); that of a translation is `-t`, and that of a proper rigid transformation `(R^T, -R^T t)` (Sola et al., eq. 170), which only needs the transpose of the rotation and works with every backend.
-  The inverses of rotations, `R^T`, and of Lorentz transformations, `eta Lambda^T eta`, which follows from `eta = Lambda^T eta Lambda` (Carroll, eq. 1.14), are the matrix inverses, which `inverse()` computes as long as they are aliases of linear transformations.
-* The conjugations of linear transformations by translations and proper rigid transformations, and all transformations of passive transformations by passive transformations, are removed: users compose with `*` and `inverse()`, e.g. `t * q * t.inverse()`, where `q` is a proper rigid transformation that only rotates.
+  The inverse of a linear transformation has the matrix inverse, which needs a value matrix backend with matrix inverses, which both backends are (see [Backend support for inverses](#backend-support-for-inverses)); that of a translation is `-t`, and that of a proper rigid transformation `(R^T, -R^T t)` (Sola et al., eq. 170), which only needs the transpose of the rotation.
+  The inverses of rotations, `R^T`, and of Lorentz transformations, `eta Lambda^T eta`, which follows from `eta = Lambda^T eta Lambda` (Carroll, eq. 1.14), are structural: they need no matrix inverse, and add no rounding errors.
+* The conjugations of linear transformations by translations and proper rigid transformations, and all transformations of passive transformations by passive transformations, are removed: users compose with `*` and `inverse()`, e.g. `t * r * t.inverse()` for a rotation `r`.
   Passing such a transformation to `transform()` fails with a message that says to compose transformations with `operator*`: `transform()` of a passive transformation checks this before the coordinate system, which passive transformations do not have, and the primary template of `TransformationTraits` for active transformations.
-  The other conjugations of active transformations remain, since their results are transformations of the same kind: `A B A^-1` of a linear transformation `B` by a linear transformation `A`, and the conjugations of a translation by `t`, which are the translation by `A t` for a linear transformation `A`, by `R t` for a proper rigid transformation `(R, t')`, and by `t` for a translation.
+  The other conjugations of active transformations remain, since their results are transformations of the same kind: `A B A^-1` of a linear transformation `B` by a linear transformation or a rotation `A`, `R Q R^T` of a rotation `Q` by a rotation `R`, and the conjugations of a translation by `t`, which are the translation by `A t` for a linear transformation or a rotation `A`, by `R t` for a proper rigid transformation `(R, t')`, and by `t` for a translation.
+  The conjugation `A R A^-1` of a rotation by a linear transformation, which is not a rotation in general, is rejected: users compose `a * r * a.inverse()`.
 * The passive transformations have no coordinate system parameter: they transform tensors expressed in `From`, and the vector of a passive translation is expressed in `To`.
   Passive linear transformations have no `getTensor()`: their matrix maps `From` into `To`, a two-point object, which typing it as a tensor in `From` would misrepresent; `getQuantities()` returns it.
 * `isApprox(other, precision)` of transformations is `const` and takes a precision with the default of tensors (#68).
   It compares transformations of the same kind, expressed in the same coordinate system (active) or between the same coordinate systems (passive), and compares the matrices of linear transformations, the vectors of translations, and both the rotation and the translation of proper rigid transformations.
 * The base class `Transformation` has a protected non-virtual destructor rather than a virtual one: transformations are values that are never deleted through a pointer to the base class, and the pointer to the virtual table made every transformation larger.
+
+### Validity of rotations and Lorentz transformations
+
+Rotations and Lorentz transformations were aliases of linear transformations with dimensionless units, so they could not be told apart from e.g. scalings, and nothing checked them: a shear was accepted as a rotation, which stretched a unit vector to a length of 5.1.
+Their `inverse()` was the general matrix inverse, rather than `R^T` and `eta Lambda^T eta`, so it needed a backend with matrix inverses, and rotations could not compose with translations into proper rigid transformations, whose inverse `(R^T, -R^T t)` relies on `R^-1 = R^T`.
+
+Libraries differ in how they check rotations:
+Drake's [RotationMatrix](https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rotation_matrix.html) checks `max_ij |(R R^T - I)_ij| <= 128 eps` and `det(R) > 0` only in debug builds, throws if the check fails, and provides `MakeUnchecked()` and `ProjectToRotationMatrix()`; [Sophus](https://github.com/strasdat/Sophus) checks that the Frobenius norm of `R R^T - I` is below `1e-10` and `det(R) > 0` in every build and aborts, with a projection by a singular value decomposition; Eigen checks nothing.
+
+Decision:
+
+* `ActiveSpatialRotation` and `PassiveSpatialRotation` are classes, in every dimension, with the same template parameters as the aliases they replace.
+  A rotation is valid if `max_ij |(R R^T - I)_ij| <= tolerance` and `det(R) > 0`, like Drake's: the determinant rules out reflections, which are orthogonal too.
+  The determinant is `ad - bc` in two dimensions and the triple product `c0 . (c1 x c2)` of the columns in three dimensions, which only need the cross and dot products of every value matrix backend; other dimensions use the determinant of the backend.
+* `LorentzTransformation` is a class, valid if `max_ij |(Lambda^T eta Lambda - eta)_ij| <= tolerance` for the Minkowski metric `eta = diag(1, -1, ..., -1)`, the definition of Lorentz transformations (Carroll, [Lecture Notes on General Relativity](https://arxiv.org/abs/gr-qc/9712019), eq. 1.14, whose signature `(-, +, +, +)` has the metric `-eta`, which gives the same condition), which includes the improper and the non-orthochronous ones, e.g. the reflection of time.
+  `createBoostMatrix()` remains, and creates boosts without checking them: they are valid by construction, and the rounding errors of very large Lorentz factors could exceed the tolerance.
+* The tolerance is the trait `ValidityTolerance<ValueT>`, separate from `Precision`, the default of `isApprox()`, which is too strict for transformations whose rounding errors accumulated, e.g. in compositions: `1e-9` for `double`, `1e-4` for `float`, and `0` for `int`.
+  Drake accepts 128 machine epsilons, about `3e-14`, Sophus `1e-10`; *wuzp* leaves a margin for longer chains of compositions.
+  `isValid(tolerance)` checks with another tolerance, and other value types specialize the trait.
+* The constructors check the validity in debug builds, i.e. if `NDEBUG` is not defined, like `assert()`, and throw `std::invalid_argument` if the check fails, like Drake and like `createBoostMatrix()`, which throws for velocities of at least the speed of light: an exception can be tested, unlike an abort.
+  Release builds do not check, so the checks cost nothing in the [benchmarks](benchmarks/README.md), which build in release mode; like with `assert()`, all translation units of a program must agree on `NDEBUG`.
+  The NDEBUG switch is in one place, `wuzp::internal::checksValidity` (`wuzp/trafo/internal/validity.hpp`).
+* `makeUnchecked()` skips the check, e.g. in hot paths, like Drake's `MakeUnchecked()`.
+  The compositions, the inverses and the conjugations of rotations and Lorentz transformations, and the rotations of compositions and inverses of proper rigid transformations, are valid by construction, up to rounding, and use it.
+* The default constructors create the identity, like Drake's, so that a rotation is always valid.
+* `projectToRotation()` computes the rotation nearest to a matrix, the orthogonal factor of its polar decomposition, by the Newton-Schulz iteration `X <- X (3 I - X^T X) / 2`, which only needs matrix products and therefore works with every backend, unlike a singular value decomposition.
+  It converges quadratically if all singular values are in `(0, sqrt(3))` (Higham, Functions of Matrices, SIAM 2008, section 8.3), which `||I - A^T A|| < 1` guarantees (Björck and Bowie, "An iterative algorithm for computing the best estimate of an orthogonal matrix", SIAM J. Numer. Anal. 8(2), 1971): the projection requires this in the Frobenius norm and a positive determinant, and throws `std::invalid_argument` otherwise, in every build.
+* The inverses are structural, `R^T` and `eta Lambda^T eta`, so they work with every value matrix backend and add no rounding errors.
+* A rotation or a Lorentz transformation transforms the same tensors as the linear transformation with its matrix, whose traits it inherits, and composes with linear transformations into linear transformations.
+  The traits take `A^-1` from `inverse()` of the transformation, so a rotation or a Lorentz transformation transforms covectors, linear maps and bilinear forms with its structural inverse: without the rounding errors of a matrix inverse, and also with integer matrices, whose matrix inverse is rejected.
+  A rotation composes with rotations into rotations, and with translations and proper rigid transformations into proper rigid transformations, a Lorentz transformation with Lorentz transformations into Lorentz transformations (see [Composition and inverse of transformations](#composition-and-inverse-of-transformations)).
+* The rotation of a proper rigid transformation must be a rotation (the concept `AnyRotation`), so that the inverse `(R^T, -R^T t)` is right.
+
+### Backend support for inverses
+
+Blitz++ provides neither matrix inverses nor determinants, so transformations of covectors, linear maps and bilinear forms, and the inverses of linear transformations, only worked with Eigen, and the Blitz++ backend did not satisfy `InvertibleValueMatrixBackend`.
+
+Decision: the Blitz++ backend computes the matrix inverse and the determinant by Gauss-Jordan elimination with partial pivoting (Golub and Van Loan, Matrix Computations, 4th ed., 2013, sections 3.2 and 3.4; Press et al., Numerical Recipes, 3rd ed., 2007, section 2.1), in its traits `Inverse` and `Determinant`, without LAPACK.
+It is linear algebra, so it belongs in the backend, not in the core.
+
+* The determinant is the product of the pivots of the same elimination, with the sign of the row swaps.
+  The determinant of an integer matrix is computed in `double` and rounded to the nearest integer, like Eigen's, which computes the determinants of small integer matrices exactly.
+* The inverse of an integer matrix is rejected by the core, with every backend (see [Inverses and determinants](#inverses-and-determinants)), so the backend only inverts floating point matrices.
+* A matrix is singular if a pivot is exactly zero: then the determinant is zero and the inverse is NaN, like the non-finite elements of Eigen's inverse of a singular matrix.
+  A matrix that is singular only up to rounding has a tiny pivot: its inverse has huge elements, with both backends.
+* The tests compare the inverses and the determinants of both backends with values computed by hand, and with each other for well and badly conditioned matrices of the sizes 1 to 4, also with zeros on the diagonal, which need row swaps (`tests/src/ValueMatrixBackends.cpp`).
 
 ## Review of mathematical and physical soundness (November 2026)
 
@@ -355,18 +407,6 @@ This is fine in orthonormal coordinate systems, but not invariant under Jacobian
 Options: (a) a metric as part of the coordinate system, used by `dotProduct` and `norm`; (b) restrict `dotProduct` and `norm` to Euclidean coordinate systems and provide explicit metric contractions; (c) document the limitation.
 Recommendation: (c) for 1.0, (a) later.
 
-### TODO: Validity of rotations and Lorentz transformations
-
-Rotations are not checked for orthogonality or a determinant of 1, so a shear is accepted as a rotation.
-The transformation rules use the general inverse and remain correct for any invertible matrix; only the guarantees of a rotation (e.g. preserving norms) break.
-The inverse of a proper rigid transformation, `(R^T, -R^T t)`, relies on `R^-1 = R^T`, though, and is wrong for a rotation that is not one.
-Rotations are aliases of linear transformations with dimensionless units, so they cannot be told apart from e.g. scalings or Lorentz transformations: their `inverse()` is the matrix inverse rather than `R^T`, which needs a backend with matrix inverses, and they do not compose with translations into proper rigid transformations.
-Likewise, Lorentz transformations are aliases of passive linear transformations: their `inverse()` is the matrix inverse rather than `eta Lambda^T eta`, and nothing checks `Lambda^T eta Lambda = eta`.
-
-Decision: a rotation class and a Lorentz class, with a runtime check in debug builds when constructing them (`R^T R = I` and `det R = 1`, `Lambda^T eta Lambda = eta`).
-Their inverses are structural, `R^T` and `eta Lambda^T eta`, so they work with every value matrix backend.
-Rotations will compose with translations and proper rigid transformations into proper rigid transformations (rotation * translation, translation * rotation, rigid * rotation and rotation * rigid), which are rejected until then.
-
 ### TODO: Moving coordinate systems
 
 Coordinate systems are axes and an origin, not moving observers.
@@ -374,14 +414,6 @@ A passive transformation of a velocity re-expresses it; it does not add `ω × r
 The rigid transformation of a mass or inertia tensor does not compile, which is arguably safer than guessing the parallel axis term.
 The transport formulas exist only in the tests.
 Recommendation: document this clearly; consider dedicated twist and wrench types later.
-
-### TODO: Backend support for inverses
-
-Blitz++ provides neither matrix inverses nor determinants, so transformations of covectors, linear maps and bilinear forms, and the inverses of linear transformations, only work with Eigen, and the Blitz++ backend does not satisfy `InvertibleValueMatrixBackend`.
-The inverses of translations and proper rigid transformations need no matrix inverse and work with every backend, and so will those of the planned rotation and Lorentz classes (see [Validity of rotations and Lorentz transformations](#todo-validity-of-rotations-and-lorentz-transformations)).
-Of the inverses, the Blitz++ backend only implements the elementwise reciprocal, `cwiseInverse()`.
-This weakens the goal that every feature works with every backend.
-Recommendation: implement small fixed-size inverses for Blitz++ in *wuzp*, or document the restriction per backend.
 
 ## Notes on tensor calculus
 

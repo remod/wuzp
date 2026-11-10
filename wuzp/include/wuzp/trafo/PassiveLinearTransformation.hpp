@@ -28,7 +28,7 @@ namespace internal {
 
 //! The passive linear transformation from FromT_ to ToT_ whose matrix has the quantities QuantitiesT_, e.g. the product or the
 //! inverse of the matrices of linear transformations, with the units given like the aliases give them (see ApplyUnits), so that
-//! e.g. the product of two rotations is a PassiveSpatialRotation.
+//! e.g. the product of two dimensionless linear transformations has a single dimensionless unit.
 template <template <typename, int, int> typename ValuesT_, typename FromT_, typename ToT_, typename QuantitiesT_>
 struct PassiveLinearTransformationOf {
   template <typename... UnitsT_>
@@ -48,7 +48,8 @@ auto makePassiveLinearTransformation(QuantitiesT_ quantities) {
  * A passive linear transformation from the coordinate system From to the coordinate system To, possibly of another dimension,
  * whose matrix A transforms the components v of a vector in From into its components A v in To. The objects it transforms must
  * be expressed in From. Rotations, Jacobians and Lorentz transformations are passive linear transformations (see
- * PassiveSpatialRotation, Jacobian and LorentzTransformation).
+ * PassiveSpatialRotation, Jacobian and LorentzTransformation): Jacobians are an alias, rotations and Lorentz transformations
+ * classes of their own, which check their validity and invert without a matrix inverse.
  * The rows of A are the dual basis covectors of To, and the basis vectors of To are the columns of A^-1, all expressed in From:
  * the dual basis covectors transform like the components, and the basis vectors with the inverse (Carroll, Lecture Notes on
  * General Relativity, https://arxiv.org/abs/gr-qc/9712019, eqs. 1.38 and 1.30). Only if both bases are orthonormal, e.g. for a
@@ -79,9 +80,8 @@ class PassiveLinearTransformation
   /**
    * The inverse transformation, from To to From, whose matrix is the matrix inverse A^-1 (see Quantities::inverse()): A must be
    * square, and its units must describe a linear map. This needs a value matrix backend with matrix inverses
-   * (InvertibleValueMatrixBackend), which Blitz++ is not yet. The inverse of a proper rigid transformation only needs the
-   * transpose of its rotation. The inverse of a Lorentz transformation is eta Lambda^T eta, which follows from eta = Lambda^T
-   * eta Lambda (Carroll, Lecture Notes on General Relativity, https://arxiv.org/abs/gr-qc/9712019, eq. 1.14).
+   * (InvertibleValueMatrixBackend). The inverses of rotations and Lorentz transformations need no matrix inverse (see
+   * PassiveSpatialRotation::inverse() and LorentzTransformation::inverse()).
    */
   auto inverse() const { return internal::makePassiveLinearTransformation<ValuesT_, ToT_, FromT_>(quantities_.inverse()); }
 
@@ -115,17 +115,23 @@ struct WithFrames<PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, D
 
 // The tensors are expressed in From (see PassiveTransformation::transform()). Their components are transformed, and the result
 // is expressed in To.
+// The transformations of tensors by a passive linear transformation, and its compositions, only use its matrix, getQuantities(),
+// and the matrix of its inverse, inverse().getQuantities(): they take any transformation with the matrix of the linear
+// transformation, so that those of the rotations and of the Lorentz transformations, which are linear transformations too,
+// inherit them (see PassiveSpatialRotation and LorentzTransformation). Their inverses, R^T and eta Lambda^T eta, need no matrix
+// inverse, so they transform covectors and tensors with lower indices without its rounding errors, and also for integer
+// matrices.
 
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename FromT_, typename ToT_, int DimensionFromV_,
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
 struct TransformationTraits<PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>> {
-  static auto transform(
-      const PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A covector transforms with the inverse: w' = w A^-1.
     return castCoordinateSystem<ToT_>(
-        internal::withQuantities<FromT_>(object, innerProduct(object.getQuantities(), transformation.getQuantities().inverse())));
+        internal::withQuantities<FromT_>(object, innerProduct(object.getQuantities(), transformation.inverse().getQuantities())));
   }
 };
 
@@ -133,11 +139,11 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
 struct TransformationTraits<PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Down, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>> {
-  static auto transform(
-      const PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Down, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Down, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A tensor with two lower indices, e.g. a mass matrix, transforms like M' = A^-T M A^-1.
-    const auto inverse = transformation.getQuantities().inverse();
+    const auto inverse = transformation.inverse().getQuantities();
     return castCoordinateSystem<ToT_>(
         internal::withQuantities<FromT_>(object, innerProduct(inverse.transpose(), innerProduct(object.getQuantities(), inverse))));
   }
@@ -147,9 +153,9 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
 struct TransformationTraits<PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
-  static auto transform(
-      const PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
     // A vector transforms like v' = A v.
     return castCoordinateSystem<ToT_>(internal::mapRelative(object, [&transformation](const auto& relative) {
       return internal::withQuantities<FromT_>(relative, innerProduct(transformation.getQuantities(), relative.getQuantities()));
@@ -161,13 +167,13 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
 struct TransformationTraits<PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Up, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>> {
-  static auto transform(
-      const PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Up, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Up, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A linear map transforms like T' = A T A^-1.
     return castCoordinateSystem<ToT_>(internal::withQuantities<FromT_>(
         object,
-        innerProduct(transformation.getQuantities(), innerProduct(object.getQuantities(), transformation.getQuantities().inverse()))));
+        innerProduct(transformation.getQuantities(), innerProduct(object.getQuantities(), transformation.inverse().getQuantities()))));
   }
 };
 
@@ -175,9 +181,9 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
 struct TransformationTraits<PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Up, Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>> {
-  static auto transform(
-      const PassiveLinearTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Up, Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Up, Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A tensor with two upper indices, e.g. a covariance matrix, transforms like T' = A T A^T.
     return castCoordinateSystem<ToT_>(internal::withQuantities<FromT_>(
         object,
@@ -193,10 +199,8 @@ template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT
 struct CompositionTraits<
     PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionFromLhsV_, DimensionToLhsV_, UnitsLhsT_...>,
     PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionFromRhsV_, DimensionToRhsV_, UnitsRhsT_...>> {
-  static auto compose(const PassiveLinearTransformation<ValuesLhsT_, ValueLhsT_, FromLhsT_, ToLhsT_, DimensionFromLhsV_, DimensionToLhsV_,
-                                                        UnitsLhsT_...>& lhs,
-                      const PassiveLinearTransformation<ValuesRhsT_, ValueRhsT_, FromRhsT_, ToRhsT_, DimensionFromRhsV_, DimensionToRhsV_,
-                                                        UnitsRhsT_...>& rhs) {
+  template <typename LhsT_, typename RhsT_>
+  static auto compose(const LhsT_& lhs, const RhsT_& rhs) {
     return internal::makePassiveLinearTransformation<ValuesLhsT_, FromRhsT_, ToLhsT_>(
         innerProduct(lhs.getQuantities(), rhs.getQuantities()));
   }

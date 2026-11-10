@@ -49,6 +49,10 @@ cmake --build --preset gcc-wuzp-eigen
 ctest --preset gcc-wuzp-eigen
 ```
 
+The test presets build in debug mode, so the tests also cover the checks that only run in debug builds, i.e. if `NDEBUG` is not defined, e.g. the validity checks of rotations and Lorentz transformations.
+The preset `gcc-wuzp-eigen-release` runs the tests in release mode, without these checks and with the warnings that only the optimizer finds; it skips the compile tests, which do not depend on the build type.
+The benchmarks build in release mode too.
+
 On macOS, the `clang-*` presets use Apple Clang.
 On Windows, the `msvc-*` presets use MSVC from a developer command prompt.
 The `macos` and `windows` jobs in `.github/workflows/ci.yml` show how to get the dependencies with Homebrew and vcpkg.
@@ -94,7 +98,7 @@ To format the code automatically before each commit, enable the [pre-commit](htt
 
 ## Continuous integration
 
-The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants (mp-units only in `latest`), runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, tests the installed package and the use through `FetchContent`, and builds and runs the [benchmarks](benchmarks/README.md).
+The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants (mp-units only in `latest`) and for one in release mode, runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, tests the installed package and the use through `FetchContent`, and builds and runs the [benchmarks](benchmarks/README.md).
 It also tests every backend combination except mp-units on macOS with Apple Clang (Homebrew packages) and on Windows with MSVC (vcpkg packages).
 While the repository is private, these two jobs only run when the workflow is started manually with the `platforms` input, since GitHub bills their minutes at 10 and 2 times the Linux rate.
 Warnings are errors in CI (`WUZP_WARNINGS_AS_ERRORS`, on in all presets), and every public header is compiled on its own with strict warnings.
@@ -105,6 +109,7 @@ ci/local.sh                 # All jobs.
 ci/local.sh format test-min # Selected jobs: format, tidy, test-min, test-latest, coverage, sanitizers, install, benchmarks.
 ```
 
+`test-latest` also runs `gcc-wuzp-eigen-release`, the preset of the CI job `test-release`.
 By default, `ci/local.sh` uses half of the CPU cores; set `WUZP_JOBS` to change this.
 
 Codecov checks that the coverage does not drop and that new code is covered (`codecov.yml`).

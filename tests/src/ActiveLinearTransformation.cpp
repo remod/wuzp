@@ -33,8 +33,7 @@ TEST(TestActiveLinearTransformation, StreamOperator) {  // NOLINT
   EXPECT_EQ(toString(scaling), toString(scaling.getTensor()));
 }
 
-// Covectors and (1,1) tensors transform with the inverse, which Blitz++ does not provide.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+// Covectors and (1,1) tensors transform with the inverse.
 TEST(TestActiveLinearTransformation, TransformCovector) {  // NOLINT
   // A covector transforms with the inverse: w' = w A^-1.
   const ForceCovector<CoordinateSystemA> object{8.0, 8.0, 8.0};
@@ -58,7 +57,6 @@ TEST(TestActiveLinearTransformation, TransformTensorWithOneContravariantAndOneCo
   const VelocityGradient<CoordinateSystemA> transformedObject{1.0, 0.5, 0.25, 2.0, 1.0, 0.5, 4.0, 2.0, 1.0};
   EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
 }
-#endif
 
 TEST(TestActiveLinearTransformation, TransformTensorWithTwoContravariantIndices) {  // NOLINT
   // A covariance transforms like T' = A T A^T, i.e. T'_ij = a_i a_j T_ij for a scaling A = diag(a).
@@ -153,9 +151,8 @@ TEST(TestActiveLinearTransformation, ComposeTransformsPointsVectorsAndTensors) {
   EXPECT_EQ(composition.transform(covariance), (Covariance<CoordinateSystemA>{8.0, 8.0, 0.0, 8.0, 16.0, 0.0, 0.0, 0.0, 192.0}));
 }
 
-// Covectors and tensors with lower indices transform with the inverse, which Blitz++ does not provide. The inverse of the
-// composition is ((0, 1/4, 0), (1/2, 0, 0), (0, 0, 1/8)).
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+// Covectors and tensors with lower indices transform with the inverse. The inverse of the composition is ((0, 1/4, 0), (1/2, 0, 0), (0, 0,
+// 1/8)).
 TEST(TestActiveLinearTransformation, ComposeTransformsCovectorsAndTensorsWithLowerIndices) {  // NOLINT
   const Scaling composition = scaling * swapXAndY;
   // w' = w A^-1.
@@ -173,10 +170,8 @@ TEST(TestActiveLinearTransformation, ComposeTransformsCovectorsAndTensorsWithLow
   EXPECT_TRUE(composition.transform(massMatrix)
                   .isApprox(MassMatrix<CoordinateSystemA>{0.5, 0.125, 0.0, 0.125, 0.0625, 0.0, 0.0, 0.0, 0.046875}, 1e-12));
 }
-#endif
 
-// The inverse of a linear transformation is its matrix inverse, which Blitz++ does not provide.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
+// The inverse of a linear transformation is its matrix inverse.
 TEST(TestActiveLinearTransformation, Inverse) {  // NOLINT
   const PositionVector3<ValueMatrix, double, CoordinateSystemA> vector{1.0, 2.0, 3.0};
   const Scaling inverse = scaling.inverse();
@@ -198,4 +193,3 @@ TEST(TestActiveLinearTransformation, InverseOfUnits) {  // NOLINT
   const TimeMap inverse = frequencyMap.inverse();
   EXPECT_TRUE(inverse.isApprox(TimeMap{0.5, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.125}, 1e-12));
 }
-#endif

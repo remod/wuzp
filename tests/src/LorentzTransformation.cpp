@@ -1,15 +1,19 @@
 #include <stdexcept>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 
 #include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/LorentzTransformation.hpp"
+#include "wuzp/trafo/PassiveLinearTransformation.hpp"
+#include "wuzp/trafo/internal/validity.hpp"
 
 #include "coordinate_systems.hpp"
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
+#include "to_string.hpp"
 
 using namespace wuzp;  // NOLINT
 
@@ -107,6 +111,8 @@ TEST(TestLorentzTransformation, ComposeCollinearBoosts) {  // NOLINT
           VelocityVector3<ValueMatrix, double, CoordinateSystemB>{0.5 * c, 0.0, 0.0})};
   const LorentzTransformation4<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC> boostCA{
       createBoostMatrix<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 4>(Velocity3{0.8 * c, 0.0, 0.0})};
+  static_assert(
+      std::is_same_v<decltype(boostCB * boostBA), LorentzTransformation4<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC>>);
   EXPECT_TRUE((boostCB * boostBA).isApprox(boostCA, 1e-12));
   // With gamma = 5/3 for 0.8 c: x'^0 = gamma (5 m - 0.8 * 4 m) = 3 m, and x' = gamma (4 m - 0.8 * 5 m) = 0.
   const SpacetimeVectorA event{5.0, 4.0, 1.0, 2.0};
@@ -134,16 +140,15 @@ TEST(TestLorentzTransformation, InverseIsEtaTransposeEta) {  // NOLINT
   EXPECT_TRUE(innerProduct(boost.getQuantities(), inverse).isApprox(identity, 1e-12));
 }
 
-// The inverse of a linear transformation is its matrix inverse, which Blitz++ does not provide.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
-// The inverse transforms from To to From. The inverse of a boost is the boost with the velocity of From relative to To, which is
-// -v in To.
+// The inverse transforms from To to From. It is eta Lambda^T eta, which every value matrix backend provides. The inverse of a
+// boost is the boost with the velocity of From relative to To, which is -v in To.
 TEST(TestLorentzTransformation, Inverse) {  // NOLINT
   using LorentzBoostAB = LorentzTransformation4<ValueMatrix, double, CoordinateSystemB, CoordinateSystemA>;
   const double c = getSpeedOfLight<ValueMatrix, double>().getValue();
   const LorentzBoost boost{createBoost(Velocity3{0.1 * c, 0.2 * c, 0.3 * c})};
+  static_assert(std::is_same_v<decltype(boost.inverse()), LorentzBoostAB>);
   const LorentzBoostAB inverse = boost.inverse();
-  EXPECT_TRUE(inverse.getQuantities().isApprox(innerProduct(eta, innerProduct(boost.getQuantities().transpose(), eta)), 1e-12));
+  EXPECT_EQ(inverse.getQuantities(), (innerProduct(eta, innerProduct(boost.getQuantities().transpose(), eta))));
   EXPECT_TRUE(inverse.isApprox(createBoostMatrix<ValueMatrix, double, CoordinateSystemB, CoordinateSystemA, 4>(
                                    VelocityVector3<ValueMatrix, double, CoordinateSystemB>{-0.1 * c, -0.2 * c, -0.3 * c}),
                                1e-12));
@@ -157,4 +162,95 @@ TEST(TestLorentzTransformation, Inverse) {  // NOLINT
   EXPECT_TRUE((inverse * boost).isApprox(identityInA, 1e-12));
   EXPECT_TRUE((boost * inverse).isApprox(identityInB, 1e-12));
 }
-#endif
+
+// A Lorentz transformation transforms covectors with its inverse eta Lambda^T eta: w' = w Lambda^-1. It needs no matrix inverse,
+// so it adds no rounding errors, and also works for integer matrices, whose matrix inverse is rejected.
+TEST(TestLorentzTransformation, TransformCovector) {  // NOLINT
+  using CovectorA = HomogeneousCovector<4, ValueMatrix, double, Length, CoordinateSystemA>;
+  using CovectorB = HomogeneousCovector<4, ValueMatrix, double, Length, CoordinateSystemB>;
+  // The boost with v = 0.6 c along x, with gamma = 1.25 and beta gamma = 0.75. Its inverse is the boost with -v, so (1, 2, 3, 4)
+  // gives (1.25 + 2 * 0.75, 0.75 + 2 * 1.25, 3, 4).
+  const LorentzBoost boost{1.25, -0.75, 0.0, 0.0, -0.75, 1.25, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+  EXPECT_EQ(boost.transform(CovectorA{1.0, 2.0, 3.0, 4.0}), (CovectorB{2.75, 3.25, 3.0, 4.0}));
+  const double c = getSpeedOfLight<ValueMatrix, double>().getValue();
+  const LorentzBoost generalBoost{createBoost(Velocity3{0.1 * c, 0.2 * c, 0.3 * c})};
+  const CovectorA covector{1.0, 2.0, 3.0, 4.0};
+  EXPECT_EQ(
+      generalBoost.transform(covector),
+      CovectorB{innerProduct(covector.getQuantities(), innerProduct(eta, innerProduct(generalBoost.getQuantities().transpose(), eta)))});
+  // The pairing of a covector and a vector is invariant.
+  const SpacetimeVectorA event{5.0, 4.0, 1.0, 2.0};
+  EXPECT_TRUE(innerProduct(generalBoost.transform(covector), generalBoost.transform(event))
+                  .getQuantity()
+                  .isApprox(innerProduct(covector, event).getQuantity(), 1e-12));
+  // The spatial rotation by pi/2 around z, an integer Lorentz transformation: the components of w Lambda^T are the products of w
+  // with the rows of Lambda.
+  const LorentzTransformation4<ValueMatrix, int, CoordinateSystemA, CoordinateSystemB> rotation{1, 0, 0, 0, 0, 0, -1, 0,
+                                                                                                0, 1, 0, 0, 0, 0, 0,  1};
+  EXPECT_EQ(rotation.transform(HomogeneousCovector<4, ValueMatrix, int, Length, CoordinateSystemA>{1, 2, 3, 4}),
+            (HomogeneousCovector<4, ValueMatrix, int, Length, CoordinateSystemB>{1, -3, 2, 4}));
+}
+
+// The Minkowski metric eta_mu nu, a tensor with two lower indices, is invariant under Lorentz transformations, which transform it
+// with their inverse: Lambda^-T eta Lambda^-1 = eta. This is exact for the boost with gamma = 1.25, whose elements are exact.
+TEST(TestLorentzTransformation, MetricIsInvariant) {  // NOLINT
+  using MetricA = Tensor<Indices<Down, Down>, Metric, CoordinateSystemA, Relative>;
+  using MetricB = Tensor<Indices<Down, Down>, Metric, CoordinateSystemB, Relative>;
+  const LorentzBoost boost{1.25, -0.75, 0.0, 0.0, -0.75, 1.25, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+  EXPECT_EQ(boost.transform(MetricA{eta}), MetricB{eta});
+  const double c = getSpeedOfLight<ValueMatrix, double>().getValue();
+  EXPECT_TRUE(createBoost(Velocity3{0.1 * c, 0.2 * c, 0.3 * c}).transform(MetricA{eta}).isApprox(MetricB{eta}, 1e-12));
+}
+
+// In debug builds, the constructors reject matrices that do not preserve the Minkowski metric, e.g. a scaling of time. Release
+// builds do not check. makeUnchecked() skips the check.
+TEST(TestLorentzTransformation, RejectsMatricesThatDoNotPreserveTheMetricInDebugBuilds) {  // NOLINT
+  const auto scaling = [] { return LorentzBoost{2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0}; };
+  if constexpr (wuzp::internal::checksValidity) {
+    EXPECT_THROW(scaling(), std::invalid_argument);
+  } else {
+    EXPECT_NO_THROW(scaling());
+  }
+  EXPECT_FALSE(LorentzBoost::makeUnchecked(2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0).isValid());
+  // A Euclidean rotation that mixes time and space does not preserve the metric.
+  EXPECT_FALSE(LorentzBoost::makeUnchecked(0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0).isValid());
+}
+
+// Boosts, spatial rotations, reflections of space and time, and their compositions are Lorentz transformations. The default
+// constructor creates the identity.
+TEST(TestLorentzTransformation, IsValid) {  // NOLINT
+  const double c = getSpeedOfLight<ValueMatrix, double>().getValue();
+  const LorentzBoost boost{createBoost(Velocity3{0.1 * c, 0.2 * c, 0.3 * c})};
+  EXPECT_TRUE(boost.isValid());
+  EXPECT_TRUE(createBoost(Velocity3{0.0, 0.999 * c, 0.0}).isValid());
+  const LorentzTransformation4<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC> rotation{1.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0,
+                                                                                                   0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,  1.0};
+  EXPECT_TRUE((rotation * boost).isValid());
+  EXPECT_TRUE((LorentzBoost{-1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0}.isValid()));
+  EXPECT_EQ(LorentzBoost{}, (LorentzBoost{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0}));
+  EXPECT_NE(LorentzBoost{}, boost);
+  EXPECT_EQ(toString(boost), toString(boost.getQuantities()));
+  EXPECT_FALSE(
+      LorentzBoost::makeUnchecked(1.0 + 1e-6, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0).isValid());
+  EXPECT_TRUE(
+      LorentzBoost::makeUnchecked(1.0 + 1e-6, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0).isValid(1e-5));
+}
+
+// A Lorentz transformation is a linear transformation: it composes with linear transformations into linear transformations, in
+// both orders.
+TEST(TestLorentzTransformation, ComposeWithLinearTransformation) {  // NOLINT
+  using ScalingCB = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC, 4, 4, Dimensionless>;
+  using ScalingAD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, 4, 4, Dimensionless>;
+  using ScalingCA = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 4, 4, Dimensionless>;
+  using ScalingBD = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemD, CoordinateSystemB, 4, 4, Dimensionless>;
+  const double c = getSpeedOfLight<ValueMatrix, double>().getValue();
+  const LorentzBoost boost{createBoost(Velocity3{0.6 * c, 0.0, 0.0})};
+  const ScalingCB scalingCB{2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+  const ScalingAD scalingAD{2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+  static_assert(std::is_same_v<decltype(scalingCB * boost), ScalingCA>);
+  static_assert(std::is_same_v<decltype(boost * scalingAD), ScalingBD>);
+  const SpacetimeVectorA event{5.0, 4.0, 1.0, 2.0};
+  const SpacetimeVector4<ValueMatrix, double, CoordinateSystemD> eventInD{5.0, 4.0, 1.0, 2.0};
+  EXPECT_TRUE((scalingCB * boost).transform(event).isApprox(scalingCB.transform(boost.transform(event)), 1e-12));
+  EXPECT_TRUE((boost * scalingAD).transform(eventInD).isApprox(boost.transform(scalingAD.transform(eventInD)), 1e-12));
+}

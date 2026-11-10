@@ -1,3 +1,5 @@
+#include <type_traits>
+
 #include <gtest/gtest.h>
 
 #include "wuzp/core/traits.hpp"
@@ -173,4 +175,49 @@ TEST(TestActiveProperRigidTransformation3, IsApprox) {  // NOLINT
   EXPECT_FALSE(rigid.isApprox(otherRotation));
   EXPECT_FALSE(rigid.isApprox(otherTranslation));
   EXPECT_TRUE(rigid.isApprox(otherTranslation, 1e-2));
+}
+
+// A rotation composes with a translation into a proper rigid transformation, in both orders: R * t = (R, R t) and
+// t * R = (R, t).
+TEST(TestActiveProperRigidTransformation3, ComposeRotationAndTranslation) {                // NOLINT
+  const Transformation3::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
+  const Transformation3::Translation translation{1.0, 2.0, 3.0};
+  static_assert(std::is_same_v<decltype(rotation * translation), Transformation3>);
+  static_assert(std::is_same_v<decltype(translation * rotation), Transformation3>);
+  const Transformation3 translationFirst = rotation * translation;
+  const Transformation3 translationLast = translation * rotation;
+  const Point3 point{1.0, 2.0, 3.0};
+  EXPECT_EQ(translationFirst.transform(point), rotation.transform(translation.transform(point)));
+  EXPECT_EQ(translationLast.transform(point), translation.transform(rotation.transform(point)));
+  // (1, 2, 3) + t = (2, 4, 6) is rotated to (2, -6, 4), and (1, 2, 3) is rotated to (1, -3, 2), then moved to (2, -1, 5).
+  EXPECT_EQ(translationFirst.transform(point), (Point3{2.0, -6.0, 4.0}));
+  EXPECT_EQ(translationLast.transform(point), (Point3{2.0, -1.0, 5.0}));
+  EXPECT_EQ(translationFirst.getRotation(), rotation);
+  EXPECT_EQ(translationFirst.getTranslation(), (Transformation3::Translation{1.0, -3.0, 2.0}));
+  EXPECT_EQ(translationLast.getRotation(), rotation);
+  EXPECT_EQ(translationLast.getTranslation(), translation);
+  // Vectors are only rotated.
+  const Vector3 vector{1.0, 2.0, 3.0};
+  EXPECT_EQ(translationFirst.transform(vector), (Vector3{1.0, -3.0, 2.0}));
+  EXPECT_EQ(translationLast.transform(vector), (Vector3{1.0, -3.0, 2.0}));
+}
+
+// A proper rigid transformation composes with a rotation, in both orders: (R, t) * Q = (R Q, t) and Q * (R, t) = (Q R, Q t).
+TEST(TestActiveProperRigidTransformation3, ComposeWithRotation) {                          // NOLINT
+  const Transformation3::Rotation rotation{0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};  // Active rotation of pi/2 around z.
+  static_assert(std::is_same_v<decltype(rigid * rotation), Transformation3>);
+  static_assert(std::is_same_v<decltype(rotation * rigid), Transformation3>);
+  const Transformation3 rotationFirst = rigid * rotation;
+  const Transformation3 rotationLast = rotation * rigid;
+  const Point3 point{1.0, 2.0, 3.0};
+  EXPECT_EQ(rotationFirst.transform(point), rigid.transform(rotation.transform(point)));
+  EXPECT_EQ(rotationLast.transform(point), rotation.transform(rigid.transform(point)));
+  // (1, 2, 3) is rotated to (-2, 1, 3), then moved to (-2, -3, 2); (1, 2, 3) is moved to (1, -3, 3), then rotated to (3, 1, 3).
+  EXPECT_EQ(rotationFirst.transform(point), (Point3{-2.0, -3.0, 2.0}));
+  EXPECT_EQ(rotationLast.transform(point), (Point3{3.0, 1.0, 3.0}));
+  EXPECT_EQ(rotationFirst.getRotation(), rigid.getRotation() * rotation);
+  EXPECT_EQ(rotationFirst.getTranslation(), rigid.getTranslation());
+  EXPECT_EQ(rotationLast.getRotation(), rotation * rigid.getRotation());
+  // Q t = (0, 0, 1).
+  EXPECT_EQ(rotationLast.getTranslation(), (Transformation3::Translation{0.0, 0.0, 1.0}));
 }

@@ -100,6 +100,17 @@ X_AB * X_BC                    // OK: X_AC, from C to A.
 X_AB * X_CB                    // Error: Adjacent frames do not match.
 X_AB.inverse()                 // OK: X_BA, from A to B.
 rotation_in_A * rotation_in_B  // Error: Coordinate systems do not match.
+rotation * translation         // OK: a proper rigid transformation.
+translation * scaling          // Error: These transformations cannot be composed.
+```
+
+Rotations and Lorentz transformations check that they are valid, e.g. that the matrix of a rotation is orthogonal with determinant 1, in debug builds, like [Drake's](https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rotation_matrix.html), and throw `std::invalid_argument` otherwise (see [DESIGN.md](DESIGN.md#validity-of-rotations-and-lorentz-transformations)):
+
+```cpp
+Rotation{1.0, 5.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}  // Throws in debug builds: a shear is not a rotation.
+Rotation::makeUnchecked(matrix)                        // OK: not checked, e.g. in hot paths.
+Rotation::projectToRotation(matrix)                    // OK: the nearest rotation, e.g. after rounding errors.
+rotation.inverse()                                     // OK: the transpose, with every backend.
 ```
 
 ## Installation & Usage

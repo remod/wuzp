@@ -289,6 +289,16 @@
         "WUZP_WITH_MP_UNITS": "ON",
         "WUZP_BUILD_EXAMPLES": "OFF"
       }
+    },
+    {
+      "name": "gcc-wuzp-eigen-release",
+      "displayName": "gcc, wuzp units, eigen values (release)",
+      "inherits": [
+        "gcc-wuzp-eigen"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
@@ -363,6 +373,10 @@
     {
       "name": "clang-mp_units-blitz",
       "configurePreset": "clang-mp_units-blitz"
+    },
+    {
+      "name": "gcc-wuzp-eigen-release",
+      "configurePreset": "gcc-wuzp-eigen-release"
     }
   ],
   "testPresets": [
@@ -524,6 +538,22 @@
       },
       "execution": {
         "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "gcc-wuzp-eigen-release",
+      "description": "Skips the compile tests: they do not depend on the build type and run in gcc-wuzp-eigen.",
+      "configurePreset": "gcc-wuzp-eigen-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      },
+      "filter": {
+        "exclude": {
+          "label": "compile"
+        }
       }
     }
   ]

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <limits>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -98,6 +99,79 @@ decltype(auto) asArray(const ImplementationT_& impl) {
   } else {
     return ArrayOf<ImplementationT_>(impl);
   }
+}
+
+//! Swaps two rows of a matrix.
+template <typename ValueT_>
+void swapRows(blitz::Array<ValueT_, 2>& matrix, const int row, const int otherRow) {
+  for (int col = 0; col < matrix.extent(1); ++col) {
+    std::swap(matrix(row, col), matrix(otherRow, col));
+  }
+}
+
+/**
+ * The matrix inverse (first) and the determinant (second) of a square matrix, computed in the value type WorkT_ by
+ * Gauss-Jordan elimination with partial pivoting, since Blitz++ provides neither (see "Backend support for inverses" in
+ * DESIGN.md). The elimination reduces the matrix to the identity with row operations, which turn the identity into the inverse;
+ * before eliminating a column, the row with the largest magnitude in it, at or below the diagonal, is swapped into the pivot
+ * position, which keeps the elimination stable in practice. The determinant is the product of the pivots, with the sign of the
+ * row swaps. See Golub and Van Loan, Matrix Computations (4th ed., 2013), sections 3.2 and 3.4, and Press et al., Numerical
+ * Recipes (3rd ed., 2007), section 2.1. It costs about n^3 multiplications, which is negligible for the small matrices of wuzp.
+ * A matrix is singular if a pivot is exactly zero, i.e. if a column is zero at and below the diagonal after the elimination of
+ * the columns before it: then the determinant is zero, and every element of the inverse is NaN, like the non-finite elements
+ * of Eigen's inverse of a singular matrix. A matrix that is singular only up to rounding has a tiny pivot instead: its inverse
+ * has huge elements, like with Eigen.
+ */
+template <typename WorkT_, typename ImplementationT_>
+std::pair<blitz::Array<WorkT_, 2>, WorkT_> gaussJordan(const ImplementationT_& impl) {
+  const auto& matrix = asArray(impl);
+  const int size = matrix.extent(0);
+  blitz::Array<WorkT_, 2> reduced(size, size);
+  reduced = blitz::cast<WorkT_>(matrix);
+  blitz::Array<WorkT_, 2> inverse(size, size);
+  inverse = WorkT_{0};
+  for (int index = 0; index < size; ++index) {
+    inverse(index, index) = WorkT_{1};
+  }
+  WorkT_ determinant{1};
+  for (int col = 0; col < size; ++col) {
+    int pivot = col;
+    for (int row = col + 1; row < size; ++row) {
+      if (std::abs(reduced(row, col)) > std::abs(reduced(pivot, col))) {
+        pivot = row;
+      }
+    }
+    if (reduced(pivot, col) == WorkT_{0}) {
+      inverse = std::numeric_limits<WorkT_>::quiet_NaN();
+      return {inverse, WorkT_{0}};
+    }
+    if (pivot != col) {
+      swapRows(reduced, pivot, col);
+      swapRows(inverse, pivot, col);
+      determinant = -determinant;
+    }
+    const WorkT_ pivotValue = reduced(col, col);
+    determinant *= pivotValue;
+    // The columns before col are those of the identity already.
+    for (int otherCol = col; otherCol < size; ++otherCol) {
+      reduced(col, otherCol) /= pivotValue;
+    }
+    for (int otherCol = 0; otherCol < size; ++otherCol) {
+      inverse(col, otherCol) /= pivotValue;
+    }
+    for (int row = 0; row < size; ++row) {
+      if (row != col) {
+        const WorkT_ factor = reduced(row, col);
+        for (int otherCol = col; otherCol < size; ++otherCol) {
+          reduced(row, otherCol) -= factor * reduced(col, otherCol);
+        }
+        for (int otherCol = 0; otherCol < size; ++otherCol) {
+          inverse(row, otherCol) -= factor * inverse(col, otherCol);
+        }
+      }
+    }
+  }
+  return {inverse, determinant};
 }
 
 }  // namespace internal
@@ -293,16 +367,32 @@ struct SquaredNorm<AccessImplementation<ImplementationT_>> {
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
-// Blitz++ provides neither determinants nor matrix inverses (see "Backend support for inverses" in DESIGN.md).
+// Blitz++ provides neither determinants nor matrix inverses, so the backend computes them by Gauss-Jordan elimination (see
+// internal::gaussJordan()).
+
+// The determinant of an integer matrix is an integer, like Eigen's: it is computed in double and rounded to the nearest integer,
+// which is exact as long as the rounding errors of the elimination stay below 1/2, e.g. for small matrices of small integers.
 template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Determinant<AccessImplementation<ImplementationT_>> {
-  static_assert(FailOnInstantiation<Determinant<AccessImplementation<ImplementationT_>>>::value,
-                "Determinant is not implemented for blitz.");
+  static auto value(const ImplementationT_& impl) {
+    using ValueT = typename ImplementationT_::T_numtype;
+    if constexpr (std::is_floating_point_v<ValueT>) {
+      return wuzp_blitz::internal::gaussJordan<ValueT>(impl).second;
+    } else {
+      return static_cast<ValueT>(std::llround(wuzp_blitz::internal::gaussJordan<double>(impl).second));
+    }
+  }
+  using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
+// The matrix inverse. The core rejects the inverses of integer matrices (see ValuesWrapper::inverse()).
 template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Inverse<AccessImplementation<ImplementationT_>> {
-  static_assert(FailOnInstantiation<Inverse<AccessImplementation<ImplementationT_>>>::value, "Inverse is not implemented for blitz.");
+  static auto value(const ImplementationT_& impl) {
+    return wuzp_blitz::internal::gaussJordan<typename ImplementationT_::T_numtype>(impl).first;
+  }
+  // Not lazy: the elimination computes the inverse into a new array.
+  using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
 template <wuzp_blitz::BlitzArray ImplementationT_>

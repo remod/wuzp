@@ -4,12 +4,12 @@
 // The values of a passive linear transformation come from a value matrix backend, given as its ValueMatrix, not as the
 // matrices of its linear algebra library.
 
-#include "wuzp/trafo/PassiveSpatialRotation.hpp"
+#include "wuzp/trafo/PassiveLinearTransformation.hpp"
 
 #include "compile_test_types.hpp"
 
 int main() {
   [[maybe_unused]] constexpr auto size =
-      sizeof(wuzp::PassiveSpatialRotation3<NotAValueMatrixBackend, double, CoordinateSystemA, CoordinateSystemB>);
+      sizeof(wuzp::PassiveLinearTransformation<NotAValueMatrixBackend, double, CoordinateSystemA, CoordinateSystemB, 3, 3, Dimensionless>);
   return 0;
 }

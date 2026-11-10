@@ -399,9 +399,6 @@ TEST(TestQuantities, CwiseInverse) {  // NOLINT
   EXPECT_TRUE((MixedQuantities{1.0, 2.0, 4.0, 0.5}.cwiseInverse().isApprox(MixedReciprocals{1.0, 0.5, 0.25, 2.0})));
 }
 
-// The Blitz++ backend implements neither matrix inverses nor determinants.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
-
 class TestQuantitiesInvertible : public ::testing::Test {
  public:
   using MyValueMatrix = ValueMatrix<double, 2, 2>;
@@ -427,8 +424,6 @@ TEST_F(TestQuantitiesInvertible, Inverse) {  // NOLINT
   EXPECT_TRUE(getQuantities().inverse().isApprox(quantitiesInv));
 }
 
-#endif
-
 TEST(TestQuantities, Norm) {  // NOLINT
   using MyValueVector = ValueVector<int, 3>;
   using MyUnitVector = TypeVector<3, Length>;
@@ -445,8 +440,6 @@ TEST(TestQuantities, SquaredNorm) {  // NOLINT
   EXPECT_EQ(quantities.squaredNorm(), SquaredLengthQuantityI{25});
 }
 
-// The Blitz++ backend implements neither matrix inverses nor determinants.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
 TEST(TestQuantities, Determinant) {  // NOLINT
   using MyValueMatrix = ValueMatrix<int, 2, 2>;
   using MyUnitMatrix = TypeMatrix<2, 2, Length>;
@@ -485,7 +478,6 @@ TEST(TestQuantities, InverseOfMassMatrix) {  // NOLINT
 TEST(TestQuantities, DeterminantOfScalar) {  // NOLINT
   EXPECT_EQ((Quantities<ValueMatrix<int, 1, 1>, TypeMatrix<1, 1, Length>>{3}.determinant()), LengthQuantityI{3});
 }
-#endif
 
 namespace {
 
@@ -514,9 +506,6 @@ TEST(TestQuantities, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasSetValue<TestQuantities<1, 1>>);
   static_assert(!HasSetValue<TestQuantities<3, 1>>);
   static_assert(!HasDeterminant<TestQuantities<3, 1>>);
-  // The Blitz++ backend implements no determinants.
-#if VALUES_IMPLEMENTATION != VALUES_IMPLEMENTATION_BLITZ
   static_assert(HasDeterminant<TestQuantities<1, 1>>);
   static_assert(HasDeterminant<TestQuantities<3, 3>>);
-#endif
 }

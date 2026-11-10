@@ -105,6 +105,21 @@ jobs:
       - uses: actions/checkout@v7
       - run: ci/test.sh ${{ matrix.compiler }}-${{ matrix.units }}-${{ matrix.values }}
 
+  # The test presets build in debug mode. This job tests one backend combination in release mode, i.e. with NDEBUG defined,
+  # without the checks that only run in debug builds and with the warnings that only the optimizer finds.
+  test-release:
+    name: test (latest, gcc, wuzp units, eigen values, release)
+    needs: image
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ needs.image.outputs.latest }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: ci/test.sh gcc-wuzp-eigen-release
+
   coverage:
     needs: image
     runs-on: ubuntu-24.04

@@ -16,6 +16,8 @@ REPO_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 MIN_PRESETS="gcc-wuzp-eigen gcc-wuzp-blitz gcc-boost-eigen gcc-boost-blitz clang-wuzp-eigen clang-wuzp-blitz clang-boost-eigen clang-boost-blitz"
 # mp-units needs newer compilers than those of the min variant.
 LATEST_PRESETS="${MIN_PRESETS} gcc-mp_units-eigen gcc-mp_units-blitz clang-mp_units-eigen clang-mp_units-blitz"
+# The test-release job of CI: the tests in release mode, i.e. with NDEBUG defined.
+LATEST_PRESETS+=" gcc-wuzp-eigen-release"
 CORES=$(getconf _NPROCESSORS_ONLN)
 CPUS=${WUZP_JOBS:-$(( CORES > 1 ? CORES / 2 : 1 ))}
 echo "Using ${CPUS} of ${CORES} CPU cores (set WUZP_JOBS to change)."

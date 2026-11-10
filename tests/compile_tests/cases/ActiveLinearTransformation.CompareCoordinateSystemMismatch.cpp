@@ -1,9 +1,9 @@
 // wuzp-expect: error
 // wuzp-static-assert: Coordinate systems do not match\.
 
-// Only transformations in the same coordinate system can be compared.
+// Only linear transformations in the same coordinate system can be compared.
 
-#include "wuzp/trafo/ActiveSpatialRotation.hpp"
+#include "wuzp/trafo/ActiveLinearTransformation.hpp"
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
@@ -11,8 +11,11 @@
 
 using namespace wuzp;  // NOLINT
 
+template <typename CoordinateSystemT>
+using Scaling = ActiveLinearTransformation<ValueMatrix, double, CoordinateSystemT, 3, 3, Dimensionless>;
+
 int main() {
-  const ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA> rotationInA{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-  const ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemB> rotationInB{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-  return rotationInA == rotationInB ? 0 : 1;
+  const Scaling<CoordinateSystemA> scalingInA{2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0};
+  const Scaling<CoordinateSystemB> scalingInB{2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0};
+  return scalingInA == scalingInB ? 0 : 1;
 }

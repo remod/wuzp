@@ -29,7 +29,7 @@ namespace internal {
 
 //! The active linear transformation in CoordinateSystemT_ whose matrix has the quantities QuantitiesT_, e.g. the product or the
 //! inverse of the matrices of linear transformations, with the units given like the aliases give them (see ApplyUnits), so that
-//! e.g. the product of two rotations is an ActiveSpatialRotation.
+//! e.g. the product of two dimensionless linear transformations has a single dimensionless unit.
 template <template <typename, int, int> typename ValuesT_, typename CoordinateSystemT_, typename QuantitiesT_>
 struct ActiveLinearTransformationOf {
   template <typename... UnitsT_>
@@ -75,8 +75,8 @@ class ActiveLinearTransformation
 
   /**
    * The inverse transformation, whose matrix is the matrix inverse A^-1 (see Quantities::inverse()): A must be square, and its
-   * units must describe a linear map. This needs a value matrix backend with matrix inverses (InvertibleValueMatrixBackend),
-   * which Blitz++ is not yet. The inverse of a proper rigid transformation only needs the transpose of its rotation.
+   * units must describe a linear map. This needs a value matrix backend with matrix inverses (InvertibleValueMatrixBackend).
+   * The inverse of a rotation is its transpose (see ActiveSpatialRotation::inverse()).
    */
   auto inverse() const { return internal::makeActiveLinearTransformation<ValuesT_, CoordinateSystemT_>(quantities_.inverse()); }
 
@@ -103,16 +103,22 @@ struct GetCoordinateSystem<ActiveLinearTransformation<ValuesT_, ValueT_, Coordin
   using type = CoordinateSystemT_;
 };
 
+// The transformations of tensors and the conjugations by an active linear transformation, and its compositions, only use its
+// matrix, getQuantities(), and the matrix of its inverse, inverse().getQuantities(): they take any transformation with the matrix
+// of the linear transformation, so that those of the rotations, which are linear transformations too, inherit them (see
+// ActiveSpatialRotation). The inverse of a rotation is its transpose, so a rotation transforms covectors and tensors with lower
+// indices without a matrix inverse: without its rounding errors, and also for integer matrices.
+
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_, int DimensionFromV_,
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>> {
-  static auto transform(
-      const ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A covector transforms with the inverse: w' = w A^-1.
     return internal::withQuantities<CoordinateSystemT_>(object,
-                                                        innerProduct(object.getQuantities(), transformation.getQuantities().inverse()));
+                                                        innerProduct(object.getQuantities(), transformation.inverse().getQuantities()));
   }
 };
 
@@ -120,11 +126,11 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Down, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>> {
-  static auto transform(
-      const ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Down, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Down, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A tensor with two lower indices, e.g. a mass matrix, transforms like M' = A^-T M A^-1.
-    const auto inverse = transformation.getQuantities().inverse();
+    const auto inverse = transformation.inverse().getQuantities();
     return internal::withQuantities<CoordinateSystemT_>(object,
                                                         innerProduct(inverse.transpose(), innerProduct(object.getQuantities(), inverse)));
   }
@@ -134,9 +140,9 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
-  static auto transform(
-      const ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
     // A vector transforms like v' = A v.
     return internal::mapRelative(object, [&transformation](const auto& relative) {
       return internal::withQuantities<CoordinateSystemT_>(relative, innerProduct(transformation.getQuantities(), relative.getQuantities()));
@@ -148,13 +154,13 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Up, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>> {
-  static auto transform(
-      const ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Up, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Up, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A linear map transforms like T' = A T A^-1.
     return internal::withQuantities<CoordinateSystemT_>(
         object,
-        innerProduct(transformation.getQuantities(), innerProduct(object.getQuantities(), transformation.getQuantities().inverse())));
+        innerProduct(transformation.getQuantities(), innerProduct(object.getQuantities(), transformation.inverse().getQuantities())));
   }
 };
 
@@ -162,9 +168,9 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
           int DimensionToV_, typename... UnitsT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             Tensor<Indices<Up, Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>> {
-  static auto transform(
-      const ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const Tensor<Indices<Up, Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const Tensor<Indices<Up, Up>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A tensor with two upper indices, e.g. a covariance matrix, transforms like T' = A T A^T.
     return internal::withQuantities<CoordinateSystemT_>(
         object,
@@ -178,8 +184,9 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
           typename ValueOtherT_, typename CoordinateSystemOtherT_, typename... UnitsOtherT_>
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             ActiveTranslation<ValuesOtherT_, DimensionOtherV_, ValueOtherT_, CoordinateSystemOtherT_, UnitsOtherT_...>> {
+  template <typename TransformationT_>
   static auto transform(
-      const ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
+      const TransformationT_& transformation,
       const ActiveTranslation<ValuesOtherT_, DimensionOtherV_, ValueOtherT_, CoordinateSystemOtherT_, UnitsOtherT_...>& object) {
     return ActiveTranslation<ValuesOtherT_, DimensionOtherV_, ValueOtherT_, CoordinateSystemOtherT_, UnitsOtherT_...>(
         transformation.transform(object.getTensor()));
@@ -193,10 +200,10 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
 struct TransformationTraits<ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>,
                             ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_,
                                                        DimensionToOtherV_, UnitsOtherT_...>> {
-  static auto transform(
-      const ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionFromV_, DimensionToV_, UnitsT_...>& transformation,
-      const ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_, DimensionToOtherV_,
-                                       UnitsOtherT_...>& object) {
+  template <typename TransformationT_>
+  static auto transform(const TransformationT_& transformation,
+                        const ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_,
+                                                         DimensionToOtherV_, UnitsOtherT_...>& object) {
     return ActiveLinearTransformation<ValuesOtherT_, ValueOtherT_, CoordinateSystemOtherT_, DimensionFromOtherV_, DimensionToOtherV_,
                                       UnitsOtherT_...>(transformation.transform(object.getTensor()).getQuantities());
   }
@@ -209,10 +216,8 @@ template <template <typename, int, int> typename ValuesLhsT_, typename ValueLhsT
 struct CompositionTraits<
     ActiveLinearTransformation<ValuesLhsT_, ValueLhsT_, CoordinateSystemLhsT_, DimensionFromLhsV_, DimensionToLhsV_, UnitsLhsT_...>,
     ActiveLinearTransformation<ValuesRhsT_, ValueRhsT_, CoordinateSystemRhsT_, DimensionFromRhsV_, DimensionToRhsV_, UnitsRhsT_...>> {
-  static auto compose(const ActiveLinearTransformation<ValuesLhsT_, ValueLhsT_, CoordinateSystemLhsT_, DimensionFromLhsV_, DimensionToLhsV_,
-                                                       UnitsLhsT_...>& lhs,
-                      const ActiveLinearTransformation<ValuesRhsT_, ValueRhsT_, CoordinateSystemRhsT_, DimensionFromRhsV_, DimensionToRhsV_,
-                                                       UnitsRhsT_...>& rhs) {
+  template <typename LhsT_, typename RhsT_>
+  static auto compose(const LhsT_& lhs, const RhsT_& rhs) {
     return internal::makeActiveLinearTransformation<ValuesLhsT_, CoordinateSystemLhsT_>(
         innerProduct(lhs.getQuantities(), rhs.getQuantities()));
   }

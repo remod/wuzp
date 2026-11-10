@@ -171,8 +171,12 @@ class ValuesWrapper {
   auto squaredNorm() const { return SquaredNorm<AccessImplementation<ImplementationT>>::value(implementation_); }
   auto determinant() const { return Determinant<AccessImplementation<ImplementationT>>::value(implementation_); }
 
-  //! The matrix inverse of a square matrix, like Eigen's MatrixBase::inverse().
+  //! The matrix inverse of a square matrix, like Eigen's MatrixBase::inverse(). It is rejected for integer matrices, whose inverse
+  //! is not an integer matrix in general: a backend would truncate it, e.g. Eigen divides integers (see "Inverses and
+  //! determinants" in DESIGN.md).
   auto inverse() const {
+    static_assert(std::is_floating_point_v<ValueT>,
+                  "The inverse of an integer matrix is not an integer matrix. Use a floating-point value type.");
     return typename Inverse<ThisT>::type{Inverse<AccessImplementation<ImplementationT>>::value(implementation_)}.evaluate();
   }
   //! The elementwise reciprocal, like Eigen's ArrayBase::inverse() or MatrixBase::cwiseInverse().
