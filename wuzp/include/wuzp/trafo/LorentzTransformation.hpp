@@ -35,7 +35,8 @@ ValuesT_ minkowskiMetric() {
 }  // namespace internal
 
 /**
- * A Lorentz transformation Lambda from the inertial frame From to the inertial frame To: the dimensionless passive linear
+ * A Lorentz transformation Lambda from the inertial frame From to the inertial frame To, which must be coordinate systems with
+ * the Minkowski metric (MinkowskiCoordinateSystem, see Minkowski and SpacetimeVector): the dimensionless passive linear
  * transformation of spacetime vectors, with the time component first and in length units (x^0 = c t), that preserves the
  * Minkowski metric eta = diag(1, -1, ..., -1): Lambda^T eta Lambda = eta (Carroll, Lecture Notes on General Relativity,
  * https://arxiv.org/abs/gr-qc/9712019, eq. 1.14, whose signature (-, +, +, +) has the metric -eta, which gives the same
@@ -47,8 +48,8 @@ ValuesT_ minkowskiMetric() {
  * constructors check that the matrix preserves the metric (see isValid()), and throw std::invalid_argument if it does not, like those of
  * the rotations (see ActiveSpatialRotation). Release builds do not check. makeUnchecked() skips the check, e.g. in hot paths.
  */
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, AnyCoordinateSystem FromT_, AnyCoordinateSystem ToT_,
-          int DimensionV_>
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, MinkowskiCoordinateSystem FromT_,
+          MinkowskiCoordinateSystem ToT_, int DimensionV_>
   requires AnyValueMatrix<ValuesT_>
 class LorentzTransformation
     : public PassiveTransformation<LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>, FromT_, ToT_> {
@@ -197,12 +198,20 @@ auto getSpeedOfLight() {
   return Quantity<ValuesT_<ValueT_, 1, 1>, typename AccessUnits<AccessImplementation<ValueT_>>::Velocity>{static_cast<ValueT_>(299792458)};
 }
 
-//! The Minkowski invariant v_0^2 - v_1^2 - ... - v_n^2 of a vector whose first component is the time component, e.g. of a
-//! spacetime vector (c t, x, y, z). All components need the same unit.
-//! It takes any vector rather than SpacetimeVector, whose alias template parameters could not be deduced.
+/**
+ * The Minkowski interval eta_ij v^i v^j = v_0^2 - v_1^2 - ... - v_n^2 of a vector whose first component is the time component,
+ * e.g. of a spacetime vector (c t, x, y, z) or of a four-velocity, which Lorentz transformations preserve (Carroll, Lecture Notes
+ * on General Relativity, https://arxiv.org/abs/gr-qc/9712019, chapter 1). It is the product with the Minkowski metric eta, so the
+ * vector must be expressed in a Minkowski coordinate system (see Minkowski), in which the Euclidean dotProduct and squaredNorm
+ * are rejected. All components need the same unit.
+ * It takes any vector rather than SpacetimeVector, whose alias template parameters could not be deduced.
+ */
 template <typename QuantitiesT_, typename CoordinateSystemT_>
 auto getInvariant(const Vector<QuantitiesT_, CoordinateSystemT_>& vector) {
   static_assert(internal::RejectBatch<Indices<Up>, QuantitiesT_>::value);
+  static_assert(MinkowskiCoordinateSystem<CoordinateSystemT_>,
+                "getInvariant() computes the interval with the Minkowski metric, so the vector must be expressed in a Minkowski "
+                "coordinate system, e.g. CoordinateSystem<Spacetime, Minkowski>.");
   constexpr int dimension = Rows<QuantitiesT_>::value;
   const auto& quantities = vector.getQuantities();
   return pow<2>(quantities.template get<0, 0>()) - quantities.template block<1, 0, dimension - 1, 1>().squaredNorm();
@@ -214,8 +223,11 @@ auto getInvariant(const Vector<QuantitiesT_, CoordinateSystemT_>& vector) {
  * gamma = 1 / sqrt(1 - beta^2) (see the boost matrix B(v) in https://en.wikipedia.org/wiki/Lorentz_transformation#Proper_transformations).
  * The composition of two boosts along the same direction is the boost with the relativistic sum of their velocities, e.g. 0.5 c
  * and 0.5 c give 0.8 c; the composition of boosts along different directions also rotates (Wigner rotation).
- * @param velocity The velocity of To relative to From, i.e. of the origin of To measured in From, expressed in From. Its
- * magnitude must be smaller than the speed of light.
+ * From and To are Minkowski coordinate systems, like those of every LorentzTransformation.
+ * @param velocity The velocity of To relative to From, i.e. of the origin of To measured in From, expressed in From: its
+ * components are those of the spatial axes of From. Its magnitude, velocity.getQuantities().norm(), must be smaller than the
+ * speed of light. velocity.norm() is rejected, since the velocity is expressed in From, which is a Minkowski coordinate system,
+ * whose spatial part has the metric -I, so the magnitude is the norm of the components.
  * @throws std::invalid_argument If the magnitude of the velocity is not smaller than the speed of light, for which there is no
  * Lorentz boost (the Lorentz factor is infinite or not real).
  */
@@ -224,7 +236,9 @@ LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_> createBoostM
     const VelocityVector<DimensionV_ - 1, ValuesT_, ValueT_, FromT_>& velocity) {
   using QuantitiesT = typename LorentzTransformation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>::QuantitiesT;
   using QuantityT = Quantity<ValuesT_<ValueT_, 1, 1>, typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>;
-  const QuantityT squaredBeta{velocity.squaredNorm() / pow<2>(getSpeedOfLight<ValuesT_, ValueT_>())};
+  // The velocity is expressed in From, a Minkowski coordinate system, in which squaredNorm() of a vector is rejected. The spatial
+  // part of the Minkowski metric is -I, so the squared magnitude of the velocity is the squared norm of its components.
+  const QuantityT squaredBeta{velocity.getQuantities().squaredNorm() / pow<2>(getSpeedOfLight<ValuesT_, ValueT_>())};
   // Also rejects NaN.
   if (!(squaredBeta.getValue() < 1)) {
     throw std::invalid_argument("The magnitude of the velocity of a Lorentz boost must be smaller than the speed of light.");

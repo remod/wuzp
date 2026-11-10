@@ -8,6 +8,6 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  [[maybe_unused]] const auto result = wuzp::getInvariant(TestBatch<4>::zero());
+  [[maybe_unused]] const auto result = wuzp::getInvariant(TestBatch<4, wuzp::Relative, SpacetimeA>::zero());
   return 0;
 }

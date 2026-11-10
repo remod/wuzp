@@ -147,12 +147,12 @@ Rotation3 rotationAroundX(const double angle) {
 // A rotation transforms covectors with its inverse, the transpose: w' = w R^-1 = w R^T. It needs no matrix inverse, so it adds no
 // rounding errors, and also works for integer matrices, whose matrix inverse is rejected.
 TEST(TestActiveRotation, TransformCovector) {  // NOLINT
-  using CovectorI = HomogeneousCovector<3, ValueMatrix, int, Force, CoordinateSystemA>;
+  using CovectorI = ForceCovector3<ValueMatrix, int, CoordinateSystemA>;
   using RotationI = ActiveSpatialRotation3<ValueMatrix, int, CoordinateSystemA>;
   const RotationI rotationI{1, 0, 0, 0, 0, -1, 0, 1, 0};  // Active rotation of pi/2 around x.
   // The components of w R^T are the products of w with the rows of R: (1, 2, 3) gives (1, -3, 2).
   EXPECT_EQ(rotationI.transform(CovectorI{1, 2, 3}), (CovectorI{1, -3, 2}));
-  using Covector = HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA>;
+  using Covector = ForceCovector3<ValueMatrix, double, CoordinateSystemA>;
   const Rotation3 rotation = rotationAroundZ(0.5) * rotationAroundX(0.3);
   const Covector covector{1.0, 2.0, 3.0};
   EXPECT_EQ(rotation.transform(covector), Covector{innerProduct(covector.getQuantities(), rotation.getQuantities().transpose())});

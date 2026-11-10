@@ -82,8 +82,6 @@ using JacobianBA = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSy
                             LengthOverAngle>;
 using VelocityInA = Vector<Quantities<ValueMatrix<double, 2, 1>, TypeMatrix<2, 1, Velocity, AngularVelocity>>, CoordinateSystemA>;
 using VelocityInB = VelocityVector2<ValueMatrix, double, CoordinateSystemB>;
-template <typename CoordinateSystemT_>
-using ForceCovector = HomogeneousCovector<2, ValueMatrix, double, Force, CoordinateSystemT_>;
 // The generalized forces of the polar coordinates: a force along r and a torque about the origin, per radian.
 using GeneralizedForceInA =
     Covector<Quantities<ValueMatrix<double, 1, 2>, TypeMatrix<1, 2, Force, Division<Torque, Angle>::type>>, CoordinateSystemA>;
@@ -129,11 +127,19 @@ TEST(TestJacobian, TransformCovariance) {  // NOLINT
 // 4 N along y is a force of 4 N along r, and one of 3 N along x a torque of -6 N m about the origin. It pairs with the vectors
 // like the covector it pulls back, so the power is the same in both coordinate systems: tau v = F (J v).
 TEST(TestJacobian, PullbackCovector) {  // NOLINT
-  const ForceCovector<CoordinateSystemB> force{3.0, 4.0};
+  const ForceCovector2<ValueMatrix, double, CoordinateSystemB> force{3.0, 4.0};
   const GeneralizedForceInA generalizedForce = jacobianBA.pullback(force);
   EXPECT_EQ(generalizedForce, (GeneralizedForceInA{4.0, -6.0}));
   EXPECT_EQ(innerProduct(generalizedForce, velocityInA).getQuantity(),
             innerProduct(force, jacobianBA.transform(velocityInA)).getQuantity());
+}
+
+// A force vector is pulled back as its transpose, the covector with the same components in the Euclidean coordinate system B.
+TEST(TestJacobian, PullbackForceVector) {  // NOLINT
+  const ForceVector2<ValueMatrix, double, CoordinateSystemB> force{3.0, 4.0};
+  const ForceCovector2<ValueMatrix, double, CoordinateSystemB> covector = force.transpose();
+  EXPECT_EQ(covector, (ForceCovector2<ValueMatrix, double, CoordinateSystemB>{3.0, 4.0}));
+  EXPECT_EQ(jacobianBA.pullback(force.transpose()), (GeneralizedForceInA{4.0, -6.0}));
 }
 
 // The pullback of a tensor with two lower indices is J^T M J, e.g. of the mass matrix m I of a point mass in Cartesian
@@ -168,7 +174,7 @@ TEST(TestJacobian, ChainRule) {  // NOLINT
   EXPECT_EQ(jacobianCA.transform(velocityInA), jacobianCB.transform(jacobianBA.transform(velocityInA)));
   EXPECT_EQ(jacobianCA.transform(velocityInA), (VelocityInC{0.0, -2.0}));
   // Pulling back by the composition pulls back by each Jacobian in the opposite order: w J_CA = (w J_CB) J_BA.
-  const ForceCovector<CoordinateSystemC> force{1.0, 2.0};
+  const ForceCovector2<ValueMatrix, double, CoordinateSystemC> force{1.0, 2.0};
   EXPECT_EQ(jacobianCA.pullback(force), jacobianBA.pullback(jacobianCB.pullback(force)));
   EXPECT_EQ(jacobianCA.pullback(force), (GeneralizedForceInA{-1.0, -6.0}));
 }
@@ -187,9 +193,9 @@ TEST(TestJacobian, ChainRuleNonSquare) {  // NOLINT
   const VelocityVector3<ValueMatrix, double, CoordinateSystemA> velocity{1.0, 0.0, -1.0};
   EXPECT_EQ(sumJacobianCA.transform(velocity), sumJacobianCB.transform(taskJacobianBA.transform(velocity)));
   EXPECT_EQ(sumJacobianCA.transform(velocity), (VelocityVector<1, ValueMatrix, double, CoordinateSystemC>{-4.0}));
-  const HomogeneousCovector<1, ValueMatrix, double, Force, CoordinateSystemC> force{2.0};
+  const ForceCovector<1, ValueMatrix, double, CoordinateSystemC> force{2.0};
   EXPECT_EQ(sumJacobianCA.pullback(force), taskJacobianBA.pullback(sumJacobianCB.pullback(force)));
-  EXPECT_EQ(sumJacobianCA.pullback(force), (HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA>{10.0, 14.0, 18.0}));
+  EXPECT_EQ(sumJacobianCA.pullback(force), (ForceCovector3<ValueMatrix, double, CoordinateSystemA>{10.0, 14.0, 18.0}));
 }
 
 // A change of basis composes with a Jacobian between coordinate systems of different dimensions on either side, e.g. with the task
@@ -229,7 +235,7 @@ TEST(TestJacobian, ComposeWithRotation) {  // NOLINT
   const RotationBD rotationBD{0.0, 1.0, -1.0, 0.0};
   const JacobianCD jacobianCD = jacobianCB * rotationBD;
   EXPECT_EQ(jacobianCD, (JacobianCD{-1.0, 1.0, 1.0, 1.0}));
-  const ForceCovector<CoordinateSystemC> force{1.0, 2.0};
+  const ForceCovector2<ValueMatrix, double, CoordinateSystemC> force{1.0, 2.0};
   EXPECT_EQ(jacobianCD.pullback(force), rotationBD.inverse().transform(jacobianCB.pullback(force)));
 }
 
@@ -260,25 +266,29 @@ TEST(TestJacobian, ComposeWithLinearTransformation) {  // NOLINT
 
 // A Lorentz transformation is a change of basis between inertial frames, so it composes with Jacobians too: e.g. the Jacobian
 // J_BA of (c t, x) in B with respect to the light cone coordinates (u, v) = (c t + x, c t - x) in A, followed by the reflection
-// P_CB of x, is the Jacobian of (c t, -x), in which u and v swap their roles.
+// P_CB of x, is the Jacobian of (c t, -x), in which u and v swap their roles. B, C and D are inertial frames with the Minkowski
+// metric, in which spacetime vectors are expressed.
 TEST(TestJacobian, ComposeWithLorentzTransformation) {  // NOLINT
-  using LightConeJacobianBA = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB, 2, 2, Dimensionless>;
-  using LightConeJacobianCA = Jacobian<ValueMatrix, double, CoordinateSystemA, CoordinateSystemC, 2, 2, Dimensionless>;
+  // A holds the light cone coordinates, whose actual metric, ds^2 = du dv, is neither Euclidean nor eta. wuzp only distinguishes
+  // these two, so A has the default, Euclidean, which does not matter here: the test only composes Jacobians and pushes vectors
+  // forward, which needs no metric.
+  using LightConeJacobianBA = Jacobian<ValueMatrix, double, CoordinateSystemA, SpacetimeB, 2, 2, Dimensionless>;
+  using LightConeJacobianCA = Jacobian<ValueMatrix, double, CoordinateSystemA, SpacetimeC, 2, 2, Dimensionless>;
   const LightConeJacobianBA lightConeJacobianBA{0.5, 0.5, 0.5, -0.5};
-  const LorentzTransformation2<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC> reflectionCB{1.0, 0.0, 0.0, -1.0};
+  const LorentzTransformation2<ValueMatrix, double, SpacetimeB, SpacetimeC> reflectionCB{1.0, 0.0, 0.0, -1.0};
   const LightConeJacobianCA lightConeJacobianCA = reflectionCB * lightConeJacobianBA;
   EXPECT_EQ(lightConeJacobianCA, (LightConeJacobianCA{0.5, 0.5, -0.5, 0.5}));
   // On the right: the reflection P_BD of x before the Jacobian J_AB of (u, v) with respect to (c t, x), the inverse of J_BA, gives
   // J_AD = J_AB P_BD, i.e. u = c t - x and v = c t + x for the coordinates (c t, x) of D.
-  using LightConeJacobianAB = Jacobian<ValueMatrix, double, CoordinateSystemB, CoordinateSystemA, 2, 2, Dimensionless>;
-  using LightConeJacobianAD = Jacobian<ValueMatrix, double, CoordinateSystemD, CoordinateSystemA, 2, 2, Dimensionless>;
+  using LightConeJacobianAB = Jacobian<ValueMatrix, double, SpacetimeB, CoordinateSystemA, 2, 2, Dimensionless>;
+  using LightConeJacobianAD = Jacobian<ValueMatrix, double, SpacetimeD, CoordinateSystemA, 2, 2, Dimensionless>;
   const LightConeJacobianAB lightConeJacobianAB{1.0, 1.0, 1.0, -1.0};
-  const LorentzTransformation2<ValueMatrix, double, CoordinateSystemD, CoordinateSystemB> reflectionBD{1.0, 0.0, 0.0, -1.0};
+  const LorentzTransformation2<ValueMatrix, double, SpacetimeD, SpacetimeB> reflectionBD{1.0, 0.0, 0.0, -1.0};
   const LightConeJacobianAD lightConeJacobianAD = lightConeJacobianAB * reflectionBD;
   EXPECT_EQ(lightConeJacobianAD, (LightConeJacobianAD{1.0, -1.0, 1.0, 1.0}));
-  const SpacetimeVector2<ValueMatrix, double, CoordinateSystemD> displacement{1.0, 2.0};
+  const SpacetimeVector2<ValueMatrix, double, SpacetimeD> displacement{1.0, 2.0};
   EXPECT_EQ(lightConeJacobianAD.transform(displacement), lightConeJacobianAB.transform(reflectionBD.transform(displacement)));
-  EXPECT_EQ(lightConeJacobianAD.transform(displacement), (SpacetimeVector2<ValueMatrix, double, CoordinateSystemA>{-1.0, 3.0}));
+  EXPECT_EQ(lightConeJacobianAD.transform(displacement), (PositionVector2<ValueMatrix, double, CoordinateSystemA>{-1.0, 3.0}));
 }
 
 // The inverse of a Jacobian is the Jacobian of the inverse coordinate change, J_AB = J_BA^-1, with the inverse units of the

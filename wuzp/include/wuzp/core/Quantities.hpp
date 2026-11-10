@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <ostream>
+#include <stdexcept>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -506,22 +507,55 @@ std::ostream& operator<<(std::ostream& lhs, const Quantities<ValuesT_, UnitsT_>&
   return lhs;
 }
 
+namespace internal {
+
+/**
+ * The real power base^(P/Q) of a value for the reduced exponent ExponentT_ = P/Q, computed in floating point and converted to
+ * the value type. A negative base has a real power if Q is odd: (-1)^P |base|^(P/Q), e.g. (-8)^(1/3) = -2 and (-8)^(2/3) = 4,
+ * like std::cbrt computes the cube root, whereas std::pow is NaN for every negative base and exponent that is not an integer
+ * (https://en.cppreference.com/w/cpp/numeric/math/pow#Error_handling). If Q is even, a negative base has none: floating point
+ * values give NaN, like std::pow, and integer values throw std::domain_error, since converting NaN into an integer is undefined
+ * behavior.
+ */
+template <typename ExponentT_, typename ValueT_>
+ValueT_ realPower(const ValueT_ base) {
+  // An exponent of an integer type would truncate a non-integer exponent, e.g. 1/2 to 0.
+  using FloatingPointT = std::conditional_t<std::is_floating_point_v<ValueT_>, ValueT_, double>;
+  const auto exponent = ExponentT_::template value<FloatingPointT>();
+  if constexpr (std::is_signed_v<ValueT_>) {
+    if (base < ValueT_{0}) {
+      if constexpr (ExponentT_::Divisor % 2 != 0) {
+        // The sign (-1)^P is exactly 1 or -1 for the integer P. Unlike a branch on P, which is known at compile time, it leaves no
+        // code that coverage reports as never executed.
+        return static_cast<ValueT_>(std::pow(FloatingPointT{-1}, ExponentT_::Dividend) *
+                                    std::pow(-static_cast<FloatingPointT>(base), exponent));
+      } else if constexpr (std::is_integral_v<ValueT_>) {
+        throw std::domain_error("A negative integer value has no real power with an exponent whose reduced denominator is even.");
+      }
+    }
+  }
+  return static_cast<ValueT_>(std::pow(static_cast<FloatingPointT>(base), exponent));
+}
+
+}  // namespace internal
+
 // TODO(remod): Implement for full matrices?
 /**
- * The quantity raised to a rational power, e.g. pow<Rational<1, 2>>(area) is a length.
+ * The quantity raised to a rational power P/Q, e.g. pow<Rational<1, 2>>(area) is a length.
  * The power is computed in floating point and converted to the value type. For integer values, a result that is not an integer
  * is truncated, like the norm of integer vectors, which follows Eigen's norm(): pow<1, 2>(QuantityI<Area>(5)) is 2 m (see
- * "Integer values" in DESIGN.md).
+ * "Integer values" in DESIGN.md). A negative value has a real power if the reduced denominator Q is odd, (-1)^P |x|^(P/Q): e.g.
+ * pow<1, 3>() of -8 m^3 is -2 m, like std::cbrt, where std::pow is NaN. If Q is even, it has none: floating point values give
+ * NaN, like std::pow (https://en.cppreference.com/w/cpp/numeric/math/pow#Error_handling), and integer values throw
+ * std::domain_error (see "Powers of negative quantities" in DESIGN.md).
  * The exponent comes first, as the value and the unit can be deduced.
+ * @throws std::domain_error For a negative integer value and an even Q.
  */
 template <typename ExponentT_, typename ValueT_, typename UnitT_>
 auto pow(const Quantity<ValueT_, UnitT_>& quantity) {
-  using ValueT = typename ValueT_::ValueT;
-  // An exponent of an integer type would truncate a non-integer exponent, e.g. 1/2 to 0.
-  using ExponentValueT = std::conditional_t<std::is_floating_point_v<ValueT>, ValueT, double>;
   // Evaluate the value here, as we need the result to have a constructor which can take a scalar, which expressions do not have.
   return typename Power<Quantity<typename Evaluate<ValueT_>::type, UnitT_>, ExponentT_>::type(
-      static_cast<ValueT>(std::pow(quantity.getValue(), ExponentT_::template value<ExponentValueT>())));
+      internal::realPower<ExponentT_>(quantity.getValue()));
 }
 
 // Convenience definition, so one can write pow<2>() to get pow<Integer<2>>().
@@ -536,8 +570,9 @@ auto pow(const Quantity<ValueT_, UnitT_>& quantity) {
   return pow<Rational<ExponentDividendV_, ExponentDivisorV_>>(quantity);
 }
 
-// The results of sin and cos are constructed from a scalar, so they have the evaluated value type: an expression, e.g. of the
-// sum of two angles, has no constructor from a scalar.
+// The sine and the cosine of an angle. Angles are dimensionless (see "Angles are dimensionless" in DESIGN.md), so they take any
+// dimensionless quantity, e.g. also a ratio of lengths. The results are constructed from a scalar, so they have the evaluated
+// value type: an expression, e.g. of the sum of two angles, has no constructor from a scalar.
 template <typename ValueT_>
 auto sin(const Quantity<ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Angle>& angle) {
   return Quantity<typename Evaluate<ValueT_>::type, typename AccessUnits<AccessImplementation<ValueT_>>::Dimensionless>(

@@ -18,8 +18,6 @@ using namespace wuzp;  // NOLINT
 using Scaling = ActiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, 3, 3, Dimensionless>;
 
 template <typename CoordinateSystemT>
-using ForceCovector = HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemT>;
-template <typename CoordinateSystemT>
 using Covariance = Tensor<Indices<Up, Up>, Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Area>>, CoordinateSystemT, Relative>;
 template <typename CoordinateSystemT>
 using VelocityGradient =
@@ -37,14 +35,14 @@ TEST(TestActiveLinearTransformation, StreamOperator) {  // NOLINT
 // Covectors and (1,1) tensors transform with the inverse.
 TEST(TestActiveLinearTransformation, TransformCovector) {  // NOLINT
   // A covector transforms with the inverse: w' = w A^-1.
-  const ForceCovector<CoordinateSystemA> object{8.0, 8.0, 8.0};
-  const ForceCovector<CoordinateSystemA> transformedObject{4.0, 2.0, 1.0};
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> object{8.0, 8.0, 8.0};
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> transformedObject{4.0, 2.0, 1.0};
   EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
 }
 
 TEST(TestActiveLinearTransformation, TransformCovectorAndVectorPreservesTheirPairing) {  // NOLINT
   // The work done by a force along a displacement does not depend on the coordinates: w' v' = w A^-1 A v = w v.
-  const ForceCovector<CoordinateSystemA> force{1.0, 2.0, 3.0};
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> force{1.0, 2.0, 3.0};
   const PositionVector3<ValueMatrix, double, CoordinateSystemA> displacement{4.0, 5.0, 6.0};
   const QuantityD<Energy> work{innerProduct(force, displacement).getQuantity()};
   const QuantityD<Energy> transformedWork{innerProduct(scaling.transform(force), scaling.transform(displacement)).getQuantity()};
@@ -117,6 +115,29 @@ TEST(TestActiveLinearTransformation, TransformOuterProductOfVectors) {  // NOLIN
   const auto transformedVector = scaling.transform(vector);
   const Covariance<CoordinateSystemA> transformedObject{outerProduct(transformedVector, transformedVector)};
   EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
+}
+
+// The cross product is a pseudovector: a linear transformation M maps it to (M a) x (M b) = det(M) M^-T (a x b), which is
+// M (a x b) only for a proper rotation, det(M) = 1 and M^-T = M. Other transformations must transform the factors, not the cross
+// product (see Tensor::crossProduct()).
+TEST(TestActiveLinearTransformation, CrossProductIsAPseudovector) {  // NOLINT
+  using Position = PositionVector3<ValueMatrix, double, CoordinateSystemA>;
+  using AreaVector = HomogeneousVector<3, ValueMatrix, double, Area, CoordinateSystemA>;
+  const Position lhs{1.0, 2.0, 3.0};
+  const Position rhs{-1.0, 3.0, 4.0};
+  const AreaVector crossProduct = lhs.crossProduct(rhs);
+  EXPECT_EQ(crossProduct, (AreaVector{-1.0, -7.0, 5.0}));
+  // The rotation by pi/2 around z.
+  const Scaling rotation{0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+  EXPECT_EQ(rotation.transform(lhs).crossProduct(rotation.transform(rhs)), rotation.transform(crossProduct));
+  // The reflection of x, M = M^-T with det(M) = -1, flips the sign.
+  const Scaling reflection{-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+  EXPECT_EQ(reflection.transform(lhs).crossProduct(reflection.transform(rhs)), -reflection.transform(crossProduct));
+  // A shear with a scaling, det(M) = 2, with M^-T = (1, 0, 0; -1, 1, 0; 0, 0, 0.5): det(M) M^-T (a x b) = (-2, -12, 5), while
+  // M (a x b) = (-8, -7, 10).
+  const Scaling shear{1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0};
+  EXPECT_EQ(shear.transform(lhs).crossProduct(shear.transform(rhs)), (AreaVector{-2.0, -12.0, 5.0}));
+  EXPECT_EQ(shear.transform(crossProduct), (AreaVector{-8.0, -7.0, 10.0}));
 }
 
 namespace {
@@ -201,9 +222,9 @@ TEST(TestActiveLinearTransformation, ComposeTransformsPointsVectorsAndTensors) {
 TEST(TestActiveLinearTransformation, ComposeTransformsCovectorsAndTensorsWithLowerIndices) {  // NOLINT
   const Scaling composition = scaling * swapXAndY;
   // w' = w A^-1.
-  const ForceCovector<CoordinateSystemA> covector{8.0, 16.0, 8.0};
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> covector{8.0, 16.0, 8.0};
   EXPECT_TRUE(composition.transform(covector).isApprox(scaling.transform(swapXAndY.transform(covector)), 1e-12));
-  EXPECT_TRUE(composition.transform(covector).isApprox(ForceCovector<CoordinateSystemA>{8.0, 2.0, 1.0}, 1e-12));
+  EXPECT_TRUE(composition.transform(covector).isApprox(ForceCovector3<ValueMatrix, double, CoordinateSystemA>{8.0, 2.0, 1.0}, 1e-12));
   // T' = A T A^-1.
   const VelocityGradient<CoordinateSystemA> velocityGradient{1.0, 1.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 3.0};
   EXPECT_TRUE(composition.transform(velocityGradient).isApprox(scaling.transform(swapXAndY.transform(velocityGradient)), 1e-12));

@@ -13,16 +13,17 @@
 namespace wuzp {
 
 /**
- * An active proper rigid transformation, which first rotates, then translates: x -> R x + t. The rotation R is a rotation, e.g.
- * an ActiveSpatialRotation, which checks that it is orthogonal with determinant 1 (see ActiveSpatialRotation::isValid()): the
- * inverse, (R^T, -R^T t), relies on it. ActiveProperRigidTransformation is the transformation of a rotation and a spatial
- * translation. Its compositions with rotations are defined in ActiveSpatialRotation.hpp.
+ * An active proper rigid transformation, which first rotates, then translates: x -> R x + t, in a Euclidean coordinate system
+ * (EuclideanCoordinateSystem), like its rotation. The rotation R is a rotation, e.g. an ActiveSpatialRotation, which checks that
+ * it is orthogonal with determinant 1 (see ActiveSpatialRotation::isValid()): the inverse, (R^T, -R^T t), relies on it.
+ * ActiveProperRigidTransformation is the transformation of a rotation and a spatial translation. Its compositions with rotations
+ * are defined in ActiveSpatialRotation.hpp.
  * The translation leaves vectors, covectors and tensors with two upper indices unchanged, so they are only rotated, e.g. a
  * covector w into w R^T and a covariance S into R S R^T, and it rejects the other tensors, e.g. an inertia, which may depend on
  * the origin (see ActiveTranslation).
  * TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
  */
-template <AnyCoordinateSystem CoordinateSystemT_, AnyRotation RotationT_, typename TranslationT_>
+template <EuclideanCoordinateSystem CoordinateSystemT_, AnyRotation RotationT_, typename TranslationT_>
 class ActiveProperRigidTransformationTemplate
     : public ActiveTransformation<ActiveProperRigidTransformationTemplate<CoordinateSystemT_, RotationT_, TranslationT_>> {
  public:

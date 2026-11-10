@@ -61,7 +61,7 @@ TEST(TestActiveProperRigidTransformation3, TransformVelocityVector) {  // NOLINT
 // still pairs with the vectors like before.
 TEST(TestActiveProperRigidTransformation3, TransformCovector) {  // NOLINT
   using Transformation = ActiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, double>;
-  using Object = HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA>;
+  using Object = ForceCovector3<ValueMatrix, double, CoordinateSystemA>;
   const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};  // Active rotation of pi/2 around x.
   const Transformation::Translation translation{0.0, 0.0, 1.0};                           // Active translation of 1 along z.
   const Transformation transformation{rotation, translation};

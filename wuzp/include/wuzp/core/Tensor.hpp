@@ -58,6 +58,25 @@ struct RejectBatch {
   static constexpr bool value = true;
 };
 
+/**
+ * Rejects an operation that uses the Euclidean metric on a vector or a covector in a coordinate system with another metric, e.g.
+ * Minkowski: `static_assert(RequireEuclidean<IndicesT_, CoordinateSystemT_>::value)`. dotProduct, norm and squaredNorm compute
+ * sum_i v_i w_i, crossProduct uses the Levi-Civita symbol of an orthonormal basis, and the transpose of a vector or a covector
+ * lowers or raises its index while keeping the components: all of this assumes the Euclidean metric delta_ij in an orthonormal
+ * basis, in which the components of a vector and of its covector are equal (Carroll, Lecture Notes on General Relativity,
+ * https://arxiv.org/abs/gr-qc/9712019, eqs. 1.55 and 1.62 and the text after it). The pairing w_i v^i of a covector and a
+ * vector, innerProduct, needs no metric (eq. 1.35). Tensors of rank 0 and 2 pass: their transpose swaps or keeps their
+ * indices without lowering or raising one. The value is always true, so that the operation fails with this message only.
+ */
+template <typename IndicesT_, typename CoordinateSystemT_>
+struct RequireEuclidean {
+  static_assert(IndicesT_::RankV != 1 || EuclideanCoordinateSystem<CoordinateSystemT_>,
+                "dotProduct, norm, squaredNorm, crossProduct and the transpose of a vector or a covector use the Euclidean metric, "
+                "which this coordinate system does not have. Pair a covector and a vector with innerProduct, which needs no metric, "
+                "or contract with the metric explicitly, e.g. with getInvariant() in a Minkowski coordinate system.");
+  static constexpr bool value = true;
+};
+
 }  // namespace internal
 
 /**
@@ -67,7 +86,8 @@ struct RejectBatch {
  * @tparam QuantitiesT_ The components, a matrix with the first index as the row: a 1x1 matrix for rank 0, a column for a vector,
  * a row for a covector, a square matrix for rank 2. A tensor with an upper index may also store a batch of vectors or points,
  * one per column, e.g. a point cloud.
- * @tparam CoordinateSystemT_ The coordinate system that the components are expressed in.
+ * @tparam CoordinateSystemT_ The coordinate system that the components are expressed in. Its metric, Euclidean by default, decides
+ * whether dotProduct, norm, squaredNorm, crossProduct and the transpose of a vector or a covector are defined (see Metric).
  * @tparam AbsoluteT_ Absolute for points, Relative for vectors and all other tensors (see Absolute.hpp). Only a tensor with one
  * upper index, a vector or a batch of vectors, can be absolute: the components of a point are those of the vector from the
  * origin of the coordinate system to it. An absolute scalar, e.g. a time point or a temperature on the Celsius scale, is a point
@@ -127,6 +147,20 @@ class Tensor {
   const ValuesT& getValues() const& { return quantities_.getValues(); }
   ValuesT getValues() && { return std::move(quantities_).getValues(); }
 
+  /**
+   * Whether the components of both tensors, which must have the same indices, coordinate system and absoluteness, are
+   * approximately equal, relatively, like Eigen's isApprox
+   * (https://eigen.tuxfamily.org/dox/classEigen_1_1DenseBase.html#ae8443357b808cd393be1b51974213f9c):
+   * ||a - b|| <= precision * min(||a||, ||b||), in the Frobenius norm of the values, with every value matrix backend. Two
+   * consequences:
+   * - It cannot compare with zero: only zero is approximately equal to zero. Compare the norm of a small vector with an absolute
+   *   tolerance instead, e.g. `v.norm().getValue() <= 1e-9`.
+   * - For points, the components depend on the origin, and so does the comparison: the same two points are approximately equal
+   *   far from the origin, but not close to it. Compare the distance of points with an absolute tolerance instead, e.g.
+   *   `(p - q).norm().getValue() <= 1e-9` for a tolerance in the unit of the components.
+   * The norm sums the squares of all values, also of components with different units, e.g. m and rad, so the comparison of
+   * such tensors depends on the units.
+   */
   template <typename IndicesOtherT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
   bool isApprox(const Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& other,
                 const ValueT precision = Precision<ValueT>::value()) const {
@@ -177,7 +211,9 @@ class Tensor {
   }
 
   //! The transpose of the matrix of the components: a vector becomes a covector and vice versa, and the indices of a tensor of
-  //! rank 2 are swapped, e.g. a linear map T^i_j becomes (T^T)_j^i (see Transpose<Indices<...>>).
+  //! rank 2 are swapped, e.g. a linear map T^i_j becomes (T^T)_j^i (see Transpose<Indices<...>>). The transpose of a vector or
+  //! a covector lowers or raises its index with the Euclidean metric, which keeps the components, so it requires a Euclidean
+  //! coordinate system (see Metric): e.g. a force, a vector, becomes the covector that a Jacobian pulls back.
   auto transpose() const { return typename Evaluate<typename Transpose<ThisT>::type>::type{quantities_.transpose()}; }
 
   //! The inner product, see innerProduct().
@@ -189,6 +225,9 @@ class Tensor {
                            internal::TransposeIf<TraitT::TransposeRhsV>::value(other.getQuantities())))};
   }
 
+  //! The dot product sum_i v_i w_i of two vectors in the same coordinate system, which must be Euclidean: it is the product with
+  //! the Euclidean metric delta_ij in an orthonormal basis (see Metric). In other coordinate systems, e.g. Minkowski, pair a
+  //! covector and a vector with innerProduct, which needs no metric.
   template <typename IndicesOtherT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
   auto dotProduct(const Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& other) const {
     return typename Evaluate<
@@ -196,6 +235,17 @@ class Tensor {
         quantities_.dotProduct(other.getQuantities())};
   }
 
+  /**
+   * The cross product a x b of two three-dimensional vectors in the same Euclidean coordinate system (see Metric), e.g. the torque
+   * r x F or the velocity w x r of a point of a rotating body. It is a pseudovector, a covector density, which changes its sign
+   * under parity (Carroll, Lecture Notes on General Relativity, https://arxiv.org/abs/gr-qc/9712019, eq. 1.90): a linear
+   * transformation M maps it to (M a) x (M b) = det(M) M^-T (a x b) (https://en.wikipedia.org/wiki/Cross_product#Algebraic_properties),
+   * which is M (a x b) only for proper rotations, det(M) = 1 and M^-T = M, which the rotations guarantee (see
+   * ActiveSpatialRotation). A reflection flips its sign, and a linear transformation that is not a rotation, e.g. a scaling or a
+   * shear, does not transform it like a vector: compute the cross product of the transformed vectors instead of transforming the
+   * cross product. The result is typed as a vector, which is only right in right-handed orthonormal bases under proper rotations
+   * (see "Cross product" in DESIGN.md).
+   */
   template <typename IndicesOtherT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_, typename AbsoluteOtherT_>
   auto crossProduct(const Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& other) const {
     return typename Evaluate<
@@ -220,13 +270,16 @@ class Tensor {
   }
 
   // The norms are defined for tensors of dimension 0 and 1. Batches of vectors have them too, so that they are rejected with a
-  // clear message. The norms of a point depend on the origin, so Norm<Absolute> rejects them.
+  // clear message. The norms of a point depend on the origin, so Norm<Absolute> rejects them. The norm of a vector or a covector
+  // uses the Euclidean metric, so it requires a Euclidean coordinate system (see Metric); in a Minkowski coordinate system,
+  // getInvariant() computes the interval of a vector.
 
   auto norm() const
     requires(Dimension<ThisT>::value <= 1 || internal::isBatch<IndicesT, QuantitiesT>)
   {
     static_assert(internal::RejectBatch<IndicesT, QuantitiesT>::value);
     static_assert(std::is_same_v<typename Norm<AbsoluteT>::type, Relative>);
+    static_assert(internal::RequireEuclidean<IndicesT, CoordinateSystemT>::value);
     return quantities_.norm();
   }
 
@@ -235,6 +288,7 @@ class Tensor {
   {
     static_assert(internal::RejectBatch<IndicesT, QuantitiesT>::value);
     static_assert(std::is_same_v<typename Norm<AbsoluteT>::type, Relative>);
+    static_assert(internal::RequireEuclidean<IndicesT, CoordinateSystemT>::value);
     return quantities_.squaredNorm();
   }
 
@@ -404,6 +458,7 @@ struct DotProduct<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, A
   static_assert(std::is_same_v<IndicesLhsT_, IndicesRhsT_>, "Indices do not match.");
   static_assert(internal::RejectBatch<IndicesLhsT_, QuantitiesLhsT_>::value && internal::RejectBatch<IndicesRhsT_, QuantitiesRhsT_>::value);
   static_assert(std::is_same_v<CoordinateSystemLhsT_, CoordinateSystemRhsT_>, "Coordinate systems do not match.");
+  static_assert(internal::RequireEuclidean<IndicesLhsT_, CoordinateSystemLhsT_>::value);
   //! The dot product of a point depends on the origin, so Product<Absolute, ...> rejects it.
   using AbsoluteT = typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type;
   using type = typename DotProduct<QuantitiesLhsT_, QuantitiesRhsT_>::type;
@@ -415,6 +470,7 @@ struct CrossProduct<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_,
                     Tensor<IndicesRhsT_, QuantitiesRhsT_, CoordinateSystemRhsT_, AbsoluteRhsT_>> {
   static_assert(internal::RejectBatch<IndicesLhsT_, QuantitiesLhsT_>::value && internal::RejectBatch<IndicesRhsT_, QuantitiesRhsT_>::value);
   static_assert(std::is_same_v<CoordinateSystemLhsT_, CoordinateSystemRhsT_>, "Coordinate systems do not match.");
+  static_assert(internal::RequireEuclidean<IndicesLhsT_, CoordinateSystemLhsT_>::value);
   //! The cross product of a point depends on the origin, so Product<Absolute, ...> rejects it.
   using AbsoluteT = typename Product<AbsoluteLhsT_, AbsoluteRhsT_>::type;
   using type = Tensor<typename CrossProduct<IndicesLhsT_, IndicesRhsT_>::type,
@@ -445,6 +501,8 @@ struct Division<Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLhsT_, Abs
 template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
 struct Transpose<Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>> {
   static_assert(internal::RejectBatch<IndicesT_, QuantitiesT_>::value);
+  // The transpose of a vector or a covector lowers or raises its index with the Euclidean metric.
+  static_assert(internal::RequireEuclidean<IndicesT_, CoordinateSystemT_>::value);
   using type = Tensor<typename Transpose<IndicesT_>::type, typename Transpose<QuantitiesT_>::type, CoordinateSystemT_, AbsoluteT_>;
 };
 
@@ -873,6 +931,22 @@ using ForceVector2 = ForceVector<2, ValuesT_, ValueT_, CoordinateSystemT_>;
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using ForceVector3 = ForceVector<3, ValuesT_, ValueT_, CoordinateSystemT_>;
 
+/**
+ * A force as a covector, the dual of a velocity: their pairing innerProduct(force, velocity) is the power, which needs no metric,
+ * and a Jacobian pulls it back, e.g. into the joint torques tau = J^T F (see Jacobian::pullback()), like the spatial force vectors
+ * of Featherstone, whose space is the dual of the space of motion vectors, with the power v . f as their scalar product (A Short
+ * Course on Spatial Vector Algebra, http://royfeatherstone.org/teaching/2008/slides.pdf, slides 3 and 31). In a
+ * Euclidean coordinate system, the components of a force vector and its covector are equal, and transpose() turns one into the
+ * other (see Metric).
+ */
+template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
+using ForceCovector =
+    HomogeneousCovector<DimensionV_, ValuesT_, ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Force, CoordinateSystemT_>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
+using ForceCovector2 = ForceCovector<2, ValuesT_, ValueT_, CoordinateSystemT_>;
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
+using ForceCovector3 = ForceCovector<3, ValuesT_, ValueT_, CoordinateSystemT_>;
+
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using TorqueVector =
     HomogeneousVector<DimensionV_, ValuesT_, ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Torque, CoordinateSystemT_>;
@@ -889,7 +963,13 @@ using TimePoint = HomogeneousPoint<1, ValuesT_, ValueT_, typename AccessUnits<Ac
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using Duration = HomogeneousVector<1, ValuesT_, ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Time, CoordinateSystemT_>;
 
+/**
+ * An event, a point in spacetime, with the time component first, in length units (x^0 = c t), expressed in an inertial frame of
+ * special relativity, i.e. a coordinate system with the Minkowski metric, e.g. CoordinateSystem<Spacetime, Minkowski> (see
+ * Minkowski).
+ */
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
+  requires MinkowskiCoordinateSystem<CoordinateSystemT_>
 using SpacetimePoint = PositionPoint<DimensionV_, ValuesT_, ValueT_, CoordinateSystemT_>;
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using SpacetimePoint2 = SpacetimePoint<2, ValuesT_, ValueT_, CoordinateSystemT_>;
@@ -897,7 +977,13 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
 using SpacetimePoint3 = SpacetimePoint<3, ValuesT_, ValueT_, CoordinateSystemT_>;
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using SpacetimePoint4 = SpacetimePoint<4, ValuesT_, ValueT_, CoordinateSystemT_>;
+/**
+ * A displacement in spacetime, with the time component first, in length units (x^0 = c t), expressed in a coordinate system with
+ * the Minkowski metric (see SpacetimePoint). The Euclidean dotProduct and norm are rejected for it; getInvariant() computes its
+ * interval eta_ij v^i v^j, which Lorentz transformations preserve.
+ */
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
+  requires MinkowskiCoordinateSystem<CoordinateSystemT_>
 using SpacetimeVector = PositionVector<DimensionV_, ValuesT_, ValueT_, CoordinateSystemT_>;
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using SpacetimeVector2 = SpacetimeVector<2, ValuesT_, ValueT_, CoordinateSystemT_>;

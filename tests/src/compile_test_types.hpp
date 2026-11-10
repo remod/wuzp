@@ -21,9 +21,9 @@ using TestTensor =
     wuzp::Tensor<IndicesT, wuzp::Quantities<ValueMatrix<double, 1, 1>, wuzp::TypeMatrix<1, 1, Length>>, CoordinateSystemT, AbsoluteT>;
 
 // A batch of two vectors or points, one per column, e.g. a point cloud.
-template <int RowsV, typename AbsoluteT = wuzp::Relative>
+template <int RowsV, typename AbsoluteT = wuzp::Relative, typename CoordinateSystemT = CoordinateSystemA>
 using TestBatch = wuzp::Tensor<Indices<Up>, wuzp::Quantities<ValueMatrix<double, RowsV, 2>, wuzp::TypeMatrix<RowsV, 2, Length>>,
-                               CoordinateSystemA, AbsoluteT>;
+                               CoordinateSystemT, AbsoluteT>;
 
 // The matrices of the linear algebra library of the value matrix backend, e.g. Eigen::Array, rather than its value matrices:
 // not a value matrix backend.

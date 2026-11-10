@@ -9,7 +9,6 @@
 #include "compile_test_types.hpp"
 
 int main() {
-  [[maybe_unused]] constexpr auto size =
-      sizeof(wuzp::LorentzTransformation4<NotAValueMatrixBackend, double, CoordinateSystemA, CoordinateSystemB>);
+  [[maybe_unused]] constexpr auto size = sizeof(wuzp::LorentzTransformation4<NotAValueMatrixBackend, double, SpacetimeA, SpacetimeB>);
   return 0;
 }

@@ -17,8 +17,6 @@ using namespace wuzp;  // NOLINT
 using Scaling = PassiveLinearTransformation<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB, 3, Dimensionless>;
 
 template <typename CoordinateSystemT>
-using ForceCovector = HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemT>;
-template <typename CoordinateSystemT>
 using Covariance = Tensor<Indices<Up, Up>, Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Area>>, CoordinateSystemT, Relative>;
 template <typename CoordinateSystemT>
 using VelocityGradient =
@@ -35,14 +33,14 @@ TEST(TestPassiveLinearTransformation, StreamOperator) {  // NOLINT
 // Covectors and (1,1) tensors transform with the inverse.
 TEST(TestPassiveLinearTransformation, TransformCovector) {  // NOLINT
   // A covector transforms with the inverse: w' = w A^-1.
-  const ForceCovector<CoordinateSystemA> object{8.0, 8.0, 8.0};
-  const ForceCovector<CoordinateSystemB> transformedObject{4.0, 2.0, 1.0};
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> object{8.0, 8.0, 8.0};
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemB> transformedObject{4.0, 2.0, 1.0};
   EXPECT_TRUE(scaling.transform(object).isApprox(transformedObject, 1e-12));
 }
 
 TEST(TestPassiveLinearTransformation, TransformCovectorAndVectorPreservesTheirPairing) {  // NOLINT
   // The work done by a force along a displacement does not depend on the coordinates: w' v' = w A^-1 A v = w v.
-  const ForceCovector<CoordinateSystemA> force{1.0, 2.0, 3.0};
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> force{1.0, 2.0, 3.0};
   const PositionVector3<ValueMatrix, double, CoordinateSystemA> displacement{4.0, 5.0, 6.0};
   const QuantityD<Energy> work{innerProduct(force, displacement).getQuantity()};
   const QuantityD<Energy> transformedWork{innerProduct(scaling.transform(force), scaling.transform(displacement)).getQuantity()};
@@ -128,9 +126,9 @@ TEST(TestPassiveLinearTransformation, ComposeTransformsPointsVectorsAndTensors) 
 TEST(TestPassiveLinearTransformation, ComposeTransformsCovectorsAndTensorsWithLowerIndices) {  // NOLINT
   const ScalingCA composition = swapCB * scaling;
   // w' = w A^-1.
-  const ForceCovector<CoordinateSystemA> covector{8.0, 8.0, 8.0};
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> covector{8.0, 8.0, 8.0};
   EXPECT_TRUE(composition.transform(covector).isApprox(swapCB.transform(scaling.transform(covector)), 1e-12));
-  EXPECT_TRUE(composition.transform(covector).isApprox(ForceCovector<CoordinateSystemC>{2.0, 4.0, 1.0}, 1e-12));
+  EXPECT_TRUE(composition.transform(covector).isApprox(ForceCovector3<ValueMatrix, double, CoordinateSystemC>{2.0, 4.0, 1.0}, 1e-12));
   // T' = A T A^-1.
   const VelocityGradient<CoordinateSystemA> velocityGradient{1.0, 1.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 3.0};
   EXPECT_TRUE(composition.transform(velocityGradient).isApprox(swapCB.transform(scaling.transform(velocityGradient)), 1e-12));

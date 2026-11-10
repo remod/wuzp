@@ -21,13 +21,15 @@ namespace wuzp {
 
 /**
  * A passive rotation from the coordinate system From to the coordinate system To, which have the same origin: the dimensionless
- * passive linear transformation whose matrix R, which transforms the components v of a vector in From into its components R v
- * in To, is orthogonal with determinant 1, R R^T = I and det(R) = 1. Its rows are the basis vectors of To, expressed in From. It
- * transforms the same tensors as the passive linear transformation with its matrix (see PassiveLinearTransformation). It
- * composes with rotations into rotations, with linear transformations into linear transformations, with Jacobians into Jacobians,
- * and with translations and proper rigid transformations into proper rigid transformations (see CompositionTraits). Its inverse, from To to
- * From, is its transpose, which every value matrix backend provides, also for integer matrices, and with which it transforms covectors and
- * tensors with lower indices.
+ * passive linear transformation whose matrix R, which transforms the components v of a vector in From into its components R v in
+ * To, is orthogonal with determinant 1, R R^T = I and det(R) = 1. Orthogonality is defined by the Euclidean metric, so From and
+ * To must be Euclidean (EuclideanCoordinateSystem, see Metric); between Minkowski coordinate systems, a spatial rotation is a
+ * LorentzTransformation. Its rows are the basis vectors of To, expressed in From. It transforms the same tensors as the passive
+ * linear transformation with its matrix (see PassiveLinearTransformation). It composes with rotations into rotations, with linear
+ * transformations into linear transformations, with Jacobians into Jacobians, and with translations and proper rigid
+ * transformations into proper rigid transformations (see CompositionTraits). Its inverse, from To to From, is its transpose,
+ * which every value matrix backend provides, also for integer matrices, and with which it transforms covectors and tensors with
+ * lower indices.
  * In debug builds, i.e. if NDEBUG is not defined, the constructors check that the matrix is a rotation (see isValid()), like
  * Drake's RotationMatrix (https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rotation_matrix.html): they throw
  * std::invalid_argument if it is not, e.g. for a shear, a scaling or a reflection. Release builds do not check. makeUnchecked()
@@ -35,8 +37,8 @@ namespace wuzp {
  * rounding errors accumulated.
  * TODO(remod): Call "unitless rotation" or simply "rotation"?
  */
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, AnyCoordinateSystem FromT_, AnyCoordinateSystem ToT_,
-          int DimensionV_>
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, EuclideanCoordinateSystem FromT_,
+          EuclideanCoordinateSystem ToT_, int DimensionV_>
   requires AnyValueMatrix<ValuesT_>
 class PassiveSpatialRotation
     : public PassiveTransformation<PassiveSpatialRotation<ValuesT_, ValueT_, FromT_, ToT_, DimensionV_>, FromT_, ToT_> {

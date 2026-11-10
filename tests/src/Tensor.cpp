@@ -8,6 +8,7 @@
 #include "wuzp/core/Indices.hpp"
 #include "wuzp/core/Quantities.hpp"
 #include "wuzp/core/Tensor.hpp"
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/core/traits.hpp"
 
 #include "coordinate_systems.hpp"
@@ -72,8 +73,10 @@ TEST(TestTensor, UnitsOfAliases) {  // NOLINT
   EXPECT_TRUE((std::is_same_v<UnitOf<TorqueVector3<ValueMatrix, double, CS>>, Torque>));
   EXPECT_TRUE((std::is_same_v<UnitOf<TimePoint<ValueMatrix, double, CS>>, Time>));
   EXPECT_TRUE((std::is_same_v<UnitOf<Duration<ValueMatrix, double, CS>>, Time>));
-  EXPECT_TRUE((std::is_same_v<UnitOf<SpacetimePoint4<ValueMatrix, double, CS>>, Length>));
-  EXPECT_TRUE((std::is_same_v<UnitOf<SpacetimeVector4<ValueMatrix, double, CS>>, Length>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<ForceCovector3<ValueMatrix, double, CS>>, Force>));
+  // Spacetime vectors are expressed in coordinate systems with the Minkowski metric.
+  EXPECT_TRUE((std::is_same_v<UnitOf<SpacetimePoint4<ValueMatrix, double, SpacetimeA>>, Length>));
+  EXPECT_TRUE((std::is_same_v<UnitOf<SpacetimeVector4<ValueMatrix, double, SpacetimeA>>, Length>));
 }
 
 // The aliases have the indices of their names: vectors and points an upper index, covectors a lower one.
@@ -82,6 +85,7 @@ TEST(TestTensor, IndicesOfAliases) {  // NOLINT
   static_assert(std::is_same_v<PositionVector3<ValueMatrix, double, CS>::IndicesT, Indices<Up>>);
   static_assert(std::is_same_v<PositionPoint3<ValueMatrix, double, CS>::IndicesT, Indices<Up>>);
   static_assert(std::is_same_v<HomogeneousCovector<3, ValueMatrix, double, Force, CS>::IndicesT, Indices<Down>>);
+  static_assert(std::is_same_v<ForceCovector3<ValueMatrix, double, CS>::IndicesT, Indices<Down>>);
   static_assert(Indices<>::RankV == 0);
   static_assert(Indices<Up, Down>::RankV == 2);
 }
@@ -136,6 +140,43 @@ TEST(TestTensor, AbsolutenessOfOperations) {  // NOLINT
   static_assert(std::is_same_v<MakeAbsolute<Relative>::type, Absolute>);
   static_assert(IsAbsolute<Absolute>::value);
   static_assert(!IsAbsolute<Relative>::value);
+}
+
+// The metric of a coordinate system is its second template parameter, Euclidean by default. It is part of the type, so
+// coordinate systems with the same identifier and different metrics do not match (compile test Tensor.SumMetricMismatch).
+TEST(TestTensor, MetricOfCoordinateSystems) {  // NOLINT
+  static_assert(std::is_same_v<CoordinateSystemA, CoordinateSystem<CoordinateSystemAId, Euclidean>>);
+  static_assert(std::is_same_v<Metric<CoordinateSystemA>::type, Euclidean>);
+  static_assert(std::is_same_v<Metric<SpacetimeA>::type, Minkowski>);
+  static_assert(!std::is_same_v<CoordinateSystem<SpacetimeAId, Euclidean>, SpacetimeA>);
+  static_assert(EuclideanCoordinateSystem<CoordinateSystemA>);
+  static_assert(!EuclideanCoordinateSystem<SpacetimeA>);
+  static_assert(MinkowskiCoordinateSystem<SpacetimeA>);
+  static_assert(!MinkowskiCoordinateSystem<CoordinateSystemA>);
+  static_assert(AnyCoordinateSystem<SpacetimeA>);
+  // An identifier is not a coordinate system, so it has no metric.
+  static_assert(!EuclideanCoordinateSystem<CoordinateSystemAId>);
+  static_assert(!MinkowskiCoordinateSystem<SpacetimeAId>);
+}
+
+// The operations that use the Euclidean metric on vectors and covectors are rejected in a Minkowski coordinate system (compile
+// tests Tensor.*InMinkowskiCoordinateSystem), but not on tensors of rank 0 and 2, for which they need no metric: the norm of a
+// scalar is its absolute value, its dot product the product, and the transpose of a tensor of rank 2 swaps its indices.
+TEST(TestTensor, OperationsWithoutMetricInMinkowskiCoordinateSystem) {  // NOLINT
+  using ScalarInSpacetime = Tensor<Indices<>, Quantities<ValueMatrix<int, 1, 1>, TypeMatrix<1, 1, Length>>, SpacetimeA, Relative>;
+  EXPECT_EQ(ScalarInSpacetime{-2}.norm(), LengthQuantityI{2});
+  EXPECT_EQ(ScalarInSpacetime{-2}.squaredNorm(), SquaredLengthQuantityI{4});
+  EXPECT_EQ(ScalarInSpacetime{-2}.dotProduct(ScalarInSpacetime{3}), AreaQuantityI{-6});
+  EXPECT_EQ(ScalarInSpacetime{-2}.transpose(), ScalarInSpacetime{-2});
+  using LinearMapInSpacetime =
+      Tensor<Indices<Up, Down>, Quantities<ValueMatrix<int, 2, 2>, TypeMatrix<2, 2, Dimensionless>>, SpacetimeA, Relative>;
+  using TransposedLinearMapInSpacetime =
+      Tensor<Indices<Down, Up>, Quantities<ValueMatrix<int, 2, 2>, TypeMatrix<2, 2, Dimensionless>>, SpacetimeA, Relative>;
+  EXPECT_EQ((LinearMapInSpacetime{1, 2, 3, 4}.transpose()), (TransposedLinearMapInSpacetime{1, 3, 2, 4}));
+  // The pairing of a covector and a vector needs no metric.
+  const ForceCovector2<ValueMatrix, int, SpacetimeA> covector{1, 2};
+  const SpacetimeVector2<ValueMatrix, int, SpacetimeA> vector{3, 4};
+  EXPECT_EQ(innerProduct(covector, vector).getQuantity(), QuantityI<Energy>{11});
 }
 
 TEST(TestTensor2, Dimension) {  // NOLINT

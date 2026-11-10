@@ -21,8 +21,10 @@ namespace wuzp {
 
 /**
  * An active rotation in its coordinate system: the dimensionless linear transformation x -> R x whose matrix R is orthogonal
- * with determinant 1, R R^T = I and det(R) = 1. It transforms the same tensors as the active linear transformation with its
- * matrix (see ActiveLinearTransformation). It composes with rotations into rotations, with linear transformations into linear
+ * with determinant 1, R R^T = I and det(R) = 1. Orthogonality is defined by the Euclidean metric, so the coordinate system must
+ * be Euclidean (EuclideanCoordinateSystem, see Metric); in a Minkowski coordinate system, a spatial rotation is a
+ * LorentzTransformation. It transforms the same tensors as the active linear transformation with its matrix (see
+ * ActiveLinearTransformation). It composes with rotations into rotations, with linear transformations into linear
  * transformations, and with translations and proper rigid transformations into proper rigid transformations (see
  * CompositionTraits). Its inverse is its transpose, which every value matrix backend provides, also for integer matrices, and
  * with which it transforms covectors and tensors with lower indices.
@@ -32,7 +34,7 @@ namespace wuzp {
  * skips the check, e.g. in hot paths, and projectToRotation() computes the rotation nearest to a matrix, e.g. to one whose
  * rounding errors accumulated.
  */
-template <template <typename, int, int> typename ValuesT_, typename ValueT_, AnyCoordinateSystem CoordinateSystemT_, int DimensionV_>
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, EuclideanCoordinateSystem CoordinateSystemT_, int DimensionV_>
   requires AnyValueMatrix<ValuesT_>
 class ActiveSpatialRotation : public ActiveTransformation<ActiveSpatialRotation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionV_>> {
  public:

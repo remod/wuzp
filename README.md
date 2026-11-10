@@ -55,6 +55,21 @@ cwiseProduct(velocity, velocity)   // OK: the elementwise product, as quantities
 innerProduct(innerProduct(massMatrix, velocity), velocity) / 2  // OK: the kinetic energy M_ij v^i v^j / 2.
 ```
 
+A dot product needs a metric: coordinate systems are Euclidean by default, and `dotProduct`, `norm`, `squaredNorm`, `crossProduct` and the transpose of a vector or a covector require a Euclidean one.
+Spacetime vectors are expressed in a coordinate system with the Minkowski metric, where the pairing of a covector and a vector, `innerProduct`, and the interval `getInvariant()` are the Lorentz invariant products ([DESIGN.md](DESIGN.md#metric)):
+
+```cpp
+struct Lab {};
+using Spacetime = wuzp::CoordinateSystem<Lab, wuzp::Minkowski>;  // The metric is Euclidean by default.
+displacement.dotProduct(displacement)  // Error: dotProduct, norm, ... use the Euclidean metric, which this coordinate system does not have. ...
+getInvariant(displacement)             // OK: the interval (c t)^2 - x^2 - y^2 - z^2 of a spacetime vector.
+innerProduct(covector, displacement)   // OK: the pairing of a covector and a vector needs no metric.
+```
+
+Likewise, rotations and proper rigid transformations take Euclidean coordinate systems, and Lorentz transformations Minkowski ones.
+
+The cross product is a pseudovector: it transforms like a vector under rotations, but not under reflections or other linear transformations, which must transform its factors instead ([DESIGN.md](DESIGN.md#cross-product)).
+
 **Note:** While a single object can only have a single coordinate system, it is possible to assign it a heterogeneous set of units.
 This is required e.g. to represent mass matrices, which contain `kg` for translational degrees of freedom and `kg m^2` for rotational degrees of freedom.
 
@@ -110,7 +125,8 @@ A Jacobian `J = d(To)/d(From)`, e.g. of the task space coordinates of a robot wi
 ```cpp
 jacobian.transform(jointVelocity)    // OK: the task space velocity J q'.
 jacobian.transform(jointCovariance)  // OK: the task space covariance J S J^T.
-jacobian.pullback(taskForce)         // OK: the joint torques J^T F of a force, a covector.
+jacobian.pullback(taskForce)         // OK: the joint torques J^T F of a force, a covector, e.g. a ForceCovector.
+jacobian.pullback(forceVector.transpose())  // OK: a ForceVector as a covector, in a Euclidean coordinate system.
 jacobian.pullback(taskMassMatrix)    // OK: the joint space inertia J^T M J.
 jacobian.transform(jointMassMatrix.inverse()).inverse()  // OK: the operational space inertia (J M^-1 J^T)^-1 of Khatib.
 jacobian.transform(jointPosition)    // Error: A Jacobian maps vectors, not points: ...
@@ -224,7 +240,13 @@ See the [benchmarks](benchmarks/README.md) for the numbers.
 
 Tensors have rank 0, 1 or 2, e.g. the outer product of two vectors is supported, but not that of a vector and a matrix.
 
-Angles are dimensionless with every units backend, so *wuzp* cannot tell `rad/s` from `Hz`, nor torque from energy (see [DESIGN.md](DESIGN.md#angles-are-dimensionless)).
+Angles are dimensionless with every units backend, like the SI treats them, so *wuzp* cannot tell `rad/s` from `Hz`, nor torque from energy, and `sin()` and `cos()` take any dimensionless quantity (see [DESIGN.md](DESIGN.md#angles-are-dimensionless)).
+
+Coordinate systems are axes, an origin and a constant metric, Euclidean, i.e. orthonormal axes, or Minkowski: other metrics, e.g. of axes that are not orthonormal or of curvilinear coordinates, whose metric depends on the position, are not modeled, nor are moving frames: a passive transformation of a velocity re-expresses it, without adding the velocity of the frame or `ω × r`, and quantities about a point, e.g. a torque, are not shifted to another point (see [DESIGN.md](DESIGN.md#moving-frames)).
+
+`isApprox()` compares relatively, like Eigen's, so it cannot compare with zero, and for points it depends on the origin: compare the distance of points with an absolute tolerance instead, e.g. `(p - q).norm().getValue() <= 1e-9` (see [DESIGN.md](DESIGN.md#approximate-comparison)).
+
+`pow<1, 3>()` of a negative quantity is its real cube root, like `std::cbrt`, but `pow<1, 2>()` of a negative quantity has no real result: it is NaN for floating point values, like `std::pow`, and throws `std::domain_error` for integer values (see [DESIGN.md](DESIGN.md#powers-of-negative-quantities)).
 
 *wuzp* does not convert units: quantities with different units, e.g. `m` and `km`, cannot be added.
 With mp-units, `wuzp_mp_units::UnitType` accepts named units such as `si::newton`, but only coherent SI units, e.g. not kilometres, grams or degrees.

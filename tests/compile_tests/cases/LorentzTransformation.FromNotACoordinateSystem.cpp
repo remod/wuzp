@@ -12,6 +12,6 @@
 using namespace wuzp;  // NOLINT
 
 int main() {
-  [[maybe_unused]] constexpr auto size = sizeof(LorentzTransformation4<ValueMatrix, double, CoordinateSystemAId, CoordinateSystemB>);
+  [[maybe_unused]] constexpr auto size = sizeof(LorentzTransformation4<ValueMatrix, double, SpacetimeAId, SpacetimeB>);
   return 0;
 }

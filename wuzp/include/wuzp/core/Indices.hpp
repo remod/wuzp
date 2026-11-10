@@ -179,6 +179,8 @@ struct OuterProduct<Indices<VariancesLhsT_...>, Indices<VariancesRhsT_...>> {
   using type = Indices<VariancesLhsT_..., VariancesRhsT_...>;
 };
 
+//! The indices of the cross product of two vectors: those of a vector. The cross product is a pseudovector, which transforms like
+//! a vector only under proper rotations, so it requires a Euclidean coordinate system (see Tensor::crossProduct()).
 template <typename... VariancesLhsT_, typename... VariancesRhsT_>
 struct CrossProduct<Indices<VariancesLhsT_...>, Indices<VariancesRhsT_...>> {
   static_assert(std::is_same_v<Indices<VariancesLhsT_...>, Indices<Up>> && std::is_same_v<Indices<VariancesRhsT_...>, Indices<Up>>,
@@ -189,7 +191,8 @@ struct CrossProduct<Indices<VariancesLhsT_...>, Indices<VariancesRhsT_...>> {
 //! The indices of the transpose: the transpose of a tensor of rank 2 swaps its indices, e.g. (T^T)_j^i = T^i_j, and the transpose
 //! of a vector, a column, is a covector, a row, and vice versa. The latter lowers or raises the index with the Euclidean metric,
 //! which keeps the components (Carroll, eq. 1.62 and the text after it, https://arxiv.org/abs/gr-qc/9712019), like dotProduct
-//! and norm (see "Metric" in DESIGN.md).
+//! and norm, so the transpose of a vector or a covector requires a Euclidean coordinate system (see Metric and
+//! internal::RequireEuclidean).
 template <>
 struct Transpose<Indices<>> {
   using type = Indices<>;

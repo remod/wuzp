@@ -63,7 +63,8 @@ auto composeJacobians(const LhsT_& lhs, const RhsT_& rhs) {
  * - pullback() pulls covectors, w' = w J, e.g. forces, and tensors with two lower indices, M' = J^T M J, e.g. mass matrices, back
  *   from To to From. It needs no inverse, so it also works for a Jacobian that is not square, e.g. for the joint torques
  *   tau = J^T F that balance a force F at the end effector, or for the joint space inertia J^T M J of a mass matrix M in
- *   Cartesian coordinates.
+ *   Cartesian coordinates. A force is a covector (see ForceCovector): a force vector, e.g. a ForceVector, is pulled back as its
+ *   transpose, jacobian.pullback(force.transpose()), which the Euclidean metric of To allows (see Metric).
  *
  * The operational space inertia of Khatib, Lambda = (J M^-1 J^T)^-1 for the joint space inertia M and a Jacobian J of full row
  * rank ("A unified approach for motion and force control of robot manipulators: The operational space formulation", IEEE

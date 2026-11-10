@@ -67,8 +67,8 @@ TEST(TestPassiveTranslation, TransformPointCloud) {  // NOLINT
 TEST(TestPassiveTranslation, TransformCovector) {  // NOLINT
   using Transformation = PassiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA, CoordinateSystemB>;
   const Transformation transformation{0.0, 0.0, -1.0};  // Passive translation of 1 along z.
-  const HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA> object{1.0, 2.0, 3.0};
-  EXPECT_EQ(transformation.transform(object), (HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemB>{1.0, 2.0, 3.0}));
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> object{1.0, 2.0, 3.0};
+  EXPECT_EQ(transformation.transform(object), (ForceCovector3<ValueMatrix, double, CoordinateSystemB>{1.0, 2.0, 3.0}));
 }
 
 TEST(TestPassiveTranslation, TransformCovariance) {  // NOLINT

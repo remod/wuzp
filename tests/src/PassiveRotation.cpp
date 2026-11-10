@@ -122,17 +122,16 @@ TEST(TestPassiveRotation, TransformCovectorAndMassMatrixWithTranspose) {  // NOL
   using MassI = Quantities<ValueMatrix<int, 3, 3>, TypeMatrix<3, 3, Mass>>;
   const RotationIBA rotationI{1, 0, 0, 0, 0, 1, 0, -1, 0};  // Passive rotation of pi/2 around x.
   // The components of w R^T are the products of w with the rows of R: (1, 2, 3) gives (1, 3, -2).
-  EXPECT_EQ(rotationI.transform(HomogeneousCovector<3, ValueMatrix, int, Force, CoordinateSystemA>{1, 2, 3}),
-            (HomogeneousCovector<3, ValueMatrix, int, Force, CoordinateSystemB>{1, 3, -2}));
+  EXPECT_EQ(rotationI.transform(ForceCovector3<ValueMatrix, int, CoordinateSystemA>{1, 2, 3}),
+            (ForceCovector3<ValueMatrix, int, CoordinateSystemB>{1, 3, -2}));
   // R swaps the rows and the columns of y and z, and negates the new rows and columns of z.
   EXPECT_EQ(rotationI.transform(Tensor<Indices<Down, Down>, MassI, CoordinateSystemA, Relative>{1, 2, 3, 2, 4, 5, 3, 5, 6}),
             (Tensor<Indices<Down, Down>, MassI, CoordinateSystemB, Relative>{1, 3, -2, 3, 6, -5, -2, -5, 4}));
   const RotationBA rotation = RotationBA::projectToRotation(1.01, 0.0, 0.0, 0.0, 0.02, 0.99, 0.0, -1.0, 0.0);
   const auto& matrix = rotation.getQuantities();
-  const HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA> covector{1.0, 2.0, 3.0};
-  EXPECT_EQ(
-      rotation.transform(covector),
-      (HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemB>{innerProduct(covector.getQuantities(), matrix.transpose())}));
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> covector{1.0, 2.0, 3.0};
+  EXPECT_EQ(rotation.transform(covector),
+            (ForceCovector3<ValueMatrix, double, CoordinateSystemB>{innerProduct(covector.getQuantities(), matrix.transpose())}));
   using MassD = Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Mass>>;
   const Tensor<Indices<Down, Down>, MassD, CoordinateSystemA, Relative> massMatrix{1.0, 2.0, 3.0, 2.0, 4.0, 5.0, 3.0, 5.0, 6.0};
   EXPECT_EQ(rotation.transform(massMatrix), (Tensor<Indices<Down, Down>, MassD, CoordinateSystemB, Relative>{

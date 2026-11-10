@@ -52,7 +52,7 @@ TEST(TestActiveTranslation, TransformVelocityVector) {  // NOLINT
 // A translation leaves covectors, e.g. gradients, and tensors with two upper indices, e.g. covariances, unchanged, like vectors:
 // their components do not depend on the origin.
 TEST(TestActiveTranslation, TransformCovector) {  // NOLINT
-  using Object = HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA>;
+  using Object = ForceCovector3<ValueMatrix, double, CoordinateSystemA>;
   const ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA> transformation{0.0, 0.0,
                                                                                          1.0};  // Active translation of 1 along z.
   const Object object{1.0, 2.0, 3.0};

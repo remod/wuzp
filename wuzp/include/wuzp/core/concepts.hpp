@@ -28,6 +28,16 @@ namespace wuzp {
 template <typename T>
 concept AnyCoordinateSystem = IsSpecialization<T, CoordinateSystem>::value;
 
+//! A coordinate system with the Euclidean metric, the default, e.g. CoordinateSystem<World>: the coordinate system of rotations
+//! and proper rigid transformations, whose orthogonality is defined by this metric (see Metric).
+template <typename T>
+concept EuclideanCoordinateSystem = AnyCoordinateSystem<T> && std::same_as<typename Metric<T>::type, Euclidean>;
+
+//! A coordinate system with the Minkowski metric, e.g. CoordinateSystem<Spacetime, Minkowski>: an inertial frame of special
+//! relativity, in which spacetime vectors are expressed and between which Lorentz transformations transform (see Metric).
+template <typename T>
+concept MinkowskiCoordinateSystem = AnyCoordinateSystem<T> && std::same_as<typename Metric<T>::type, Minkowski>;
+
 //! `Absolute` or `Relative`: whether a tensor is a point or a vector.
 template <typename T>
 concept AbsoluteOrRelative = std::same_as<T, Absolute> || std::same_as<T, Relative>;

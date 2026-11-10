@@ -1,5 +1,6 @@
 #include <cmath>
 #include <concepts>
+#include <stdexcept>
 #include <type_traits>
 
 #include <gtest/gtest.h>
@@ -101,6 +102,50 @@ TEST(TestQuantity, PowerOfIntegers) {  // NOLINT
 TEST(TestQuantity, PowerOfFloatingPointValues) {  // NOLINT
   EXPECT_TRUE((pow<1, 2>(QuantityD<Area>{2.0}).isApprox(LengthQuantity{std::sqrt(2.0)}, 1e-12)));
   EXPECT_TRUE((pow<1, 2>(QuantityF<Area>{2.0f}).isApprox(QuantityF<Length>{std::sqrt(2.0f)}, 1e-6f)));
+}
+
+// A negative value has a real power if the reduced denominator Q of the exponent P/Q is odd, (-1)^P |x|^(P/Q), like std::cbrt,
+// where std::pow is NaN. If Q is even, it has none: floating point values give NaN, like std::pow, and integer values throw,
+// rather than converting NaN into an integer, which is undefined behavior.
+TEST(TestQuantity, PowerOfNegativeValues) {  // NOLINT
+  using VolumeQuantity = QuantityD<Volume>;
+  using AreaQuantity = QuantityD<Area>;
+  // Odd Q, with an odd and an even P.
+  EXPECT_TRUE((pow<1, 3>(VolumeQuantity{-8.0}).isApprox(LengthQuantity{-2.0}, 1e-12)));
+  EXPECT_TRUE((pow<1, 3>(VolumeQuantity{8.0}).isApprox(LengthQuantity{2.0}, 1e-12)));
+  EXPECT_TRUE((pow<2, 3>(VolumeQuantity{-8.0}).isApprox(AreaQuantity{4.0}, 1e-12)));
+  EXPECT_TRUE((pow<-1, 3>(DimensionlessQuantity{-8.0}).isApprox(DimensionlessQuantity{-0.5}, 1e-12)));
+  EXPECT_EQ(pow<3>(LengthQuantity{-2.0}), VolumeQuantity{-8.0});
+  EXPECT_EQ((pow<1, 3>(QuantityI<Volume>{-8})), LengthQuantityI{-2});
+  EXPECT_EQ((pow<1, 3>(QuantityI<Volume>{8})), LengthQuantityI{2});
+  EXPECT_EQ((pow<2, 3>(QuantityI<Volume>{-1})), AreaQuantityI{1});
+  EXPECT_EQ(pow<2>(LengthQuantityI{-3}), AreaQuantityI{9});
+  EXPECT_TRUE((pow<1, 3>(QuantityF<Volume>{-8.0f}).isApprox(QuantityF<Length>{-2.0f}, 1e-6f)));
+  // A negative P, odd and even: (-8)^(-2/3) = 1/4, (-1)^(-1/3) = -1 and (-1)^(-1) = -1.
+  EXPECT_TRUE((pow<-2, 3>(DimensionlessQuantity{-8.0}).isApprox(DimensionlessQuantity{0.25}, 1e-12)));
+  EXPECT_EQ((pow<-1, 3>(QuantityI<Dimensionless>{-1})), QuantityI<Dimensionless>{-1});
+  EXPECT_EQ(pow<-1>(QuantityI<Dimensionless>{-1}), QuantityI<Dimensionless>{-1});
+  // The exponent is reduced: 2/6 is 1/3, whose Q is odd.
+  EXPECT_TRUE((pow<2, 6>(VolumeQuantity{-8.0}).isApprox(LengthQuantity{-2.0}, 1e-12)));
+  // Integer results are truncated toward zero, like those of positive values: -(9^(1/3)) = -2.08 becomes -2.
+  EXPECT_EQ((pow<1, 3>(QuantityI<Volume>{-9})), LengthQuantityI{-2});
+  // Even Q, also with a negative P.
+  EXPECT_TRUE(std::isnan((pow<1, 2>(AreaQuantity{-4.0}).getValue())));
+  EXPECT_TRUE(std::isnan((pow<-1, 2>(DimensionlessQuantity{-4.0}).getValue())));
+  EXPECT_TRUE((pow<1, 2>(AreaQuantity{4.0}).isApprox(LengthQuantity{2.0}, 1e-12)));
+  EXPECT_THROW((pow<1, 2>(AreaQuantityI{-4})), std::domain_error);
+  EXPECT_THROW((pow<-1, 2>(QuantityI<Dimensionless>{-4})), std::domain_error);
+  EXPECT_EQ((pow<1, 2>(AreaQuantityI{4})), LengthQuantityI{2});
+}
+
+// Zero is not negative, so its powers are those of std::pow: zero for every positive exponent, also for an even Q, and also for
+// negative zero, which compares equal to zero and so is not NaN.
+TEST(TestQuantity, PowerOfZero) {  // NOLINT
+  EXPECT_EQ((pow<1, 3>(QuantityD<Volume>{0.0})), LengthQuantity{0.0});
+  EXPECT_EQ((pow<1, 2>(QuantityD<Area>{0.0})), LengthQuantity{0.0});
+  EXPECT_EQ((pow<1, 2>(QuantityD<Area>{-0.0})), LengthQuantity{0.0});
+  EXPECT_EQ((pow<1, 3>(QuantityI<Volume>{0})), LengthQuantityI{0});
+  EXPECT_EQ((pow<1, 2>(AreaQuantityI{0})), LengthQuantityI{0});
 }
 
 // Quantities with other units do not convert implicitly, so that type traits report the conversion as invalid (#70).

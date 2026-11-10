@@ -66,9 +66,9 @@ TEST(TestPassiveProperRigidTransformation3, TransformCovector) {  // NOLINT
   const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
   const Transformation::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
   const Transformation transformation{rotation, translation};
-  const HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemA> force{1.0, 2.0, 3.0};
-  const HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemB> transformedForce = transformation.transform(force);
-  EXPECT_EQ(transformedForce, (HomogeneousCovector<3, ValueMatrix, double, Force, CoordinateSystemB>{1.0, 3.0, -2.0}));
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemA> force{1.0, 2.0, 3.0};
+  const ForceCovector3<ValueMatrix, double, CoordinateSystemB> transformedForce = transformation.transform(force);
+  EXPECT_EQ(transformedForce, (ForceCovector3<ValueMatrix, double, CoordinateSystemB>{1.0, 3.0, -2.0}));
   const PositionVector3<ValueMatrix, double, CoordinateSystemA> displacement{4.0, 5.0, 6.0};
   EXPECT_EQ(innerProduct(transformedForce, transformation.transform(displacement)),
             castCoordinateSystem<CoordinateSystemB>(innerProduct(force, displacement)));

@@ -13,7 +13,7 @@
 
 namespace wuzp {
 
-template <AnyCoordinateSystem FromT_, AnyCoordinateSystem ToT_, AnyRotation RotationT_, typename TranslationT_>
+template <EuclideanCoordinateSystem FromT_, EuclideanCoordinateSystem ToT_, AnyRotation RotationT_, typename TranslationT_>
 class PassiveProperRigidTransformationTemplate;
 
 namespace internal {
@@ -35,11 +35,12 @@ using PassiveRigidWithFrames = PassiveRigidOf<typename RigidT_::Rotation, typena
 }  // namespace internal
 
 /**
- * A passive proper rigid transformation from From to To, which first rotates, then translates: p -> R p + t. The rotation
- * transforms from From to an intermediate coordinate system with the origin of From and the axes of To, the translation from
- * there to To, so the translation t is expressed in To. This is Drake's RigidTransform X_AB = (R_AB, p_AoBo_A) for From = B and
- * To = A (https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html), whose coordinate transform of spatial
- * vectors is Featherstone's ^A X_B (http://royfeatherstone.org/spatial/v2/xforms.html). The rotation R is a rotation, e.g. a
+ * A passive proper rigid transformation from From to To, which first rotates, then translates: p -> R p + t. From and To must be
+ * Euclidean (EuclideanCoordinateSystem), like those of its rotation. The rotation transforms from From to an intermediate
+ * coordinate system with the origin of From and the axes of To, the translation from there to To, so the translation t is
+ * expressed in To. This is Drake's RigidTransform X_AB = (R_AB, p_AoBo_A) for From = B and To = A
+ * (https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html), whose coordinate transform of spatial vectors
+ * is Featherstone's ^A X_B (http://royfeatherstone.org/spatial/v2/xforms.html). The rotation R is a rotation, e.g. a
  * PassiveSpatialRotation, which checks that it is orthogonal with determinant 1 (see PassiveSpatialRotation::isValid()): the
  * inverse, (R^T, -R^T t), relies on it. PassiveProperRigidTransformation is the transformation of a rotation and a spatial
  * translation. Its compositions with rotations are defined in PassiveSpatialRotation.hpp.
@@ -48,7 +49,7 @@ using PassiveRigidWithFrames = PassiveRigidOf<typename RigidT_::Rotation, typena
  * the origin (see PassiveTranslation).
  * TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
  */
-template <AnyCoordinateSystem FromT_, AnyCoordinateSystem ToT_, AnyRotation RotationT_, typename TranslationT_>
+template <EuclideanCoordinateSystem FromT_, EuclideanCoordinateSystem ToT_, AnyRotation RotationT_, typename TranslationT_>
 class PassiveProperRigidTransformationTemplate
     : public PassiveTransformation<PassiveProperRigidTransformationTemplate<FromT_, ToT_, RotationT_, TranslationT_>, FromT_, ToT_> {
  public:
