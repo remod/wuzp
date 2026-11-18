@@ -34,7 +34,7 @@ MACRO_EXPANSION        = NO
 HAVE_DOT               = NO
 CLASS_GRAPH            = TEXT
 
-# Warnings go to build/doxygen_warnings.log, which ci/docs.sh prints.
+# Warnings go to build/doxygen_warnings.log, which ci/docs.sh checks: warnings other than the known ones fail the build.
 QUIET                  = YES
 WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = NO

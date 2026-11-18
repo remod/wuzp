@@ -3,7 +3,7 @@
 **Rank.**
 Tensors have rank 0, 1 or 2: e.g. the outer product of two vectors is supported, but not that of a vector and a matrix.
 
-**Angles are dimensionless**, with every units backend, like the SI treats them, so *wuzp* cannot tell `rad/s` from `Hz`, nor a torque from an energy, and `sin()` and `cos()` take any dimensionless quantity (see the [design notes](https://github.com/remod/wuzp/blob/master/DESIGN.md#angles-are-dimensionless)).
+**Angles are dimensionless**, with every units backend, like the SI treats them, so *wuzp* cannot tell `rad/s` from `Hz`, nor a torque from an energy, and `sin()` and `cos()` take any dimensionless quantity with floating-point values (see the [design notes](https://github.com/remod/wuzp/blob/master/DESIGN.md#angles-are-dimensionless)).
 
 **Coordinate systems** are axes, an origin and a constant metric, Euclidean, i.e. orthonormal axes, or Minkowski.
 Other metrics, e.g. of axes that are not orthonormal or of curvilinear coordinates, whose metric depends on the position, are not modeled (see [Coordinate systems and metrics](concepts/coordinate-systems.md)).

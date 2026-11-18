@@ -55,6 +55,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- A documentation site, [remod.github.io/wuzp](https://remod.github.io/wuzp/), with a quickstart, the concepts, the backends, a cookbook, the conventions, a comparison with mp-units and Boost.Units, the limitations, and an API reference that Doxygen generates from the public headers ([#41](https://github.com/remod/wuzp/issues/41)).
 - The trait `Metric<CoordinateSystem>`, the metric tags `Euclidean` and `Minkowski`, and the concepts `EuclideanCoordinateSystem` and `MinkowskiCoordinateSystem` (see "Metric" in `DESIGN.md`).
 - `ForceCovector`, `ForceCovector2` and `ForceCovector3`: a force as a covector, the dual of a velocity, which a Jacobian pulls back. A `ForceVector` is pulled back as its transpose, `jacobian.pullback(force.transpose())`.
 - `DESIGN.md` documents the cross product as a pseudovector, the three meanings of moving frames (the basis a quantity is expressed in, the frame it is measured in and the point it is about), the relative comparison of `isApprox()`, and angles as quantities with the unit one, in the wording of the SI Brochure, with their known risks.

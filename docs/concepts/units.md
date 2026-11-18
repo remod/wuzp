@@ -50,7 +50,7 @@ The inverse of such a matrix has the units `b_i / a_j`, and `inverse()` and `det
 
 * `pow<P>(q)` and `pow<P, Q>(q)` raise a quantity to a rational power, e.g. `pow<2>(length)` is an area and `pow<1, 2>(area)` a length.
   A negative value has a real power if the reduced denominator `Q` is odd, e.g. `pow<1, 3>()` of `-8 m^3` is `-2 m`; otherwise the power of a floating point value is NaN, like with `std::pow`, and that of an integer value throws `std::domain_error`.
-* `sin()` and `cos()` take a dimensionless quantity, e.g. an angle, and return a dimensionless quantity.
+* `sin()` and `cos()` take a dimensionless quantity with floating-point values, e.g. an angle, and return a dimensionless quantity.
 * `isApprox(other, precision)` compares relatively, like Eigen's `isApprox` (see [Limitations](../limitations.md)).
 
 ## Value types

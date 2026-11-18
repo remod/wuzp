@@ -171,12 +171,17 @@ Codecov checks that the coverage does not drop and that new code is covered (`co
 ## Documentation
 
 The documentation site, [remod.github.io/wuzp](https://remod.github.io/wuzp/), consists of the pages in `docs/`, built with [MkDocs](https://www.mkdocs.org/) and [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) (`mkdocs.yml`), and the API reference, which [Doxygen](https://www.doxygen.nl/) generates from the comments in the public headers into `docs/api/` (`Doxyfile`).
-`ci/docs.sh` builds both in the `latest` dev container, which has the pinned versions of the tools, into `build/site/`; MkDocs runs in strict mode, so a broken link or anchor fails the build:
+`ci/docs.sh` builds both in the `latest` dev container, which has the pinned versions of the tools, into `build/site/`; MkDocs runs in strict mode, so a broken link or anchor fails the build, and so does a Doxygen warning, except the known limitations of its parser listed in `ci/docs.sh`.
+`ci/local.sh docs` runs it in a fresh container, on a copy of the working tree.
+
+To preview the site, run `ci/docs.sh` and then `mkdocs serve --dev-addr 0.0.0.0:8000` in the `latest` dev container, with port 8000 published or forwarded, e.g. from the root of the repository on the host:
 
 ```bash
-ci/docs.sh                  # Or ci/local.sh docs, in a fresh container.
-mkdocs serve                # Preview at http://127.0.0.1:8000, after ci/docs.sh generated the API reference.
+docker run --rm -it --publish 127.0.0.1:8000:8000 --volume "$PWD:/src" --workdir /src --user "$(id -u):$(id -g)" \
+  "$(ci/image.sh ensure latest)" bash -c 'ci/docs.sh && mkdocs serve --dev-addr 0.0.0.0:8000'
 ```
+
+The site is then at http://127.0.0.1:8000/wuzp/. MkDocs rebuilds it when a page changes; to update the API reference, run the command again.
 
 The workflow `.github/workflows/docs.yml` builds the site for pull requests that change the pages, the public headers or the build of the site, and publishes it on GitHub Pages from `master`.
 Code in the pages must compile with the current API: take it from the examples and the tests, and keep the pages in sync with `README.md` and `DESIGN.md`.

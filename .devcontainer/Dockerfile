@@ -113,24 +113,39 @@ RUN python3 -m venv /opt/tools \
 ENV PATH=/opt/tools/bin:${PATH}
 
 # Documentation tools with pinned versions, with DOCS=true (the latest variant), for ci/docs.sh:
-# - Doxygen, from its release binary, since the version of the distribution's package depends on the release.
-# - MkDocs and Material for MkDocs, in the venv of the Python tools.
+# - Doxygen, from its release binary, since the version of the distribution's package depends on the release. The release
+#   binary is for x86_64 only: on other architectures, e.g. aarch64, the image has the distribution's package instead
+#   (Doxygen 1.15 in Ubuntu 26.04), which builds the same documentation. CI runs on x86_64, with the pinned version.
+# - MkDocs and Material for MkDocs, in the venv of the Python tools, with all their dependencies pinned, so that rebuilding the
+#   image installs the same versions. Update them together: install the new versions of the two without the other pins, and
+#   pin the versions that `pip freeze` lists.
 ARG DOCS=false
 ARG DOXYGEN_VERSION=1.18.0
 ARG DOXYGEN_SHA256=14fa81bdc34171edb5f1f02b1d60e74802f0439b77fa44e592565d517d72df90
 ARG MKDOCS_VERSION=1.6.1
 ARG MKDOCS_MATERIAL_VERSION=9.8.1
 RUN if [ "${DOCS}" = true ]; then \
-        work_dir=$(mktemp -d) \
-        && curl -fsSL -o "${work_dir}/doxygen.tar.gz" \
-            "https://github.com/doxygen/doxygen/releases/download/Release_$(echo "${DOXYGEN_VERSION}" | tr . _)/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz" \
-        && echo "${DOXYGEN_SHA256}  ${work_dir}/doxygen.tar.gz" | sha256sum --check --quiet \
-        && tar -xzf "${work_dir}/doxygen.tar.gz" -C "${work_dir}" \
-        && install -m 755 "${work_dir}/doxygen-${DOXYGEN_VERSION}/bin/doxygen" /usr/local/bin/doxygen \
-        && rm -rf "${work_dir}" \
+        if [ "$(dpkg --print-architecture)" = amd64 ]; then \
+            work_dir=$(mktemp -d) \
+            && curl -fsSL -o "${work_dir}/doxygen.tar.gz" \
+                "https://github.com/doxygen/doxygen/releases/download/Release_$(echo "${DOXYGEN_VERSION}" | tr . _)/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz" \
+            && echo "${DOXYGEN_SHA256}  ${work_dir}/doxygen.tar.gz" | sha256sum --check --quiet \
+            && tar -xzf "${work_dir}/doxygen.tar.gz" -C "${work_dir}" \
+            && install -m 755 "${work_dir}/doxygen-${DOXYGEN_VERSION}/bin/doxygen" /usr/local/bin/doxygen \
+            && rm -rf "${work_dir}"; \
+        else \
+            apt-get update \
+            && apt-get install -y --no-install-recommends doxygen \
+            && rm -rf /var/lib/apt/lists/*; \
+        fi \
         && /opt/tools/bin/pip install --no-cache-dir --quiet \
             "mkdocs==${MKDOCS_VERSION}" \
-            "mkdocs-material==${MKDOCS_MATERIAL_VERSION}"; \
+            "mkdocs-material==${MKDOCS_MATERIAL_VERSION}" \
+            babel==2.18.0 backrefs==8.3 certifi==2026.10.23 charset-normalizer==3.5.2 click==8.5.1 colorama==0.4.6 \
+            ghp-import==2.1.0 idna==3.20 Jinja2==3.1.6 Markdown==3.11.3 MarkupSafe==3.0.4 mergedeep==1.3.4 \
+            mkdocs-get-deps==0.2.2 mkdocs-material-extensions==1.3.1 packaging==26.3 paginate==0.5.7 pathspec==1.1.1 \
+            platformdirs==4.14.5 Pygments==2.21.0 pymdown-extensions==13.1 python-dateutil==4.0.0 PyYAML==6.0.3 \
+            pyyaml_env_tag==1.1 requests==2.34.2 tzdata==2026.6 urllib3==2.8.0 watchdog==7.1.0; \
     fi
 
 # ccache speeds up rebuilds, including the projects compiled by the compile-fail tests.
