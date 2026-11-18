@@ -1,0 +1,43 @@
+# The API reference of the public headers, built by ci/docs.sh into docs/api/, which the site links (see mkdocs.yml).
+# Settings that are not listed keep Doxygen's defaults.
+
+PROJECT_NAME           = wuzp
+PROJECT_BRIEF          = "Wrong Unit? Zero Points! Compile-time checks for units, coordinate systems and points vs. vectors."
+OUTPUT_DIRECTORY       = docs
+HTML_OUTPUT            = api
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_TREEVIEW      = YES
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        = .
+STRIP_FROM_INC_PATH    = wuzp/include wuzp_eigen/include wuzp_blitz/include wuzp_boost/include wuzp_mp_units/include
+
+# The public API: the headers of the core, the transformations and the backends, except the internal/ directories and the
+# internal namespaces (see "Versioning" in CONTRIBUTING.md).
+INPUT                  = wuzp/include wuzp_eigen/include wuzp_blitz/include wuzp_boost/include wuzp_mp_units/include
+FILE_PATTERNS          = *.hpp
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       = */internal/*
+EXCLUDE_SYMBOLS        = internal *::internal *::internal::*
+
+# Document every declaration, also those without a comment, since many aliases and traits are only explained by their names.
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
+BUILTIN_STL_SUPPORT    = YES
+SOURCE_BROWSER         = YES
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = NO
+
+# No Graphviz: the site has a class hierarchy diagram of its own.
+HAVE_DOT               = NO
+CLASS_GRAPH            = TEXT
+
+# Warnings go to build/doxygen_warnings.log, which ci/docs.sh prints.
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO
+WARN_LOGFILE           = build/doxygen_warnings.log

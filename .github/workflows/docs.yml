@@ -1,0 +1,96 @@
+name: Docs
+
+# Builds the documentation site with ci/docs.sh in the latest dev container image, and publishes it on GitHub Pages from master
+# (https://remod.github.io/wuzp/). Pull requests only build it. It runs when the pages, the public headers (the API reference)
+# or the build of the site change.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "Doxyfile"
+      - "wuzp/include/**"
+      - "wuzp_*/include/**"
+      - "ci/docs.sh"
+      - "ci/image.sh"
+      - ".devcontainer/Dockerfile"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "Doxyfile"
+      - "wuzp/include/**"
+      - "wuzp_*/include/**"
+      - "ci/docs.sh"
+      - "ci/image.sh"
+      - ".devcontainer/Dockerfile"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+# Pull requests cancel their outdated builds; deployments from master finish, as GitHub recommends for Pages.
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Like the image job of ci.yml: publishes the latest dev container image if the Dockerfile or its build arguments changed.
+  # If both workflows run, the one that comes second finds the image published, or pushes the same image.
+  image:
+    name: dev container image
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      latest: ${{ steps.publish.outputs.latest }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish the image if the Dockerfile or its build arguments changed
+        id: publish
+        run: echo "latest=$(ci/image.sh publish latest)" >> "${GITHUB_OUTPUT}"
+
+  build:
+    needs: image
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.latest }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: ci/docs.sh
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/site
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

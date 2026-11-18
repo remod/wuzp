@@ -160,13 +160,26 @@ Each job is a script in `ci/`, and `ci/local.sh` runs the Linux jobs locally in 
 
 ```bash
 ci/local.sh                 # All jobs.
-ci/local.sh format test-min # Selected jobs: format, tidy, test-min, test-latest, coverage, sanitizers, install, benchmarks.
+ci/local.sh format test-min # Selected jobs: format, tidy, test-min, test-latest, coverage, sanitizers, install, benchmarks, docs.
 ```
 
 `test-latest` also runs `gcc-wuzp-eigen-release`, the preset of the CI job `test-release`.
 By default, `ci/local.sh` uses half of the CPU cores; set `WUZP_JOBS` to change this.
 
 Codecov checks that the coverage does not drop and that new code is covered (`codecov.yml`).
+
+## Documentation
+
+The documentation site, [remod.github.io/wuzp](https://remod.github.io/wuzp/), consists of the pages in `docs/`, built with [MkDocs](https://www.mkdocs.org/) and [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) (`mkdocs.yml`), and the API reference, which [Doxygen](https://www.doxygen.nl/) generates from the comments in the public headers into `docs/api/` (`Doxyfile`).
+`ci/docs.sh` builds both in the `latest` dev container, which has the pinned versions of the tools, into `build/site/`; MkDocs runs in strict mode, so a broken link or anchor fails the build:
+
+```bash
+ci/docs.sh                  # Or ci/local.sh docs, in a fresh container.
+mkdocs serve                # Preview at http://127.0.0.1:8000, after ci/docs.sh generated the API reference.
+```
+
+The workflow `.github/workflows/docs.yml` builds the site for pull requests that change the pages, the public headers or the build of the site, and publishes it on GitHub Pages from `master`.
+Code in the pages must compile with the current API: take it from the examples and the tests, and keep the pages in sync with `README.md` and `DESIGN.md`.
 
 ## Versioning
 

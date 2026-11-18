@@ -1,0 +1,75 @@
+# The documentation site, built by ci/docs.sh: the pages in docs/, and the API reference that Doxygen generates into
+# docs/api/ (see Doxyfile). CI publishes it on GitHub Pages (.github/workflows/docs.yml).
+site_name: wuzp
+site_description: Wrong Unit? Zero Points! Compile-time checks for units, coordinate systems and points vs. vectors in C++20.
+site_url: https://remod.github.io/wuzp/
+repo_url: https://github.com/remod/wuzp
+repo_name: remod/wuzp
+edit_uri: edit/master/docs/
+copyright: Copyright &copy; 2023 Remo Diethelm, MIT License
+docs_dir: docs
+site_dir: build/site
+strict: true
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - navigation.footer
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Concepts:
+      - Units and quantities: concepts/units.md
+      - Points and vectors: concepts/points-and-vectors.md
+      - Coordinate systems and metrics: concepts/coordinate-systems.md
+      - Tensors and index variance: concepts/tensors.md
+      - Transformations: concepts/transformations.md
+  - Backends: backends.md
+  - Cookbook:
+      - Rigid body kinematics: cookbook/rigid-body-kinematics.md
+      - Rotating dumbbell: cookbook/rotating-dumbbell.md
+  - Conventions: conventions.md
+  - Comparison with mp-units and Boost.Units: comparison.md
+  - Class hierarchy: class-hierarchy.md
+  - Limitations: limitations.md
+  - API reference: api/index.html
+  - Design notes: https://github.com/remod/wuzp/blob/master/DESIGN.md
+  - Contributing: https://github.com/remod/wuzp/blob/master/CONTRIBUTING.md
+  - Changelog: https://github.com/remod/wuzp/blob/master/CHANGELOG.md

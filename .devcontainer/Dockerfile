@@ -2,7 +2,8 @@
 #
 # One Dockerfile, two variants:
 #   min:    Ubuntu 22.04, the oldest supported dependency versions.
-#   latest: Ubuntu 26.04, the newest supported dependency versions, with Eigen 5 and mp-units built from source.
+#   latest: Ubuntu 26.04, the newest supported dependency versions, with Eigen 5 and mp-units built from source, and the
+#           documentation tools.
 #
 # ci/image.sh sets the build arguments of each variant. CI publishes the images to GHCR, tagged with a hash of this file
 # and the build arguments. Local builds reuse the published layers, so local development and CI run in the same
@@ -107,6 +108,27 @@ RUN python3 -m venv /opt/tools \
         "clang-format==${CLANG_FORMAT_VERSION}" \
         "pre-commit==${PRE_COMMIT_VERSION}"
 ENV PATH=/opt/tools/bin:${PATH}
+
+# Documentation tools with pinned versions, with DOCS=true (the latest variant), for ci/docs.sh:
+# - Doxygen, from its release binary, since the version of the distribution's package depends on the release.
+# - MkDocs and Material for MkDocs, in the venv of the Python tools.
+ARG DOCS=false
+ARG DOXYGEN_VERSION=1.18.0
+ARG DOXYGEN_SHA256=14fa81bdc34171edb5f1f02b1d60e74802f0439b77fa44e592565d517d72df90
+ARG MKDOCS_VERSION=1.6.1
+ARG MKDOCS_MATERIAL_VERSION=9.8.1
+RUN if [ "${DOCS}" = true ]; then \
+        work_dir=$(mktemp -d) \
+        && curl -fsSL -o "${work_dir}/doxygen.tar.gz" \
+            "https://github.com/doxygen/doxygen/releases/download/Release_$(echo "${DOXYGEN_VERSION}" | tr . _)/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz" \
+        && echo "${DOXYGEN_SHA256}  ${work_dir}/doxygen.tar.gz" | sha256sum --check --quiet \
+        && tar -xzf "${work_dir}/doxygen.tar.gz" -C "${work_dir}" \
+        && install -m 755 "${work_dir}/doxygen-${DOXYGEN_VERSION}/bin/doxygen" /usr/local/bin/doxygen \
+        && rm -rf "${work_dir}" \
+        && /opt/tools/bin/pip install --no-cache-dir --quiet \
+            "mkdocs==${MKDOCS_VERSION}" \
+            "mkdocs-material==${MKDOCS_MATERIAL_VERSION}"; \
+    fi
 
 # ccache speeds up rebuilds, including the projects compiled by the compile-fail tests.
 ENV CMAKE_CXX_COMPILER_LAUNCHER=ccache \

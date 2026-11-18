@@ -24,7 +24,7 @@ usage() {
 build_args() {
   case $1 in
     min) echo "UBUNTU_VERSION=22.04 EIGEN_FROM_SOURCE=false MP_UNITS=false" ;;
-    latest) echo "UBUNTU_VERSION=26.04 EIGEN_FROM_SOURCE=true MP_UNITS=true" ;;
+    latest) echo "UBUNTU_VERSION=26.04 EIGEN_FROM_SOURCE=true MP_UNITS=true DOCS=true" ;;
     *) echo "Unknown variant '$1', expected 'min' or 'latest'." >&2; exit 1 ;;
   esac
 }
