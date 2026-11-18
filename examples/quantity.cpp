@@ -17,7 +17,7 @@ using AccelerationQuantityD = QuantityD<Acceleration>;
 int main() {
   MassQuantityD mass{2.0};
   AccelerationQuantityD acceleration{3.0};
-  // ForceQuantityD force = mass;  // error: static assertion failed: Units do not match.
+  // ForceQuantityD force{mass};  // error: static assertion failed: Units do not match.
   ForceQuantityD force = mass * acceleration;
   std::cout << "Resulting force: " << force << std::endl;
   return 0;
