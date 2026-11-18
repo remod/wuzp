@@ -16,6 +16,7 @@
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
+#include "throws.hpp"
 #include "to_string.hpp"
 
 using namespace wuzp;  // NOLINT
@@ -185,15 +186,9 @@ TEST(TestActiveRotation, RejectsMatricesThatAreNotRotationsInDebugBuilds) {  // 
   const auto shear = [] { return Rotation3{1.0, 5.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}; };
   const auto scaling = [] { return Rotation3{2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0}; };
   const auto reflection = [] { return Rotation3{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0}; };
-  if constexpr (wuzp::internal::checksValidity) {
-    EXPECT_THROW(shear(), std::invalid_argument);
-    EXPECT_THROW(scaling(), std::invalid_argument);
-    EXPECT_THROW(reflection(), std::invalid_argument);
-  } else {
-    EXPECT_NO_THROW(shear());
-    EXPECT_NO_THROW(scaling());
-    EXPECT_NO_THROW(reflection());
-  }
+  EXPECT_EQ(throwsInvalidArgument(shear), wuzp::internal::checksValidity);
+  EXPECT_EQ(throwsInvalidArgument(scaling), wuzp::internal::checksValidity);
+  EXPECT_EQ(throwsInvalidArgument(reflection), wuzp::internal::checksValidity);
   EXPECT_NO_THROW(rotationAroundZ(0.5));
 }
 
@@ -258,11 +253,7 @@ TEST(TestActiveRotation, IsValidForIntegers) {  // NOLINT
   EXPECT_TRUE((RotationI{0, -1, 0, 1, 0, 0, 0, 0, 1}.isValid()));  // Active rotation of pi/2 around z.
   EXPECT_FALSE((RotationI::makeUnchecked(1, 5, 0, 0, 1, 0, 0, 0, 1).isValid()));
   const auto shear = [] { return RotationI{1, 5, 0, 0, 1, 0, 0, 0, 1}; };
-  if constexpr (wuzp::internal::checksValidity) {
-    EXPECT_THROW(shear(), std::invalid_argument);
-  } else {
-    EXPECT_NO_THROW(shear());
-  }
+  EXPECT_EQ(throwsInvalidArgument(shear), wuzp::internal::checksValidity);
 }
 
 // The determinant of a rotation in two dimensions is ad - bc, in three dimensions the triple product of the columns, and in other

@@ -13,6 +13,7 @@
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
+#include "throws.hpp"
 #include "to_string.hpp"
 
 using namespace wuzp;  // NOLINT
@@ -237,11 +238,7 @@ TEST(TestLorentzTransformation, LowerIndexWithMetric) {  // NOLINT
 // builds do not check. makeUnchecked() skips the check.
 TEST(TestLorentzTransformation, RejectsMatricesThatDoNotPreserveTheMetricInDebugBuilds) {  // NOLINT
   const auto scaling = [] { return LorentzBoost{2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0}; };
-  if constexpr (wuzp::internal::checksValidity) {
-    EXPECT_THROW(scaling(), std::invalid_argument);
-  } else {
-    EXPECT_NO_THROW(scaling());
-  }
+  EXPECT_EQ(throwsInvalidArgument(scaling), wuzp::internal::checksValidity);
   EXPECT_FALSE(LorentzBoost::makeUnchecked(2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0).isValid());
   // A Euclidean rotation that mixes time and space does not preserve the metric.
   EXPECT_FALSE(LorentzBoost::makeUnchecked(0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0).isValid());

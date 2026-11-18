@@ -14,6 +14,7 @@
 
 #include "Unit.hpp"
 #include "ValueMatrix.hpp"
+#include "throws.hpp"
 #include "to_string.hpp"
 
 using namespace wuzp;  // NOLINT
@@ -144,15 +145,9 @@ TEST(TestPassiveRotation, RejectsMatricesThatAreNotRotationsInDebugBuilds) {  //
   const auto shear = [] { return RotationBA{1.0, 5.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}; };
   const auto scaling = [] { return RotationBA{2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0}; };
   const auto reflection = [] { return RotationBA{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0}; };
-  if constexpr (wuzp::internal::checksValidity) {
-    EXPECT_THROW(shear(), std::invalid_argument);
-    EXPECT_THROW(scaling(), std::invalid_argument);
-    EXPECT_THROW(reflection(), std::invalid_argument);
-  } else {
-    EXPECT_NO_THROW(shear());
-    EXPECT_NO_THROW(scaling());
-    EXPECT_NO_THROW(reflection());
-  }
+  EXPECT_EQ(throwsInvalidArgument(shear), wuzp::internal::checksValidity);
+  EXPECT_EQ(throwsInvalidArgument(scaling), wuzp::internal::checksValidity);
+  EXPECT_EQ(throwsInvalidArgument(reflection), wuzp::internal::checksValidity);
   EXPECT_FALSE(RotationBA::makeUnchecked(1.0, 5.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0).isValid());
   EXPECT_FALSE(RotationBA::makeUnchecked(2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0).isValid());
   EXPECT_FALSE(RotationBA::makeUnchecked(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0).isValid());
