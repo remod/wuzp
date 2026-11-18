@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "wuzp/core/MatrixSize.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Unit.hpp"
 #include "wuzp/core/traits.hpp"
@@ -76,9 +77,9 @@ struct RequireSquareLinearMap {
  * values are invertible is only known at run time.
  */
 template <int RowsV_, int ColsV_, typename... UnitImplementationsT_>
-struct Inverse<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Unit<UnitImplementationsT_>...>>> {
+struct Inverse<TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<Unit<UnitImplementationsT_>...>>> {
  private:
-  using UnitsT = TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Unit<UnitImplementationsT_>...>>;
+  using UnitsT = TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<Unit<UnitImplementationsT_>...>>;
 
  public:
   static_assert(internal::RequireSquareLinearMap<UnitsT>::value);
@@ -100,9 +101,9 @@ struct DiagonalProductImpl<Matrix, std::index_sequence<Is...>> {
  * product of the units on the diagonal. For a matrix with a single unit u, this is u^n.
  */
 template <int RowsV_, int ColsV_, typename... UnitImplementationsT_>
-struct Determinant<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Unit<UnitImplementationsT_>...>>> {
+struct Determinant<TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<Unit<UnitImplementationsT_>...>>> {
  private:
-  using UnitsT = TypeMatrixImpl<RowsV_, ColsV_, std::tuple<Unit<UnitImplementationsT_>...>>;
+  using UnitsT = TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<Unit<UnitImplementationsT_>...>>;
 
  public:
   static_assert(internal::RequireSquareLinearMap<UnitsT>::value);

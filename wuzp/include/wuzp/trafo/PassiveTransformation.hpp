@@ -3,6 +3,7 @@
 #include <type_traits>
 
 #include "wuzp/core/concepts.hpp"
+#include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/ActiveTransformation.hpp"
 #include "wuzp/trafo/Transformation.hpp"
@@ -18,7 +19,7 @@ namespace wuzp {
  * Robotics, chapter 2): it maps the coordinates of a point in B to its coordinates in A.
  */
 template <typename DerivedT_, AnyCoordinateSystem FromT_, AnyCoordinateSystem ToT_>
-class PassiveTransformation : public Transformation {
+class PassiveTransformation : public internal::Crtp<DerivedT_, Transformation> {
  public:
   using From = FromT_;
   using To = ToT_;
@@ -29,11 +30,8 @@ class PassiveTransformation : public Transformation {
     static_assert(!std::is_base_of_v<Transformation, Object>,
                   "A passive transformation transforms tensors, not transformations. Compose transformations with operator*.");
     static_assert(std::is_same<typename GetCoordinateSystem<Object>::type, From>::value, "Coordinate systems do not match.");
-    return TransformationTraits<DerivedT_, Object>::transform(derived(), object);
+    return TransformationTraits<DerivedT_, Object>::transform(this->derived(), object);
   }
-
- private:
-  const DerivedT_& derived() const { return static_cast<const DerivedT_&>(*this); }  // TODO(remod): Use CRTP class template from web.
 };
 
 /**

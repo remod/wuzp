@@ -290,7 +290,6 @@ struct CastCoordinateSystem {
   static_assert(FailOnInstantiation<CastCoordinateSystem<T, NewCoordinateSystemT_>>::value,
                 "'CastCoordinateSystem' trait not specialized for given types.");
 };
-// TODO(remod): turn this (and other free functions?) into a member
 template <typename To, typename T>
 auto castCoordinateSystem(T t) {
   return typename Evaluate<typename CastCoordinateSystem<T, To>::type>::type{std::move(t).getValues()};

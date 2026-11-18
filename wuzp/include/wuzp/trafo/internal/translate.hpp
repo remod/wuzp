@@ -53,7 +53,6 @@ template <typename QuantitiesT_, typename CoordinateSystemT_, typename Translati
   requires(Cols<QuantitiesT_>::value > 1)
 auto translate(const Tensor<Indices<Up>, QuantitiesT_, CoordinateSystemT_, Absolute>& points, const TranslationQuantitiesT_& translation) {
   auto result = points.evaluate();
-  // TODO(remod): Improve efficiency by performing this addition at compile time.
   for (int row = 0; row < Rows<QuantitiesT_>::value; ++row) {
     for (int col = 0; col < Cols<QuantitiesT_>::value; ++col) {
       result.setQuantity(row, col, result.getQuantity(row, col) + translation.get(row, 0));

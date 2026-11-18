@@ -2,6 +2,7 @@
 
 #include <tuple>
 
+#include "wuzp/core/MatrixSize.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/helpers.hpp"
 
@@ -16,7 +17,7 @@ namespace internal {
 template <typename UnitsT_, template <typename...> typename TemplateT_>
 struct ApplyUnits;
 template <int RowsV_, int ColsV_, typename UnitT_, typename... UnitsT_, template <typename...> typename TemplateT_>
-struct ApplyUnits<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<UnitT_, UnitsT_...>>, TemplateT_> {
+struct ApplyUnits<TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<UnitT_, UnitsT_...>>, TemplateT_> {
   using type = typename IfThenElse<areSame<UnitT_, UnitsT_...>, TemplateT_<UnitT_>, TemplateT_<UnitT_, UnitsT_...>>::type;
 };
 

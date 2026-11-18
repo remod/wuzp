@@ -25,9 +25,9 @@ TEST(TestHelpers, IsSpecialization) {  // NOLINT
 
   static_assert(!IsSpecialization<MyTemplate<int>, MyOtherTemplate>::value);
 
-  // TODO(remod): This trait does not work if there is an alias which switches the template arguments (like for boost).
-  // For this reason we introduced the IsQuantity trait.
-  //  static_assert(is_specialization<MyOtherTemplateAlias<int, double>, MyOtherTemplateAlias>::value);
+  // An alias template that changes the arguments is not recognized: the arguments of an alias cannot be deduced. E.g. a Quantity
+  // is a Quantities, which IsQuantity in Quantities.hpp recognizes instead.
+  static_assert(!IsSpecialization<MyOtherTemplateAlias<int, double>, MyOtherTemplateAlias>::value);
 }
 
 TEST(TestHelpers, AreSame) {  // NOLINT

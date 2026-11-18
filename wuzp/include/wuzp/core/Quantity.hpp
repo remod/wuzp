@@ -6,6 +6,7 @@
 #include <type_traits>
 
 #include "wuzp/core/Integer.hpp"
+#include "wuzp/core/MatrixSize.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
@@ -25,7 +26,7 @@ namespace wuzp {
  * @tparam UnitT_ Container storing the unit.
  */
 template <typename ValueT_, typename UnitT_>
-using Quantity = Quantities<ValueT_, TypeMatrixImpl<1, 1, std::tuple<UnitT_>>>;
+using Quantity = Quantities<ValueT_, TypeMatrixImpl<MatrixSize<1, 1>, std::tuple<UnitT_>>>;
 
 // The aliases of quantities with a value type, e.g. QuantityD<UnitT_>, are defined by the value matrix backends, e.g.
 // wuzp_eigen::QuantityD<UnitT_>, since they need a value matrix backend.

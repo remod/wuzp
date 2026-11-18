@@ -203,7 +203,6 @@ class Tensor {
 
   // The member functions and operators return evaluated results (see ValuesWrapper), of the evaluated types of the traits.
 
-  // TODO(remod): Rename to "slice"?
   template <int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
   auto block() const {
     return typename Evaluate<typename Block<ThisT, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_>::type>::type(

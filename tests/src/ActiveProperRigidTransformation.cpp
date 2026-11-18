@@ -12,12 +12,15 @@
 
 using namespace wuzp;  // NOLINT
 
-TEST(TestActiveProperRigidTransformation2, TransformPosition) {  // NOLINT
-  //  const Position2<double, FromCoordinateSystem> object{1.0, 2.0};
-  //  const Eigen::Quaterniond rotation{1.0, 0.0, 0.0, 0.0};
-  //  const Translation2<double, CoordinateSystemB> translation{1.0, 2.0};
-  //  const ActiveProperRigidTransformation2<FromCoordinateSystem, CoordinateSystemB, double> transformation{rotation, translation};
-  //  const result{transformation.transform{object}};
+TEST(TestActiveProperRigidTransformation2, TransformPositionPoint) {  // NOLINT
+  using Object = PositionPoint2<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = ActiveProperRigidTransformation2<ValueMatrix, CoordinateSystemA, double>;
+  const Object object{1.0, 2.0};
+  const Object transformedObject{0.0, 4.0};
+  const Transformation::Rotation rotation{0.0, -1.0, 1.0, 0.0};  // Active rotation of pi/2.
+  const Transformation::Translation translation{2.0, 3.0};
+  const Transformation transformation{rotation, translation};
+  EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
 TEST(TestActiveProperRigidTransformation3, TransformPositionVector) {  // NOLINT

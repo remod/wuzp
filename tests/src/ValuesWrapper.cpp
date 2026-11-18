@@ -616,5 +616,3 @@ TEST(TestValuesWrapper, MembersRequireTheirDimension) {  // NOLINT
   static_assert(std::is_convertible_v<ValueMatrix<double, 1, 1>, double>);
   static_assert(!std::is_convertible_v<ValueMatrix<double, 3, 1>, double>);
 }
-
-// TODO(remod): Compile-time check number of constructor arguments and test it.

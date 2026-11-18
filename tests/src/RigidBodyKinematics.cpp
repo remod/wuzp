@@ -10,7 +10,6 @@
 
 using namespace wuzp;  // NOLINT
 
-// TODO(remod): Turn this into a proper function.
 TEST(TestRigidBodyKinematics, CalculateVelocity) {  // NOLINT
   using VelocityVector = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
   using TranslationVector = PositionVector3<ValueMatrix, double, CoordinateSystemA>;

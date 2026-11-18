@@ -60,6 +60,8 @@ concept Specializable = requires { typename Template<Args...>; };
 template <typename Class, typename... Args>
 concept CopiesOrMoves = sizeof...(Args) == 1 && (std::same_as<std::remove_cvref_t<Args>, Class> && ...);
 
+//! Whether T is a specialization of Template. An alias template is only recognized if it passes its arguments on unchanged, since
+//! the arguments of an alias cannot be deduced: e.g. a Quantity is a Quantities with other arguments (see IsQuantity).
 template <typename T, template <typename...> typename Template>
 struct IsSpecialization : std::false_type {};
 // Template2<Args...> is only formed if it is valid.
@@ -95,7 +97,6 @@ struct IsHomogeneous<std::tuple<Ts...>> {
   static constexpr bool value = IsHomogeneous<Ts...>::value;
 };
 
-// TODO(remod): Use "value" or "value" everywhere for consistency?
 //! Wrapper for partial specializations of trait for values types.
 template <typename T>
 struct ValueType;
@@ -103,6 +104,20 @@ struct ValueType;
 //! Type wrapper which is used to access traits partially specialized in the implementation header files.
 template <typename Implementation>
 struct AccessImplementation;
+
+namespace internal {
+
+//! A base of the class templates of the curiously recurring template pattern (CRTP), e.g. ActiveTransformation<DerivedT_>, whose
+//! argument DerivedT_ derives from them: derived() is the object as a DerivedT_. It derives from BaseT_, their other base, e.g.
+//! Transformation, so that their empty bases form a chain: MSVC does not optimize away several empty bases of a class, which would
+//! make every DerivedT_ larger than its members (see TestTransformation.HasNoVirtualTable).
+template <typename DerivedT_, typename BaseT_>
+class Crtp : public BaseT_ {
+ protected:
+  const DerivedT_& derived() const { return static_cast<const DerivedT_&>(*this); }
+};
+
+}  // namespace internal
 
 //! Applies the comma operator from left to right: applyCommas(a, b, c) evaluates ((a, b), c). The backends use it for the
 //! comma initializers of their libraries, e.g. (matrix << 1), 2, 3 with Eigen. All temporaries live until the end of the

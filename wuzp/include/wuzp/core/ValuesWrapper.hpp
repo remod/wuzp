@@ -18,7 +18,6 @@ namespace wuzp {
  * specialization to catch all of them. We cannot use CRTP, as we need this wrapper for unambiguous template specialization.
  * @tparam ImplementationT_ ImplementationT of the values.
  */
-// TODO(remod): Rename to Values?
 template <AnyMatrixSize MatrixSizeT_, ArithmeticValue ValueT_, typename ImplementationT_>
 class ValuesWrapper {
  public:
@@ -26,7 +25,6 @@ class ValuesWrapper {
   using ValueT = ValueT_;
   using ImplementationT = std::decay_t<ImplementationT_>;
   using ThisT = ValuesWrapper<MatrixSizeT, ValueT, ImplementationT>;
-  // TODO(remod): Use member types instead of traits for value, dim, rows, cols, in all classes?
 
   ValuesWrapper() { ReserveMemory<ImplementationT_, MatrixSizeT_>::run(implementation_); }
 
@@ -329,43 +327,6 @@ struct Negation<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
 // Rules to implement product:
 // 1. If the LHS is a scalar (dimension == 0), revert the order and reuse the implementation where the scalar is on the RHS.
 // 2. To avoid overhead, do not create temporary objects to reuse implementation, e.g. creating a 1x1 matrix from a scalar.
-// template <typename ImplementationLhsT_, int DimensionLhsV_, typename ImplementationRhsT_, int DimensionRhsV_>
-// struct ProductImpl;
-// template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
-//          typename ImplementationRhsT_, int DimensionRhsV_>
-// struct ProductImpl<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>, 0,
-//                   ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>, DimensionRhsV_> {
-//  using type = typename ProductImpl<ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>, DimensionRhsV_,
-//                                    ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>, 0>::type;
-//};
-// template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, int DimensionLhsV_, typename MatrixSizeRhsT_,
-//          typename ValueRhsT_, typename ImplementationRhsT_>
-// struct ProductImpl<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>, DimensionLhsV_,
-//                   ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>, 0> {
-//  using type = ValuesWrapper<typename Product<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
-//                             typename Product<ValueType<ValueLhsT_>, ValueType<ValueRhsT_>>::type,
-//                             typename Product<AccessImplementation<ImplementationLhsT_>,
-//                             AccessImplementation<ImplementationRhsT_>>::type>;
-//};
-// template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_,
-//          typename ImplementationRhsT_>
-// struct ProductImpl<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>, 0,
-//                   ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>, 0> {
-//  using type = ValuesWrapper<typename Product<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
-//                             typename Product<ValueType<ValueLhsT_>, ValueType<ValueRhsT_>>::type,
-//                             typename Product<AccessImplementation<ImplementationLhsT_>,
-//                             AccessImplementation<ImplementationRhsT_>>::type>;
-//};
-// template <typename MatrixSizeLhsT_, typename ValueLhsT_, typename ImplementationLhsT_, int DimensionLhsV_, typename MatrixSizeRhsT_,
-//          typename ValueRhsT_, typename ImplementationRhsT_, int DimensionRhsV_>
-// struct ProductImpl<ValuesWrapper<MatrixSizeLhsT_, ValueLhsT_, ImplementationLhsT_>, DimensionLhsV_,
-//                   ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>, DimensionRhsV_> {
-//  using type = ValuesWrapper<typename Product<MatrixSizeLhsT_, MatrixSizeRhsT_>::type,
-//                             typename Product<ValueType<ValueLhsT_>, ValueType<ValueRhsT_>>::type,
-//                             typename Product<AccessImplementation<ImplementationLhsT_>,
-//                             AccessImplementation<ImplementationRhsT_>>::type>;
-//};
-
 template <typename ValueLhsT_, typename MatrixSizeRhsT_, typename ValueRhsT_, typename ImplementationRhsT_>
 struct Product<ValueLhsT_, ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>> {
   using type = typename Product<ValuesWrapper<MatrixSizeRhsT_, ValueRhsT_, ImplementationRhsT_>, ValueLhsT_>::type;

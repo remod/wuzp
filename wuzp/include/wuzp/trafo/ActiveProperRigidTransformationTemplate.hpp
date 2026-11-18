@@ -21,7 +21,6 @@ namespace wuzp {
  * The translation leaves vectors, covectors and tensors with two upper indices unchanged, so they are only rotated, e.g. a
  * covector w into w R^T and a covariance S into R S R^T, and it rejects the other tensors, e.g. an inertia, which may depend on
  * the origin (see ActiveTranslation).
- * TODO(remod): Introduce class to arbitrarily chain transformations, and make this a typedef.
  */
 template <EuclideanCoordinateSystem CoordinateSystemT_, AnyRotation RotationT_, typename TranslationT_>
 class ActiveProperRigidTransformationTemplate

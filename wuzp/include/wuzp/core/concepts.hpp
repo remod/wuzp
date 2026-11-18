@@ -52,7 +52,7 @@ namespace internal {
 template <typename T>
 struct IsUnitMatrix : std::false_type {};
 template <int RowsV_, int ColsV_, typename... UnitsT_>
-struct IsUnitMatrix<TypeMatrixImpl<RowsV_, ColsV_, std::tuple<UnitsT_...>>> : std::bool_constant<(AnyUnit<UnitsT_> && ...)> {};
+struct IsUnitMatrix<TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<UnitsT_...>>> : std::bool_constant<(AnyUnit<UnitsT_> && ...)> {};
 
 template <typename T>
 struct IsMatrixSize : std::false_type {};

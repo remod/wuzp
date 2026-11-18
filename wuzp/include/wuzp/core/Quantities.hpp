@@ -135,7 +135,6 @@ class Quantities {
 
   auto transpose() const { return typename Evaluate<typename Transpose<ThisT>::type>::type{values_.transpose()}; }
 
-  // TODO(remod): Either a) remove methods, or b) remove free functions or c) make them re-use each other.
   template <typename ValuesOtherT_, typename UnitsOtherT_>
   auto innerProduct(const Quantities<ValuesOtherT_, UnitsOtherT_>& other) const {
     return typename Evaluate<typename InnerProduct<ThisT, Quantities<ValuesOtherT_, UnitsOtherT_>>::type>::type{
@@ -542,7 +541,6 @@ ValueT_ realPower(const ValueT_ base) {
 
 }  // namespace internal
 
-// TODO(remod): Implement for full matrices?
 /**
  * The quantity raised to a rational power P/Q, e.g. pow<Rational<1, 2>>(area) is a length.
  * The power is computed in floating point and converted to the value type. For integer values, a result that is not an integer
@@ -591,7 +589,5 @@ auto cos(const Quantity<ValuesT_, typename AccessUnits<AccessImplementation<type
   return Quantity<typename Evaluate<ValuesT_>::type, typename AccessUnits<AccessImplementation<typename ValuesT_::ValueT>>::Dimensionless>(
       std::cos(angle.getValue()));
 }
-
-// TODO(remod): add more math functions.
 
 }  // namespace wuzp

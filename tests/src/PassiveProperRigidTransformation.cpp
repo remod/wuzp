@@ -15,11 +15,15 @@
 using namespace wuzp;  // NOLINT
 
 TEST(TestPassiveProperRigidTransformation2, TransformPosition) {  // NOLINT
-  //  const Position2<double, FromCoordinateSystem> object{1.0, 2.0};
-  //  const Eigen::Quaterniond rotation{1.0, 0.0, 0.0, 0.0};
-  //  const Translation2<double, CoordinateSystemB> translation{1.0, 2.0};
-  //  const PassiveProperRigidTransformation2<FromCoordinateSystem, double> transformation{rotation, translation};
-  //  const result = transformation.transform{object};
+  using Object = PositionPoint2<ValueMatrix, double, CoordinateSystemA>;
+  using Transformation = PassiveProperRigidTransformation2<ValueMatrix, CoordinateSystemA, CoordinateSystemB, double>;
+  using TransformedObject = PositionPoint2<ValueMatrix, double, CoordinateSystemB>;
+  const Object object{1.0, 2.0};
+  const TransformedObject transformedObject{4.0, 2.0};
+  const Transformation::Rotation rotation{0.0, 1.0, -1.0, 0.0};  // Passive rotation of pi/2.
+  const Transformation::Translation translation{2.0, 3.0};
+  const Transformation transformation{rotation, translation};
+  EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
 TEST(TestPassiveProperRigidTransformation3, TransformVector) {  // NOLINT

@@ -65,31 +65,9 @@ using MassesJacobian = wuzp::Jacobian<ValueMatrix, double, MinimalCoordinateSyst
 using FirstMassJacobian = wuzp::Jacobian<ValueMatrix, double, MinimalCoordinateSystem, CartesianCoordinateSystem, 3, 2, Dimensionless,
                                          Dimensionless, LengthOverAngle, Dimensionless, Dimensionless, LengthOverAngle>;
 
-// class MinimalToCartesianTransformation
-//    : public wuzp::PassiveTransformation<MinimalToCartesianTransformation, MinimalCoordinateSystem, CartesianCoordinateSystem> {
-// public:
-//  static constexpr int DimensionTo = 4;
-//  static constexpr int DimensionFrom = 3;
-//  using ValuesT = ValueMatrix<double, DimensionTo, DimensionFrom>;
-//  using UnitMatrixT = TypeMatrix<DimensionTo, DimensionFrom, Units...>;
-//  using QuantitiesT = Quantities<ValuesT, UnitMatrixT>;
-//  using CoordinateSystemMatrixT = TypeMatrix<DimensionTo, DimensionFrom, CoordinateSystem>;
-//  using CoordinateMatrixT = CoordinateMatrix<QuantitiesT, CoordinateSystemMatrixT>;
-//  using TensorT = Tensor<1, 1, CoordinateMatrixT>;
-//
-//  template <typename... Args>
-//  explicit PassiveLinearTransformation(Args... args) : tensor_(args...) {}
-//
-//  const TensorT& getTensor() const { return tensor_; }
-//
-// private:
-//  TensorT tensor_;
-//};
-
-// TODO(remod): Create a custom transformation class for this?
+// The change of coordinates from the minimal coordinates to the positions of both masses. It maps points, which a Jacobian, its
+// derivative, does not (see computeMassesJacobian()).
 std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordinates& minimalCoordinates, const RadiusQuantity& radius) {
-  // TODO(remod): Temporarily cast to relative? Or define sin/cos for absolute quantities
-  // TODO(remod): Replace all autos by explicit types and then try to remove all evaluate calls.
   const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2, 0>()};
   const PositionVector positionVector{radius * DirectionVector{cos(relativeAngle), sin(relativeAngle)}};
   const PositionPoint position1{castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) + positionVector};
@@ -163,7 +141,6 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
 
   const MassQuantity massSum{mass1 + mass2};
   const MassQuantity massDifference{mass1 - mass2};
-  // TODO(remod): For vectors, make it possible to write <1> instead of <1, 0>.
   const EnergyQuantity energyMinimalCoordinates1{
       0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantity<0, 0>()) + pow<2>(minimalCoordinatesDt.getQuantity<1, 0>()) +
                         pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantity<2, 0>())) +

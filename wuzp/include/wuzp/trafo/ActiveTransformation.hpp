@@ -2,6 +2,7 @@
 
 #include <type_traits>
 
+#include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
 #include "wuzp/trafo/Transformation.hpp"
 #include "wuzp/trafo/traits.hpp"
@@ -10,15 +11,12 @@ namespace wuzp {
 
 //! An active transformation, which moves objects within its coordinate system (see Transformation).
 template <typename DerivedT_>
-class ActiveTransformation : public Transformation {
+class ActiveTransformation : public internal::Crtp<DerivedT_, Transformation> {
  public:
   template <typename Object>
   auto transform(const Object& object) const {
-    return TransformationTraits<DerivedT_, Object>::transform(derived(), object);
+    return TransformationTraits<DerivedT_, Object>::transform(this->derived(), object);
   }
-
- private:
-  const DerivedT_& derived() const { return static_cast<const DerivedT_&>(*this); }  // TODO(remod): Use CRTP class template from web.
 };
 
 /**
