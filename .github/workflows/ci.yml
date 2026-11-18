@@ -223,10 +223,29 @@ jobs:
     env:
       # The CI scripts count the cores with getconf, which Git Bash on Windows may not have. The runners have 4 cores.
       WUZP_JOBS: 4
+      VCPKG_PACKAGES: blitz boost-units eigen3 gtest
     steps:
       - uses: actions/checkout@v7
       - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756  # v1.13.0
-      - run: vcpkg install --triplet x64-windows blitz boost-units eigen3 gtest
+      # vcpkg builds the packages from source, which takes about 4 minutes. Its binary cache (by default in
+      # %LOCALAPPDATA%\vcpkg\archives) is kept between runs, per version of vcpkg's ports in the runner image and list of
+      # packages. Older caches are restored too: vcpkg reuses the packages in them whose ABI hash still matches. The cache is
+      # saved right after the installation, so that it is kept even if a test fails.
+      - name: Name the vcpkg cache
+        id: vcpkg-cache
+        run: echo "key=vcpkg-x64-windows-$(git -C "${VCPKG_INSTALLATION_ROOT}" rev-parse --short HEAD)-${VCPKG_PACKAGES// /-}" >> "${GITHUB_OUTPUT}"
+      - id: restore-vcpkg-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/AppData/Local/vcpkg/archives
+          key: ${{ steps.vcpkg-cache.outputs.key }}
+          restore-keys: vcpkg-x64-windows-
+      - run: vcpkg install --triplet x64-windows ${VCPKG_PACKAGES}
+      - if: steps.restore-vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/AppData/Local/vcpkg/archives
+          key: ${{ steps.vcpkg-cache.outputs.key }}
       - run: |
           TOOLCHAIN_FILE="$(cygpath --mixed "${VCPKG_INSTALLATION_ROOT}")/scripts/buildsystems/vcpkg.cmake"
           ci/test.sh msvc-${{ matrix.units }}-${{ matrix.values }} -D CMAKE_TOOLCHAIN_FILE="${TOOLCHAIN_FILE}"
