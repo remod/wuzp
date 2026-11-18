@@ -88,8 +88,11 @@ RUN if [ "${MP_UNITS}" = true ]; then \
 # (https://github.com/blitzpp/blitz/issues/177). The library works with both GCC and Clang.
 # CMAKE_POLICY_VERSION_MINIMUM: Blitz++ 1.0.2 declares a CMake minimum that CMake 4 no longer accepts.
 ARG BLITZ_VERSION=1.0.2
+ARG BLITZ_SHA256=500db9c3b2617e1f03d0e548977aec10d36811ba1c43bb5ef250c0e3853ae1c2
 RUN work_dir=$(mktemp -d) \
-    && curl -fsSL "https://github.com/blitzpp/blitz/archive/refs/tags/${BLITZ_VERSION}.tar.gz" | tar -xz -C "${work_dir}" \
+    && curl -fsSL -o "${work_dir}/blitz.tar.gz" "https://github.com/blitzpp/blitz/archive/refs/tags/${BLITZ_VERSION}.tar.gz" \
+    && echo "${BLITZ_SHA256}  ${work_dir}/blitz.tar.gz" | sha256sum --check --quiet \
+    && tar -xzf "${work_dir}/blitz.tar.gz" -C "${work_dir}" \
     && cmake -S "${work_dir}/blitz-${BLITZ_VERSION}" -B "${work_dir}/build" -G Ninja -Wno-dev \
         -D CMAKE_BUILD_TYPE=Release -D CMAKE_CXX_COMPILER=g++ -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -D CMAKE_WARN_DEPRECATED=OFF > /dev/null \
