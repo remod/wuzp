@@ -228,20 +228,22 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756  # v1.13.0
       # vcpkg builds the packages from source, which takes about 4 minutes. Its binary cache (by default in
-      # %LOCALAPPDATA%\vcpkg\archives) is kept between runs, per version of vcpkg's ports in the runner image and list of
-      # packages. Older caches are restored too: vcpkg reuses the packages in them whose ABI hash still matches. The cache is
-      # saved right after the installation, so that it is kept even if a test fails.
+      # %LOCALAPPDATA%\vcpkg\archives) is kept between runs, per version of the runner image, which fixes vcpkg's ports,
+      # MSVC, the Windows SDK and CMake, and per list of packages. There are no restore keys: vcpkg never deletes the
+      # archives it no longer uses, so restoring older caches would grow the cache with every image update. The cache is
+      # saved right after the installation, so that it is kept even if a test fails. Saving is best effort: the four jobs
+      # race to save the same key, and pull requests from forks may not be allowed to save.
       - name: Name the vcpkg cache
         id: vcpkg-cache
-        run: echo "key=vcpkg-x64-windows-$(git -C "${VCPKG_INSTALLATION_ROOT}" rev-parse --short HEAD)-${VCPKG_PACKAGES// /-}" >> "${GITHUB_OUTPUT}"
+        run: echo "key=vcpkg-${ImageOS:?}-${ImageVersion:?}-x64-windows-${VCPKG_PACKAGES// /-}" >> "${GITHUB_OUTPUT}"
       - id: restore-vcpkg-cache
         uses: actions/cache/restore@v6
         with:
           path: ~/AppData/Local/vcpkg/archives
           key: ${{ steps.vcpkg-cache.outputs.key }}
-          restore-keys: vcpkg-x64-windows-
       - run: vcpkg install --triplet x64-windows ${VCPKG_PACKAGES}
       - if: steps.restore-vcpkg-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
         uses: actions/cache/save@v6
         with:
           path: ~/AppData/Local/vcpkg/archives
