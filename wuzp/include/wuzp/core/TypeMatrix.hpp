@@ -168,8 +168,7 @@ struct Cols<TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, Types>> {
 
 template <int RowsV_, int ColsV_, typename... Types, int ElementRowIdV_, int ElementColIdV_>
 struct Element<TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<Types...>>, ElementRowIdV_, ElementColIdV_> {
-  static_assert(ElementRowIdV_ >= 0 && ElementRowIdV_ < RowsV_, "Element row id is out of range.");
-  static_assert(ElementColIdV_ >= 0 && ElementColIdV_ < ColsV_, "Element columns id is out of range.");
+  static_assert(internal::RequireElementInRange<MatrixSize<RowsV_, ColsV_>, ElementRowIdV_, ElementColIdV_>::value);
   using type = typename std::tuple_element<std::size_t{ElementRowIdV_ * ColsV_ + ElementColIdV_}, std::tuple<Types...>>::type;
 };
 

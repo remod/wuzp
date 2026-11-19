@@ -44,6 +44,7 @@ using MatrixI = Tensor<IndicesT, Quantities<ValueMatrix<int, DimensionV, Dimensi
 using LengthQuantityI = QuantityI<Length>;
 using SquaredLengthQuantityI = QuantityI<Power<Length, Integer<2>>::type>;
 using MassQuantityI = QuantityI<Mass>;
+using TimeQuantityI = QuantityI<Time>;
 using AreaQuantityI = QuantityI<Area>;
 
 template <typename TensorT>
@@ -329,14 +330,90 @@ TEST_F(TestHomogeneousTensorF, GetQuantityRunTime) {  // NOLINT
   EXPECT_EQ(getTensor().getQuantity(1, 0), LengthQuantityI{4});
 }
 
-TEST_F(TestHomogeneousTensorF, SetQuantityCompileTime) {  // NOLINT
+TEST_F(TestHomogeneousTensorF, SetQuantityRunTime) {  // NOLINT
   getTensor().setQuantity(1, 0, LengthQuantityI{1});
   EXPECT_EQ(getTensor().getQuantity(1, 0), LengthQuantityI{1});
 }
 
-TEST_F(TestTensorF, SetQuantityRunTime) {  // NOLINT
+TEST_F(TestTensorF, SetQuantityCompileTime) {  // NOLINT
   getTensor().setQuantity<1, 0>(MassQuantityI{1});
   EXPECT_EQ((getTensor().getQuantity<1, 0>()), MassQuantityI{1});
+}
+
+namespace {
+
+// A vector and a covector with a different unit for each component, so that the type of a component shows its index.
+using HeterogeneousVectorI =
+    Tensor<Indices<Up>, Quantities<ValueMatrix<int, 3, 1>, TypeMatrix<3, 1, Length, Mass, Time>>, CoordinateSystemA, Relative>;
+using HeterogeneousCovectorI =
+    Tensor<Indices<Down>, Quantities<ValueMatrix<int, 1, 3>, TypeMatrix<1, 3, Length, Mass, Time>>, CoordinateSystemA, Relative>;
+
+}  // namespace
+
+// The components of tensors of dimension 1 have a single index, like v(i) in Eigen (#75): the row of a vector or a point, and
+// the column of a covector. It is checked at compile time (compile test Tensor.GetQuantityBySingleIndexOutOfRange), matrices do
+// not have it (see MembersRequireTheirDimension), and batches reject it (compile test Tensor.GetQuantityBySingleIndexOfBatch).
+TEST(TestTensor2, GetQuantityBySingleIndexCompileTime) {  // NOLINT
+  const HeterogeneousVectorI vector{1, 2, 3};
+  EXPECT_EQ(vector.getQuantity<0>(), LengthQuantityI{1});
+  EXPECT_EQ(vector.getQuantity<1>(), MassQuantityI{2});
+  EXPECT_EQ(vector.getQuantity<2>(), (vector.getQuantity<2, 0>()));
+  const HeterogeneousCovectorI covector{1, 2, 3};
+  EXPECT_EQ(covector.getQuantity<0>(), LengthQuantityI{1});
+  EXPECT_EQ(covector.getQuantity<1>(), MassQuantityI{2});
+  EXPECT_EQ(covector.getQuantity<2>(), (covector.getQuantity<0, 2>()));
+  const PositionPoint3<ValueMatrix, int, CoordinateSystemA> point{1, 2, 3};
+  EXPECT_EQ(point.getQuantity<2>(), LengthQuantityI{3});
+}
+
+TEST(TestTensor2, SetQuantityBySingleIndexCompileTime) {  // NOLINT
+  HeterogeneousVectorI vector{1, 2, 3};
+  vector.setQuantity<1>(MassQuantityI{5});
+  EXPECT_EQ(vector, (HeterogeneousVectorI{1, 5, 3}));
+  HeterogeneousCovectorI covector{1, 2, 3};
+  covector.setQuantity<2>(TimeQuantityI{6});
+  EXPECT_EQ(covector, (HeterogeneousCovectorI{1, 2, 6}));
+  PositionPoint3<ValueMatrix, int, CoordinateSystemA> point{1, 2, 3};
+  point.setQuantity<0>(LengthQuantityI{4});
+  EXPECT_EQ(point, (PositionPoint3<ValueMatrix, int, CoordinateSystemA>{4, 2, 3}));
+}
+
+// Like the access by a row and a column at run time, the access by a single index at run time requires the components to have
+// the same unit.
+TEST(TestTensor2, GetAndSetQuantityBySingleIndexRunTime) {  // NOLINT
+  VectorI<3, Length> vector{1, 2, 3};
+  vector.setQuantity(1, LengthQuantityI{5});
+  EXPECT_EQ(vector.getQuantity(1), LengthQuantityI{5});
+  EXPECT_EQ(vector, (VectorI<3, Length>{1, 5, 3}));
+  CovectorI<3, Length> covector{1, 2, 3};
+  covector.setQuantity(2, LengthQuantityI{6});
+  EXPECT_EQ(covector.getQuantity(2), LengthQuantityI{6});
+  EXPECT_EQ(covector, (CovectorI<3, Length>{1, 2, 6}));
+  PositionPoint3<ValueMatrix, int, CoordinateSystemA> point{1, 2, 3};
+  point.setQuantity(0, LengthQuantityI{4});
+  EXPECT_EQ(point.getQuantity(0), LengthQuantityI{4});
+  EXPECT_EQ(point, (PositionPoint3<ValueMatrix, int, CoordinateSystemA>{4, 2, 3}));
+}
+
+// One-dimensional vectors and points, e.g. time points, are stored as 1x1 matrices, so they have dimension 0: their only
+// component has the single index 0, like v(0) of a 1x1 matrix in Eigen, so that code that is generic over the dimension also
+// works in one dimension. Another index is out of range (compile test Tensor.GetQuantityOfOneDimensionalVectorOutOfRange).
+TEST(TestTensor2, GetAndSetQuantityBySingleIndexInOneDimension) {  // NOLINT
+  VectorI<1, Length> vector{1};
+  EXPECT_EQ(vector.getQuantity<0>(), vector.getQuantity());
+  EXPECT_EQ(vector.getQuantity(0), LengthQuantityI{1});
+  vector.setQuantity<0>(LengthQuantityI{2});
+  EXPECT_EQ(vector, (VectorI<1, Length>{2}));
+  vector.setQuantity(0, LengthQuantityI{3});
+  EXPECT_EQ(vector, (VectorI<1, Length>{3}));
+  using TimePointI = TimePoint<ValueMatrix, int, CoordinateSystemA>;
+  TimePointI timePoint{4};
+  EXPECT_EQ(timePoint.getQuantity<0>(), TimeQuantityI{4});
+  EXPECT_EQ(timePoint.getQuantity(0), TimeQuantityI{4});
+  timePoint.setQuantity<0>(TimeQuantityI{5});
+  EXPECT_EQ(timePoint, TimePointI{5});
+  timePoint.setQuantity(0, TimeQuantityI{6});
+  EXPECT_EQ(timePoint, TimePointI{6});
 }
 
 TEST_F(TestTensorF, Block) {  // NOLINT
@@ -917,7 +994,7 @@ TEST(TestTensor, CopyIsIndependentOfTheOriginal) {  // NOLINT
   PointInA original{1.0, 2.0, 3.0};
   const PointInA copy{original};  // From a non-const object.
   const PointInA copyInitialized = original;
-  original.setQuantity<0, 0>(QuantityD<Length>{42.0});
+  original.setQuantity<0>(QuantityD<Length>{42.0});
   EXPECT_EQ(copy, (PointInA{1.0, 2.0, 3.0}));
   EXPECT_EQ(copyInitialized, (PointInA{1.0, 2.0, 3.0}));
 }
@@ -981,6 +1058,14 @@ concept HasGetQuantity = requires(const TensorT_& tensor) { tensor.getQuantity()
 template <typename TensorT_>
 concept HasSetQuantity = requires(TensorT_& tensor) { tensor.setQuantity(QuantityD<Length>{1.0}); };
 template <typename TensorT_>
+concept HasGetQuantityBySingleIndex = requires(const TensorT_& tensor) { tensor.template getQuantity<0>(); };
+template <typename TensorT_>
+concept HasSetQuantityBySingleIndex = requires(TensorT_& tensor) { tensor.template setQuantity<0>(QuantityD<Length>{1.0}); };
+template <typename TensorT_>
+concept HasGetQuantityBySingleIndexRunTime = requires(const TensorT_& tensor) { tensor.getQuantity(0); };
+template <typename TensorT_>
+concept HasSetQuantityBySingleIndexRunTime = requires(TensorT_& tensor) { tensor.setQuantity(0, QuantityD<Length>{1.0}); };
+template <typename TensorT_>
 concept HasNorm = requires(const TensorT_& tensor) { tensor.norm(); };
 template <typename TensorT_>
 concept HasSquaredNorm = requires(const TensorT_& tensor) { tensor.squaredNorm(); };
@@ -989,17 +1074,35 @@ concept HasDeterminant = requires(const TensorT_& tensor) { tensor.determinant()
 
 using ScalarInA = Tensor<Indices<>, TestQuantities<1, 1>, CoordinateSystemA, Relative>;
 using MatrixInA = Tensor<Indices<Up, Down>, TestQuantities<3, 3>, CoordinateSystemA, Relative>;
+using CovectorInA = Tensor<Indices<Down>, TestQuantities<1, 3>, CoordinateSystemA, Relative>;
 
 }  // namespace
 
-// The members for single quantities only exist for tensors of dimension 0, and the norms for dimensions 0 and 1: their requires
-// clauses remove them from the others. The determinant exists for every tensor, like the inverse, and rejects vectors and
-// covectors with a static_assert (compile test Tensor.DeterminantOfVector).
+// The members for single quantities only exist for tensors of dimension 0, and those for a single index and the norms for
+// dimensions 0 and 1: their requires clauses remove them from the others (compile test Tensor.GetQuantityOfMatrixBySingleIndex).
+// The determinant exists for every tensor, like the inverse, and rejects vectors and covectors with a static_assert (compile test
+// Tensor.DeterminantOfVector).
 TEST(TestTensor, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasGetQuantity<ScalarInA>);
   static_assert(!HasGetQuantity<VectorInA>);
   static_assert(HasSetQuantity<ScalarInA>);
   static_assert(!HasSetQuantity<VectorInA>);
+  static_assert(HasGetQuantityBySingleIndex<VectorInA>);
+  static_assert(HasGetQuantityBySingleIndex<CovectorInA>);
+  static_assert(HasGetQuantityBySingleIndex<ScalarInA>);
+  static_assert(!HasGetQuantityBySingleIndex<MatrixInA>);
+  static_assert(HasSetQuantityBySingleIndex<VectorInA>);
+  static_assert(HasSetQuantityBySingleIndex<CovectorInA>);
+  static_assert(HasSetQuantityBySingleIndex<ScalarInA>);
+  static_assert(!HasSetQuantityBySingleIndex<MatrixInA>);
+  static_assert(HasGetQuantityBySingleIndexRunTime<VectorInA>);
+  static_assert(HasGetQuantityBySingleIndexRunTime<CovectorInA>);
+  static_assert(HasGetQuantityBySingleIndexRunTime<ScalarInA>);
+  static_assert(!HasGetQuantityBySingleIndexRunTime<MatrixInA>);
+  static_assert(HasSetQuantityBySingleIndexRunTime<VectorInA>);
+  static_assert(HasSetQuantityBySingleIndexRunTime<CovectorInA>);
+  static_assert(HasSetQuantityBySingleIndexRunTime<ScalarInA>);
+  static_assert(!HasSetQuantityBySingleIndexRunTime<MatrixInA>);
   static_assert(HasNorm<ScalarInA>);
   static_assert(HasNorm<VectorInA>);
   static_assert(!HasNorm<MatrixInA>);

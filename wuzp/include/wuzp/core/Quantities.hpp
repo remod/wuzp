@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "wuzp/core/Integer.hpp"
+#include "wuzp/core/MatrixSize.hpp"
 #include "wuzp/core/Quantity.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
@@ -59,7 +60,25 @@ class Quantities {
     return typename Element<ThisT, RowIdV_, ColIdV_>::type{values_.template get<RowIdV_, ColIdV_>()};
   }
 
+  //! The quantity with the single index IdV_ of quantities of dimension 0 or 1: the row of a column, e.g. of a vector, the
+  //! column of a row, e.g. of a covector, or 0 for a 1x1 matrix (see internal::vectorElementRowId()). Like
+  //! get<RowIdV_, ColIdV_>(), it checks the index at compile time and has the unit of the element.
+  template <int IdV_>
+  auto get() const
+    requires(Dimension<ThisT>::value <= 1)
+  {
+    return get<internal::vectorElementRowId<ThisT>(IdV_), internal::vectorElementColId<ThisT>(IdV_)>();
+  }
+
   auto get(const int rowId, const int colId) const { return typename GetType<ThisT>::type{values_.get(rowId, colId)}; }
+
+  //! The quantity with the single index id of quantities of dimension 0 or 1, like get<IdV_>(), but with an index known at run
+  //! time, which, like get(rowId, colId), requires all elements to have the same unit.
+  auto get(const int id) const
+    requires(Dimension<ThisT>::value <= 1)
+  {
+    return get(internal::vectorElementRowId<ThisT>(id), internal::vectorElementColId<ThisT>(id));
+  }
 
   template <typename ValueT_, typename UnitT_>
   void set(const Quantity<ValueT_, UnitT_>& quantity)
@@ -74,11 +93,29 @@ class Quantities {
     values_.template set<RowIdV_, ColIdV_>(quantity.getValue());
   }
 
+  //! Sets the quantity with the single index IdV_ of quantities of dimension 0 or 1 (see get<IdV_>()), like
+  //! set<RowIdV_, ColIdV_>(), which checks the index and the unit at compile time.
+  template <int IdV_, typename ValueT_, typename UnitT_>
+  void set(const Quantity<ValueT_, UnitT_>& quantity)
+    requires(Dimension<ThisT>::value <= 1)
+  {
+    set<internal::vectorElementRowId<ThisT>(IdV_), internal::vectorElementColId<ThisT>(IdV_)>(quantity);
+  }
+
   template <typename ValueT_, typename UnitT_>
   void set(const int rowId, const int colId, const Quantity<ValueT_, UnitT_>& quantity) {
     static_assert(IsHomogeneous<ThisT>::value, "Quantities are not homogeneous.");
     static_assert(std::is_same<typename Element<UnitsT, 0, 0>::type, UnitT_>::value, "Units do not match.");
     values_.set(rowId, colId, quantity.getValue());
+  }
+
+  //! Sets the quantity with the single index id of quantities of dimension 0 or 1, like set<IdV_>(), but with an index known at
+  //! run time, which, like set(rowId, colId, quantity), requires all elements to have the same unit.
+  template <typename ValueT_, typename UnitT_>
+  void set(const int id, const Quantity<ValueT_, UnitT_>& quantity)
+    requires(Dimension<ThisT>::value <= 1)
+  {
+    set(internal::vectorElementRowId<ThisT>(id), internal::vectorElementColId<ThisT>(id), quantity);
   }
 
   /**

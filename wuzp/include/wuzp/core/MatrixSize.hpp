@@ -121,4 +121,36 @@ struct Block<MatrixSize<RowsV_, ColsV_>, BlockRowIdV_, BlockColIdV_, BlockRowsV_
   using type = MatrixSize<BlockRowsV_, BlockColsV_>;
 };
 
+namespace internal {
+
+//! Rejects an element outside a matrix of the size MatrixSizeT_, with the same messages for the values (see ValuesWrapper::get())
+//! and the units (see Element<TypeMatrixImpl<...>>): `static_assert(RequireElementInRange<MatrixSizeT_, RowIdV_, ColIdV_>::value)`.
+//! The value is always true, so that an element out of range fails with these messages only.
+template <typename MatrixSizeT_, int RowIdV_, int ColIdV_>
+struct RequireElementInRange {
+  static_assert(RowIdV_ >= 0 && RowIdV_ < Rows<MatrixSizeT_>::value, "Element row id is out of range.");
+  static_assert(ColIdV_ >= 0 && ColIdV_ < Cols<MatrixSizeT_>::value, "Element columns id is out of range.");
+  static constexpr bool value = true;
+};
+
+//! The row of the element with the single index id of an object of dimension 0 or 1, a column or a row, e.g. a vector or a
+//! covector: the index is the row of a column and the column of a row, like the single index of vectors in Eigen, v(i) and v[i]
+//! (https://eigen.tuxfamily.org/dox/group__TutorialMatrixClass.html, "Coefficient accessors"), and like the index of a vector,
+//! a column, and of a covector, a row, in Carroll's notation (Lecture Notes on General Relativity,
+//! https://arxiv.org/abs/gr-qc/9712019, eq. 1.39). The only element of a 1x1 object, e.g. a one-dimensional vector or point,
+//! has the index 0, like v(0) of a 1x1 matrix in Eigen, so that code that is generic over the dimension also works in one
+//! dimension.
+template <typename ObjectT_>
+constexpr int vectorElementRowId(const int id) {
+  return Cols<ObjectT_>::value == 1 ? id : 0;
+}
+
+//! The column of the element with the single index id of an object of dimension 0 or 1 (see vectorElementRowId()).
+template <typename ObjectT_>
+constexpr int vectorElementColId(const int id) {
+  return Cols<ObjectT_>::value == 1 ? 0 : id;
+}
+
+}  // namespace internal
+
 }  // namespace wuzp

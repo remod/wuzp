@@ -182,7 +182,34 @@ class Tensor {
     return quantities_.template get<RowIdV_, ColIdV_>();
   }
 
+  // The members with a single index are defined for tensors of dimension 0 and 1. Batches of vectors and points have them too, so
+  // that they are rejected with a clear message, also those of dimension 1, e.g. of time points, stored as a row, whose single
+  // index would select a member of the batch rather than a component. getQuantity<RowIdV_, ColIdV_>() selects the component
+  // RowIdV_ of the member ColIdV_.
+
+  //! The component with the single index IdV_ of a vector, a point or a covector, e.g. velocity.getQuantity<1>() for v^1 of a
+  //! vector or a point, or w_1 of a covector: the row of a vector, a column, and the column of a covector, a row. The only
+  //! component of a scalar or of a one-dimensional vector or point, e.g. a TimePoint, both stored as a 1x1 matrix, has the index
+  //! 0, so that code that is generic over the dimension also works in one dimension (see internal::vectorElementRowId()). Like
+  //! getQuantity<RowIdV_, ColIdV_>(), it checks the index at compile time and has the unit of the component.
+  template <int IdV_>
+  auto getQuantity() const
+    requires(Dimension<ThisT>::value <= 1 || internal::isBatch<IndicesT, QuantitiesT>)
+  {
+    static_assert(internal::RejectBatch<IndicesT, QuantitiesT>::value);
+    return quantities_.template get<IdV_>();
+  }
+
   auto getQuantity(const int rowId, const int colId) const { return quantities_.get(rowId, colId); }
+
+  //! The component with the single index id of a vector, a point or a covector, like getQuantity<IdV_>(), but with an index known
+  //! at run time, which, like getQuantity(rowId, colId), requires all components to have the same unit.
+  auto getQuantity(const int id) const
+    requires(Dimension<ThisT>::value <= 1 || internal::isBatch<IndicesT, QuantitiesT>)
+  {
+    static_assert(internal::RejectBatch<IndicesT, QuantitiesT>::value);
+    return quantities_.get(id);
+  }
 
   template <typename QuantityT_>
   void setQuantity(const QuantityT_& quantity)
@@ -196,9 +223,29 @@ class Tensor {
     return quantities_.template set<RowIdV_, ColIdV_>(quantity);
   }
 
+  //! Sets the component with the single index IdV_ of a vector, a point or a covector, e.g. velocity.setQuantity<1>(speed) (see
+  //! getQuantity<IdV_>()), like setQuantity<RowIdV_, ColIdV_>(), which checks the index and the unit at compile time.
+  template <int IdV_, typename QuantityT_>
+  void setQuantity(const QuantityT_& quantity)
+    requires(Dimension<ThisT>::value <= 1 || internal::isBatch<IndicesT, QuantitiesT>)
+  {
+    static_assert(internal::RejectBatch<IndicesT, QuantitiesT>::value);
+    quantities_.template set<IdV_>(quantity);
+  }
+
   template <typename QuantityT_>
   void setQuantity(const int rowId, const int colId, const QuantityT_& quantity) {
     quantities_.set(rowId, colId, quantity);
+  }
+
+  //! Sets the component with the single index id of a vector, a point or a covector, like setQuantity<IdV_>(), but with an index
+  //! known at run time, which, like setQuantity(rowId, colId, quantity), requires all components to have the same unit.
+  template <typename QuantityT_>
+  void setQuantity(const int id, const QuantityT_& quantity)
+    requires(Dimension<ThisT>::value <= 1 || internal::isBatch<IndicesT, QuantitiesT>)
+  {
+    static_assert(internal::RejectBatch<IndicesT, QuantitiesT>::value);
+    quantities_.set(id, quantity);
   }
 
   // The member functions and operators return evaluated results (see ValuesWrapper), of the evaluated types of the traits.

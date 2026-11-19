@@ -479,6 +479,28 @@ TEST(TestValuesWrapper, SetElementOfAnotherType) {  // NOLINT
   EXPECT_EQ(value.get(), 3.0F);
 }
 
+// Values of dimension 1, a column or a row, have a single index, like v(i) in Eigen (#75): the row of a column and the column of
+// a row. The only element of 1x1 values has the index 0. The compile-time index is checked at compile time (compile test
+// ValuesWrapper.GetElementBySingleIndexOutOfRange).
+TEST(TestValuesWrapper, SetGetBySingleIndex) {  // NOLINT
+  ValueMatrix<int, 3, 1> column{1, 2, 3};
+  EXPECT_EQ(column.get<1>(), 2);
+  EXPECT_EQ(column.get(2), 3);
+  column.set<0>(4);
+  column.set(2, 5);
+  EXPECT_EQ(column, (ValueMatrix<int, 3, 1>{4, 2, 5}));
+  ValueMatrix<int, 1, 3> row{1, 2, 3};
+  EXPECT_EQ(row.get<1>(), 2);
+  EXPECT_EQ(row.get(2), 3);
+  row.set<0>(4);
+  row.set(2, 5);
+  EXPECT_EQ(row, (ValueMatrix<int, 1, 3>{4, 2, 5}));
+  Value<int> value{1};
+  EXPECT_EQ(value.get<0>(), 1);
+  value.set(0, 2);
+  EXPECT_EQ(value.get(0), 2);
+}
+
 TEST(TestValuesWrapper, Evaluate) {  // NOLINT
   const ValueMatrix<int, 2, 3> lhs{1, 2, 3, 4, 5, 6};
   const ValueMatrix<int, 2, 3> rhs{3, 4, 1, 5, 6, 2};
@@ -604,15 +626,40 @@ template <typename ValuesT_>
 concept HasGet = requires(const ValuesT_& values) { values.get(); };
 template <typename ValuesT_>
 concept HasSet = requires(ValuesT_& values) { values.set(1.0); };
+template <typename ValuesT_>
+concept HasGetBySingleIndex = requires(const ValuesT_& values) { values.template get<0>(); };
+template <typename ValuesT_>
+concept HasSetBySingleIndex = requires(ValuesT_& values) { values.template set<0>(1.0); };
+template <typename ValuesT_>
+concept HasGetBySingleIndexRunTime = requires(const ValuesT_& values) { values.get(0); };
+template <typename ValuesT_>
+concept HasSetBySingleIndexRunTime = requires(ValuesT_& values) { values.set(0, 1.0); };
 
 }  // namespace
 
-// The members for single values only exist for values of dimension 0: their requires clauses remove them from the others.
+// The members for single values only exist for values of dimension 0, and those for a single index for dimensions 0 and 1:
+// their requires clauses remove them from the others.
 TEST(TestValuesWrapper, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasGet<ValueMatrix<double, 1, 1>>);
   static_assert(!HasGet<ValueMatrix<double, 3, 1>>);
   static_assert(HasSet<ValueMatrix<double, 1, 1>>);
   static_assert(!HasSet<ValueMatrix<double, 3, 1>>);
+  static_assert(HasGetBySingleIndex<ValueMatrix<double, 3, 1>>);
+  static_assert(HasGetBySingleIndex<ValueMatrix<double, 1, 3>>);
+  static_assert(HasGetBySingleIndex<ValueMatrix<double, 1, 1>>);
+  static_assert(!HasGetBySingleIndex<ValueMatrix<double, 3, 3>>);
+  static_assert(HasSetBySingleIndex<ValueMatrix<double, 3, 1>>);
+  static_assert(HasSetBySingleIndex<ValueMatrix<double, 1, 3>>);
+  static_assert(HasSetBySingleIndex<ValueMatrix<double, 1, 1>>);
+  static_assert(!HasSetBySingleIndex<ValueMatrix<double, 3, 3>>);
+  static_assert(HasGetBySingleIndexRunTime<ValueMatrix<double, 3, 1>>);
+  static_assert(HasGetBySingleIndexRunTime<ValueMatrix<double, 1, 3>>);
+  static_assert(HasGetBySingleIndexRunTime<ValueMatrix<double, 1, 1>>);
+  static_assert(!HasGetBySingleIndexRunTime<ValueMatrix<double, 3, 3>>);
+  static_assert(HasSetBySingleIndexRunTime<ValueMatrix<double, 3, 1>>);
+  static_assert(HasSetBySingleIndexRunTime<ValueMatrix<double, 1, 3>>);
+  static_assert(HasSetBySingleIndexRunTime<ValueMatrix<double, 1, 1>>);
+  static_assert(!HasSetBySingleIndexRunTime<ValueMatrix<double, 3, 3>>);
   static_assert(std::is_convertible_v<ValueMatrix<double, 1, 1>, double>);
   static_assert(!std::is_convertible_v<ValueMatrix<double, 3, 1>, double>);
 }

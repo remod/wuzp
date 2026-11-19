@@ -68,7 +68,7 @@ using FirstMassJacobian = wuzp::Jacobian<ValueMatrix, double, MinimalCoordinateS
 // The change of coordinates from the minimal coordinates to the positions of both masses. It maps points, which a Jacobian, its
 // derivative, does not (see computeMassesJacobian()).
 std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordinates& minimalCoordinates, const RadiusQuantity& radius) {
-  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2, 0>()};
+  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2>()};
   const PositionVector positionVector{radius * DirectionVector{cos(relativeAngle), sin(relativeAngle)}};
   const PositionPoint position1{castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) + positionVector};
   const PositionPoint position2{castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinates.block<0, 0, 2, 1>()) - positionVector};
@@ -78,8 +78,8 @@ std::pair<PositionPoint, PositionPoint> minimalToCartesian(const MinimalCoordina
 std::pair<VelocityVector, VelocityVector> minimalToCartesian(const MinimalCoordinates& minimalCoordinates,
                                                              const MinimalCoordinatesDt& minimalCoordinatesDt,
                                                              const RadiusQuantity& radius) {
-  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2, 0>()};
-  const VelocityVector velocityVector{radius * minimalCoordinatesDt.getQuantity<2, 0>() *
+  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2>()};
+  const VelocityVector velocityVector{radius * minimalCoordinatesDt.getQuantity<2>() *
                                       DirectionVector(-sin(relativeAngle), cos(relativeAngle))};
   const VelocityVector velocity1{castCoordinateSystem<CartesianCoordinateSystem>(minimalCoordinatesDt.block<0, 0, 2, 1>()) +
                                  velocityVector};
@@ -93,7 +93,7 @@ namespace {
 // The mass matrix of the minimal coordinates (see TestCoordinateMatrix2.RotatingDumbbell).
 MassMatrix computeMassMatrix(const MinimalCoordinates& minimalCoordinates, const RadiusQuantity& radius, const MassQuantity& mass1,
                              const MassQuantity& mass2) {
-  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2, 0>()};
+  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2>()};
   const MassQuantity massSum{mass1 + mass2};
   const MassQuantity massDifference{mass1 - mass2};
   const MassQuantity massMatrix00{massSum};
@@ -110,7 +110,7 @@ MassMatrix computeMassMatrix(const MinimalCoordinates& minimalCoordinates, const
 MassesJacobian computeMassesJacobian(const MinimalCoordinates& minimalCoordinates, const RadiusQuantity& radius) {
   using DimensionlessQuantity = QuantityD<Dimensionless>;
   using LengthOverAngleQuantity = QuantityD<LengthOverAngle>;
-  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2, 0>()};
+  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2>()};
   const DimensionlessQuantity one{1.0};
   const DimensionlessQuantity zero{0.0};
   const LengthOverAngleQuantity dx1dphi{-radius * sin(relativeAngle)};
@@ -137,16 +137,16 @@ TEST(TestCoordinateMatrix2, RotatingDumbbell) {  // NOLINT
   const EnergyQuantity energyCartesianCoordinates{
       0.5 * (mass1 * cartesianCoordinatesDt.first.squaredNorm() + mass2 * cartesianCoordinatesDt.second.squaredNorm())};
 
-  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2, 0>()};
+  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2>()};
 
   const MassQuantity massSum{mass1 + mass2};
   const MassQuantity massDifference{mass1 - mass2};
   const EnergyQuantity energyMinimalCoordinates1{
-      0.5 * (massSum * (pow<2>(minimalCoordinatesDt.getQuantity<0, 0>()) + pow<2>(minimalCoordinatesDt.getQuantity<1, 0>()) +
-                        pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantity<2, 0>())) +
-             2.0 * radius * massDifference * minimalCoordinatesDt.getQuantity<2, 0>() *
-                 (cos(relativeAngle) * minimalCoordinatesDt.getQuantity<1, 0>() -
-                  sin(relativeAngle) * minimalCoordinatesDt.getQuantity<0, 0>()))};
+      0.5 *
+      (massSum * (pow<2>(minimalCoordinatesDt.getQuantity<0>()) + pow<2>(minimalCoordinatesDt.getQuantity<1>()) +
+                  pow<2>(radius) * pow<2>(minimalCoordinatesDt.getQuantity<2>())) +
+       2.0 * radius * massDifference * minimalCoordinatesDt.getQuantity<2>() *
+           (cos(relativeAngle) * minimalCoordinatesDt.getQuantity<1>() - sin(relativeAngle) * minimalCoordinatesDt.getQuantity<0>()))};
 
   const MassMatrix massMatrix{computeMassMatrix(minimalCoordinates, radius, mass1, mass2)};
 
@@ -192,7 +192,7 @@ TEST(TestRotatingDumbbell, OperationalSpaceInertia) {  // NOLINT
   const FirstMassJacobian jacobian{computeMassesJacobian(minimalCoordinates, radius).getQuantities().block<0, 0, 2, 3>()};
   const CartesianMassMatrix operationalSpaceInertia{jacobian.transform(massMatrix.inverse()).inverse()};
 
-  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2, 0>()};
+  const AngleQuantity relativeAngle{minimalCoordinates.getQuantity<2>()};
   const DirectionVector direction{cos(relativeAngle), sin(relativeAngle)};
   const DirectionVector normal{-sin(relativeAngle), cos(relativeAngle)};
   const CartesianMassMatrix expected{(mass1 + mass2) * outerProduct(direction.transpose(), direction.transpose()) +

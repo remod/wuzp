@@ -178,6 +178,35 @@ TEST(TestQuantities2, SetQuantityOfAnotherValueType) {  // NOLINT
   EXPECT_EQ(quantities, (TestQuantities<2, 1>{2.0, 3.0}));
 }
 
+// Quantities of dimension 1, a column or a row, have a single index, like v(i) in Eigen (#75): the row of a column and the column
+// of a row, and the only element of a 1x1 matrix has the index 0. The compile-time index selects the unit of the element, the
+// run-time index requires a single unit.
+TEST(TestQuantities2, SetGetQuantityBySingleIndex) {  // NOLINT
+  using Column = Quantities<ValueMatrix<int, 3, 1>, TypeMatrix<3, 1, Length, Mass, Time>>;
+  using Row = Quantities<ValueMatrix<int, 1, 3>, TypeMatrix<1, 3, Length, Mass, Time>>;
+  Column column{1, 2, 3};
+  EXPECT_EQ(column.get<1>(), QuantityI<Mass>{2});
+  column.set<2>(QuantityI<Time>{4});
+  EXPECT_EQ(column, (Column{1, 2, 4}));
+  Row row{1, 2, 3};
+  EXPECT_EQ(row.get<1>(), QuantityI<Mass>{2});
+  row.set<2>(QuantityI<Time>{4});
+  EXPECT_EQ(row, (Row{1, 2, 4}));
+
+  auto homogeneousColumn = TestQuantities<3, 1>::zero();
+  homogeneousColumn.set(1, LengthQuantityI{2});
+  EXPECT_EQ(homogeneousColumn.get(1), QuantityD<Length>{2.0});
+  EXPECT_EQ(homogeneousColumn, (TestQuantities<3, 1>{0.0, 2.0, 0.0}));
+  auto homogeneousRow = TestQuantities<1, 3>::zero();
+  homogeneousRow.set(2, LengthQuantityI{3});
+  EXPECT_EQ(homogeneousRow.get(2), QuantityD<Length>{3.0});
+  EXPECT_EQ(homogeneousRow, (TestQuantities<1, 3>{0.0, 0.0, 3.0}));
+  QuantityI<Mass> mass{1};
+  EXPECT_EQ(mass.get<0>(), mass);
+  mass.set(0, QuantityI<Mass>{2});
+  EXPECT_EQ(mass.get(0), QuantityI<Mass>{2});
+}
+
 TEST_F(TestQuantitiesFixture, Sum) {  // NOLINT
   EXPECT_EQ(getQuantities1() + getQuantities2(), (MyQuantityMatrix{4, 3, 7, 5, 10, 15}));
 }
@@ -495,6 +524,14 @@ concept HasGet = requires(const QuantitiesT_& quantities) { quantities.get(); };
 template <typename QuantitiesT_>
 concept HasSet = requires(QuantitiesT_& quantities) { quantities.set(QuantityD<Length>{1.0}); };
 template <typename QuantitiesT_>
+concept HasGetBySingleIndex = requires(const QuantitiesT_& quantities) { quantities.template get<0>(); };
+template <typename QuantitiesT_>
+concept HasSetBySingleIndex = requires(QuantitiesT_& quantities) { quantities.template set<0>(QuantityD<Length>{1.0}); };
+template <typename QuantitiesT_>
+concept HasGetBySingleIndexRunTime = requires(const QuantitiesT_& quantities) { quantities.get(0); };
+template <typename QuantitiesT_>
+concept HasSetBySingleIndexRunTime = requires(QuantitiesT_& quantities) { quantities.set(0, QuantityD<Length>{1.0}); };
+template <typename QuantitiesT_>
 concept HasGetValue = requires(const QuantitiesT_& quantities) { quantities.getValue(); };
 template <typename QuantitiesT_>
 concept HasSetValue = requires(QuantitiesT_& quantities) { quantities.setValue(1.0); };
@@ -503,13 +540,29 @@ concept HasDeterminant = requires(const QuantitiesT_& quantities) { quantities.d
 
 }  // namespace
 
-// The members for single quantities only exist for quantities of dimension 0, and the determinant only for square matrices,
-// including 1x1 matrices: their requires clauses remove them from the others.
+// The members for single quantities only exist for quantities of dimension 0, those for a single index for dimensions 0 and 1,
+// and the determinant only for square matrices, including 1x1 matrices: their requires clauses remove them from the others.
 TEST(TestQuantities, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasGet<TestQuantities<1, 1>>);
   static_assert(!HasGet<TestQuantities<3, 1>>);
   static_assert(HasSet<TestQuantities<1, 1>>);
   static_assert(!HasSet<TestQuantities<3, 1>>);
+  static_assert(HasGetBySingleIndex<TestQuantities<3, 1>>);
+  static_assert(HasGetBySingleIndex<TestQuantities<1, 3>>);
+  static_assert(HasGetBySingleIndex<TestQuantities<1, 1>>);
+  static_assert(!HasGetBySingleIndex<TestQuantities<3, 3>>);
+  static_assert(HasSetBySingleIndex<TestQuantities<3, 1>>);
+  static_assert(HasSetBySingleIndex<TestQuantities<1, 3>>);
+  static_assert(HasSetBySingleIndex<TestQuantities<1, 1>>);
+  static_assert(!HasSetBySingleIndex<TestQuantities<3, 3>>);
+  static_assert(HasGetBySingleIndexRunTime<TestQuantities<3, 1>>);
+  static_assert(HasGetBySingleIndexRunTime<TestQuantities<1, 3>>);
+  static_assert(HasGetBySingleIndexRunTime<TestQuantities<1, 1>>);
+  static_assert(!HasGetBySingleIndexRunTime<TestQuantities<3, 3>>);
+  static_assert(HasSetBySingleIndexRunTime<TestQuantities<3, 1>>);
+  static_assert(HasSetBySingleIndexRunTime<TestQuantities<1, 3>>);
+  static_assert(HasSetBySingleIndexRunTime<TestQuantities<1, 1>>);
+  static_assert(!HasSetBySingleIndexRunTime<TestQuantities<3, 3>>);
   static_assert(HasGetValue<TestQuantities<1, 1>>);
   static_assert(!HasGetValue<TestQuantities<3, 1>>);
   static_assert(HasSetValue<TestQuantities<1, 1>>);

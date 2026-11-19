@@ -75,9 +75,21 @@ class ValuesWrapper {
     return result;
   }
 
+  //! The element in the row RowIdV_ and the column ColIdV_, which are checked at compile time.
   template <int RowIdV_, int ColIdV_>
   auto get() const {
+    static_assert(internal::RequireElementInRange<MatrixSizeT, RowIdV_, ColIdV_>::value);
     return Coefficient<AccessImplementation<ImplementationT>>::get(implementation_, RowIdV_, ColIdV_);
+  }
+
+  //! The element with the single index IdV_ of values of dimension 0 or 1: the row of a column, the column of a row, or 0 for
+  //! 1x1 values (see internal::vectorElementRowId()). It is checked at compile time, like the row and the column of
+  //! get<RowIdV_, ColIdV_>().
+  template <int IdV_>
+  auto get() const
+    requires(Dimension<ThisT>::value <= 1)
+  {
+    return get<internal::vectorElementRowId<ThisT>(IdV_), internal::vectorElementColId<ThisT>(IdV_)>();
   }
 
   auto get() const
@@ -88,9 +100,28 @@ class ValuesWrapper {
 
   auto get(int rowId, int colId) const { return Coefficient<AccessImplementation<ImplementationT>>::get(implementation_, rowId, colId); }
 
+  //! The element with the single index id of values of dimension 0 or 1, like get<IdV_>(), but with an index known at run time.
+  auto get(int id) const
+    requires(Dimension<ThisT>::value <= 1)
+  {
+    return get(internal::vectorElementRowId<ThisT>(id), internal::vectorElementColId<ThisT>(id));
+  }
+
+  //! Sets the element in the row RowIdV_ and the column ColIdV_, which are checked at compile time, and converts it like
+  //! set(rowId, colId, value).
   template <int RowIdV_, int ColIdV_, typename ValueOtherT_>
   ThisT& set(ValueOtherT_ value) {
+    static_assert(internal::RequireElementInRange<MatrixSizeT, RowIdV_, ColIdV_>::value);
     return set(RowIdV_, ColIdV_, value);
+  }
+
+  //! Sets the element with the single index IdV_ of values of dimension 0 or 1 (see get<IdV_>()), which is checked at compile
+  //! time, and converts it like set(rowId, colId, value).
+  template <int IdV_, typename ValueOtherT_>
+  ThisT& set(ValueOtherT_ value)
+    requires(Dimension<ThisT>::value <= 1)
+  {
+    return set<internal::vectorElementRowId<ThisT>(IdV_), internal::vectorElementColId<ThisT>(IdV_)>(value);
   }
 
   template <typename ValueOtherT_>
@@ -109,6 +140,15 @@ class ValuesWrapper {
                   "The common type of the element and the value type is not the value type, e.g. a double element with int values.");
     Coefficient<AccessImplementation<ImplementationT>>::set(implementation_, rowId, colId, static_cast<ValueT>(value));
     return *this;
+  }
+
+  //! Sets the element with the single index id of values of dimension 0 or 1, like set<IdV_>(value), but with an index known at
+  //! run time.
+  template <typename ValueOtherT_>
+  ThisT& set(int id, ValueOtherT_ value)
+    requires(Dimension<ThisT>::value <= 1)
+  {
+    return set(internal::vectorElementRowId<ThisT>(id), internal::vectorElementColId<ThisT>(id), value);
   }
 
   // NOLINTNEXTLINE(google-explicit-constructor)

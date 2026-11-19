@@ -41,7 +41,7 @@ const QuantityD<Mass> mass1{1.0};
 const QuantityD<Mass> mass2{3.0};
 const MinimalCoordinates coordinates{0.2, 0.4, 0.5};
 const MinimalVelocities velocities{0.7, -0.3, 0.1};
-const QuantityD<Angle> angle{coordinates.getQuantity<2, 0>()};
+const QuantityD<Angle> angle{coordinates.getQuantity<2>()};
 ```
 
 The coordinates are a point and their derivatives a vector: the difference of two configurations is a vector, and a Jacobian maps the velocities, not the coordinates.
