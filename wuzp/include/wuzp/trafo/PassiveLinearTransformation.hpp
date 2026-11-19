@@ -172,9 +172,9 @@ struct TransformationTraits<PassiveLinearTransformation<ValuesT_, ValueT_, FromT
   static auto transform(const TransformationT_& transformation,
                         const Tensor<Indices<Up, Down>, QuantitiesOtherT_, CoordinateSystemOtherT_, Relative>& object) {
     // A linear map transforms like T' = A T A^-1.
-    return castCoordinateSystem<ToT_>(internal::withQuantities<FromT_>(
+    return internal::withQuantities<FromT_, ToT_>(
         object,
-        innerProduct(transformation.getQuantities(), innerProduct(object.getQuantities(), transformation.inverse().getQuantities()))));
+        innerProduct(transformation.getQuantities(), innerProduct(object.getQuantities(), transformation.inverse().getQuantities())));
   }
 };
 

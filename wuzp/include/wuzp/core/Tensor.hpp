@@ -21,7 +21,7 @@ namespace internal {
 
 //! The quantities as they are, or transposed if TransposeV_: e.g. the components of a vector, a column, as the row that a matrix
 //! product needs. These are specializations rather than `if constexpr`: MSVC compiles both branches of an `if constexpr` in
-//! member functions of class templates (see mapRelative).
+//! member functions of class templates (see internal::translate()).
 template <bool TransposeV_>
 struct TransposeIf {
   template <typename QuantitiesT_>

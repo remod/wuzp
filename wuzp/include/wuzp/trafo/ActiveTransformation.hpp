@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
@@ -13,9 +14,10 @@ namespace wuzp {
 template <typename DerivedT_>
 class ActiveTransformation : public internal::Crtp<DerivedT_, Transformation<DerivedT_>> {
  public:
-  template <typename Object>
-  auto transform(const Object& object) const {
-    return TransformationTraits<DerivedT_, Object>::transform(this->derived(), object);
+  //! The transformed object. A temporary is passed on as one, like with PassiveTransformation::transform().
+  template <typename ObjectT_>
+  auto transform(ObjectT_&& object) const {
+    return TransformationTraits<DerivedT_, std::remove_cvref_t<ObjectT_>>::transform(this->derived(), std::forward<ObjectT_>(object));
   }
 };
 

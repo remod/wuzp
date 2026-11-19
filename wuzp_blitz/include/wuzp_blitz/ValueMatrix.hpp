@@ -78,26 +78,23 @@ inline constexpr bool isArray = std::is_same_v<ImplementationT_, ArrayOf<Impleme
 //! https://github.com/blitzpp/blitz/blob/main/doc/arrays-ctors.texi), and so do transpose() and slicing.
 template <typename ImplementationT_>
 ArrayOf<ImplementationT_> copyToArray(const ImplementationT_& impl) {
-  if constexpr (isArray<ImplementationT_>) {
-    // Unlike impl.copy(), which keeps the storage order of a transposed view, this stores the copy row by row, like all other
-    // arrays of the backend.
-    ArrayOf<ImplementationT_> result(impl.extent(0), impl.extent(1));
-    result = impl;
-    return result;
-  } else {
-    // Evaluates the expression into a new array.
-    return ArrayOf<ImplementationT_>(impl);
-  }
+  // The values are assigned to a new array of the same extents, which stores them row by row, like all other arrays of the
+  // backend. impl.copy() would keep the storage order of a transposed view, and the constructor from an expression derives the
+  // storage order from the operands and evaluates the expression into a temporary array that it then references, which costs
+  // about as much as evaluating a small expression (#58).
+  ArrayOf<ImplementationT_> result(impl.ubound(0) - impl.lbound(0) + 1, impl.ubound(1) - impl.lbound(1) + 1);
+  result = impl;
+  return result;
 }
 
-//! A Blitz++ array as it is, or an expression evaluated into a new array: some members, e.g. transpose(), only exist for
-//! arrays.
+//! A Blitz++ array as it is, or an expression evaluated into a new array (see copyToArray()): some members, e.g. transpose(), only
+//! exist for arrays.
 template <typename ImplementationT_>
 decltype(auto) asArray(const ImplementationT_& impl) {
   if constexpr (isArray<ImplementationT_>) {
     return (impl);
   } else {
-    return ArrayOf<ImplementationT_>(impl);
+    return copyToArray(impl);
   }
 }
 
@@ -244,14 +241,14 @@ struct Copy<AccessImplementation<ImplementationT_>> {
 };
 
 // Blitz++ arrays cannot be moved, and their copy constructor shares the values: the moved array takes over the values with
-// reference(), and the moved-from array is emptied with free() (see "Array members" in
-// https://github.com/blitzpp/blitz/blob/main/doc/arrays-members.texi), so that no two arrays share the values.
+// the copy constructor, which references them like reference(), and the moved-from array is emptied with free() (see "Array
+// members" in https://github.com/blitzpp/blitz/blob/main/doc/arrays-members.texi), so that no two arrays share the values. Unlike
+// a default constructed array that references them, the copy does not set up the storage of an empty array first.
 template <wuzp_blitz::BlitzArray ImplementationT_>
 struct Move<AccessImplementation<ImplementationT_>> {
   static ImplementationT_ construct(ImplementationT_& source) {
     if constexpr (wuzp_blitz::internal::isArray<ImplementationT_>) {
-      ImplementationT_ result;
-      result.reference(source);
+      ImplementationT_ result(source);
       source.free();
       return result;
     } else {

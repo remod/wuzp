@@ -77,17 +77,21 @@ struct WithFrames<PassiveTranslation<ValuesT_, DimensionV_, ValueT_, FromT_, ToT
 }  // namespace internal
 
 // A passive translation moves points, leaves vectors, covectors and tensors with two upper indices unchanged, and rejects the
-// other tensors (see internal::translate()).
+// other tensors (see internal::translate()). It takes the object by a forwarding reference, so that a temporary vector is moved
+// rather than copied.
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename FromT_, typename ToT_,
           typename... UnitsT_, typename IndicesOtherT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_,
           typename AbsoluteOtherT_>
 struct TransformationTraits<PassiveTranslation<ValuesT_, DimensionV_, ValueT_, FromT_, ToT_, UnitsT_...>,
                             Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
+  using ObjectT = Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>;
+  template <typename ObjectT_>
+    requires std::is_same_v<std::remove_cvref_t<ObjectT_>, ObjectT>
   static auto transform(const PassiveTranslation<ValuesT_, DimensionV_, ValueT_, FromT_, ToT_, UnitsT_...>& transformation,
-                        const Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+                        ObjectT_&& object) {
     // The object is expressed in From (see PassiveTransformation::transform()), whose axes are those of To, in which the vector of
     // the translation is expressed.
-    return castCoordinateSystem<ToT_>(internal::translate(object, transformation.getQuantities()));
+    return internal::translate<ToT_>(std::forward<ObjectT_>(object), transformation.getQuantities());
   }
 };
 

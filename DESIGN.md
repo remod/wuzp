@@ -172,7 +172,8 @@ Some operations on such expressions did not compile, e.g. `-(a + b)` (#64).
 Decision: the operators and member functions return evaluated values, quantities and tensors, which can be stored in `auto` variables.
 The traits (e.g. `Sum<Lhs, Rhs>::type`) remain the lazy types: an operation computes the lazy expression of the backend and evaluates it once.
 With Eigen, this costs no measurable time in the [benchmarks](benchmarks/README.md); in a chain such as `a + b + c`, each operation is evaluated on its own, though.
-With Blitz++, every evaluation allocates an array.
+With Blitz++, every evaluation allocates an array, also for a single value, e.g. a norm, where plain Blitz++ code uses a scalar: the traits of the backend take Blitz++'s arrays, whose size is only known at run time, so they cannot return a scalar for a 1x1 result, e.g. for the inner product of a covector and a vector.
+Fixed-size matrices, e.g. `blitz::TinyMatrix`, would avoid the allocations, but the arrays make the Blitz++ backend the one whose matrices have a size known only at run time, share their values and cannot be moved, which shows that the core does not depend on fixed-size matrices like those of Eigen and the archetype (see the [benchmarks](benchmarks/README.md), #58).
 
 Values, quantities and tensors have value semantics with every backend: a copy, a transpose or a block never shares the values of the original, although Blitz++'s copies, transposes and slices are views of the original (#60).
 Blitz++ arrays cannot be moved, so a move hands the values over and leaves the moved-from array empty, like a moved-from dynamic Eigen matrix: a moved-from object can only be assigned to or destroyed.

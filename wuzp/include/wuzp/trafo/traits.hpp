@@ -9,6 +9,8 @@ namespace wuzp {
 
 /**
  * How a transformation transforms an object: `static auto transform(const TransformationT_&, const Object&)` returns the result.
+ * transform() of the transformations passes a temporary object on as an rvalue, so a specialization may also take it by a
+ * forwarding reference, to move a temporary instead of copying it, e.g. a vector that a translation leaves unchanged.
  * It is specialized for the tensors that a transformation transforms, and for the conjugations `a b a^-1` that active
  * transformations define (see "Conventions" in DESIGN.md). Any other transformation as the object is rejected with a message
  * that says to compose transformations with operator* (see CompositionTraits).

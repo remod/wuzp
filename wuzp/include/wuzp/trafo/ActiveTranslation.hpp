@@ -68,16 +68,20 @@ struct GetCoordinateSystem<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, Coo
 };
 
 // An active translation moves points, leaves vectors, covectors and tensors with two upper indices unchanged, and rejects the
-// other tensors (see internal::translate()).
+// other tensors (see internal::translate()). It takes the object by a forwarding reference, so that a temporary vector is moved
+// rather than copied.
 template <template <typename, int, int> typename ValuesT_, int DimensionV_, typename ValueT_, typename CoordinateSystemT_,
           typename... UnitsT_, typename IndicesOtherT_, typename QuantitiesOtherT_, typename CoordinateSystemOtherT_,
           typename AbsoluteOtherT_>
 struct TransformationTraits<ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>,
                             Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>> {
+  using ObjectT = Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>;
+  template <typename ObjectT_>
+    requires std::is_same_v<std::remove_cvref_t<ObjectT_>, ObjectT>
   static auto transform(const ActiveTranslation<ValuesT_, DimensionV_, ValueT_, CoordinateSystemT_, UnitsT_...>& transformation,
-                        const Tensor<IndicesOtherT_, QuantitiesOtherT_, CoordinateSystemOtherT_, AbsoluteOtherT_>& object) {
+                        ObjectT_&& object) {
     static_assert(std::is_same_v<CoordinateSystemT_, CoordinateSystemOtherT_>, "Coordinate systems do not match.");
-    return internal::translate(object, transformation.getTensor().getQuantities());
+    return internal::translate<CoordinateSystemT_>(std::forward<ObjectT_>(object), transformation.getQuantities());
   }
 };
 

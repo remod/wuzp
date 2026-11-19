@@ -79,6 +79,16 @@ TEST(TestActiveTranslation, TransformPointCloud) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
 }
 
+// The components of the points of a cloud may have different units, e.g. the positions of a prismatic and a revolute joint in m
+// and rad, moved by the same offsets: the translation adds its vector to every column, and the sum checks the units of every
+// component (#58).
+TEST(TestActiveTranslation, TransformPointCloudWithHeterogeneousUnits) {  // NOLINT
+  using Object =
+      Point<Quantities<ValueMatrix<double, 2, 3>, TypeMatrix<2, 3, Length, Length, Length, Angle, Angle, Angle>>, CoordinateSystemA>;
+  const ActiveTranslation<ValueMatrix, 2, double, CoordinateSystemA, Length, Angle> transformation{0.5, 0.25};
+  EXPECT_EQ(transformation.transform(Object{1.0, 2.0, 3.0, 0.5, 1.0, 1.5}), (Object{1.5, 2.5, 3.5, 0.75, 1.25, 1.75}));
+}
+
 TEST(TestActiveTranslation, TransformActiveTranslation) {  // NOLINT
   using Object = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
   using Transformation = ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA>;
@@ -146,6 +156,17 @@ TEST(TestActiveTranslation, TransformLeavesTheInputUnchanged) {  // NOLINT
   EXPECT_EQ(transformation.transform(object), transformedObject);
   EXPECT_EQ(transformation.transform(object), transformedObject);
   EXPECT_EQ(object, (Object{1.0, 2.0, 3.0}));
+}
+
+// A vector that the translation leaves unchanged is copied if it is not a temporary, also if it is not const: only temporaries
+// are moved into the result (#58).
+TEST(TestActiveTranslation, TransformLeavesANonConstVectorUnchanged) {  // NOLINT
+  using Object = VelocityVector3<ValueMatrix, double, CoordinateSystemA>;
+  const ActiveSpatialTranslation3<ValueMatrix, double, CoordinateSystemA> transformation{0.0, 0.0, 1.0};
+  Object object{1.0, 2.0, 3.0};
+  EXPECT_EQ(transformation.transform(object), (Object{1.0, 2.0, 3.0}));
+  EXPECT_EQ(object, (Object{1.0, 2.0, 3.0}));
+  EXPECT_EQ(transformation.transform(Object{4.0, 5.0, 6.0}), (Object{4.0, 5.0, 6.0}));
 }
 
 // The object can be the result of an operation, here the sum of a point and a vector (#64).

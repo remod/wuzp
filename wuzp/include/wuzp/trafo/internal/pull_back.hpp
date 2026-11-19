@@ -23,14 +23,13 @@ namespace internal {
 //! A covector, e.g. a force, is pulled back like w' = w A.
 template <typename FromT_, typename ToT_, typename MatrixT_, typename QuantitiesT_, typename CoordinateSystemT_>
 auto pullBack(const MatrixT_& matrix, const Tensor<Indices<Down>, QuantitiesT_, CoordinateSystemT_, Relative>& object) {
-  return castCoordinateSystem<FromT_>(withQuantities<ToT_>(object, innerProduct(object.getQuantities(), matrix)));
+  return withQuantities<ToT_, FromT_>(object, innerProduct(object.getQuantities(), matrix));
 }
 
 //! A tensor with two lower indices, e.g. a mass matrix, is pulled back like M' = A^T M A.
 template <typename FromT_, typename ToT_, typename MatrixT_, typename QuantitiesT_, typename CoordinateSystemT_>
 auto pullBack(const MatrixT_& matrix, const Tensor<Indices<Down, Down>, QuantitiesT_, CoordinateSystemT_, Relative>& object) {
-  return castCoordinateSystem<FromT_>(
-      withQuantities<ToT_>(object, innerProduct(matrix.transpose(), innerProduct(object.getQuantities(), matrix))));
+  return withQuantities<ToT_, FromT_>(object, innerProduct(matrix.transpose(), innerProduct(object.getQuantities(), matrix)));
 }
 
 //! Every other tensor is rejected, which only Jacobian::pullback() passes on: vectors and tensors with two upper indices are

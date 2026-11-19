@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
@@ -24,13 +25,16 @@ class PassiveTransformation : public internal::Crtp<DerivedT_, Transformation<De
   using From = FromT_;
   using To = ToT_;
 
-  template <typename Object>
-  auto transform(const Object& object) const {
+  //! The object in To. A temporary is passed on as one, so that e.g. the translation of a proper rigid transformation moves the
+  //! vector that its rotation returns, which it leaves unchanged, instead of copying it (see TransformationTraits).
+  template <typename ObjectT_>
+  auto transform(ObjectT_&& object) const {
+    using ObjectT = std::remove_cvref_t<ObjectT_>;
     // Checked before the coordinate system: passive transformations have none, which would fail with a message about a trait.
-    static_assert(!AnyTransformation<Object>,
+    static_assert(!AnyTransformation<ObjectT>,
                   "A passive transformation transforms tensors, not transformations. Compose transformations with operator*.");
-    static_assert(std::is_same<typename GetCoordinateSystem<Object>::type, From>::value, "Coordinate systems do not match.");
-    return TransformationTraits<DerivedT_, Object>::transform(this->derived(), object);
+    static_assert(std::is_same<typename GetCoordinateSystem<ObjectT>::type, From>::value, "Coordinate systems do not match.");
+    return TransformationTraits<DerivedT_, ObjectT>::transform(this->derived(), std::forward<ObjectT_>(object));
   }
 };
 

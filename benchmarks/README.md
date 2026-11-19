@@ -15,13 +15,14 @@ In the `latest` dev container, `ci/benchmarks.sh` builds the benchmarks in relea
 
 ```bash
 ci/benchmarks.sh                                  # Accurate numbers.
-ci/benchmarks.sh --benchmark_repetitions=10 --benchmark_report_aggregates_only=true  # Medians, like the results below.
+ci/benchmarks.sh --benchmark_repetitions=10 --benchmark_report_aggregates_only=true \
+  --benchmark_enable_random_interleaving=true    # Medians, like the results below.
 ci/benchmarks.sh --benchmark_min_time=0.01s       # Quick check that they run, like CI.
 ```
 
 ## Results
 
-Measured in the `latest` dev container (GCC 15.2, Clang 21.1, Eigen 5.0.1, Blitz++ 1.0.2, `-O3`) on an AMD Ryzen 9 8940HX, as the median of 10 repetitions (`--benchmark_repetitions=10`).
+Measured in the `latest` dev container (GCC 15.2, Clang 21.1, Eigen 5.0.1, Blitz++ 1.0.2, `-O3`) on an AMD Ryzen 9 8940HX, as the median of 10 repetitions (`--benchmark_repetitions=10`), with the repetitions of all benchmarks randomly interleaved (`--benchmark_enable_random_interleaving=true`), so that the load of other processes slows both sides alike.
 Times are per operation; differences below about 0.2 ns are noise.
 Google Benchmark warns that Ubuntu's build of it is a debug build; this affects its own bookkeeping, for both sides alike.
 
@@ -29,31 +30,32 @@ Google Benchmark warns that Ubuntu's build of it is a debug build; this affects 
 
 | Benchmark | GCC, plain | GCC, *wuzp* | Clang, plain | Clang, *wuzp* |
 | --- | --- | --- | --- | --- |
-| `Sum`: vector + vector | 0.40 ns | 0.40 ns | 0.40 ns | 0.40 ns |
-| `ProductWithScalar`: mass * acceleration | 1.33 ns | 0.40 ns | 0.40 ns | 0.40 ns |
-| `Norm` | 1.69 ns | 1.70 ns | 1.66 ns | 1.68 ns |
-| `TransformVector`: rigid transformation of a vector | 1.01 ns | 0.92 ns | 0.92 ns | 1.02 ns |
-| `TransformPoint`: rigid transformation of a point | 1.21 ns | 1.60 ns | 1.15 ns | 1.19 ns |
+| `Sum`: vector + vector | 0.44 ns | 0.44 ns | 0.45 ns | 0.45 ns |
+| `ProductWithScalar`: mass * acceleration | 1.51 ns | 0.44 ns | 0.44 ns | 0.45 ns |
+| `Norm` | 1.93 ns | 1.93 ns | 1.92 ns | 1.93 ns |
+| `TransformVector`: rigid transformation of a vector | 1.12 ns | 1.01 ns | 1.04 ns | 1.05 ns |
+| `TransformPoint`: rigid transformation of a point | 1.37 ns | 1.23 ns | 1.29 ns | 1.27 ns |
 
 With Eigen, *wuzp* is as fast as plain Eigen: the units, coordinate systems and absolute/relative flags are types, which the compiler removes, and evaluating the result of every operation costs nothing measurable.
 The generated code differs slightly, in both directions (e.g. GCC compiles plain Eigen's `mass * acceleration` in the benchmark loop to slower code).
-Transforming a point with GCC is about 0.4 ns slower: GCC copies the point first (see [Generated code](#generated-code)).
+Until [#58](https://github.com/remod/wuzp/issues/58), transforming a point with GCC took 1.82 ns, since GCC copied the point first (see [Generated code](#generated-code)).
 
 **Blitz++:**
 
 | Benchmark | GCC, plain | GCC, *wuzp* | Clang, plain | Clang, *wuzp* |
 | --- | --- | --- | --- | --- |
-| `Sum` | 18 ns | 35 ns | 27 ns | 44 ns |
-| `ProductWithScalar` | 17 ns | 31 ns | 25 ns | 45 ns |
-| `Norm` | 3 ns | 16 ns | 7 ns | 29 ns |
-| `TransformVector` | 17 ns | 40 ns | 34 ns | 78 ns |
-| `TransformPoint` | 18 ns | 88 ns | 36 ns | 142 ns |
+| `Sum` | 18 ns | 24 ns | 41 ns | 50 ns |
+| `ProductWithScalar` | 18 ns | 19 ns | 36 ns | 41 ns |
+| `Norm` | 3 ns | 19 ns | 11 ns | 44 ns |
+| `TransformVector` | 18 ns | 28 ns | 50 ns | 64 ns |
+| `TransformPoint` | 19 ns | 52 ns | 55 ns | 116 ns |
 
-With Blitz++, *wuzp* is slower.
-Its Blitz++ backend stores every value matrix in a dynamically allocated `blitz::Array`, even a single value: the norm, for example, allocates for its result.
-Plain Blitz++ code avoids this with plain scalars.
-Values also have value semantics with every backend, so the backend copies an array where plain Blitz++ code would share it, e.g. for the vector that a translation returns unchanged.
-This is tracked in [#58](https://github.com/remod/wuzp/issues/58).
+With Blitz++, *wuzp* is slower, although it allocates as many arrays as plain Blitz++ code for the sum, the product with a scalar and the transformation of a vector.
+Every result is moved into the values, the quantities and the tensor that hold it, and Blitz++ arrays cannot be moved: each move copies the descriptor of the array and updates the reference count of its memory.
+Two cases allocate more.
+A single value, e.g. the norm, is a 1x1 `blitz::Array`, which plain Blitz++ code avoids with a plain scalar (see "Results of operations are evaluated" in [DESIGN.md](../DESIGN.md#results-of-operations-are-evaluated)).
+A proper rigid transformation of a point evaluates its rotation and its translation into an array each, where plain Blitz++ code evaluates `R p + t` into one.
+Since [#58](https://github.com/remod/wuzp/issues/58), expressions are evaluated directly into an array of their size, linear transformations no longer copy a point, and translations move a temporary vector that they leave unchanged instead of copying it: in the same setup, transforming a point took 97 ns (GCC) and 189 ns (Clang) before, a vector 46 ns and 116 ns, and a sum 38 ns and 73 ns.
 
 ## Generated code
 
@@ -74,7 +76,7 @@ Number of instructions in the `latest` dev container (GCC 15.2, Clang 21.1, Eige
 | `productWithScalar`: mass * acceleration | 11 | 11 | 10 | 10 (same) |
 | `norm` | 14 | 16 | 10 | 12 |
 | `transformVector`: rigid transformation of a vector | 27 | 27 | 28 | 27 |
-| `transformPoint`: rigid transformation of a point | 30 | 43 | 30 | 30 |
+| `transformPoint`: rigid transformation of a point | 30 | 30 (same) | 30 | 30 |
 | `compose`: composition of two rigid transformations | 96 | 124 | 92 | 96 |
 
 "Same" marks the same instructions in another order and with other registers; no operation compiles to identical code.
@@ -82,8 +84,9 @@ The differences have these causes:
 
 * **Scheduling, register allocation and instruction selection.** Where the numbers are equal or close, the compilers do the same work with other instructions, e.g. GCC multiplies with a value in a register on one side, and with one in memory on the other, and Clang combines the elements of `transformVector` into SIMD loads differently. The data is laid out the same: a proper rigid transformation of *wuzp* is as large as its rotation and its translation, 96 bytes, like the plain struct, so both sides load the same offsets.
 * **Quantities are returned in memory.** Values have a user-provided copy constructor, since the Blitz++ backend must copy arrays that Blitz++ would share (see `ValuesWrapper`), so no quantity or tensor is trivially copyable, also with Eigen (#79). The x86-64 calling convention therefore returns them through memory, even a single `double`: `norm` stores its result and returns its address, 2 instructions more than returning plain Eigen's `double` in a register. Once inlined, as in the benchmarks, this costs nothing.
-* **GCC copies the point.** In `transformPoint`, GCC copies the point to the stack before transforming it, and the stack array then needs the stack protector's check (Ubuntu's compilers enable `-fstack-protector-strong`): 13 instructions more. Clang does not copy it.
-* **GCC does not inline the composition.** In `compose`, GCC calls *wuzp*'s internal composition of rigid transformations instead of inlining it: the caller takes 15 instructions, with the stack protector's check, and the composition 109 instead of 96, since it keeps intermediate results on the stack. Clang inlines it, and also keeps two intermediate results on the stack.
+* **GCC does not inline the composition.** In `compose`, GCC calls *wuzp*'s internal composition of rigid transformations instead of inlining it: the caller takes 15 instructions, with the stack protector's check (Ubuntu's compilers enable `-fstack-protector-strong`), and the composition 109 instead of 96, since it keeps intermediate results on the stack. Clang inlines it, and also keeps two intermediate results on the stack.
+
+Until [#58](https://github.com/remod/wuzp/issues/58), GCC also copied the point in `transformPoint` to the stack before transforming it, 43 instructions instead of 30: the linear transformations mapped a point through a copy of it as a vector, which they no longer make.
 
 ## Compile time
 
