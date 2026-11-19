@@ -19,7 +19,7 @@ namespace wuzp {
  * Robotics, chapter 2): it maps the coordinates of a point in B to its coordinates in A.
  */
 template <typename DerivedT_, AnyCoordinateSystem FromT_, AnyCoordinateSystem ToT_>
-class PassiveTransformation : public internal::Crtp<DerivedT_, Transformation> {
+class PassiveTransformation : public internal::Crtp<DerivedT_, Transformation<DerivedT_>> {
  public:
   using From = FromT_;
   using To = ToT_;
@@ -27,7 +27,7 @@ class PassiveTransformation : public internal::Crtp<DerivedT_, Transformation> {
   template <typename Object>
   auto transform(const Object& object) const {
     // Checked before the coordinate system: passive transformations have none, which would fail with a message about a trait.
-    static_assert(!std::is_base_of_v<Transformation, Object>,
+    static_assert(!AnyTransformation<Object>,
                   "A passive transformation transforms tensors, not transformations. Compose transformations with operator*.");
     static_assert(std::is_same<typename GetCoordinateSystem<Object>::type, From>::value, "Coordinate systems do not match.");
     return TransformationTraits<DerivedT_, Object>::transform(this->derived(), object);

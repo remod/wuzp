@@ -109,8 +109,8 @@ namespace internal {
 
 //! A base of the class templates of the curiously recurring template pattern (CRTP), e.g. ActiveTransformation<DerivedT_>, whose
 //! argument DerivedT_ derives from them: derived() is the object as a DerivedT_. It derives from BaseT_, their other base, e.g.
-//! Transformation, so that their empty bases form a chain: MSVC does not optimize away several empty bases of a class, which would
-//! make every DerivedT_ larger than its members (see TestTransformation.HasNoVirtualTable).
+//! Transformation<DerivedT_>, so that their empty bases form a chain: MSVC does not optimize away several empty bases of a class,
+//! which would make every DerivedT_ larger than its members (see TestTransformation.HasNoVirtualTable).
 template <typename DerivedT_, typename BaseT_>
 class Crtp : public BaseT_ {
  protected:

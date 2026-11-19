@@ -15,9 +15,9 @@ namespace wuzp {
  */
 template <typename TransformationT_, typename Object>
 struct TransformationTraits {
-  static_assert(std::is_base_of_v<Transformation, Object> || FailOnInstantiation<TransformationTraits<TransformationT_, Object>>::value,
+  static_assert(AnyTransformation<Object> || FailOnInstantiation<TransformationTraits<TransformationT_, Object>>::value,
                 "'TransformationTraits' trait not specialized.");
-  static_assert(!std::is_base_of_v<Transformation, Object>,
+  static_assert(!AnyTransformation<Object>,
                 "This transformation does not transform this transformation. Compose transformations with operator*.");
 };
 

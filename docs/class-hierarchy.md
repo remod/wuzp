@@ -39,7 +39,9 @@ classDiagram
 
 ## Transformations
 
-Every transformation derives from `ActiveTransformation` or `PassiveTransformation`, which provide `transform()`, composition with `*` and `inverse()` through the [CRTP](https://en.cppreference.com/w/cpp/language/crtp), and these from `Transformation`, whose destructor is protected and not virtual: transformations are values, never deleted through a pointer to the base.
+Every transformation derives from `ActiveTransformation` or `PassiveTransformation`, which provide `transform()`, composition with `*` and `inverse()` through the [CRTP](https://en.cppreference.com/w/cpp/language/crtp), and these from `Transformation<DerivedT_>`, whose destructor is protected and not virtual: transformations are values, never deleted through a pointer to the base.
+The base is a template of the transformation, so that a proper rigid transformation and its rotation have different empty bases, which take no space: a proper rigid transformation is as large as its rotation and its translation.
+`AnyTransformation` tells whether a type is a transformation.
 
 ```mermaid
 classDiagram

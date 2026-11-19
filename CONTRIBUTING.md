@@ -152,7 +152,7 @@ To format the code automatically before each commit, enable the [pre-commit](htt
 
 ## Continuous integration
 
-The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants (mp-units only in `latest`), for the archetypes in `latest`, and for one backend combination in release mode, runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, tests the installed package and the use through `FetchContent`, and builds and runs the [benchmarks](benchmarks/README.md).
+The CI workflow checks the format, runs clang-tidy, runs the tests for all backend combinations with GCC and Clang in both dev container variants (mp-units only in `latest`), for the archetypes in `latest`, and for one backend combination in release mode, runs them with AddressSanitizer and UndefinedBehaviorSanitizer, measures code coverage, tests the installed package and the use through `FetchContent`, and builds and runs the [benchmarks](benchmarks/README.md) and compares the code that the compilers generate with *wuzp* and with plain Eigen.
 It also tests every backend combination except mp-units on macOS with Apple Clang (Homebrew packages) and on Windows with MSVC (vcpkg packages).
 While the repository is private, these two jobs only run when the workflow is started manually with the `platforms` input, since GitHub bills their minutes at 10 and 2 times the Linux rate.
 Warnings are errors in CI (`WUZP_WARNINGS_AS_ERRORS`, on in all presets), and every public header is compiled on its own with strict warnings.

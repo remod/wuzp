@@ -11,7 +11,7 @@ namespace wuzp {
 
 //! An active transformation, which moves objects within its coordinate system (see Transformation).
 template <typename DerivedT_>
-class ActiveTransformation : public internal::Crtp<DerivedT_, Transformation> {
+class ActiveTransformation : public internal::Crtp<DerivedT_, Transformation<DerivedT_>> {
  public:
   template <typename Object>
   auto transform(const Object& object) const {

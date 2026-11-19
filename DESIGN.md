@@ -309,6 +309,10 @@ Decision:
 * `isApprox(other, precision)` of transformations is `const` and takes a precision with the default of tensors (#68).
   It compares transformations of the same kind, expressed in the same coordinate system (active) or between the same coordinate systems (passive), and compares the matrices of linear transformations, the vectors of translations, and both the rotation and the translation of proper rigid transformations.
 * The base class `Transformation` has a protected non-virtual destructor rather than a virtual one: transformations are values that are never deleted through a pointer to the base class, and the pointer to the virtual table made every transformation larger.
+  It is a class template of the transformation that derives from it, `Transformation<DerivedT_>`, so that every transformation has empty bases of its own (#42).
+  With one common base, a proper rigid transformation was 8 bytes larger than its rotation and translation with Eigen and `double` (104 instead of 96 bytes): its rotation, the first member, has the same empty base, and two objects of the same type cannot have the same address, so the rotation could not start at the address of the transformation ([empty base optimization](https://en.cppreference.com/w/cpp/language/ebo)).
+  The bases form a chain of single inheritance (`internal::Crtp`), since MSVC only optimizes away the first of several empty bases of a class.
+  `AnyTransformation` tells whether a type is a transformation.
 
 ### Validity of rotations and Lorentz transformations
 

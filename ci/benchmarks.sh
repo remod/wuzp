@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Builds the benchmarks (release builds with GCC and Clang) and runs them. Arguments are passed to the benchmarks, e.g.
+# Builds the benchmarks (release builds with GCC and Clang) and runs them, then compares the code that the compilers generated
+# for wuzp and for plain Eigen (benchmarks/compare_codegen.py). Arguments are passed to the benchmarks, e.g.
 # ci/benchmarks.sh --benchmark_min_time=0.01s for a quick run. CI only checks that they build and run: the times on shared
 # runners are too noisy to compare.
 set -euo pipefail
@@ -14,4 +15,5 @@ for PRESET in gcc-benchmarks clang-benchmarks; do
   for BACKEND in eigen blitz; do
     "build/${PRESET}/benchmarks/wuzp_benchmarks_${BACKEND}" "$@"
   done
+  benchmarks/compare_codegen.py "build/${PRESET}"
 done

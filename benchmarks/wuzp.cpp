@@ -3,27 +3,19 @@
 
 #include <benchmark/benchmark.h>
 
-#include <wuzp/wuzp.hpp>
-#include <wuzp_units/Unit.hpp>
-
-#include "value_matrix.hpp"
+#include "wuzp_types.hpp"
 
 namespace {
 
-struct A {};
-struct B {};
-using CoordinateSystemA = wuzp::CoordinateSystem<A>;
-using CoordinateSystemB = wuzp::CoordinateSystem<B>;
-
-template <typename CoordinateSystem>
-using Velocity = wuzp::VelocityVector3<ValueMatrix, double, CoordinateSystem>;
-template <typename CoordinateSystem>
-using Position = wuzp::PositionPoint3<ValueMatrix, double, CoordinateSystem>;
-using Acceleration = wuzp::AccelerationVector3<ValueMatrix, double, CoordinateSystemA>;
-using Force = wuzp::ForceVector3<ValueMatrix, double, CoordinateSystemA>;
-using Mass = QuantityD<wuzp_units::Mass>;
-using Speed = QuantityD<wuzp_units::Velocity>;
-using Transformation = wuzp::PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemB, double>;
+using wuzp_benchmarks::Acceleration;
+using wuzp_benchmarks::CoordinateSystemA;
+using wuzp_benchmarks::CoordinateSystemB;
+using wuzp_benchmarks::Force;
+using wuzp_benchmarks::Mass;
+using wuzp_benchmarks::Position;
+using wuzp_benchmarks::Speed;
+using wuzp_benchmarks::Velocity;
+using Transformation = wuzp_benchmarks::Transformation<CoordinateSystemA, CoordinateSystemB>;
 
 // A passive rotation of pi/2 around x, and a translation of 1 along z.
 Transformation createTransformation() {

@@ -36,8 +36,8 @@ Google Benchmark warns that Ubuntu's build of it is a debug build; this affects 
 | `TransformPoint`: rigid transformation of a point | 1.21 ns | 1.60 ns | 1.15 ns | 1.19 ns |
 
 With Eigen, *wuzp* is as fast as plain Eigen: the units, coordinate systems and absolute/relative flags are types, which the compiler removes, and evaluating the result of every operation costs nothing measurable.
-The generated code differs slightly, in both directions (e.g. GCC compiles plain Eigen's `mass * acceleration` to slower code).
-Transforming a point with GCC is about 0.4 ns slower.
+The generated code differs slightly, in both directions (e.g. GCC compiles plain Eigen's `mass * acceleration` in the benchmark loop to slower code).
+Transforming a point with GCC is about 0.4 ns slower: GCC copies the point first (see [Generated code](#generated-code)).
 
 **Blitz++:**
 
@@ -54,6 +54,36 @@ Its Blitz++ backend stores every value matrix in a dynamically allocated `blitz:
 Plain Blitz++ code avoids this with plain scalars.
 Values also have value semantics with every backend, so the backend copies an array where plain Blitz++ code would share it, e.g. for the vector that a translation returns unchanged.
 This is tracked in [#58](https://github.com/remod/wuzp/issues/58).
+
+## Generated code
+
+`compare_codegen.py` compares the machine code that the compilers generate for each operation on its own, with Eigen.
+`codegen/eigen.cpp` and `codegen/wuzp.cpp` define the operations of the benchmarks, and the composition of two rigid transformations, as functions that take their inputs by reference.
+The script disassembles them from the object files, and counts their instructions, including those of the functions that the compiler did not inline, if the object file defines them (e.g. not those of the C library): it follows every call and jump out of a function, also to helpers in anonymous namespaces, to GCC's clones and to the cold parts of functions, and checks that it does on `codegen/self_check.cpp`.
+It also says whether the instructions are identical, or the same in another order and with other SIMD registers.
+The plain Eigen rigid transformation is a struct with the rotation matrix and the translation vector, in the order of *wuzp*'s members.
+`ci/benchmarks.sh` runs the script after building the benchmarks, and leaves the listings in `build/<preset>/codegen`, e.g. for `diff build/gcc-benchmarks/codegen/compose.{eigen,wuzp}.txt`.
+It supports x86-64 only, and skips the comparison on other architectures.
+The functions are only built with GCC and Clang (the target `wuzp_codegen`), since `codegen/self_check.cpp` uses their extensions; with MSVC, only the benchmarks are built.
+
+Number of instructions in the `latest` dev container (GCC 15.2, Clang 21.1, Eigen 5.0.1, `-O3`, x86-64):
+
+| Operation | GCC, plain | GCC, *wuzp* | Clang, plain | Clang, *wuzp* |
+| --- | --- | --- | --- | --- |
+| `sum`: vector + vector | 10 | 10 (same) | 9 | 9 (same) |
+| `productWithScalar`: mass * acceleration | 11 | 11 | 10 | 10 (same) |
+| `norm` | 14 | 16 | 10 | 12 |
+| `transformVector`: rigid transformation of a vector | 27 | 27 | 28 | 27 |
+| `transformPoint`: rigid transformation of a point | 30 | 43 | 30 | 30 |
+| `compose`: composition of two rigid transformations | 96 | 124 | 92 | 96 |
+
+"Same" marks the same instructions in another order and with other registers; no operation compiles to identical code.
+The differences have these causes:
+
+* **Scheduling, register allocation and instruction selection.** Where the numbers are equal or close, the compilers do the same work with other instructions, e.g. GCC multiplies with a value in a register on one side, and with one in memory on the other, and Clang combines the elements of `transformVector` into SIMD loads differently. The data is laid out the same: a proper rigid transformation of *wuzp* is as large as its rotation and its translation, 96 bytes, like the plain struct, so both sides load the same offsets.
+* **Quantities are returned in memory.** Values have a user-provided copy constructor, since the Blitz++ backend must copy arrays that Blitz++ would share (see `ValuesWrapper`), so no quantity or tensor is trivially copyable, also with Eigen (#79). The x86-64 calling convention therefore returns them through memory, even a single `double`: `norm` stores its result and returns its address, 2 instructions more than returning plain Eigen's `double` in a register. Once inlined, as in the benchmarks, this costs nothing.
+* **GCC copies the point.** In `transformPoint`, GCC copies the point to the stack before transforming it, and the stack array then needs the stack protector's check (Ubuntu's compilers enable `-fstack-protector-strong`): 13 instructions more. Clang does not copy it.
+* **GCC does not inline the composition.** In `compose`, GCC calls *wuzp*'s internal composition of rigid transformations instead of inlining it: the caller takes 15 instructions, with the stack protector's check, and the composition 109 instead of 96, since it keeps intermediate results on the stack. Clang inlines it, and also keeps two intermediate results on the stack.
 
 ## Compile time
 
