@@ -27,6 +27,14 @@ if [[ ${WARNINGS} -ne ${KNOWN} ]]; then
   echo "Doxygen warned about the documentation, see build/doxygen_warnings.log above." >&2
   exit 1
 fi
+# The Doxyfile's filter escapes the space after abbreviations in the doc comments, e.g. "e.g.\ ", so that they do not end the
+# brief descriptions. Where Doxygen prints a comment as written, e.g. in a code span, the escape would show.
+SHOWN_ESCAPES=$(grep -rliE '(e\.g|i\.e|eqs?)\.\\ ' docs/api --include='*.html' --exclude='*_source.html' || true)
+if [[ -n ${SHOWN_ESCAPES} ]]; then
+  echo "${SHOWN_ESCAPES}"
+  echo "The API reference shows the escaped spaces of the Doxyfile's filter (INPUT_FILTER) in the pages above." >&2
+  exit 1
+fi
 
 mkdocs build --strict
 echo "The site is in build/site."

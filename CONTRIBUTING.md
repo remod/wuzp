@@ -186,6 +186,7 @@ The site is then at http://127.0.0.1:8000/wuzp/. MkDocs rebuilds it when a page 
 
 The workflow `.github/workflows/docs.yml` builds the site for pull requests that change the pages, the public headers or the build of the site, and publishes it on GitHub Pages from `master`.
 Code in the pages must compile with the current API: take it from the examples and the tests, and keep the pages in sync with `README.md` and `DESIGN.md`.
+In the API reference, the first sentence of a comment is its brief description, and Doxygen ends it at every period followed by a space or a line break. The `Doxyfile`'s filter keeps "e.g.", "i.e.", "eq." and "eqs." in doc comments from ending it, and `ci/docs.sh` fails if its escape shows in the reference, e.g. in a code span; write other abbreviations in the middle of a first sentence with an escaped space, e.g. `etc.\ `.
 
 ## Versioning
 

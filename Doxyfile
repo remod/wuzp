@@ -19,6 +19,13 @@ FILE_PATTERNS          = *.hpp
 RECURSIVE              = YES
 EXCLUDE_PATTERNS       = */internal/*
 EXCLUDE_SYMBOLS        = internal *::internal *::internal::*
+# The first sentence of a comment is its brief description (JAVADOC_AUTOBRIEF and QT_AUTOBRIEF below), and Doxygen ends a
+# sentence at every period followed by a space or a line break, also that of an abbreviation. In the doc comments, lines that
+# start with //!, /// or /**, or with * inside a /** comment, the filter writes "e.g.", "i.e.", "eq." and "eqs." with Doxygen's
+# escaped space, "e.g.\ ", which does not end it (https://www.doxygen.nl/manual/config.html#cfg_javadoc_autobrief). It keeps
+# the lines, so the line numbers stay right, and the source pages show the unfiltered headers (FILTER_SOURCE_FILES is NO).
+# ci/docs.sh fails if an escaped space shows in the reference, e.g. in a code span, which Doxygen prints as written.
+INPUT_FILTER           = "sed -E '/^[[:space:]]*(\/\/[\/!]|\/\*\*|\*([[:space:]]|$))/s/(^|[^[:alnum:]_])([Ee]\.g|[Ii]\.e|[Ee]qs?)\.( |$)/\1\2.\\ /g'"
 
 # Document every declaration, also those without a comment, since many aliases and traits are only explained by their names.
 EXTRACT_ALL            = YES
