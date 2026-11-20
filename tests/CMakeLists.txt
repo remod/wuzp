@@ -102,6 +102,9 @@ add_executable(wuzp_tests
     src/PassiveProperRigidTransformation.cpp
     src/ActiveAndPassiveProperRigidTransformation.cpp
     src/LorentzTransformation.cpp
+    src/SpatialVelocity.cpp
+    src/SpatialAcceleration.cpp
+    src/SpatialForce.cpp
     src/RigidBodyKinematics.cpp
     src/RotatingDumbbell.cpp
 )
@@ -164,7 +167,7 @@ target_compile_features(wuzp_header_check PRIVATE cxx_std_20)
 target_compile_options(wuzp_header_check PRIVATE ${WUZP_STRICT_WARNING_OPTIONS})
 target_link_libraries(wuzp_header_check PRIVATE ${WUZP_TEST_LINK_LIBRARIES})
 
-# <wuzp/wuzp.hpp> includes every header of the core and the transformations.
+# <wuzp/wuzp.hpp> includes every header of the core and the transformations, including the spatial vectors.
 file(READ ${WUZP_CORE_INCLUDE_DIR}/wuzp/wuzp.hpp _umbrella_header)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${WUZP_CORE_INCLUDE_DIR}/wuzp/wuzp.hpp)
 file(GLOB _headers RELATIVE ${WUZP_CORE_INCLUDE_DIR} CONFIGURE_DEPENDS ${WUZP_CORE_INCLUDE_DIR}/wuzp/core/*.hpp

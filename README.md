@@ -26,6 +26,8 @@ innerProduct(force_covector, velocity)  // OK: the power F_i v^i.
 
 X_AB * X_CB                          // Error: Adjacent frames do not match.
 X_AB * X_BC                          // OK: X_AC, in Drake's monogram notation.
+V_ABp == V_ABq                       // Error: Reference points do not match.
+V_ABp.shift<Q>(p_PQ) == V_ABq        // OK: both are spatial velocities of the body B about the point Q.
 jacobian.transform(joint_position)   // Error: A Jacobian maps vectors, not points: ...
 ```
 
@@ -98,6 +100,7 @@ The backends are optional components:
 Rotations, translations and proper rigid transformations, each active and passive, Lorentz transformations and Jacobians.
 They compose with `*` in the order of [Drake's monogram notation](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html), `X_AB * X_BC = X_AC`, and have an `inverse()`.
 Rotations convert from and to quaternions, angle-axis, rotation vectors and Euler angles, with the manifold operations and the time derivatives of [kindr](https://github.com/ANYbotics/kindr).
+Spatial velocities, accelerations and forces (twists and wrenches) also know the frame a motion is measured in and the point it is about, like [Drake's spatial vectors](https://drake.mit.edu/doxygen_cxx/group__multibody__spatial__vectors.html), and shift, compose and map by the adjoint of a rigid transformation with the transport formulas of rigid body kinematics (see [Spatial vectors](https://remod.github.io/wuzp/concepts/spatial-vectors/)).
 Points are rotated and translated, vectors only rotated:
 
 | | Point | Vector |

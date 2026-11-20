@@ -8,6 +8,7 @@
 #include "wuzp/trafo/ActiveSpatialRotation.hpp"
 #include "wuzp/trafo/PassiveSpatialRotation.hpp"
 
+#include "central_difference.hpp"
 #include "coordinate_systems.hpp"
 
 #include "Unit.hpp"
@@ -36,12 +37,6 @@ const TimeQuantity step{1e-5};
 const EulerAngles angles{0.3, -0.4, 1.2};
 const EulerAnglesDerivative rates{0.5, -0.2, 0.7};
 
-//! The central difference (f(h) - f(-h)) / 2h of a function of time, e.g. the quantities of a rotation.
-template <typename FunctionT_>
-auto centralDifference(const FunctionT_& function) {
-  return (function(step) - function(step * -1.0)) / (step * 2.0);
-}
-
 }  // namespace
 
 TEST(TestRotationDerivatives, Types) {  // NOLINT
@@ -61,7 +56,7 @@ TEST(TestRotationDerivatives, MatrixDerivative) {  // NOLINT
   const AngularVelocityInA angularVelocity{0.3, -0.5, 0.9};
   const Rotation initial = Rotation::fromEulerAnglesZyx(angles);
   const MatrixDerivative numerical = centralDifference(
-      [&](const TimeQuantity& time) { return (Rotation::fromRotationVector(angularVelocity * time) * initial).getQuantities(); });
+      step, [&](const TimeQuantity& time) { return (Rotation::fromRotationVector(angularVelocity * time) * initial).getQuantities(); });
   EXPECT_TRUE(initial.matrixDerivative(angularVelocity).isApprox(numerical, 1e-9));
   EXPECT_TRUE(initial.angularVelocityFromMatrixDerivative(numerical).isApprox(angularVelocity, 1e-9));
   EXPECT_TRUE(initial.angularVelocityFromMatrixDerivative(initial.matrixDerivative(angularVelocity)).isApprox(angularVelocity, 1e-14));
@@ -70,8 +65,8 @@ TEST(TestRotationDerivatives, MatrixDerivative) {  // NOLINT
 // The angular velocity of Euler angles ZYX that change at constant rates.
 TEST(TestRotationDerivatives, EulerAnglesZyxDerivative) {  // NOLINT
   const AngularVelocityInA angularVelocity = Rotation::angularVelocityFromEulerAnglesZyxDerivative(angles, rates);
-  const MatrixDerivative numerical =
-      centralDifference([&](const TimeQuantity& time) { return Rotation::fromEulerAnglesZyx(angles + rates * time).getQuantities(); });
+  const MatrixDerivative numerical = centralDifference(
+      step, [&](const TimeQuantity& time) { return Rotation::fromEulerAnglesZyx(angles + rates * time).getQuantities(); });
   EXPECT_TRUE(Rotation::fromEulerAnglesZyx(angles).matrixDerivative(angularVelocity).isApprox(numerical, 1e-9));
   EXPECT_TRUE(Rotation::eulerAnglesZyxDerivative(angles, angularVelocity).isApprox(rates, 1e-14));
   // Yaw alone turns around z.
@@ -81,8 +76,8 @@ TEST(TestRotationDerivatives, EulerAnglesZyxDerivative) {  // NOLINT
 
 TEST(TestRotationDerivatives, EulerAnglesXyzDerivative) {  // NOLINT
   const AngularVelocityInA angularVelocity = Rotation::angularVelocityFromEulerAnglesXyzDerivative(angles, rates);
-  const MatrixDerivative numerical =
-      centralDifference([&](const TimeQuantity& time) { return Rotation::fromEulerAnglesXyz(angles + rates * time).getQuantities(); });
+  const MatrixDerivative numerical = centralDifference(
+      step, [&](const TimeQuantity& time) { return Rotation::fromEulerAnglesXyz(angles + rates * time).getQuantities(); });
   EXPECT_TRUE(Rotation::fromEulerAnglesXyz(angles).matrixDerivative(angularVelocity).isApprox(numerical, 1e-9));
   EXPECT_TRUE(Rotation::eulerAnglesXyzDerivative(angles, angularVelocity).isApprox(rates, 1e-14));
   // The first angle alone turns around x.
@@ -103,7 +98,7 @@ TEST(TestRotationDerivatives, QuaternionDerivative) {  // NOLINT
   const AngularVelocityInA angularVelocity = Rotation::angularVelocityFromEulerAnglesZyxDerivative(angles, rates);
   const Quaternion quaternion = Rotation::fromEulerAnglesZyx(angles).toQuaternion();
   const QuaternionDerivative numerical =
-      centralDifference([&](const TimeQuantity& time) { return Rotation::fromEulerAnglesZyx(angles + rates * time).toQuaternion(); });
+      centralDifference(step, [&](const TimeQuantity& time) { return Rotation::fromEulerAnglesZyx(angles + rates * time).toQuaternion(); });
   EXPECT_TRUE(Rotation::quaternionDerivative(quaternion, angularVelocity).isApprox(numerical, 1e-9));
   EXPECT_TRUE(Rotation::angularVelocityFromQuaternionDerivative(quaternion, numerical).isApprox(angularVelocity, 1e-9));
   // The derivative depends on the sign of the quaternion.
@@ -115,7 +110,7 @@ TEST(TestRotationDerivatives, QuaternionDerivative) {  // NOLINT
 TEST(TestRotationDerivatives, ExponentialMapJacobian) {  // NOLINT
   const RotationVector rotationVector{1.0, 2.0, -0.5};
   const AngularVelocityInA rotationVectorDerivative{0.3, -0.1, 0.4};
-  const MatrixDerivative numerical = centralDifference([&](const TimeQuantity& time) {
+  const MatrixDerivative numerical = centralDifference(step, [&](const TimeQuantity& time) {
     return Rotation::fromRotationVector(rotationVector + rotationVectorDerivative * time).getQuantities();
   });
   const Rotation rotation = Rotation::fromRotationVector(rotationVector);
@@ -134,7 +129,7 @@ TEST(TestRotationDerivatives, PassiveAngularVelocityInFromOrTo) {  // NOLINT
   EXPECT_TRUE(inTo.getQuantities().isApprox(Rotation::angularVelocityFromEulerAnglesZyxDerivative(angles, rates).getQuantities(), 1e-15));
 
   const MatrixDerivative numerical = centralDifference(
-      [&](const TimeQuantity& time) { return PassiveRotation::fromEulerAnglesZyx(angles + rates * time).getQuantities(); });
+      step, [&](const TimeQuantity& time) { return PassiveRotation::fromEulerAnglesZyx(angles + rates * time).getQuantities(); });
   EXPECT_TRUE(rotation.matrixDerivative(inTo).isApprox(numerical, 1e-9));
   EXPECT_TRUE(rotation.matrixDerivative(inFrom).isApprox(numerical, 1e-9));
   EXPECT_TRUE(rotation.angularVelocityFromMatrixDerivative(numerical).isApprox(inTo, 1e-9));
@@ -145,7 +140,7 @@ TEST(TestRotationDerivatives, PassiveAngularVelocityInFromOrTo) {  // NOLINT
 
   const Quaternion quaternion = rotation.toQuaternion();
   const QuaternionDerivative quaternionDerivative = centralDifference(
-      [&](const TimeQuantity& time) { return PassiveRotation::fromEulerAnglesZyx(angles + rates * time).toQuaternion(); });
+      step, [&](const TimeQuantity& time) { return PassiveRotation::fromEulerAnglesZyx(angles + rates * time).toQuaternion(); });
   EXPECT_TRUE(PassiveRotation::quaternionDerivative(quaternion, inTo).isApprox(quaternionDerivative, 1e-9));
   EXPECT_TRUE(PassiveRotation::quaternionDerivative(quaternion, inFrom).isApprox(quaternionDerivative, 1e-9));
   EXPECT_TRUE(PassiveRotation::angularVelocityFromQuaternionDerivative(quaternion, quaternionDerivative).isApprox(inTo, 1e-9));
@@ -159,7 +154,7 @@ TEST(TestRotationDerivatives, PassiveEulerAnglesXyz) {  // NOLINT
   const AngularVelocityInA inFrom = PassiveRotation::angularVelocityFromEulerAnglesXyzDerivative<CoordinateSystemA>(angles, rates);
   EXPECT_TRUE(inTo.isApprox(rotation.transform(inFrom), 1e-14));
   const MatrixDerivative numerical = centralDifference(
-      [&](const TimeQuantity& time) { return PassiveRotation::fromEulerAnglesXyz(angles + rates * time).getQuantities(); });
+      step, [&](const TimeQuantity& time) { return PassiveRotation::fromEulerAnglesXyz(angles + rates * time).getQuantities(); });
   EXPECT_TRUE(rotation.matrixDerivative(inFrom).isApprox(numerical, 1e-9));
   EXPECT_TRUE(PassiveRotation::eulerAnglesXyzDerivative(angles, inTo).isApprox(rates, 1e-14));
   EXPECT_TRUE(PassiveRotation::eulerAnglesXyzDerivative(angles, inFrom).isApprox(rates, 1e-14));

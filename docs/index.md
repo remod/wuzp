@@ -7,6 +7,7 @@
 * **Points and vectors.** Points follow the rules of affine spaces: `p - q` is a vector, `p + v` a point, and operations whose result depends on the origin, e.g. `p + q` or `2 * p`, do not compile.
 * **Index variance.** Tensors know whether each index is upper (a vector) or lower (a covector), so only contractions of an upper with a lower index compile, and a covector is not mistaken for a vector.
 * **Transformations.** Rotations, translations and proper rigid transformations, active and passive, Lorentz transformations and Jacobians, which compose with `*` in the order of [Drake's monogram notation](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html) and have an `inverse()`.
+* **Spatial vectors.** Spatial velocities, accelerations and forces (twists and wrenches) also know the frame a motion is measured in and the point it is about, like Drake's: the velocities of two different points cannot be added, until one is shifted to the other point.
 
 All checks happen at compile time: with Eigen, *wuzp* is as fast as plain Eigen (see the [benchmarks](https://github.com/remod/wuzp/blob/master/benchmarks/README.md)).
 
@@ -36,7 +37,7 @@ int main() {
 ## Where to go next
 
 * [Quickstart](quickstart.md): add *wuzp* to a CMake project and compile a first program.
-* Concepts: [units and quantities](concepts/units.md), [points and vectors](concepts/points-and-vectors.md), [coordinate systems and metrics](concepts/coordinate-systems.md), [tensors and index variance](concepts/tensors.md), and [transformations](concepts/transformations.md).
+* Concepts: [units and quantities](concepts/units.md), [points and vectors](concepts/points-and-vectors.md), [coordinate systems and metrics](concepts/coordinate-systems.md), [tensors and index variance](concepts/tensors.md), [transformations](concepts/transformations.md), and [spatial vectors](concepts/spatial-vectors.md).
 * [Backends](backends.md): the units and linear algebra libraries *wuzp* works with, and how to choose one.
 * [Cookbook](cookbook/rigid-body-kinematics.md): worked examples from rigid body kinematics and Lagrangian mechanics.
 * [Conventions](conventions.md): the transformation rules, the index placement and the notation, with their sources.

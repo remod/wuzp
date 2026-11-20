@@ -94,7 +94,7 @@ Its rotation `C_IB` maps the coordinates of a vector in `B` to those in `I`, `I_
 | Skew-symmetric matrix | `getSkewMatrixFromVector()`, `getVectorFromSkewMatrix()` | `skewSymmetricMatrix()`, `vectorOfSkewSymmetricMatrix()`, which averages the elements of each pair |
 | Pseudo-inverse | `pseudoInverse()`, by a singular value decomposition, also of lower rank | `pseudoInverse()` of matrices of full rank, with checked units |
 | Units | `AngularVelocity` and `Torque` are types of their own | Angles are dimensionless, so an angular velocity is in `1/s` and a torque in `N m` |
-| Twists and wrenches | Linear part first | Not yet ([#76](https://github.com/remod/wuzp/issues/76)) |
+| Twists and wrenches | `Twist` and `Wrench`, the linear part first | `SpatialVelocity` and `SpatialForce`, the rotational part first, like Drake and Modern Robotics, with the frames and the point as types (see [Spatial vectors](#spatial-vectors)) |
 
 ### Comparison with Eigen
 
@@ -108,6 +108,20 @@ The tests compare with Eigen's geometry module too (`tests/src/EigenConventions.
 | `AngleAxis(z) * AngleAxis(y) * AngleAxis(x)`, `eulerAngles(2, 1, 0)` with the first angle in `[0, π]`, `canonicalEulerAngles(2, 1, 0)` (Eigen 5) | `fromEulerAnglesZyx()`, `toEulerAnglesZyx()` with the ranges of `canonicalEulerAngles()` |
 | `Quaternion::FromTwoVectors(a, b)` | `fromTwoVectors(a, b)` |
 | `angularDistance()` | `angularDistance()` |
+
+## Spatial vectors
+
+The spatial vectors follow Drake's [spatial vectors](https://drake.mit.edu/doxygen_cxx/group__multibody__spatial__vectors.html) and its [monogram notation](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html) (see [Spatial vectors](concepts/spatial-vectors.md)):
+
+* `SpatialVelocity<M, B, P, E>` is `V_MBp_E`, the spatial velocity of the frame `B` measured in `M` about the point `Bp`, expressed in `E`, `SpatialAcceleration<M, B, P, E>` is `A_MBp_E`, and `SpatialForce<B, P, E>` is `F_Bp_E`, the spatial force on `B` about `Bp`.
+  A point is the origin of a coordinate system, e.g. `Bo` is `B`.
+* The rotational part comes first, `(ω, v)`, `(α, a)` and `(τ, f)`, like Drake, Modern Robotics (Lynch and Park, Cambridge University Press, 2017, sections 3.3.2 and 3.4) and Featherstone, unlike kindr.
+* The shifts and compositions are those of Drake's `Shift()`, `ComposeWithMovingFrameVelocity()` and `ComposeWithMovingFrameAcceleration()`: `v_MBq = v_MBp + ω_MB × p_BpBq`, `a_MBq = a_MBp + α_MB × p_BpBq + ω_MB × (ω_MB × p_BpBq)` and `τ_Bq = τ_Bp - p_BpBq × f`; `ω_MC = ω_MB + ω_BC`, `v_MCq = v_MBp + ω_MB × p_BpCq + v_BCq`, `α_MC = α_MB + α_BC + ω_MB × ω_BC` and `a_MCq = a_MBp + α_MB × p_BpCq + ω_MB × (ω_MB × p_BpCq) + 2 ω_MB × v_BCq + a_BCq`.
+  The note of Drake's `ComposeWithMovingFrameAcceleration()` starts the last sum with `a_BCo` instead of `a_MBo`, a typo that its derivation corrects.
+* The spatial accelerations are Drake's, the derivatives of the velocities of points, not Featherstone's, the derivatives of the spatial velocities about a point fixed in `M`, which differ from them by `ω × v`.
+* `X_AB.transform(V_MBp_B)` is `V_MBp_A`, rotated by `R_AB` about the same point, like a vector.
+* The adjoint map of the passive proper rigid transformation `X_AB = (R_AB, p_AoBo_A)` is `[Ad_T] = [[R, 0], [[p] R, R]]` for twists about the origin of `B`, expressed in `B`, `V_s = [Ad_T_sb] V_b` in Modern Robotics, and its transposed inverse for wrenches, `F_s = [Ad_T_bs]^T F_b`: `ω' = R ω`, `v' = R v + p × (R ω)`, `f' = R f` and `τ' = R τ + p × (R f)`, i.e. `X_AB.transform(V).shift<A>(-p_AoBo_A)`.
+* The angular velocity of `PassiveSpatialRotation<From = B, To = A>` is the rotational part of `SpatialVelocity<A, B, P, E>`, expressed in `E = A` or `E = B`.
 
 ## Metrics and spacetime
 

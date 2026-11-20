@@ -21,7 +21,8 @@ namespace wuzp {
  * A passive translation from the coordinate system From to the coordinate system To, which have the same axes but different
  * origins: a point p in From is the point p + t in To, and vectors, covectors and tensors with two upper indices, e.g.
  * covariances, keep their components. Other tensors are rejected, since they may depend on the origin, e.g. an inertia about it
- * (see internal::isTranslationInvariant). The objects it transforms must be expressed in From.
+ * (see internal::isTranslationInvariant). Spatial vectors, e.g. SpatialVelocity, keep their components too, since the point they
+ * are about is a tag rather than the origin. The objects it transforms must be expressed in From.
  * Its vector t is the vector from the origin of To to the origin of From, expressed in To, i.e. p_AoBo_A of X_AB in the monogram
  * notation of Drake (https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html) for From = B and To = A. From and To have
  * the same axes, so it has the same components in From.

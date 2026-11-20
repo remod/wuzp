@@ -39,14 +39,16 @@ using PassiveRigidWithFrames = PassiveRigidOf<typename RigidT_::Rotation, typena
  * Euclidean (EuclideanCoordinateSystem), like those of its rotation. The rotation transforms from From to an intermediate
  * coordinate system with the origin of From and the axes of To, the translation from there to To, so the translation t is
  * expressed in To. This is Drake's RigidTransform X_AB = (R_AB, p_AoBo_A) for From = B and To = A
- * (https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html), whose coordinate transform of spatial vectors
- * is Featherstone's ^A X_B (http://royfeatherstone.org/spatial/v2/xforms.html). The rotation R is a rotation, e.g. a
+ * (https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rigid_transform.html). Featherstone's transform of spatial vectors
+ * ^A X_B (http://royfeatherstone.org/spatial/v2/xforms.html), which also moves their point from the origin of B to that of A,
+ * is adjoint(X_AB, ...), not transform() (see SpatialVelocity.hpp). The rotation R is a rotation, e.g. a
  * PassiveSpatialRotation, which checks that it is orthogonal with determinant 1 (see PassiveSpatialRotation::isValid()): the
  * inverse, (R^T, -R^T t), relies on it. PassiveProperRigidTransformation is the transformation of a rotation and a spatial
  * translation. Its compositions with rotations are defined in PassiveSpatialRotation.hpp.
  * The translation leaves vectors, covectors and tensors with two upper indices unchanged, so they are only rotated, e.g. a
  * covector w into w R^T and a covariance S into R S R^T, and it rejects the other tensors, e.g. an inertia, which may depend on
- * the origin (see PassiveTranslation).
+ * the origin (see PassiveTranslation). It leaves spatial vectors unchanged too, so X_AB re-expresses e.g. a spatial velocity
+ * V_MBp_B in A about the same point, by R_AB, unlike adjoint(), which also moves the point to the origin of A.
  */
 template <EuclideanCoordinateSystem FromT_, EuclideanCoordinateSystem ToT_, AnyRotation RotationT_, typename TranslationT_>
 class PassiveProperRigidTransformationTemplate

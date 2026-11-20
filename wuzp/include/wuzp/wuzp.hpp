@@ -1,6 +1,6 @@
 #pragma once
 
-// All headers of wuzp's core and transformations. The backends are included separately: a units backend (e.g.
+// All headers of wuzp's core, transformations and spatial vectors. The backends are included separately: a units backend (e.g.
 // <wuzp_units/Unit.hpp>) and a value matrix backend (e.g. <wuzp_eigen/ValueMatrix.hpp>).
 
 #include "wuzp/core/Absolute.hpp"
@@ -34,5 +34,10 @@
 #include "wuzp/trafo/PassiveSpatialRotation.hpp"
 #include "wuzp/trafo/PassiveTransformation.hpp"
 #include "wuzp/trafo/PassiveTranslation.hpp"
+#include "wuzp/trafo/SpatialAcceleration.hpp"
+#include "wuzp/trafo/SpatialForce.hpp"
+#include "wuzp/trafo/SpatialVector.hpp"
+#include "wuzp/trafo/SpatialVelocity.hpp"
 #include "wuzp/trafo/Transformation.hpp"
+#include "wuzp/trafo/kinematics.hpp"
 #include "wuzp/trafo/traits.hpp"

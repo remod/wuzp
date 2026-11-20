@@ -61,6 +61,7 @@ nav:
       - Coordinate systems and metrics: concepts/coordinate-systems.md
       - Tensors and index variance: concepts/tensors.md
       - Transformations: concepts/transformations.md
+      - Spatial vectors: concepts/spatial-vectors.md
   - Backends: backends.md
   - Cookbook:
       - Rigid body kinematics: cookbook/rigid-body-kinematics.md

@@ -15,6 +15,7 @@ The coordinate system is a type, so it has no runtime cost, and it is fixed at c
 
 A coordinate system means axes, an origin and a metric.
 It is not a moving observer: a passive transformation of a velocity re-expresses it, without adding the velocity of the frame (see [Limitations](../limitations.md)).
+Coordinate systems also name the frames and the points of the spatial vectors, whose types record the frame a motion is measured in, the frame it describes and the point it is about: a point is the origin of a coordinate system, e.g. `using Tip = wuzp::CoordinateSystem<TipId>;` (see [Spatial vectors](spatial-vectors.md)).
 
 `castCoordinateSystem<To>(tensor)` reinterprets the components of a tensor in another coordinate system without transforming them, e.g. for a block of a larger vector whose components are those of a coordinate system of its own.
 

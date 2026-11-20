@@ -8,8 +8,9 @@ Tensors have rank 0, 1 or 2: e.g. the outer product of two vectors is supported,
 **Coordinate systems** are axes, an origin and a constant metric, Euclidean, i.e. orthonormal axes, or Minkowski.
 Other metrics, e.g. of axes that are not orthonormal or of curvilinear coordinates, whose metric depends on the position, are not modeled (see [Coordinate systems and metrics](concepts/coordinate-systems.md)).
 
-**Moving frames** are not modeled: a passive transformation of a velocity re-expresses it, without adding the velocity of the frame or `ω × r`, and quantities about a point, e.g. a torque, are not shifted to another point.
-Write the transport formulas where they are needed (see [Rigid body kinematics](cookbook/rigid-body-kinematics.md) and the [design notes](https://github.com/remod/wuzp/blob/master/DESIGN.md#moving-frames)).
+**Moving frames** are only tracked by the spatial vectors: a passive transformation of a tensor, e.g. of a velocity, re-expresses it, without adding the velocity of the frame or `ω × r`, and a torque tensor is not shifted to another point.
+`SpatialVelocity`, `SpatialAcceleration` and `SpatialForce` record the frames and the point, and their shifts and compositions apply the transport formulas; `velocityOfBodyFixedPoint()` and `accelerationOfBodyFixedPoint()` apply them to vectors (see [Spatial vectors](concepts/spatial-vectors.md) and the [design notes](https://github.com/remod/wuzp/blob/master/DESIGN.md#spatial-vectors)).
+Spatial inertias and momenta, spatial Jacobians, the parts of a spatial vector as one 6-vector, the spatial accelerations of Featherstone and planar spatial vectors are not modeled, and active transformations do not transform spatial vectors: passive rotations and rigid transformations re-express them about the same point, and `adjoint()` also moves the point of spatial velocities and forces.
 
 **Cross products** return vectors, which is right under proper rotations in right-handed orthonormal bases, but not under reflections or other linear transformations, which must transform the factors instead (see [Tensors and index variance](concepts/tensors.md#cross-product)).
 

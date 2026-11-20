@@ -70,6 +70,31 @@ classDiagram
 * The rotations and the Lorentz transformations transform the same tensors as the linear transformations with their matrices, whose traits they inherit, but have structural inverses and check their validity in debug builds.
 * Which tensors a transformation transforms, and which compositions exist, is decided by the traits `TransformationTraits` and `CompositionTraits`, not by virtual functions (see [Transformations](concepts/transformations.md)).
 
+## Spatial vectors
+
+The spatial vectors derive from `SpatialVector<DerivedT_, RotationalT_, TranslationalT_>` through the CRTP, which holds their two parts, tensors expressed in the same coordinate system, and provides their getters, comparisons and sums.
+Its destructor is protected and not virtual, like that of `Transformation`: spatial vectors are values, never deleted through a pointer to the base.
+`AnySpatialVector` tells whether a type is a spatial vector.
+
+```mermaid
+classDiagram
+  class SpatialVector {
+    rotational and translational part
+  }
+  class Tensor {
+    quantities in a coordinate system
+  }
+  SpatialVector <|-- SpatialVelocity
+  SpatialVector <|-- SpatialAcceleration
+  SpatialVector <|-- SpatialForce
+  SpatialVector *-- Tensor : rotational
+  SpatialVector *-- Tensor : translational
+```
+
+* `SpatialVelocity` holds an `AngularVelocityVector3` and a `VelocityVector3`, `SpatialAcceleration` an `AngularAccelerationVector3` and an `AccelerationVector3`, and `SpatialForce` a `TorqueVector3` and a `ForceVector3`.
+* Their frames and their point are coordinate systems, tags like the coordinate system they are expressed in (see [Spatial vectors](concepts/spatial-vectors.md)).
+* They are not transformations, and the transformations do not derive from them: passive rotations and translations, and thus passive proper rigid transformations, re-express them through `TransformationTraits`, and `adjoint()` maps them by a `PassiveProperRigidTransformationTemplate`.
+
 ## Backends
 
 The core reaches the libraries only through traits, e.g. `Sum`, `Transpose` or `Coefficient`, which the backends specialize for `AccessImplementation<Implementation>`, and through `AccessUnits` for the units.

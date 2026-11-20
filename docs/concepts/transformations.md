@@ -27,6 +27,7 @@ const PointInB point = transformation.transform(pointInA);  // Rotated and trans
 ```
 
 `transform()` of a passive transformation only takes objects expressed in `From`, and that of an active transformation objects expressed in its coordinate system.
+Passive rotations, translations and proper rigid transformations also re-express spatial velocities, accelerations and forces, about the same point (see [Spatial vectors](spatial-vectors.md)).
 
 ## How tensors transform
 

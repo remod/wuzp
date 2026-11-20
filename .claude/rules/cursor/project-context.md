@@ -2,7 +2,7 @@
 
 *wuzp* ("Wrong Unit? Zero Points!") is a header-only C++20 library that adds compile-time checks for units, coordinate systems and absolute/relative quantities (points vs. vectors) to linear algebra libraries, plus active and passive transformations.
 
-- `wuzp/include/wuzp/core/`: units, quantities, tensors, coordinate systems, traits. `wuzp/include/wuzp/trafo/`: transformations. `wuzp/include/wuzp_units/`: wuzp's own units backend.
+- `wuzp/include/wuzp/core/`: units, quantities, tensors, coordinate systems, traits. `wuzp/include/wuzp/trafo/`: transformations and the spatial vectors they transform (twists, wrenches). `wuzp/include/wuzp_units/`: wuzp's own units backend.
 - `wuzp_eigen/`, `wuzp_blitz/` (value matrix backends), `wuzp_boost/` and `wuzp_mp_units/` (units backends) adapt other libraries.
 - `tests/src/`: unit tests (GoogleTest), and the archetypes, minimal backends that run them against exactly what the concepts require. `tests/compile_tests/cases/`: compile tests (code that must or must not compile). `examples/`: examples. `benchmarks/`: benchmarks against the plain libraries (Google Benchmark).
 - `ci/`: one script per CI job, `ci/local.sh` runs them locally. `.devcontainer/`: the dev container images used locally and in CI.

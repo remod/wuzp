@@ -375,6 +375,14 @@ concept ConsistentUnits =
     std::same_as<typename Inverse<typename UnitsT_::Time>::type, typename UnitsT_::Frequency> &&
     std::same_as<UnitQuotient<typename UnitsT_::Angle, typename UnitsT_::Time>, typename UnitsT_::AngularVelocity> &&
     std::same_as<UnitQuotient<typename UnitsT_::AngularVelocity, typename UnitsT_::Time>, typename UnitsT_::AngularAcceleration> &&
+    // The cross products of the transport formulas of rigid body kinematics, e.g. w x r for the velocity of a point of a rotating
+    // body, w x (w x r) for its centripetal acceleration, 2 w x v for the Coriolis acceleration, and w1 x w2 for the angular
+    // acceleration of a frame that rotates in a rotating frame (see wuzp/trafo/kinematics.hpp).
+    std::same_as<UnitProduct<typename UnitsT_::AngularVelocity, typename UnitsT_::Length>, typename UnitsT_::Velocity> &&
+    std::same_as<UnitProduct<typename UnitsT_::AngularAcceleration, typename UnitsT_::Length>, typename UnitsT_::Acceleration> &&
+    std::same_as<UnitProduct<typename UnitsT_::AngularVelocity, typename UnitsT_::Velocity>, typename UnitsT_::Acceleration> &&
+    std::same_as<UnitProduct<typename UnitsT_::AngularVelocity, typename UnitsT_::AngularVelocity>,
+                 typename UnitsT_::AngularAcceleration> &&
     std::same_as<UnitProduct<typename UnitsT_::Mass, typename UnitsT_::Acceleration>, typename UnitsT_::Force> &&
     std::same_as<UnitProduct<typename UnitsT_::Force, typename UnitsT_::Length>, typename UnitsT_::Energy> &&
     // Torque is N m, the unit of energy, so that the cross product of a length and a force is a torque.
@@ -386,7 +394,8 @@ concept ConsistentUnits =
 /**
  * The units of a units backend, e.g. AccessUnits<AccessImplementation<double>>: the base and derived units that the core and
  * its aliases use, e.g. `Length` and `Force`, which are consistent with the arithmetic traits of the backend, Product,
- * Division, Power (with rational exponents), Inverse and Identity, e.g. `Velocity` is `Length` divided by `Time`. The core
+ * Division, Power (with rational exponents), Inverse and Identity, e.g. `Velocity` is `Length` divided by `Time`, and also
+ * `AngularVelocity` times `Length`, for the transport formulas of rigid body kinematics, e.g. w x r. The core
  * defines the sum and the difference of units, and compares units by their types, so equal units must have the same type,
  * however they are computed, e.g. `Torque` and `Energy`. The backend specializes AccessUnits<AccessImplementation<ValueT_>>
  * for every arithmetic value type. A backend checks it in its tests, e.g.
