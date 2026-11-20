@@ -103,9 +103,11 @@ class SpatialAcceleration : public SpatialVector<SpatialAcceleration<ValuesT_, V
     static_assert(std::is_same_v<MeasuredInRelativeT_, FrameT_>, "Adjacent frames do not match.");
     static_assert(std::is_same_v<ExpressedInRelativeT_, ExpressedInT_>, "Coordinate systems do not match.");
     const auto shifted = shift<PointRelativeT_>(offset, velocityOfThisFrame);
-    const auto& angularVelocity = velocityOfThisFrame.getRotational();
-    return {shifted.getRotational() + acceleration.getRotational() + angularVelocity.crossProduct(velocity.getRotational()),
-            shifted.getTranslational() + angularVelocity.crossProduct(velocity.getTranslational()) * ValueT_{2} +
+    // Not named angularVelocity: MSVC checks the names of locals against the globals at the point of instantiation, and warns if
+    // they hide one, e.g. a global angularVelocity of the user (C4459, #84).
+    const auto& angularVelocityOfThisFrame = velocityOfThisFrame.getRotational();
+    return {shifted.getRotational() + acceleration.getRotational() + angularVelocityOfThisFrame.crossProduct(velocity.getRotational()),
+            shifted.getTranslational() + angularVelocityOfThisFrame.crossProduct(velocity.getTranslational()) * ValueT_{2} +
                 acceleration.getTranslational()};
   }
 };
