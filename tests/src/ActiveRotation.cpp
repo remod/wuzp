@@ -11,6 +11,7 @@
 #include "wuzp/trafo/ActiveSpatialRotation.hpp"
 #include "wuzp/trafo/ActiveTranslation.hpp"
 #include "wuzp/trafo/internal/validity.hpp"
+#include "wuzp/trafo/traits.hpp"
 
 #include "coordinate_systems.hpp"
 
@@ -203,6 +204,14 @@ TEST(TestActiveRotation, MakeUnchecked) {  // NOLINT
   EXPECT_EQ(Rotation3::makeUnchecked(rotationAroundZ(0.5).getQuantities()), rotationAroundZ(0.5));
 }
 
+// Every arithmetic value type has a tolerance for the validity checks, since MSVC instantiates it with the rotations, also where
+// isValid() is not called (see ValidityTolerance in wuzp/trafo/traits.hpp, #82): integers 0, long double that of double.
+TEST(TestActiveRotation, ValidityToleranceOfEveryArithmeticType) {  // NOLINT
+  static_assert(ValidityTolerance<unsigned>::value() == 0);
+  static_assert(ValidityTolerance<long>::value() == 0);
+  static_assert(ValidityTolerance<long double>::value() == static_cast<long double>(ValidityTolerance<double>::value()));
+}
+
 // The default constructor creates the identity.
 TEST(TestActiveRotation, DefaultIsIdentity) {  // NOLINT
   EXPECT_EQ(Rotation3{}, (Rotation3{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}));
@@ -244,6 +253,21 @@ TEST(TestActiveRotation, IsValidForFloat) {  // NOLINT
   const RotationF rotation{std::cos(angle), -std::sin(angle), 0.0f, std::sin(angle), std::cos(angle), 0.0f, 0.0f, 0.0f, 1.0f};
   EXPECT_TRUE((rotation * rotation * rotation).isValid());
   EXPECT_FALSE(RotationF::makeUnchecked(1.001f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f).isValid());
+}
+
+// long double has the tolerance of double, 1e-9, and the precision of double, 1e-12 (#82): in debug builds, the constructor
+// checks a long double rotation, a matrix that deviates by 1e-10 from a rotation is valid, one that deviates by 1e-6 is not, and
+// isApprox() compares with the precision of double.
+TEST(TestActiveRotation, IsValidForLongDouble) {  // NOLINT
+  using RotationL = ActiveSpatialRotation3<ValueMatrix, long double, CoordinateSystemA>;
+  const long double angle = 0.7L;
+  const RotationL rotation{std::cos(angle), -std::sin(angle), 0.0L, std::sin(angle), std::cos(angle), 0.0L, 0.0L, 0.0L, 1.0L};
+  EXPECT_TRUE(rotation.isValid());
+  EXPECT_TRUE(RotationL::makeUnchecked(1.0L + 1e-10L, 0.0L, 0.0L, 0.0L, 1.0L, 0.0L, 0.0L, 0.0L, 1.0L).isValid());
+  EXPECT_FALSE(RotationL::makeUnchecked(1.0L + 1e-6L, 0.0L, 0.0L, 0.0L, 1.0L, 0.0L, 0.0L, 0.0L, 1.0L).isValid());
+  EXPECT_TRUE(rotation.isApprox(rotation));
+  EXPECT_TRUE(RotationL{}.isApprox(RotationL::makeUnchecked(1.0L + 1e-13L, 0.0L, 0.0L, 0.0L, 1.0L, 0.0L, 0.0L, 0.0L, 1.0L)));
+  EXPECT_FALSE(RotationL{}.isApprox(RotationL::makeUnchecked(1.0L + 1e-10L, 0.0L, 0.0L, 0.0L, 1.0L, 0.0L, 0.0L, 0.0L, 1.0L)));
 }
 
 // The tolerance for int is 0: an integer rotation, e.g. by pi/2, is valid, an integer shear is not. In debug builds, the

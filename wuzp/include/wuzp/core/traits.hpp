@@ -340,14 +340,20 @@ struct AccessUnits {
                 "'AccessUnits' trait not specialized for given type. Make sure you included the necessary unit headers.");
 };
 
+/**
+ * The default precision of isApprox() for values of the type ValueT_, which compares relatively: 1e-12 for double and 1e-5 for
+ * float. Integers compare exactly, so their precision is 0, and long double has the precision of double, whose representation it
+ * shares with MSVC. Every arithmetic type, the value types of value matrices (see ArithmeticValue in concepts.hpp), has one, since MSVC
+ * instantiates the default arguments of isApprox() together with its class, e.g. the values, also where isApprox() is not called.
+ * The standard only instantiates them where a call uses them (https://eel.is/c++draft/temp.inst#12), as GCC and Clang do.
+ * The primary template is the case of the integers, which rejects the other types, rather than a partial specialization
+ * `requires std::is_integral_v<ValueT_> struct Precision<ValueT_>`, which differs from the primary template only by its
+ * constraint, so that the precisions that MSVC needs for every arithmetic type do not rely on its support of such specializations.
+ */
 template <typename ValueT_>
 struct Precision {
-  static_assert(FailOnInstantiation<Precision<ValueT_>>::value, "'Precision' trait not specialized for given types.");
-};
-
-template <>
-struct Precision<int> {
-  static constexpr int value() { return 0; }
+  static_assert(std::is_integral_v<ValueT_>, "'Precision' trait not specialized for given types.");
+  static constexpr ValueT_ value() { return 0; }
 };
 
 template <>
@@ -358,6 +364,11 @@ struct Precision<float> {
 template <>
 struct Precision<double> {
   static constexpr double value() { return 1e-12; }
+};
+
+template <>
+struct Precision<long double> {
+  static constexpr long double value() { return Precision<double>::value(); }
 };
 
 }  // namespace wuzp

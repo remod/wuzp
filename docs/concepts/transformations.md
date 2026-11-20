@@ -84,7 +84,7 @@ Rotation::projectToRotation(matrix)                    // The nearest rotation, 
 rotation.isValid()                                     // Checks in every build.
 ```
 
-The tolerance is `1e-9` for `double`, `1e-4` for `float` and `0` for `int` (`ValidityTolerance`).
+The tolerance is `1e-9` for `double` and `long double`, `1e-4` for `float` and `0` for every integer type (`ValidityTolerance`).
 `projectToRotation()` computes the orthogonal factor of the polar decomposition by the Newton-Schulz iteration (Higham, Functions of Matrices, SIAM 2008, section 8.3), which works with every value matrix backend.
 `createBoostMatrix()` creates a Lorentz boost from the velocity of `To` relative to `From`, which must be smaller than the speed of light.
 

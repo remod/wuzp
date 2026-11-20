@@ -48,16 +48,14 @@ struct CompositionTraits {
  * RotationMatrix accepts 128 machine epsilons (about 3e-14 for double,
  * https://drake.mit.edu/doxygen_cxx/classdrake_1_1math_1_1_rotation_matrix.html), Sophus 1e-10 (https://github.com/strasdat/Sophus),
  * and wuzp leaves a margin for longer chains: 1e-9 for double and 1e-4 for float. Integer matrices are exact, so their tolerance
- * is 0, e.g. for rotations by multiples of pi/2. Specialize it for other value types.
+ * is 0, e.g. for rotations by multiples of pi/2, and long double has the tolerance of double. Every arithmetic type has one, since
+ * MSVC instantiates the default argument of isValid() together with its class, like that of isApprox() (see Precision, also for
+ * why the primary template is the case of the integers).
  */
 template <typename ValueT_>
 struct ValidityTolerance {
-  static_assert(FailOnInstantiation<ValidityTolerance<ValueT_>>::value, "'ValidityTolerance' trait not specialized for given types.");
-};
-
-template <>
-struct ValidityTolerance<int> {
-  static constexpr int value() { return 0; }
+  static_assert(std::is_integral_v<ValueT_>, "'ValidityTolerance' trait not specialized for given types.");
+  static constexpr ValueT_ value() { return 0; }
 };
 
 template <>
@@ -68,6 +66,11 @@ struct ValidityTolerance<float> {
 template <>
 struct ValidityTolerance<double> {
   static constexpr double value() { return 1e-9; }
+};
+
+template <>
+struct ValidityTolerance<long double> {
+  static constexpr long double value() { return ValidityTolerance<double>::value(); }
 };
 
 namespace internal {

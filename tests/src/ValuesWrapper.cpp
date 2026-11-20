@@ -187,6 +187,28 @@ TEST(TestValuesWrapper, IsApproxDefaultPrecisionOfIntegers) {  // NOLINT
   const ValueMatrix<int, 2, 1> notApprox{3, 5};
   EXPECT_TRUE(matrix.isApprox(matrix));
   EXPECT_FALSE(matrix.isApprox(notApprox));
+  const ValueMatrix<unsigned, 2, 1> unsignedMatrix{3U, 4U};
+  const ValueMatrix<unsigned, 2, 1> unsignedNotApprox{3U, 5U};
+  EXPECT_TRUE(unsignedMatrix.isApprox(unsignedMatrix));
+  EXPECT_FALSE(unsignedMatrix.isApprox(unsignedNotApprox));
+}
+
+TEST(TestValuesWrapper, IsApproxDefaultPrecisionOfLongDouble) {  // NOLINT
+  // long double has the default precision of double, 1e-12, relative to the magnitude of the values (here 5).
+  const ValueMatrix<long double, 2, 1> matrix{3.0L, 4.0L};
+  const ValueMatrix<long double, 2, 1> approx{3.0L, 4.0L + 1e-12L};
+  const ValueMatrix<long double, 2, 1> notApprox{3.0L, 4.0L + 1e-10L};
+  EXPECT_TRUE(matrix.isApprox(approx));
+  EXPECT_FALSE(matrix.isApprox(notApprox));
+}
+
+// Every arithmetic value type has a default precision, since MSVC instantiates it with the values, also where isApprox() is not
+// called (see Precision in wuzp/core/traits.hpp, #82): integers 0, long double that of double.
+TEST(TestValuesWrapper, DefaultPrecisionOfEveryArithmeticType) {  // NOLINT
+  static_assert(Precision<unsigned char>::value() == 0);
+  static_assert(Precision<long long>::value() == 0);
+  static_assert(Precision<unsigned long>::value() == 0);
+  static_assert(Precision<long double>::value() == static_cast<long double>(Precision<double>::value()));
 }
 
 TEST(TestValuesWrapper, Zero) {  // NOLINT
