@@ -211,6 +211,28 @@ TEST(TestValuesWrapper, DefaultPrecisionOfEveryArithmeticType) {  // NOLINT
   static_assert(Precision<long double>::value() == static_cast<long double>(Precision<double>::value()));
 }
 
+// Integers compare exactly, whatever the precision, like with Eigen, with every backend: the squares of large differences, which
+// the relative comparison sums, overflow, e.g. 65536^2 is 0 in 32-bit integers, so that 0 and 65536 were approximately equal with
+// Blitz++ (#83).
+TEST(TestValuesWrapper, IsApproxOfIntegersIsExact) {  // NOLINT
+  EXPECT_FALSE((ValueMatrix<int, 1, 1>{0}.isApprox(ValueMatrix<int, 1, 1>{65536})));
+  EXPECT_FALSE((ValueMatrix<int, 2, 1>{0, 0}.isApprox(ValueMatrix<int, 2, 1>{50000, 0})));
+  EXPECT_FALSE((ValueMatrix<unsigned, 1, 1>{0U}.isApprox(ValueMatrix<unsigned, 1, 1>{65536U}, 0U)));
+  // A relative comparison with the precision 1 would accept these values.
+  EXPECT_FALSE((ValueMatrix<int, 2, 1>{100, 100}.isApprox(ValueMatrix<int, 2, 1>{100, 101}, 1)));
+  EXPECT_TRUE((ValueMatrix<int, 2, 1>{100, 100}.isApprox(ValueMatrix<int, 2, 1>{100, 100}, 1)));
+}
+
+// Only Blitz++ compares values of different types: Eigen and the archetype reject them. An integer on either side compares
+// exactly, so the result does not depend on the order, and the squares of the integers do not overflow (46341^2 does in 32 bits).
+#if VALUES_IMPLEMENTATION == VALUES_IMPLEMENTATION_BLITZ
+TEST(TestValuesWrapper, IsApproxOfIntegersAndFloatsIsExact) {  // NOLINT
+  EXPECT_TRUE((ValueMatrix<double, 1, 1>{46341.0}.isApprox(ValueMatrix<int, 1, 1>{46341})));
+  EXPECT_FALSE((ValueMatrix<double, 1, 1>{1000.5}.isApprox(ValueMatrix<int, 1, 1>{1000}, 1e-3)));
+  EXPECT_FALSE((ValueMatrix<int, 1, 1>{1000}.isApprox(ValueMatrix<double, 1, 1>{1000.5}, 1)));
+}
+#endif
+
 TEST(TestValuesWrapper, Zero) {  // NOLINT
   const ValueMatrix<double, 2, 3> expected{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   EXPECT_EQ((ValueMatrix<double, 2, 3>::zero()), expected);

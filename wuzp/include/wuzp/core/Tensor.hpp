@@ -152,8 +152,8 @@ class Tensor {
    * Whether the components of both tensors, which must have the same indices, coordinate system and absoluteness, are
    * approximately equal, relatively, like Eigen's isApprox
    * (https://eigen.tuxfamily.org/dox/classEigen_1_1DenseBase.html#ae8443357b808cd393be1b51974213f9c):
-   * ||a - b|| <= precision * min(||a||, ||b||), in the Frobenius norm of the values, with every value matrix backend. Two
-   * consequences:
+   * ||a - b|| <= precision * min(||a||, ||b||), in the Frobenius norm of the values, with every value matrix backend. Integer
+   * values compare exactly, whatever the precision (see ValuesWrapper::isApprox()). Two consequences of the relative comparison:
    * - It cannot compare with zero: only zero is approximately equal to zero. Compare the norm of a small vector with an absolute
    *   tolerance instead, e.g. `v.norm().getValue() <= 1e-9`.
    * - For points, the components depend on the origin, and so does the comparison: the same two points are approximately equal

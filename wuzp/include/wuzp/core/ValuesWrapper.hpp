@@ -158,11 +158,23 @@ class ValuesWrapper {
     return get<0, 0>();
   }
 
+  /**
+   * Whether the values are approximately equal to the other values: relatively, like Eigen's isApprox(), ||a - b|| <= precision
+   * min(||a||, ||b||) in the Frobenius norm (see Comparison::approxEqual()). Integers compare exactly, whatever the precision,
+   * like with Eigen's isApprox() (isApprox_selector in https://gitlab.com/libeigen/eigen/-/blob/master/Eigen/src/Core/Fuzzy.h):
+   * the squares of their differences, which the relative comparison sums, overflow, e.g. 65536^2 is 0 in 32-bit unsigned
+   * integers, so that 0 and 65536 would be approximately equal. Values of different types, which only some backends accept, e.g.
+   * Blitz++, compare exactly if either of them is an integer.
+   */
   template <typename MatrixSizeOtherT_, typename ValueOtherT_, typename ImplementationOtherT_>
   bool isApprox(const ValuesWrapper<MatrixSizeOtherT_, ValueOtherT_, ImplementationOtherT_>& other,
-                const ValueT precision = Precision<ValueT>::value()) const {
-    return Comparison<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOtherT_>>::approxEqual(
-        implementation_, other.getImplementation(), precision);
+                [[maybe_unused]] const ValueT precision = Precision<ValueT>::value()) const {
+    if constexpr (std::is_integral_v<ValueT> || std::is_integral_v<ValueOtherT_>) {
+      return *this == other;
+    } else {
+      return Comparison<AccessImplementation<ImplementationT>, AccessImplementation<ImplementationOtherT_>>::approxEqual(
+          implementation_, other.getImplementation(), precision);
+    }
   }
 
   // The member functions and operators return evaluated results, which do not refer to their operands, so that they can be

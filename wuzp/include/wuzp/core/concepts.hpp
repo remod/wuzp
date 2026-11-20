@@ -165,13 +165,19 @@ template <typename ImplementationT_, typename... ArgsT_>
   }
 struct IsInitializable<ImplementationT_, std::tuple<ArgsT_...>> : std::true_type {};
 
-//! Random values of the matrices of a value matrix backend, which are only supported for floating point types. A disjunction of
-//! concepts rather than a nested requirement of BackendMatrix: Clang 14 checked both operands of a disjunction in a nested
-//! requirement, which instantiated Random for integer matrices too, and failed for the backends that only provide it for
-//! floating point matrices.
+//! The requirements on the matrices of a value matrix backend that the core only uses for floating point values: Random values,
+//! which are only supported for floating point types, and the relative comparison Comparison::approxEqual, since the core
+//! compares integers exactly, with Comparison::equal (see ValuesWrapper::isApprox()). A disjunction of concepts rather than a
+//! nested requirement of BackendMatrix: Clang 14 checked both operands of a disjunction in a nested requirement, which
+//! instantiated them for integer matrices too, and failed for the backends that only provide them for floating point matrices.
 template <typename ImplementationT_, typename ValueT_>
-concept BackendRandom =
-    !std::floating_point<ValueT_> || requires(ImplementationT_& target) { Random<AccessImplementation<ImplementationT_>>::run(target); };
+concept BackendFloatingPointMatrix =
+    !std::floating_point<ValueT_> || requires(const ImplementationT_& impl, ImplementationT_& target, const ValueT_ value) {
+      Random<AccessImplementation<ImplementationT_>>::run(target);
+      {
+        Comparison<AccessImplementation<ImplementationT_>, AccessImplementation<ImplementationT_>>::approxEqual(impl, impl, value)
+      } -> std::same_as<bool>;
+    };
 
 //! A function object that maps a value of the type ValueT_ to a value of the same type, like the lambdas that the elementwise
 //! functions of quantities, e.g. pow<1, 2>(), pass to CwiseFunction: the identity.
@@ -209,9 +215,6 @@ concept BackendMatrix =
       Zero<AccessImplementation<ImplementationT_>>::run(target);
       {
         Comparison<AccessImplementation<ImplementationT_>, AccessImplementation<ImplementationT_>>::equal(impl, impl)
-      } -> std::same_as<bool>;
-      {
-        Comparison<AccessImplementation<ImplementationT_>, AccessImplementation<ImplementationT_>>::approxEqual(impl, impl, value)
       } -> std::same_as<bool>;
       {
         Sum<AccessImplementation<ImplementationT_>, AccessImplementation<ImplementationT_>>::value(impl, impl)
@@ -262,7 +265,7 @@ concept BackendMatrix =
       { SquaredNorm<AccessImplementation<ImplementationT_>>::value(impl) } -> std::same_as<ValueT_>;
       stream << impl;
     } &&
-    BackendRandom<ImplementationT_, ValueT_>;
+    BackendFloatingPointMatrix<ImplementationT_, ValueT_>;
 
 //! The matrices of a value matrix backend with a value type and a size.
 template <template <typename, int, int> typename ValueMatrixT_, typename ValueT_, int RowsV_, int ColsV_>
@@ -324,7 +327,8 @@ concept BackendDeterminant = requires(const ImplementationOf<ValueMatrixT_, Valu
  * (Coefficient), Rebind, Zero and Random, elementwise Sum, Difference, Negation, Product and Division (also with a scalar of the
  * value type), the elementwise reciprocal CwiseInverse, a function of the elements, CwiseFunction, for the elementwise functions
  * of quantities, e.g. pow<1, 2>(), Transpose, Block, InnerProduct, OuterProduct and CrossProduct, Norm and SquaredNorm,
- * Comparison and printing. The matrix inverse and the determinant are checked by InvertibleValueMatrixBackend.
+ * Comparison and printing. Random and the relative comparison Comparison::approxEqual are only checked for double: the core
+ * only uses them for floating point values. The matrix inverse and the determinant are checked by InvertibleValueMatrixBackend.
  *
  * A backend checks it in its tests, e.g. `static_assert(wuzp::ValueMatrixBackend<wuzp_eigen::ValueMatrix>);`: the check
  * instantiates many expressions of the backend, which takes about 0.7 s with Eigen. The core constrains its parameters with

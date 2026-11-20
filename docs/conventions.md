@@ -140,4 +140,5 @@ The spatial vectors follow Drake's [spatial vectors](https://drake.mit.edu/doxyg
 ## Comparisons
 
 `isApprox(other, precision)` compares relatively, like Eigen's [`isApprox`](https://eigen.tuxfamily.org/dox/classEigen_1_1DenseBase.html#ae8443357b808cd393be1b51974213f9c): `||a - b|| <= p min(||a||, ||b||)`, in the Frobenius norm of the values.
+Integer values compare exactly, whatever the precision, like with Eigen: the squares of their differences would overflow.
 It cannot compare with zero, and for points it depends on the origin (see [Limitations](limitations.md)).

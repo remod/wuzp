@@ -582,6 +582,8 @@ Decision: the spatial vectors of [Drake](https://drake.mit.edu/doxygen_cxx/group
 
 `isApprox` compares relatively, like Eigen's [`isApprox`](https://eigen.tuxfamily.org/dox/classEigen_1_1DenseBase.html#ae8443357b808cd393be1b51974213f9c): `||a - b|| <= p min(||a||, ||b||)`, in the Frobenius norm of the values, with every value matrix backend.
 Eigen warns that "because of the multiplicativeness of this comparison, one can't use this function to check whether *this is approximately equal to the zero matrix or vector".
+Integer values compare exactly, whatever the precision, like with Eigen, which compares integer matrices with `==` (`isApprox_selector` in [Fuzzy.h](https://gitlab.com/libeigen/eigen/-/blob/master/Eigen/src/Core/Fuzzy.h)): the squares of their differences overflow, e.g. 65536² is 0 in 32-bit integers, so that 0 and 65536 were approximately equal with Blitz++ (#83).
+So `ValueMatrixBackend` requires `Comparison::approxEqual` only for floating point values, like `Random`, and the archetype only provides it for them, so that the tests fail to compile if the core used it for integers.
 
 Decision: it stays relative, which suits values of any magnitude, and its consequences are documented on `Tensor::isApprox()`:
 

@@ -257,8 +257,12 @@ struct Comparison<archetype_values::internal::Access<ValueT_, RowsV_, ColsV_>,
     return archetype_values::internal::sumOver<int, RowsV_, ColsV_>(
                [&](const int row, const int col) { return lhs.at(row, col) == rhs.at(row, col) ? 0 : 1; }) == 0;
   }
-  // Relative, like Eigen's isApprox(): ||lhs - rhs||^2 <= tolerance^2 min(||lhs||^2, ||rhs||^2), with the Frobenius norm.
-  static bool approxEqual(const MatrixT& lhs, const MatrixT& rhs, const ValueT_ tolerance) {
+  // Relative, like Eigen's isApprox(): ||lhs - rhs||^2 <= tolerance^2 min(||lhs||^2, ||rhs||^2), with the Frobenius norm. Only for
+  // floating point values, like Random: the core compares integers exactly, with equal(), and the tests fail to compile if it
+  // used approxEqual() for them.
+  static bool approxEqual(const MatrixT& lhs, const MatrixT& rhs, const ValueT_ tolerance)
+    requires std::floating_point<ValueT_>
+  {
     const auto squaredNorm = [](const auto& function) { return archetype_values::internal::sumOver<ValueT_, RowsV_, ColsV_>(function); };
     const ValueT_ difference = squaredNorm(
         [&](const int row, const int col) { return (lhs.at(row, col) - rhs.at(row, col)) * (lhs.at(row, col) - rhs.at(row, col)); });
