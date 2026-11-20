@@ -3,7 +3,7 @@
 **Rank.**
 Tensors have rank 0, 1 or 2: e.g. the outer product of two vectors is supported, but not that of a vector and a matrix.
 
-**Angles are dimensionless**, with every units backend, like the SI treats them, so *wuzp* cannot tell `rad/s` from `Hz`, nor a torque from an energy, and `sin()` and `cos()` take any dimensionless quantity with floating-point values (see the [design notes](https://github.com/remod/wuzp/blob/master/DESIGN.md#angles-are-dimensionless)).
+**Angles are dimensionless**, with every units backend, like the SI treats them, so *wuzp* cannot tell `rad/s` from `Hz`, nor a torque from an energy, `sin()`, `cos()` and `tan()` take any dimensionless quantity with floating-point values, and `asin()`, `acos()`, `atan()` and `atan2()` return dimensionless quantities (see the [design notes](https://github.com/remod/wuzp/blob/master/DESIGN.md#angles-are-dimensionless)).
 
 **Coordinate systems** are axes, an origin and a constant metric, Euclidean, i.e. orthonormal axes, or Minkowski.
 Other metrics, e.g. of axes that are not orthonormal or of curvilinear coordinates, whose metric depends on the position, are not modeled (see [Coordinate systems and metrics](concepts/coordinate-systems.md)).
@@ -18,6 +18,10 @@ Write the transport formulas where they are needed (see [Rigid body kinematics](
 
 **Powers of negative quantities.**
 `pow<1, 3>()` of a negative quantity is its real cube root, like `std::cbrt`, but `pow<1, 2>()` of a negative quantity has no real result: it is NaN for floating point values, like `std::pow`, and throws `std::domain_error` for integer values.
+
+**Functions of matrices.**
+The functions of one argument, e.g. `sqrt()`, `abs()` and `exp()`, apply elementwise: there are no matrix functions, e.g. no matrix exponential.
+`atan2()`, `hypot()`, `min()` and `max()` only take single quantities (see [Functions of quantities](concepts/units.md#functions-of-quantities)).
 
 **Unit conversions.**
 *wuzp* does not convert units: quantities with different units, e.g. `m` and `km`, cannot be added.

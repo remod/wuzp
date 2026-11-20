@@ -1,5 +1,5 @@
 // wuzp-expect: error
-// wuzp-static-assert: sin and cos need floating-point values\.
+// wuzp-static-assert: sin, cos, tan, asin, acos, atan, atan2, exp and log need floating-point values: their results are not integers in general\.
 
 // The sine of an angle with integer values is not an integer in general, and would be truncated.
 

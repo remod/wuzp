@@ -1,8 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <ostream>
-#include <stdexcept>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -10,11 +10,13 @@
 #include "wuzp/core/Integer.hpp"
 #include "wuzp/core/MatrixSize.hpp"
 #include "wuzp/core/Quantity.hpp"
+#include "wuzp/core/Rational.hpp"
 #include "wuzp/core/TypeMatrix.hpp"
 #include "wuzp/core/Units.hpp"
 #include "wuzp/core/ValuesWrapper.hpp"
 #include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
+#include "wuzp/core/internal/powers.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
@@ -345,9 +347,10 @@ struct Division<Quantities<ValuesLhsT_, UnitsLhsT_>, Quantities<ValuesRhsT_, Uni
   using type = Quantities<typename Division<ValuesLhsT_, ValuesRhsT_>::type, typename Division<UnitsLhsT_, UnitsRhsT_>::type>;
 };
 
-template <typename ValueT_, typename UnitT_, typename ExponentT_>
-struct Power<Quantity<ValueT_, UnitT_>, ExponentT_> {
-  using type = Quantity<ValueT_, typename Power<UnitT_, ExponentT_>::type>;
+//! The elementwise power, like the product of quantities, which is elementwise too (see pow()).
+template <typename ValuesT_, typename UnitsT_, typename ExponentT_>
+struct Power<Quantities<ValuesT_, UnitsT_>, ExponentT_> {
+  using type = Quantities<ValuesT_, typename Power<UnitsT_, ExponentT_>::type>;
 };
 
 template <typename ValuesT_, typename UnitsT_>
@@ -546,85 +549,243 @@ std::ostream& operator<<(std::ostream& lhs, const Quantities<ValuesT_, UnitsT_>&
   return lhs;
 }
 
+// Functions of quantities. The functions of one argument, e.g. sin(), sqrt() and pow<P, Q>(), apply elementwise to quantities of
+// any size, like the functions of Eigen's arrays and of std::valarray (https://en.cppreference.com/w/cpp/numeric/valarray), which
+// is consistent with the elementwise product of quantities: e.g. exp() of a matrix is not its matrix exponential, and pow<2>() of
+// a matrix squares every element and its unit. They also work with heterogeneous units, e.g. sqrt() of an area and a squared time. The
+// functions of two arguments, atan2(), hypot(), min() and max(), take single quantities.
+
 namespace internal {
 
-/**
- * The real power base^(P/Q) of a value for the reduced exponent ExponentT_ = P/Q, computed in floating point and converted to
- * the value type. A negative base has a real power if Q is odd: (-1)^P |base|^(P/Q), e.g. (-8)^(1/3) = -2 and (-8)^(2/3) = 4,
- * like std::cbrt computes the cube root, whereas std::pow is NaN for every negative base and exponent that is not an integer
- * (https://en.cppreference.com/w/cpp/numeric/math/pow#Error_handling). If Q is even, a negative base has none: floating point
- * values give NaN, like std::pow, and integer values throw std::domain_error, since converting NaN into an integer is undefined
- * behavior.
- */
-template <typename ExponentT_, typename ValueT_>
-ValueT_ realPower(const ValueT_ base) {
-  // An exponent of an integer type would truncate a non-integer exponent, e.g. 1/2 to 0.
-  using FloatingPointT = std::conditional_t<std::is_floating_point_v<ValueT_>, ValueT_, double>;
-  const auto exponent = ExponentT_::template value<FloatingPointT>();
-  if constexpr (std::is_signed_v<ValueT_>) {
-    if (base < ValueT_{0}) {
-      if constexpr (ExponentT_::Divisor % 2 != 0) {
-        // The sign (-1)^P is exactly 1 or -1 for the integer P. Unlike a branch on P, which is known at compile time, it leaves no
-        // code that coverage reports as never executed.
-        return static_cast<ValueT_>(std::pow(FloatingPointT{-1}, ExponentT_::Dividend) *
-                                    std::pow(-static_cast<FloatingPointT>(base), exponent));
-      } else if constexpr (std::is_integral_v<ValueT_>) {
-        throw std::domain_error("A negative integer value has no real power with an exponent whose reduced denominator is even.");
-      }
-    }
-  }
-  return static_cast<ValueT_>(std::pow(static_cast<FloatingPointT>(base), exponent));
+//! The quantities with the units ResultUnitsT_ whose values are function(value) of the values of the quantities: the elementwise
+//! functions of quantities. The value matrix backend applies the function with CwiseFunction, so the functions compute the same
+//! with every backend. The result is converted into the value type, e.g. std::abs of a short, which is an int.
+template <typename ResultUnitsT_, typename ValuesT_, typename UnitsT_, typename FunctionT_>
+auto applyCwise(const Quantities<ValuesT_, UnitsT_>& quantities, const FunctionT_& function) {
+  using ValueT = typename ValuesT_::ValueT;
+  return Quantities<typename Evaluate<ValuesT_>::type, ResultUnitsT_>(
+      quantities.getValues().cwiseFunction([&function](const ValueT value) { return static_cast<ValueT>(function(value)); }));
 }
+
+//! Rejects the integer values of sin, cos, tan, asin, acos, atan, atan2, exp and log, whose results are not integers in general,
+//! and would be truncated: e.g. the sine of an angle, or an angle in radians (see "Integer values" in DESIGN.md). The value is
+//! always true.
+template <typename ValueT_>
+struct RequireFloatingPoint {
+  static_assert(std::is_floating_point_v<ValueT_>,
+                "sin, cos, tan, asin, acos, atan, atan2, exp and log need floating-point values: their results are not integers in "
+                "general.");
+  static constexpr bool value = true;
+};
+
+//! A function of dimensionless quantities, sin, cos, tan, asin, acos, atan, exp or log, applied elementwise, whose results are
+//! dimensionless too, e.g. the angles of asin(). Angles are dimensionless (see "Angles are dimensionless" in DESIGN.md), so the
+//! functions take any dimensionless quantities, e.g. also ratios of lengths. The values must be floating point values.
+template <typename ValuesT_, typename UnitsT_, typename FunctionT_>
+auto dimensionlessFunction(const Quantities<ValuesT_, UnitsT_>& quantities, const FunctionT_& function) {
+  using ValueT = typename ValuesT_::ValueT;
+  using DimensionlessT =
+      TypeMatrix<Rows<UnitsT_>::value, Cols<UnitsT_>::value, typename AccessUnits<AccessImplementation<ValueT>>::Dimensionless>;
+  static_assert(std::is_same_v<UnitsT_, DimensionlessT>,
+                "sin, cos, tan, asin, acos, atan, exp and log need dimensionless quantities, e.g. angles or ratios of lengths.");
+  static_assert(RequireFloatingPoint<ValueT>::value);
+  return applyCwise<UnitsT_>(quantities, function);
+}
+
+//! The quantity function(lhs value, rhs value) with the unit ResultUnitT_, for atan2, hypot, min and max: both quantities must have
+//! the same unit, e.g. two lengths, and the same value type and value matrix backend, like the operands of a sum. The result is
+//! converted into the value type, which leaves only the message of a rejected function, e.g. of atan2() of int values, whose
+//! std::atan2 is a double.
+template <typename ResultUnitT_, typename ValuesLhsT_, typename UnitLhsT_, typename ValuesRhsT_, typename UnitRhsT_, typename FunctionT_>
+auto binaryFunction(const Quantity<ValuesLhsT_, UnitLhsT_>& lhs, const Quantity<ValuesRhsT_, UnitRhsT_>& rhs, const FunctionT_& function) {
+  using ValuesT = typename Evaluate<ValuesLhsT_>::type;
+  static_assert(std::is_same_v<UnitLhsT_, UnitRhsT_>, "atan2, hypot, min and max need quantities with the same unit.");
+  static_assert(std::is_same_v<ValuesT, typename Evaluate<ValuesRhsT_>::type>,
+                "atan2, hypot, min and max need quantities with the same value type and value matrix backend.");
+  return Quantity<ValuesT, ResultUnitT_>(static_cast<typename ValuesT::ValueT>(function(lhs.getValue(), rhs.getValue())));
+}
+
+//! std::min and std::max as function objects, for the two overloads of min() and max() each.
+struct Min {
+  template <typename ValueT_>
+  ValueT_ operator()(const ValueT_ lhs, const ValueT_ rhs) const {
+    return std::min(lhs, rhs);
+  }
+};
+struct Max {
+  template <typename ValueT_>
+  ValueT_ operator()(const ValueT_ lhs, const ValueT_ rhs) const {
+    return std::max(lhs, rhs);
+  }
+};
 
 }  // namespace internal
 
 /**
- * The quantity raised to a rational power P/Q, e.g. pow<Rational<1, 2>>(area) is a length.
- * The power is computed in floating point and converted to the value type. For integer values, a result that is not an integer
- * is truncated, like the norm of integer vectors, which follows Eigen's norm(): pow<1, 2>(QuantityI<Area>(5)) is 2 m (see
- * "Integer values" in DESIGN.md). A negative value has a real power if the reduced denominator Q is odd, (-1)^P |x|^(P/Q): e.g.
- * pow<1, 3>() of -8 m^3 is -2 m, like std::cbrt, where std::pow is NaN. If Q is even, it has none: floating point values give
- * NaN, like std::pow (https://en.cppreference.com/w/cpp/numeric/math/pow#Error_handling), and integer values throw
- * std::domain_error (see "Powers of negative quantities" in DESIGN.md).
- * The exponent comes first, as the value and the unit can be deduced.
- * @throws std::domain_error For a negative integer value and an even Q.
+ * The quantities raised to a rational power P/Q, elementwise, e.g. pow<Rational<1, 2>>(area) is a length, and pow<2>() of a
+ * length and a time is an area and a squared time.
+ * The power of floating point values is computed in their type, with std::sqrt for 1/2 and std::cbrt for 1/3. For integer
+ * values, a result that is not an integer is truncated, like the norm of integer vectors, which follows Eigen's norm():
+ * pow<1, 2>(QuantityI<Area>(5)) is 2 m (see "Integer values" in DESIGN.md). The truncation is exact, e.g. pow<2, 3>() of 8 m^3 is
+ * 4 m^2, which is 3.9999999999999996 with std::pow (see internal::integerPower). A negative value has a real power if the reduced
+ * denominator Q is odd, (-1)^P |x|^(P/Q): e.g. pow<1, 3>() of -8 m^3 is -2 m, like std::cbrt, where std::pow is NaN. If Q is
+ * even, it has none: floating point values give NaN, like std::pow (https://en.cppreference.com/w/cpp/numeric/math/pow#Error_handling),
+ * and integer values throw std::domain_error (see "Powers of negative quantities" in DESIGN.md).
+ * The exponent comes first, as the values and the units can be deduced.
+ * @throws std::domain_error For a negative integer value and an even Q, and for an integer zero and a negative P.
+ * @throws std::range_error For an integer power that does not fit into the value type.
  */
-template <typename ExponentT_, typename ValueT_, typename UnitT_>
-auto pow(const Quantity<ValueT_, UnitT_>& quantity) {
-  // Evaluate the value here, as we need the result to have a constructor which can take a scalar, which expressions do not have.
-  return typename Power<Quantity<typename Evaluate<ValueT_>::type, UnitT_>, ExponentT_>::type(
-      internal::realPower<ExponentT_>(quantity.getValue()));
+template <typename ExponentT_, typename ValuesT_, typename UnitsT_>
+auto pow(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return internal::applyCwise<typename Power<UnitsT_, ExponentT_>::type>(
+      quantities, [](const auto value) { return internal::realPower<ExponentT_>(value); });
 }
 
 // Convenience definition, so one can write pow<2>() to get pow<Integer<2>>().
-template <int ExponentV_, typename ValueT_, typename UnitT_>
-auto pow(const Quantity<ValueT_, UnitT_>& quantity) {
-  return pow<Integer<ExponentV_>>(quantity);
+template <int ExponentV_, typename ValuesT_, typename UnitsT_>
+auto pow(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return pow<Integer<ExponentV_>>(quantities);
 }
 
 // Convenience definition, so one can write pow<1, 2>() to get pow<Rational<1, 2>>().
-template <int ExponentDividendV_, int ExponentDivisorV_, typename ValueT_, typename UnitT_>
-auto pow(const Quantity<ValueT_, UnitT_>& quantity) {
-  return pow<Rational<ExponentDividendV_, ExponentDivisorV_>>(quantity);
+template <int ExponentDividendV_, int ExponentDivisorV_, typename ValuesT_, typename UnitsT_>
+auto pow(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return pow<Rational<ExponentDividendV_, ExponentDivisorV_>>(quantities);
 }
 
-// The sine and the cosine of an angle. Angles are dimensionless (see "Angles are dimensionless" in DESIGN.md), so they take any
-// dimensionless quantity, e.g. also a ratio of lengths. The results are constructed from a scalar, so they have the evaluated
-// values: an expression, e.g. of the sum of two angles, has no constructor from a scalar. The units are those of the value type,
-// e.g. double, of the values. Integer values are rejected: their sine and cosine are not integers in general, and would be
-// truncated.
-template <typename ValuesT_>
-auto sin(const Quantity<ValuesT_, typename AccessUnits<AccessImplementation<typename ValuesT_::ValueT>>::Angle>& angle) {
-  static_assert(std::is_floating_point_v<typename ValuesT_::ValueT>, "sin and cos need floating-point values.");
-  return Quantity<typename Evaluate<ValuesT_>::type, typename AccessUnits<AccessImplementation<typename ValuesT_::ValueT>>::Dimensionless>(
-      std::sin(angle.getValue()));
+//! The square root, elementwise: pow<1, 2>(), computed with std::sqrt (https://en.cppreference.com/w/cpp/numeric/math/sqrt), e.g.
+//! the square root of an area is a length. The square root of a negative value is NaN for floating point values, like std::sqrt,
+//! and throws std::domain_error for integer values; that of other integer values is truncated (see pow()).
+//! @throws std::domain_error For a negative integer value.
+template <typename ValuesT_, typename UnitsT_>
+auto sqrt(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return pow<1, 2>(quantities);
 }
 
-template <typename ValuesT_>
-auto cos(const Quantity<ValuesT_, typename AccessUnits<AccessImplementation<typename ValuesT_::ValueT>>::Angle>& angle) {
-  static_assert(std::is_floating_point_v<typename ValuesT_::ValueT>, "sin and cos need floating-point values.");
-  return Quantity<typename Evaluate<ValuesT_>::type, typename AccessUnits<AccessImplementation<typename ValuesT_::ValueT>>::Dimensionless>(
-      std::cos(angle.getValue()));
+//! The cube root, elementwise: pow<1, 3>(), computed with std::cbrt (https://en.cppreference.com/w/cpp/numeric/math/cbrt), e.g.
+//! the cube root of a volume is a length. The cube root of a negative value is negative, like std::cbrt; that of an integer value
+//! is truncated (see pow()).
+template <typename ValuesT_, typename UnitsT_>
+auto cbrt(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return pow<1, 3>(quantities);
+}
+
+//! The absolute value, elementwise, of the same unit, like std::abs (https://en.cppreference.com/w/cpp/numeric/math/fabs), and the
+//! values themselves for unsigned values, for which std::abs is ambiguous. Like with std::abs, the absolute value of the minimum
+//! of a signed integer type, e.g. INT_MIN, is undefined behavior: the type cannot represent it.
+template <typename ValuesT_, typename UnitsT_>
+auto abs(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  using ValueT = typename ValuesT_::ValueT;
+  return internal::applyCwise<UnitsT_>(quantities, [](const ValueT value) {
+    if constexpr (std::is_unsigned_v<ValueT>) {
+      return value;
+    } else {
+      return std::abs(value);
+    }
+  });
+}
+
+//! The sine of angles in radians, elementwise, like std::sin (https://en.cppreference.com/w/cpp/numeric/math/sin): dimensionless
+//! quantities. The angles can be any dimensionless quantities (see "Angles are dimensionless" in DESIGN.md).
+template <typename ValuesT_, typename UnitsT_>
+auto sin(const Quantities<ValuesT_, UnitsT_>& angles) {
+  return internal::dimensionlessFunction(angles, [](const auto value) { return std::sin(value); });
+}
+
+//! The cosine of angles in radians, elementwise, like std::cos (https://en.cppreference.com/w/cpp/numeric/math/cos), see sin().
+template <typename ValuesT_, typename UnitsT_>
+auto cos(const Quantities<ValuesT_, UnitsT_>& angles) {
+  return internal::dimensionlessFunction(angles, [](const auto value) { return std::cos(value); });
+}
+
+//! The tangent of angles in radians, elementwise, like std::tan (https://en.cppreference.com/w/cpp/numeric/math/tan), see sin().
+template <typename ValuesT_, typename UnitsT_>
+auto tan(const Quantities<ValuesT_, UnitsT_>& angles) {
+  return internal::dimensionlessFunction(angles, [](const auto value) { return std::tan(value); });
+}
+
+//! The arc sine of dimensionless quantities, elementwise, like std::asin (https://en.cppreference.com/w/cpp/numeric/math/asin):
+//! the angles in [-pi/2, pi/2] in radians, which are dimensionless (see "Angles are dimensionless" in DESIGN.md). Values outside
+//! [-1, 1] give NaN.
+template <typename ValuesT_, typename UnitsT_>
+auto asin(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return internal::dimensionlessFunction(quantities, [](const auto value) { return std::asin(value); });
+}
+
+//! The arc cosine of dimensionless quantities, elementwise, like std::acos (https://en.cppreference.com/w/cpp/numeric/math/acos):
+//! the angles in [0, pi] in radians, see asin().
+template <typename ValuesT_, typename UnitsT_>
+auto acos(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return internal::dimensionlessFunction(quantities, [](const auto value) { return std::acos(value); });
+}
+
+//! The arc tangent of dimensionless quantities, elementwise, like std::atan (https://en.cppreference.com/w/cpp/numeric/math/atan):
+//! the angles in [-pi/2, pi/2] in radians, see asin(). atan2() takes the quadrant into account.
+template <typename ValuesT_, typename UnitsT_>
+auto atan(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return internal::dimensionlessFunction(quantities, [](const auto value) { return std::atan(value); });
+}
+
+//! The exponential function e^x of dimensionless quantities, elementwise, like std::exp
+//! (https://en.cppreference.com/w/cpp/numeric/math/exp): not the matrix exponential of a matrix.
+template <typename ValuesT_, typename UnitsT_>
+auto exp(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return internal::dimensionlessFunction(quantities, [](const auto value) { return std::exp(value); });
+}
+
+//! The natural logarithm of dimensionless quantities, elementwise, like std::log (https://en.cppreference.com/w/cpp/numeric/math/log):
+//! NaN for negative values, and -infinity for zero.
+template <typename ValuesT_, typename UnitsT_>
+auto log(const Quantities<ValuesT_, UnitsT_>& quantities) {
+  return internal::dimensionlessFunction(quantities, [](const auto value) { return std::log(value); });
+}
+
+/**
+ * The angle of the point (x, y) from the positive x axis, in [-pi, pi] in radians, of two quantities with the same unit, e.g.
+ * lengths, like std::atan2 (https://en.cppreference.com/w/cpp/numeric/math/atan2): y comes first, the angle is counterclockwise
+ * from the x axis to the y axis, and its branch cut is the negative x axis, where it is pi for y = +0 and -pi for y = -0. The
+ * angle is dimensionless (see "Angles are dimensionless" in DESIGN.md). The values must be floating point values.
+ */
+template <typename ValuesYT_, typename UnitYT_, typename ValuesXT_, typename UnitXT_>
+auto atan2(const Quantity<ValuesYT_, UnitYT_>& y, const Quantity<ValuesXT_, UnitXT_>& x) {
+  using ValueT = typename ValuesYT_::ValueT;
+  static_assert(internal::RequireFloatingPoint<ValueT>::value);
+  return internal::binaryFunction<typename AccessUnits<AccessImplementation<ValueT>>::Angle>(
+      y, x, [](const auto yValue, const auto xValue) { return std::atan2(yValue, xValue); });
+}
+
+//! The length sqrt(x^2 + y^2) of two quantities with the same unit, e.g. the components of a vector, without overflow or
+//! underflow in the intermediate steps, like std::hypot (https://en.cppreference.com/w/cpp/numeric/math/hypot). For integer
+//! values, it is truncated exactly, like the powers (see internal::realHypot and "Integer values" in DESIGN.md).
+//! @throws std::range_error For integer values whose length does not fit into the value type.
+template <typename ValuesXT_, typename UnitXT_, typename ValuesYT_, typename UnitYT_>
+auto hypot(const Quantity<ValuesXT_, UnitXT_>& x, const Quantity<ValuesYT_, UnitYT_>& y) {
+  return internal::binaryFunction<UnitXT_>(x, y, [](const auto xValue, const auto yValue) { return internal::realHypot(xValue, yValue); });
+}
+
+//! The smaller of two quantities with the same unit, like std::min (https://en.cppreference.com/w/cpp/algorithm/min), which
+//! returns lhs if neither is smaller, e.g. if one is NaN.
+template <typename ValuesLhsT_, typename UnitLhsT_, typename ValuesRhsT_, typename UnitRhsT_>
+auto min(const Quantity<ValuesLhsT_, UnitLhsT_>& lhs, const Quantity<ValuesRhsT_, UnitRhsT_>& rhs) {
+  return internal::binaryFunction<UnitLhsT_>(lhs, rhs, internal::Min{});
+}
+//! min() of two quantities of the same type. Argument-dependent lookup also finds std::min(const T&, const T&) for them, e.g.
+//! through the std::tuple of their units, which would make the overload above ambiguous: this one is more specialized than both.
+template <typename ValuesT_, typename UnitT_>
+auto min(const Quantity<ValuesT_, UnitT_>& lhs, const Quantity<ValuesT_, UnitT_>& rhs) {
+  return internal::binaryFunction<UnitT_>(lhs, rhs, internal::Min{});
+}
+
+//! The larger of two quantities with the same unit, like std::max (https://en.cppreference.com/w/cpp/algorithm/max), which
+//! returns lhs if neither is larger, e.g. if one is NaN.
+template <typename ValuesLhsT_, typename UnitLhsT_, typename ValuesRhsT_, typename UnitRhsT_>
+auto max(const Quantity<ValuesLhsT_, UnitLhsT_>& lhs, const Quantity<ValuesRhsT_, UnitRhsT_>& rhs) {
+  return internal::binaryFunction<UnitLhsT_>(lhs, rhs, internal::Max{});
+}
+//! max() of two quantities of the same type, see min().
+template <typename ValuesT_, typename UnitT_>
+auto max(const Quantity<ValuesT_, UnitT_>& lhs, const Quantity<ValuesT_, UnitT_>& rhs) {
+  return internal::binaryFunction<UnitT_>(lhs, rhs, internal::Max{});
 }
 
 }  // namespace wuzp

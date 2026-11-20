@@ -173,10 +173,17 @@ template <typename ImplementationT_, typename ValueT_>
 concept BackendRandom =
     !std::floating_point<ValueT_> || requires(ImplementationT_& target) { Random<AccessImplementation<ImplementationT_>>::run(target); };
 
+//! A function object that maps a value of the type ValueT_ to a value of the same type, like the lambdas that the elementwise
+//! functions of quantities, e.g. pow<1, 2>(), pass to CwiseFunction: the identity.
+template <typename ValueT_>
+struct IdentityFunction {
+  ValueT_ operator()(const ValueT_ value) const { return value; }
+};
+
 //! The requirements on the matrices of a value matrix backend with one value type and size: they are allocated, initialized,
-//! evaluated, copied and moved, their elements are accessed, and they are combined elementwise, inverted elementwise, transposed,
-//! multiplied with their transposes, compared and printed. Lazy results evaluate to the matrix of the backend with the size of
-//! the result, which is constructible from them (see TraitResult).
+//! evaluated, copied and moved, their elements are accessed, and they are combined elementwise, inverted elementwise, mapped
+//! elementwise by a function, transposed, multiplied with their transposes, compared and printed. Lazy results evaluate to the
+//! matrix of the backend with the size of the result, which is constructible from them (see TraitResult).
 template <typename ImplementationT_, template <typename, int, int> typename ValueMatrixT_, typename ValueT_, int RowsV_, int ColsV_>
 concept BackendMatrix =
     std::same_as<ValueMatrixT_<ValueT_, RowsV_, ColsV_>, ValuesWrapper<MatrixSize<RowsV_, ColsV_>, ValueT_, ImplementationT_>> &&
@@ -236,6 +243,9 @@ concept BackendMatrix =
       {
         CwiseInverse<AccessImplementation<ImplementationT_>>::value(impl)
       } -> TraitResult<CwiseInverse<AccessImplementation<ImplementationT_>>, ImplementationT_>;
+      {
+        CwiseFunction<AccessImplementation<ImplementationT_>, IdentityFunction<ValueT_>>::value(impl, IdentityFunction<ValueT_>{})
+      } -> TraitResult<CwiseFunction<AccessImplementation<ImplementationT_>, IdentityFunction<ValueT_>>, ImplementationT_>;
       {
         Transpose<AccessImplementation<ImplementationT_>>::value(impl)
       } -> TraitResult<Transpose<AccessImplementation<ImplementationT_>>, ImplementationOf<ValueMatrixT_, ValueT_, ColsV_, RowsV_>>;
@@ -312,8 +322,9 @@ concept BackendDeterminant = requires(const ImplementationOf<ValueMatrixT_, Valu
  * evaluation (Evaluate of the results of the traits, which may be lazy: they are move constructible, and the matrices are
  * constructible from them), Copy and Move (the matrices need a move constructor, but need not be copyable or assignable), element access
  * (Coefficient), Rebind, Zero and Random, elementwise Sum, Difference, Negation, Product and Division (also with a scalar of the
- * value type), the elementwise reciprocal CwiseInverse, Transpose, Block, InnerProduct, OuterProduct and CrossProduct, Norm and
- * SquaredNorm, Comparison and printing. The matrix inverse and the determinant are checked by InvertibleValueMatrixBackend.
+ * value type), the elementwise reciprocal CwiseInverse, a function of the elements, CwiseFunction, for the elementwise functions
+ * of quantities, e.g. pow<1, 2>(), Transpose, Block, InnerProduct, OuterProduct and CrossProduct, Norm and SquaredNorm,
+ * Comparison and printing. The matrix inverse and the determinant are checked by InvertibleValueMatrixBackend.
  *
  * A backend checks it in its tests, e.g. `static_assert(wuzp::ValueMatrixBackend<wuzp_eigen::ValueMatrix>);`: the check
  * instantiates many expressions of the backend, which takes about 0.7 s with Eigen. The core constrains its parameters with

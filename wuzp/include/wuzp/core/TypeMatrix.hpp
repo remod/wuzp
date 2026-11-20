@@ -344,6 +344,12 @@ struct CwiseInverse<TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<Types.
   using type = TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<typename Inverse<Types>::type...>>;
 };
 
+//! The elementwise power, like the product of type matrices, which is elementwise too, e.g. the units of pow<2>() of quantities.
+template <int RowsV_, int ColsV_, typename... Types, typename ExponentT_>
+struct Power<TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<Types...>>, ExponentT_> {
+  using type = TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<typename Power<Types, ExponentT_>::type...>>;
+};
+
 template <int RowsV_, int ColsV_, typename... Types>
 struct Transpose<TypeMatrixImpl<MatrixSize<RowsV_, ColsV_>, std::tuple<Types...>>> {
   using type =

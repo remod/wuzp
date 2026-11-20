@@ -48,13 +48,30 @@ The inverse of such a matrix has the units `b_i / a_j`, and `inverse()` and `det
 
 ## Functions of quantities
 
+The functions compute the unit of the result, and reject invalid units at compile time, e.g. `sin()` of a length or `atan2()` of a length and a time:
+
+```cpp
+using wuzp_eigen::QuantityD;
+const QuantityD<wuzp_units::Length> side = wuzp::sqrt(QuantityD<wuzp_units::Area>{2.0});
+const QuantityD<wuzp_units::Angle> angle = wuzp::atan2(QuantityD<wuzp_units::Length>{1.0}, side);
+// wuzp::sin(side);  // Error: sin, cos, tan, asin, acos, atan, exp and log need dimensionless quantities, e.g. angles or ratios of lengths.
+```
+
 * `pow<P>(q)` and `pow<P, Q>(q)` raise a quantity to a rational power, e.g. `pow<2>(length)` is an area and `pow<1, 2>(area)` a length.
   A negative value has a real power if the reduced denominator `Q` is odd, e.g. `pow<1, 3>()` of `-8 m^3` is `-2 m`; otherwise the power of a floating point value is NaN, like with `std::pow`, and that of an integer value throws `std::domain_error`.
-* `sin()` and `cos()` take a dimensionless quantity with floating-point values, e.g. an angle, and return a dimensionless quantity.
+  `sqrt()` and `cbrt()` are `pow<1, 2>()` and `pow<1, 3>()`, computed with `std::sqrt` and `std::cbrt`.
+* `abs()` keeps the unit.
+* `sin()`, `cos()` and `tan()` take a dimensionless quantity with floating-point values, e.g. an angle in radians, and return a dimensionless quantity; `asin()`, `acos()` and `atan()` take a dimensionless quantity with floating-point values and return an angle, which is dimensionless too.
+  `exp()` and `log()`, the natural logarithm, take and return dimensionless quantities with floating-point values.
+* `atan2(y, x)` takes two quantities with the same unit, e.g. lengths, and returns the angle of the point `(x, y)` in `[-π, π]`, like [`std::atan2`](https://en.cppreference.com/w/cpp/numeric/math/atan2).
+  `hypot(x, y)`, `min()` and `max()` take two quantities with the same unit and return a quantity of that unit.
+* The functions of one argument apply elementwise to quantities of any size, also with heterogeneous units, like the functions of Eigen's arrays: e.g. `pow<2>()` of a vector of a length and a time is a vector of an area and a squared time, and `exp()` of a matrix is not its matrix exponential.
+  `atan2()`, `hypot()`, `min()` and `max()` take single quantities.
 * `isApprox(other, precision)` compares relatively, like Eigen's `isApprox` (see [Limitations](../limitations.md)).
 
 ## Value types
 
 Quantities, tensors and transformations take the value type as a parameter, e.g. `double`, `float` or `int`.
 An element of another arithmetic type is accepted if the common type of both is the value type: a vector of `double` can be constructed from `int`s, and `2 * v` is valid, while a vector of `int` rejects `1.5` and `2.5 * v`, which would truncate them.
-Operations whose result is not an integer, e.g. the norm or `pow<1, 2>()`, are computed in floating point and truncated for integer values, like Eigen does; the matrix inverse of integer values is rejected.
+Operations whose result is not an integer, e.g. the norm, `pow<1, 2>()` or `hypot()`, are computed in floating point and truncated for integer values, like Eigen does; the powers and `hypot()` are truncated exactly, e.g. `pow<2, 3>()` of `8 m^3` is `4 m^2`, and throw `std::range_error` if the result does not fit into the value type.
+The matrix inverse, the trigonometric functions, `exp()` and `log()` of integer values are rejected.

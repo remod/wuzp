@@ -195,6 +195,15 @@ struct CwiseInverse {
   static_assert(FailOnInstantiation<CwiseInverse<T>>::value, "'CwiseInverse' trait not specialized for given type.");
 };
 
+//! A function applied to every element of a matrix, like Eigen's DenseBase::unaryExpr(): `value(impl, function)` returns the
+//! matrix of the results. FunctionT_ is a function object, e.g. a lambda, that maps a value of the value type to a value of the
+//! value type, so the result has the value type and the size of the matrix. The elementwise functions of quantities, e.g.
+//! pow<1, 2>() of a matrix, compute their values with it, so that they compute the same with every value matrix backend.
+template <typename T, typename FunctionT_>
+struct CwiseFunction {
+  static_assert(FailOnInstantiation<CwiseFunction<T, FunctionT_>>::value, "'CwiseFunction' trait not specialized for given type.");
+};
+
 template <typename T>
 struct Identity {
   static_assert(FailOnInstantiation<Identity<T>>::value, "'Identity' trait not specialized for given type.");

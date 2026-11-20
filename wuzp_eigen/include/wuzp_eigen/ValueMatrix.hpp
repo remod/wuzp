@@ -205,6 +205,15 @@ struct CwiseInverse<AccessImplementation<ImplementationT_>> {
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
+// Eigen's unaryExpr() applies a function object to every element, lazily: the expression stores a copy of the function (see
+// DenseBase::unaryExpr() in https://eigen.tuxfamily.org/dox/classEigen_1_1DenseBase.html).
+template <wuzp_eigen::EigenArray ImplementationT_, typename FunctionT_>
+struct CwiseFunction<AccessImplementation<ImplementationT_>, FunctionT_> {
+  static auto value(const ImplementationT_& impl, const FunctionT_& function) { return impl.unaryExpr(function); }
+  // Use decltype/declval to allow for lazy evaluation.
+  using type = decltype(value(std::declval<const ImplementationT_>(), std::declval<const FunctionT_>()));
+};
+
 template <wuzp_eigen::EigenArray ImplementationT_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
 struct Block<AccessImplementation<ImplementationT_>, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_> {
   static auto value(const ImplementationT_& impl) { return impl.template block<BlockRowsV_, BlockColsV_>(BlockRowIdV_, BlockColIdV_); }

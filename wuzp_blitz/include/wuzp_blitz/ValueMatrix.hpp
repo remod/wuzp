@@ -399,6 +399,26 @@ struct CwiseInverse<AccessImplementation<ImplementationT_>> {
   using type = decltype(value(std::declval<const ImplementationT_>()));
 };
 
+// Blitz++ applies a function object to the elements of an expression only if its class declares it with the macro
+// BZ_DECLARE_FUNCTOR (blitz/array/functorExpr.h), which lambdas cannot, so the function is applied element by element, into a new
+// array.
+template <wuzp_blitz::BlitzArray ImplementationT_, typename FunctionT_>
+struct CwiseFunction<AccessImplementation<ImplementationT_>, FunctionT_> {
+  static auto value(const ImplementationT_& impl, const FunctionT_& function) {
+    // Expressions are evaluated first, for the element access.
+    const auto& array = wuzp_blitz::internal::asArray(impl);
+    wuzp_blitz::internal::ArrayOf<ImplementationT_> result(array.extent(0), array.extent(1));
+    for (int row = 0; row < array.extent(0); ++row) {
+      for (int col = 0; col < array.extent(1); ++col) {
+        result(row, col) = function(array(row, col));
+      }
+    }
+    return result;
+  }
+  // Not lazy, see above.
+  using type = decltype(value(std::declval<const ImplementationT_>(), std::declval<const FunctionT_>()));
+};
+
 template <wuzp_blitz::BlitzArray ImplementationT_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_, int BlockColsV_>
 struct Block<AccessImplementation<ImplementationT_>, BlockRowIdV_, BlockColIdV_, BlockRowsV_, BlockColsV_> {
   // A slice of an array is a view that shares its values, like transpose(), so the block is copied.

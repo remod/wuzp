@@ -120,7 +120,7 @@ The price, the known risks of treating angles as quantities with the unit one:
 
 * `rad/s` cannot be told apart from `Hz`, so *wuzp* does not catch a missing factor of 2π between an angular velocity and a frequency, against which the SI Brochure warns: "It is especially important to carefully distinguish frequencies from angular frequencies, because by definition their numerical values differ by a factor of 2π" (section 2.3.4).
 * Torque cannot be told apart from energy, both `N m`, although "the joule is never used for expressing torque" (section 2.3.4).
-* `sin()` and `cos()` take any dimensionless quantity, e.g. also a ratio of two lengths, not only an angle.
+* `sin()`, `cos()` and `tan()` take any dimensionless quantity, e.g. also a ratio of two lengths, not only an angle, and `asin()`, `acos()`, `atan()` and `atan2()` return dimensionless quantities, which only their meaning makes angles.
 
 ### Constraints on template parameters
 
@@ -276,6 +276,14 @@ Decision:
 
 Decision: operations whose result is not an integer, such as the norm or a power with a non-integer exponent, are computed in floating point and truncated to the value type, like the norm of integer vectors in Eigen: `pow<1, 2>()` of 5 m² is 2 m (#63).
 The matrix inverse is rejected instead, since a truncated inverse does not invert the matrix (see [Inverses and determinants](#inverses-and-determinants)).
+
+* The powers and `hypot()` of integer values are truncated exactly: their floating point values only estimate them, e.g. `pow<2, 3>()` of 8 m³ is `3.9999999999999996` with `std::pow`, since the exponent 2/3 is not exact, and was truncated to 3 m² (#74), and the square root of 10^14 - 1 m² is within 5e-15 of 10^7 m, relative, while the truncated root is 9999999 m.
+  A rounding heuristic cannot tell these apart, so the estimate of the root of `x^P`, or of `x² + y²`, is corrected with exact powers of 64-bit integers, `root^Q <= x^P < (root + 1)^Q`.
+  Only if `x^P` or `x² + y²` does not fit into 64 bits, the floating point result is truncated.
+* An integer result that does not fit into the value type, e.g. `pow<2>()` of 65536 with `int` values, throws `std::range_error`, and an integer zero to a negative power, which is infinite, `std::domain_error`, like a negative value with an even `Q`: converting a value out of range or an infinity into an integer is undefined behavior.
+  `std::range_error` is the exception of the standard library for results that the destination type cannot represent, and `std::pow` reports a range error for results that overflow ([`std::pow`](https://en.cppreference.com/w/cpp/numeric/math/pow#Error_handling)).
+* The trigonometric functions, their inverses, `exp()` and `log()` reject integer values with a `static_assert`: their results, e.g. a sine or an angle in radians, are mostly small numbers, of which truncation leaves little.
+  `sqrt()`, `cbrt()` and `hypot()` are truncated, like the norm and `pow()`, and `abs()`, `min()` and `max()` are exact (see [Functions of quantities](#functions-of-quantities)).
 
 ### Composition and inverse of transformations
 
@@ -500,7 +508,25 @@ With an integer value type, the NaN was converted into the value type, which is 
 
 Decision: a negative value has a real power if `Q` is odd, `(-1)^P |x|^(P/Q)`, e.g. `-2 m` for `pow<1, 3>()` of `-8 m³` and `4 m²` for `pow<2, 3>()`, which `pow()` computes for every value type.
 If `Q` is even, a negative value has no real power: floating point values give NaN, like `std::pow`, and integer values throw `std::domain_error`, since a NaN cannot be converted into an integer (`tests/src/Quantity.cpp`).
-Like the other powers of integer values, the real roots are computed in floating point and truncated (see [Integer values](#integer-values)).
+Like the other powers of integer values, the real roots are truncated exactly (see [Integer values](#integer-values)).
+
+### Functions of quantities
+
+*wuzp* had few functions of quantities, `pow<P, Q>()`, `sin()` and `cos()` of a single quantity, so users took the values out with `getValue()` for the others, which bypasses the unit checks (#74).
+
+Decision:
+
+* The functions of one argument, `pow<P, Q>()`, `sqrt()`, `cbrt()`, `abs()`, `sin()`, `cos()`, `tan()`, `asin()`, `acos()`, `atan()`, `exp()` and `log()`, apply elementwise to quantities of any size, also with heterogeneous units, like the functions of Eigen's arrays and of [`std::valarray`](https://en.cppreference.com/w/cpp/numeric/valarray), consistent with the elementwise product of quantities: `pow<2>()` of a matrix squares every element and its unit, and `exp()` of a matrix is not its matrix exponential.
+* The trigonometric functions and their inverses, `exp()` and `log()` take dimensionless quantities and floating point values, and reject others with a `static_assert` that names them (see [Angles are dimensionless](#angles-are-dimensionless) and [Integer values](#integer-values)).
+  `atan2()`, `hypot()`, `min()` and `max()` take two single quantities with the same unit, value type and backend, like a sum: their elementwise forms for matrices would need a trait for functions of two matrices, which nothing needs yet.
+* `atan2(y, x)` follows [`std::atan2`](https://en.cppreference.com/w/cpp/numeric/math/atan2): the angle of the point `(x, y)` in `[-π, π]`, with the branch cut on the negative x axis, where the sign of a zero `y` decides between `π` and `-π`.
+* `sqrt()` and `cbrt()` are `pow<1, 2>()` and `pow<1, 3>()`, which compute with `std::sqrt` and `std::cbrt`: they are more accurate than `std::pow` with the exponent `1/3`, which is not exact in floating point, e.g. `std::pow(64.0, 1.0 / 3.0)` is `3.9999999999999996`.
+* The core computes the values: the value matrix backends apply a function object of the core, e.g. a lambda that calls `std::sin`, to every element, with the trait `CwiseFunction`, like Eigen's `unaryExpr()`, rather than with the functions of their libraries, e.g. Eigen's `pow()` of arrays.
+  So the functions compute the same with every backend, e.g. the real roots of negative values (see [Powers of negative quantities](#powers-of-negative-quantities)), and a backend specializes one trait instead of one per function.
+  Blitz++ applies a function object to an expression only if its class declares it with the macro `BZ_DECLARE_FUNCTOR`, which a lambda cannot, so its backend applies the function element by element.
+* `ValueMatrixBackend` requires `CwiseFunction`, rather than an optional concept like `InvertibleValueMatrixBackend` for the matrix inverse: every library can apply a function to every element, with a loop over the elements if nothing else, while a matrix inverse is linear algebra that a library may lack, like Blitz++.
+  Requiring it before 1.0 breaks no released backend; requiring it in a 1.x release would.
+* Argument-dependent lookup also finds `std::min(const T&, const T&)` and `std::max` for quantities, through the `std::tuple` of their units, which made `min()` of two lengths ambiguous: `min()` and `max()` have an overload for two quantities of the same type, which is more specialized than both, and one for quantities of different types, which rejects their units or values with a `static_assert`.
 
 ## Review of mathematical and physical soundness (November 2026)
 

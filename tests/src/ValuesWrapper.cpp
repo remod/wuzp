@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 
+#include "wuzp/core/concepts.hpp"
 #include "wuzp/core/traits.hpp"
 
 #include "ValueMatrix.hpp"
@@ -608,7 +609,23 @@ TEST(TestValuesWrapper, OperationsOnUnevaluatedValues) {  // NOLINT
   EXPECT_EQ(lhs.transpose().innerProduct(unevaluated), (Value<int>{24}));
   EXPECT_EQ(unevaluated.innerProduct(lhs.transpose()), (ValueMatrix<int, 3, 3>{4, 8, 12, 4, 8, 12, 4, 8, 12}));
   EXPECT_EQ(unevaluated.crossProduct(lhs), (MyValueMatrix{4, -8, 4}));
+  EXPECT_EQ(unevaluated.cwiseFunction([](const int value) { return value * value; }), (MyValueMatrix{16, 16, 16}));
   EXPECT_EQ(unevaluated.evaluate(), (MyValueMatrix{4, 4, 4}));
+}
+
+// The function is applied to every element, and may have a state, e.g. a captured variable. The compile test
+// ValuesWrapper.CwiseFunctionOfOtherValueType checks that it must keep the value type.
+TEST(TestValuesWrapper, CwiseFunction) {  // NOLINT
+  const ValueMatrix<double, 2, 3> values{1.0, -2.0, 3.0, -4.0, 5.0, -6.0};
+  const double offset = 0.5;
+  const ValueMatrix<double, 2, 3> result = values.cwiseFunction([offset](const double value) { return 2.0 * value + offset; });
+  EXPECT_EQ(result, (ValueMatrix<double, 2, 3>{2.5, -3.5, 6.5, -7.5, 10.5, -11.5}));
+  // The values are not changed.
+  EXPECT_EQ(values, (ValueMatrix<double, 2, 3>{1.0, -2.0, 3.0, -4.0, 5.0, -6.0}));
+  // The identity, with which ValueMatrixBackend checks CwiseFunction for double and int values, maps the values to themselves.
+  EXPECT_EQ(values.cwiseFunction(wuzp::internal::IdentityFunction<double>{}), values);
+  const ValueMatrix<int, 2, 1> integers{1, -2};
+  EXPECT_EQ(integers.cwiseFunction(wuzp::internal::IdentityFunction<int>{}), integers);
 }
 
 // Only values of the same size convert implicitly, so that type traits report other conversions as invalid (#62, #70).

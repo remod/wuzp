@@ -226,6 +226,16 @@ class ValuesWrapper {
   auto cwiseInverse() const {
     return typename CwiseInverse<ThisT>::type{CwiseInverse<AccessImplementation<ImplementationT>>::value(implementation_)}.evaluate();
   }
+  //! The function applied to every element, like Eigen's DenseBase::unaryExpr(): the values function(value), of the same value
+  //! type and size. The function, e.g. a lambda, maps a value of the value type to a value of the value type (see CwiseFunction).
+  template <typename FunctionT_>
+  auto cwiseFunction(const FunctionT_& function) const {
+    static_assert(std::is_same_v<std::invoke_result_t<const FunctionT_&, ValueT>, ValueT>,
+                  "The function must map a value of the value type to a value of the value type.");
+    return typename CwiseFunction<ThisT, FunctionT_>::type{
+        CwiseFunction<AccessImplementation<ImplementationT>, FunctionT_>::value(implementation_, function)}
+        .evaluate();
+  }
 
   ThisT& setImplementation(const ImplementationT& implementation) {
     implementation_ = implementation;
@@ -479,6 +489,11 @@ struct Inverse<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
 template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_>
 struct CwiseInverse<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>> {
   using type = ValuesWrapper<MatrixSizeT_, ValueT_, typename CwiseInverse<AccessImplementation<ImplementationT_>>::type>;
+};
+
+template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_, typename FunctionT_>
+struct CwiseFunction<ValuesWrapper<MatrixSizeT_, ValueT_, ImplementationT_>, FunctionT_> {
+  using type = ValuesWrapper<MatrixSizeT_, ValueT_, typename CwiseFunction<AccessImplementation<ImplementationT_>, FunctionT_>::type>;
 };
 
 template <typename MatrixSizeT_, typename ValueT_, typename ImplementationT_, int BlockRowIdV_, int BlockColIdV_, int BlockRowsV_,

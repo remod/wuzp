@@ -1,3 +1,7 @@
+#include <cmath>
+#include <stdexcept>
+#include <type_traits>
+
 #include <gtest/gtest.h>
 
 #include "wuzp/core/Quantities.hpp"
@@ -515,6 +519,66 @@ TEST(TestQuantities, InverseOfMassMatrix) {  // NOLINT
 // The determinant of a 1x1 matrix is its element.
 TEST(TestQuantities, DeterminantOfScalar) {  // NOLINT
   EXPECT_EQ((Quantities<ValueMatrix<int, 1, 1>, TypeMatrix<1, 1, Length>>{3}.determinant()), LengthQuantityI{3});
+}
+
+// The functions of one argument apply elementwise, also to heterogeneous units: e.g. pow<2>() raises every element and its unit to
+// the power, like the elementwise product of quantities.
+TEST(TestQuantities, ElementwisePower) {  // NOLINT
+  using MyQuantities = Quantities<ValueMatrix<double, 2, 2>, TypeMatrix<2, 2, Length, Time, Area, Dimensionless>>;
+  using MySquares = Quantities<ValueMatrix<double, 2, 2>,
+                               TypeMatrix<2, 2, Area, Power<Time, Integer<2>>::type, Power<Area, Integer<2>>::type, Dimensionless>>;
+  static_assert(std::is_same_v<Power<MyQuantities, Integer<2>>::type, MySquares>);
+  const MyQuantities quantities{1.0, -2.0, 3.0, 0.5};
+  const MySquares squares = pow<2>(quantities);
+  EXPECT_EQ(squares, (MySquares{1.0, 4.0, 9.0, 0.25}));
+  EXPECT_EQ(squares, quantities * quantities);
+  // The rational powers and their real roots of negative values are those of a single quantity (see TestQuantity).
+  using MyVolumes = Quantities<ValueMatrix<double, 3, 1>, TypeVector<3, Volume>>;
+  const MyVolumes volumes{8.0, -27.0, 64.0};
+  const Quantities<ValueMatrix<double, 3, 1>, TypeVector<3, Length>> edges = pow<1, 3>(volumes);
+  EXPECT_TRUE(edges.isApprox(Quantities<ValueMatrix<double, 3, 1>, TypeVector<3, Length>>{2.0, -3.0, 4.0}, 1e-12));
+  EXPECT_EQ(cbrt(volumes), edges);
+  EXPECT_EQ((pow<Rational<1, 3>>(volumes)), edges);
+}
+
+TEST(TestQuantities, ElementwiseRoots) {  // NOLINT
+  using MyAreas = Quantities<ValueMatrix<double, 1, 3>, TypeMatrix<1, 3, Area>>;
+  using MyLengths = Quantities<ValueMatrix<double, 1, 3>, TypeMatrix<1, 3, Length>>;
+  const MyLengths lengths = sqrt(MyAreas{4.0, 9.0, 2.0});
+  EXPECT_EQ(lengths, (MyLengths{2.0, 3.0, std::sqrt(2.0)}));
+  // Heterogeneous units, an area and a squared time. Units whose roots have rational exponents, e.g. the square root of a volume,
+  // are not required of a units backend: the archetype has integer exponents only.
+  using MixedQuantities = Quantities<ValueMatrix<double, 2, 1>, TypeVector<2, Area, Power<Time, Integer<2>>::type>>;
+  using MixedRoots = Quantities<ValueMatrix<double, 2, 1>, TypeVector<2, Length, Time>>;
+  EXPECT_TRUE(sqrt(MixedQuantities{4.0, 8.0}).isApprox(MixedRoots{2.0, std::sqrt(8.0)}, 1e-12));
+  // Integer values are truncated, and integer values without a real root throw, from the function the backend applies.
+  using MyAreasI = Quantities<ValueMatrix<int, 2, 1>, TypeVector<2, Area>>;
+  using MyLengthsI = Quantities<ValueMatrix<int, 2, 1>, TypeVector<2, Length>>;
+  EXPECT_EQ(sqrt(MyAreasI{16, 5}), (MyLengthsI{4, 2}));
+  EXPECT_THROW(sqrt(MyAreasI{4, -4}), std::domain_error);
+}
+
+TEST(TestQuantities, ElementwiseAbsoluteValue) {  // NOLINT
+  using MyQuantities = Quantities<ValueMatrix<int, 2, 2>, TypeMatrix<2, 2, Length, Time, Mass, Area>>;
+  EXPECT_EQ(abs(MyQuantities{-1, 2, -3, 0}), (MyQuantities{1, 2, 3, 0}));
+}
+
+// The functions of dimensionless quantities apply elementwise too: e.g. exp() of a matrix is not its matrix exponential.
+TEST(TestQuantities, ElementwiseFunctionsOfDimensionlessQuantities) {  // NOLINT
+  using MyAngles = Quantities<ValueMatrix<double, 2, 1>, TypeVector<2, Angle>>;
+  using MyRatios = Quantities<ValueMatrix<double, 2, 1>, TypeVector<2, Dimensionless>>;
+  const MyAngles angles{0.25, -0.5};
+  const MyRatios sines = sin(angles);
+  EXPECT_TRUE(sines.isApprox(MyRatios{std::sin(0.25), std::sin(-0.5)}, 1e-12));
+  EXPECT_TRUE(cos(angles).isApprox(MyRatios{std::cos(0.25), std::cos(-0.5)}, 1e-12));
+  EXPECT_TRUE(tan(angles).isApprox(MyRatios{std::tan(0.25), std::tan(-0.5)}, 1e-12));
+  EXPECT_TRUE(asin(sines).isApprox(angles, 1e-12));
+  EXPECT_TRUE(acos(MyRatios{1.0, 0.0}).isApprox(MyAngles{0.0, std::acos(0.0)}, 1e-12));
+  EXPECT_TRUE(atan(MyRatios{1.0, -1.0}).isApprox(MyAngles{std::atan(1.0), std::atan(-1.0)}, 1e-12));
+  using MyMatrix = Quantities<ValueMatrix<double, 2, 2>, TypeMatrix<2, 2, Dimensionless>>;
+  const MyMatrix exponentials = exp(MyMatrix{0.0, 1.0, 1.0, 0.0});
+  EXPECT_TRUE(exponentials.isApprox(MyMatrix{1.0, std::exp(1.0), std::exp(1.0), 1.0}, 1e-12));
+  EXPECT_TRUE(log(exponentials).isApprox(MyMatrix{0.0, 1.0, 1.0, 0.0}, 1e-12));
 }
 
 namespace {

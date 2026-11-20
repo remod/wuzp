@@ -341,6 +341,16 @@ struct CwiseInverse<archetype_values::internal::Access<ValueT_, RowsV_, ColsV_>>
   }
 };
 
+// The function applied to every element.
+template <typename ValueT_, int RowsV_, int ColsV_, typename FunctionT_>
+struct CwiseFunction<archetype_values::internal::Access<ValueT_, RowsV_, ColsV_>, FunctionT_> {
+  using type = archetype_values::internal::Matrix<ValueT_, RowsV_, ColsV_>;
+  static type value(const type& matrix, const FunctionT_& function) {
+    return archetype_values::internal::generate<ValueT_, RowsV_, ColsV_>(
+        [&](const int row, const int col) { return function(matrix.at(row, col)); });
+  }
+};
+
 template <typename ValueT_, int RowsV_, int ColsV_>
 struct Transpose<archetype_values::internal::Access<ValueT_, RowsV_, ColsV_>> {
   using type = archetype_values::internal::Matrix<ValueT_, ColsV_, RowsV_>;

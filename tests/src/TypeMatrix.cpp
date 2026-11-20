@@ -198,6 +198,13 @@ TEST(TestTypeMatrix, CwiseInverse) {  // NOLINT
   static_assert(std::is_same<CwiseInverse<A>::type, B>::value);
 }
 
+// The power of a type matrix is elementwise, like its product, e.g. for the units of pow<2>() of quantities.
+TEST(TestTypeMatrix, Power) {  // NOLINT
+  using A = TypeMatrix<1, 2, Length, Time>;
+  using B = TypeMatrix<1, 2, Area, Power<Time, Integer<2>>::type>;
+  static_assert(std::is_same<Power<A, Integer<2>>::type, B>::value);
+}
+
 TEST(TestTypeMatrix, Inverse) {  // NOLINT
   // The matrix inverse is only implemented for unit matrices, not for rational/integer numbers.
   using MassLength = Product<Mass, Length>::type;
