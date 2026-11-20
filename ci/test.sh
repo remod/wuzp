@@ -10,7 +10,9 @@ export CTEST_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}
 PRESET=$1
 shift
 cmake --preset "${PRESET}" "$@"
-cmake --build --preset "${PRESET}"
+# A failed object does not stop the build (Ninja's -k 0, every preset uses Ninja), so that one run shows every compile error,
+# e.g. those of MSVC, which only runs in CI. The build still fails.
+cmake --build --preset "${PRESET}" -- -k 0
 # WUZP_CTEST_ARGS adds arguments to ctest, e.g. "--label-exclude compile" to skip the compile tests.
 # shellcheck disable=SC2086
 ctest --preset "${PRESET}" ${WUZP_CTEST_ARGS:-}
