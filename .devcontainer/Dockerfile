@@ -2,8 +2,8 @@
 #
 # One Dockerfile, two variants:
 #   min:    Ubuntu 22.04, the oldest supported dependency versions.
-#   latest: Ubuntu 26.04, the newest supported dependency versions, with Eigen 5 and mp-units built from source, and the
-#           documentation tools.
+#   latest: Ubuntu 26.04, the newest supported dependency versions, with Eigen 5 and mp-units built from source, the
+#           documentation tools, and kindr for the tests of the conventions of rotations.
 #
 # ci/image.sh sets the build arguments of each variant. CI publishes the images to GHCR, tagged with a hash of this file
 # and the build arguments. Local builds reuse the published layers, so local development and CI run in the same
@@ -146,6 +146,22 @@ RUN if [ "${DOCS}" = true ]; then \
             mkdocs-get-deps==0.2.2 mkdocs-material-extensions==1.3.1 packaging==26.3 paginate==0.5.7 pathspec==1.1.1 \
             platformdirs==4.14.5 Pygments==2.21.0 pymdown-extensions==13.1 python-dateutil==4.0.0 PyYAML==6.0.3 \
             pyyaml_env_tag==1.1 requests==2.34.2 tzdata==2026.6 urllib3==2.8.0 watchdog==7.1.0; \
+    fi
+
+# kindr with KINDR=true (the latest variant), for the tests that compare the conventions of the rotations with those of kindr
+# (tests/src/KindrConventions.cpp), which only build if kindr is found. kindr is header-only and needs Eigen; its CMake project
+# requires a CMake version older than 3.5, so only its headers are installed.
+ARG KINDR=false
+ARG KINDR_VERSION=1.2.0
+ARG KINDR_SHA256=05731cfe83b59e8efbc1f84f38105e7bdb3a38c0b30030c2a80c5f0c3870fb5d
+RUN if [ "${KINDR}" = true ]; then \
+        work_dir=$(mktemp -d) \
+        && curl -fsSL -o "${work_dir}/kindr.tar.gz" \
+            "https://github.com/ANYbotics/kindr/archive/refs/tags/${KINDR_VERSION}.tar.gz" \
+        && echo "${KINDR_SHA256}  ${work_dir}/kindr.tar.gz" | sha256sum --check --quiet \
+        && tar -xzf "${work_dir}/kindr.tar.gz" -C "${work_dir}" \
+        && cp -r "${work_dir}/kindr-${KINDR_VERSION}/include/kindr" /usr/local/include/ \
+        && rm -rf "${work_dir}"; \
     fi
 
 # ccache speeds up rebuilds, including the projects compiled by the compile-fail tests.

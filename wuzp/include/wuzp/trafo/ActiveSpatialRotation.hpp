@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "wuzp/core/Quantities.hpp"
+#include "wuzp/core/Tensor.hpp"
 #include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
 #include "wuzp/core/traits.hpp"
@@ -14,6 +15,7 @@
 #include "wuzp/trafo/ActiveTranslation.hpp"
 #include "wuzp/trafo/internal/rigid.hpp"
 #include "wuzp/trafo/internal/rotation.hpp"
+#include "wuzp/trafo/internal/rotation_parameterizations.hpp"
 #include "wuzp/trafo/internal/validity.hpp"
 #include "wuzp/trafo/traits.hpp"
 
@@ -33,10 +35,17 @@ namespace wuzp {
  * std::invalid_argument if it is not, e.g. for a shear, a scaling or a reflection. Release builds do not check. makeUnchecked()
  * skips the check, e.g. in hot paths, and projectToRotation() computes the rotation nearest to a matrix, e.g. to one whose
  * rounding errors accumulated.
+ * In three dimensions, a rotation converts from and to unit quaternions, angle-axis, rotation vectors and Euler angles ZYX and
+ * XYZ, has the manifold operations boxPlus(), boxMinus() and angularDistance(), and maps between its angular velocity w,
+ * dR/dt = [w]x R, which is expressed in its coordinate system, and the time derivatives of its matrix, its quaternion and its
+ * Euler angles (see "Parameterizations of rotations" in DESIGN.md and docs/conventions.md). These need floating-point values.
  */
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, EuclideanCoordinateSystem CoordinateSystemT_, int DimensionV_>
   requires AnyValueMatrix<ValuesT_>
 class ActiveSpatialRotation : public ActiveTransformation<ActiveSpatialRotation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionV_>> {
+  using ParameterizationsT = internal::RotationParameterizationTypes<ValuesT_, ValueT_>;
+  using RequireParameterizableT = internal::RequireParameterizable<DimensionV_, ValueT_>;
+
  public:
   //! The active linear transformation with the matrix of the rotation, whose transformations the rotation shares.
   using LinearTransformationT = ActiveLinearTransformation<ValuesT_, ValueT_, CoordinateSystemT_, DimensionV_, DimensionV_,
@@ -47,6 +56,32 @@ class ActiveSpatialRotation : public ActiveTransformation<ActiveSpatialRotation<
   using QuantitiesT = typename LinearTransformationT::QuantitiesT;
   using CoordinateSystemT = CoordinateSystemT_;
   using TensorT = typename LinearTransformationT::TensorT;
+
+  //! A unit quaternion (w, x, y, z) = (cos(angle / 2), sin(angle / 2) n) of the rotation by an angle around the unit axis n, in
+  //! the convention of Hamilton, ij = k, with the real part w first, like Eigen's Quaternion(w, x, y, z) and kindr's
+  //! RotationQuaternion(w, x, y, z), but unlike the storage order (x, y, z, w) of Eigen's coeffs(). It rotates a vector v into
+  //! q v q^*, and -q is the same rotation.
+  using QuaternionT = typename ParameterizationsT::QuaternionT;
+  //! The derivative dq/dt of a quaternion with respect to time, in the unit of an angular velocity.
+  using QuaternionDerivativeT = typename ParameterizationsT::QuaternionDerivativeT;
+  //! An angle, e.g. of a rotation around its axis, or between two rotations.
+  using AngleT = typename ParameterizationsT::AngleT;
+  //! The unit axis of a rotation, expressed in the coordinate system.
+  using AxisT = typename ParameterizationsT::template AxisT<CoordinateSystemT_>;
+  //! The angle and the unit axis of a rotation.
+  using AngleAxisT = std::pair<AngleT, AxisT>;
+  //! A rotation vector angle * axis, expressed in the coordinate system, e.g. the logarithm of a rotation or an increment of
+  //! boxPlus().
+  using RotationVectorT = typename ParameterizationsT::template RotationVectorT<CoordinateSystemT_>;
+  //! Three Euler angles, in the order of the axes in their name, e.g. (yaw, pitch, roll) for ZYX. They are not a vector, so they
+  //! have no coordinate system.
+  using EulerAnglesT = typename ParameterizationsT::EulerAnglesT;
+  //! The derivatives of three Euler angles with respect to time.
+  using EulerAnglesDerivativeT = typename ParameterizationsT::EulerAnglesDerivativeT;
+  //! The angular velocity w of a rotation R, dR/dt = [w]x R, expressed in the coordinate system.
+  using AngularVelocityT = typename ParameterizationsT::template AngularVelocityT<CoordinateSystemT_>;
+  //! The derivative dR/dt of the matrix of a rotation with respect to time.
+  using MatrixDerivativeT = typename ParameterizationsT::MatrixDerivativeT;
 
   //! The identity.
   ActiveSpatialRotation() : quantities_{internal::identity<ValuesT>()} {}
@@ -98,6 +133,230 @@ class ActiveSpatialRotation : public ActiveTransformation<ActiveSpatialRotation<
                 const ValueT precision = Precision<ValueT>::value()) const {
     static_assert(std::is_same_v<CoordinateSystemT_, CoordinateSystemOtherT_>, "Coordinate systems do not match.");
     return quantities_.isApprox(other.getQuantities(), precision);
+  }
+
+  // The parameterizations of three-dimensional rotations (see "Parameterizations of rotations" in DESIGN.md). The arguments are
+  // converted into the types of the parameterizations, so that e.g. Euler angles with another unit fail with "Units do not
+  // match.", and a rotation vector in another coordinate system with "Coordinate systems do not match.".
+
+  //! The rotation of a unit quaternion q (see QuaternionT), whose matrix is that of Eigen's Quaternion::toRotationMatrix().
+  //! The quaternion is normalized, after it is checked to have unit length up to the tolerance of the validity checks.
+  //! @throws std::invalid_argument In debug builds, if the quaternion does not have unit length, |1 - |q|^2| > ValidityTolerance
+  //! (see internal::checkedUnitQuaternion()), like kindr's assertion. Normalize it first, e.g. after integrating its derivative.
+  template <AnyQuantities QuaternionOtherT_>
+  static ActiveSpatialRotation fromQuaternion(const QuaternionOtherT_& quaternion) {
+    static_assert(RequireParameterizableT::value);
+    const auto elements = internal::checkedUnitQuaternion(internal::quaternionElements(QuaternionT{quaternion}),
+                                                          "The quaternion of a rotation must have unit length.");
+    return makeUnchecked(internal::matrixFromQuaternion<ValuesT>(elements));
+  }
+
+  //! The unique unit quaternion of the rotation, whose first element that is not zero is positive, like kindr's
+  //! RotationQuaternion::getUnique(): its real part w is not negative, so its angle is in [0, pi] (see
+  //! internal::quaternionFromMatrix()). Like every choice of one of q and -q, it jumps close to an angle of pi, where w changes
+  //! its sign: compare rotations with isApprox() or angularDistance(), not with their quaternions.
+  QuaternionT toQuaternion() const {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<QuaternionT>(internal::quaternionFromMatrix(quantities_.getValues()));
+  }
+
+  //! The right-handed rotation by an angle around a unit axis, which is expressed in the coordinate system, like Eigen's
+  //! AngleAxis.
+  //! @throws std::invalid_argument In debug builds, if the axis does not have unit length, unless the angle is a multiple of
+  //! 2 pi (see internal::checkedUnitQuaternion()), which normalizes the quaternion of the angle and the axis.
+  template <AnyQuantities AngleOtherT_, AnyTensor AxisOtherT_>
+  static ActiveSpatialRotation fromAngleAxis(const AngleOtherT_& angle, const AxisOtherT_& axis) {
+    static_assert(RequireParameterizableT::value);
+    const auto elements =
+        internal::checkedUnitQuaternion(internal::quaternionFromAngleAxis(AngleT{angle}.getValue(), internal::elements3(AxisT{axis})),
+                                        "The axis of a rotation must have unit length.");
+    return makeUnchecked(internal::matrixFromQuaternion<ValuesT>(elements));
+  }
+
+  //! The angle in [0, pi] and the unit axis of the rotation. The axis of the identity is arbitrary: the x axis (see
+  //! internal::angleAxisFromQuaternion()).
+  AngleAxisT toAngleAxis() const {
+    static_assert(RequireParameterizableT::value);
+    const auto [angle, axis] = internal::angleAxisFromQuaternion(internal::quaternionFromMatrix(quantities_.getValues()));
+    return {AngleT{angle}, internal::fromElements<AxisT>(axis)};
+  }
+
+  //! The exponential map Exp(v) of a rotation vector v, which is expressed in the coordinate system: the rotation by the angle |v|
+  //! around the axis v / |v|, like kindr's RotationVector and exponentialMap().
+  template <AnyTensor RotationVectorOtherT_>
+  static ActiveSpatialRotation fromRotationVector(const RotationVectorOtherT_& rotationVector) {
+    static_assert(RequireParameterizableT::value);
+    return makeUnchecked(internal::matrixFromRotationVector<ValuesT>(internal::elements3(RotationVectorT{rotationVector})));
+  }
+
+  //! The logarithmic map Log(R), the rotation vector of the rotation, whose norm, the angle, is in [0, pi], like kindr's
+  //! logarithmicMap().
+  RotationVectorT toRotationVector() const {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<RotationVectorT>(internal::rotationVectorFromMatrix(quantities_.getValues()));
+  }
+
+  //! The rotation of the Euler angles ZYX (yaw, pitch, roll), intrinsic: by yaw around z, then by pitch around the new y, then
+  //! by roll around the newest x, R = R_z(yaw) R_y(pitch) R_x(roll), like kindr's EulerAnglesZyx and Eigen's
+  //! eulerAngles(2, 1, 0). These are the extrinsic rotations by roll around x, by pitch around y and by yaw around z.
+  template <AnyQuantities EulerAnglesOtherT_>
+  static ActiveSpatialRotation fromEulerAnglesZyx(const EulerAnglesOtherT_& angles) {
+    static_assert(RequireParameterizableT::value);
+    return makeUnchecked(internal::matrixFromEulerAngles<2, 1, 0, ValuesT>(internal::elements3(EulerAnglesT{angles})));
+  }
+
+  //! The Euler angles ZYX (yaw, pitch, roll) of the rotation (see fromEulerAnglesZyx()), with yaw and roll in [-pi, pi) and
+  //! pitch in [-pi/2, pi/2]. At the gimbal lock, a pitch of +-pi/2, only the sum or the difference of yaw and roll is defined
+  //! (see internal::eulerAnglesZyxFromMatrix()).
+  EulerAnglesT toEulerAnglesZyx() const {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<EulerAnglesT>(internal::eulerAnglesZyxFromMatrix(quantities_.getValues()));
+  }
+
+  //! The rotation of the Euler angles XYZ (a0, a1, a2), intrinsic: by a0 around x, then by a1 around the new y, then by a2
+  //! around the newest z, R = R_x(a0) R_y(a1) R_z(a2), like kindr's EulerAnglesXyz and Eigen's eulerAngles(0, 1, 2).
+  template <AnyQuantities EulerAnglesOtherT_>
+  static ActiveSpatialRotation fromEulerAnglesXyz(const EulerAnglesOtherT_& angles) {
+    static_assert(RequireParameterizableT::value);
+    return makeUnchecked(internal::matrixFromEulerAngles<0, 1, 2, ValuesT>(internal::elements3(EulerAnglesT{angles})));
+  }
+
+  //! The Euler angles XYZ (a0, a1, a2) of the rotation (see fromEulerAnglesXyz()), with a0 and a2 in [-pi, pi) and a1 in
+  //! [-pi/2, pi/2] (see internal::eulerAnglesXyzFromMatrix()).
+  EulerAnglesT toEulerAnglesXyz() const {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<EulerAnglesT>(internal::eulerAnglesXyzFromMatrix(quantities_.getValues()));
+  }
+
+  /**
+   * The rotation with the smallest angle that rotates the direction of the vector `from` into the direction of the vector `to`,
+   * both expressed in the coordinate system: transform(from) has the direction of `to`, like Eigen's
+   * Quaternion::FromTwoVectors() and kindr's setFromVectors(). Only their directions matter, so their units may differ, but the
+   * components of each must have the same unit. If they are opposite, it rotates by pi around an axis perpendicular to them (see
+   * internal::quaternionFromTwoVectors()).
+   * @throws std::invalid_argument In debug builds, if a vector is zero, so that it has no direction (see isValid()).
+   */
+  template <AnyTensor FromVectorT_, AnyTensor ToVectorT_>
+  static ActiveSpatialRotation fromTwoVectors(const FromVectorT_& from, const ToVectorT_& to) {
+    static_assert(RequireParameterizableT::value);
+    return ActiveSpatialRotation{internal::matrixFromQuaternion<ValuesT>(
+        internal::quaternionFromTwoVectors(internal::directionElements<AxisT>(from), internal::directionElements<AxisT>(to)))};
+  }
+
+  // The rotations as a manifold, in the conventions of Solà, Deray and Atchuthan, "A micro Lie theory for state estimation in
+  // robotics" (https://arxiv.org/abs/1812.01537), with the perturbations on the left, expressed in the coordinate system, like
+  // kindr's boxPlus() and boxMinus().
+
+  //! The rotation R (+) v = Exp(v) R, rotated further by the rotation vector v, which is expressed in the coordinate system: the
+  //! left plus of Solà et al. (eq. 27), like kindr's boxPlus().
+  template <AnyTensor RotationVectorOtherT_>
+  ActiveSpatialRotation boxPlus(const RotationVectorOtherT_& rotationVector) const {
+    static_assert(RequireParameterizableT::value);
+    return makeUnchecked(internal::boxPlus(quantities_.getValues(), internal::elements3(RotationVectorT{rotationVector})));
+  }
+
+  //! The rotation vector R (-) S = Log(R S^T), expressed in the coordinate system, which rotates the other rotation S into this
+  //! one: other.boxPlus(boxMinus(other)) is this rotation. The left minus of Solà et al. (eq. 28), like kindr's boxMinus().
+  template <typename CoordinateSystemOtherT_>
+  RotationVectorT boxMinus(const ActiveSpatialRotation<ValuesT_, ValueT_, CoordinateSystemOtherT_, DimensionV_>& other) const {
+    static_assert(std::is_same_v<CoordinateSystemT_, CoordinateSystemOtherT_>, "Coordinate systems do not match.");
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<RotationVectorT>(internal::boxMinus(quantities_.getValues(), other.getQuantities().getValues()));
+  }
+
+  //! The angle in [0, pi] of the rotation between this and the other rotation, the norm of boxMinus(other), like kindr's
+  //! getDisparityAngle() and Eigen's Quaternion::angularDistance().
+  template <typename CoordinateSystemOtherT_>
+  AngleT angularDistance(const ActiveSpatialRotation<ValuesT_, ValueT_, CoordinateSystemOtherT_, DimensionV_>& other) const {
+    static_assert(std::is_same_v<CoordinateSystemT_, CoordinateSystemOtherT_>, "Coordinate systems do not match.");
+    static_assert(RequireParameterizableT::value);
+    return AngleT{internal::norm(internal::boxMinus(quantities_.getValues(), other.getQuantities().getValues()))};
+  }
+
+  //! The Jacobian J of the exponential map at the rotation vector v, a linear map in the coordinate system: Exp(v + dv) =
+  //! Exp(J dv) Exp(v) to first order, so that it maps the derivative of v to the angular velocity, w = J dv/dt, like kindr's
+  //! getJacobianOfExponentialMap(). It is the left Jacobian of SO(3) (see internal::exponentialMapJacobian()).
+  template <AnyTensor RotationVectorOtherT_>
+  static TensorT exponentialMapJacobian(const RotationVectorOtherT_& rotationVector) {
+    static_assert(RequireParameterizableT::value);
+    return TensorT{internal::exponentialMapJacobian<ValuesT>(internal::elements3(RotationVectorT{rotationVector}))};
+  }
+
+  // The time derivatives of rotations and their angular velocity w, dR/dt = [w]x R, which is expressed in the coordinate system,
+  // like kindr's GlobalAngularVelocity.
+
+  //! The derivative dR/dt = [w]x R of the matrix for the angular velocity w, like kindr's RotationMatrixDiff.
+  template <AnyTensor AngularVelocityOtherT_>
+  MatrixDerivativeT matrixDerivative(const AngularVelocityOtherT_& angularVelocity) const {
+    static_assert(RequireParameterizableT::value);
+    return MatrixDerivativeT{internal::matrixDerivative(quantities_.getValues(), internal::elements3(AngularVelocityT{angularVelocity}))};
+  }
+
+  //! The angular velocity w of the derivative dR/dt of the matrix, [w]x = dR/dt R^T, the inverse of matrixDerivative(). It
+  //! takes the skew-symmetric part, which averages out rounding errors.
+  template <AnyQuantities MatrixDerivativeOtherT_>
+  AngularVelocityT angularVelocityFromMatrixDerivative(const MatrixDerivativeOtherT_& derivative) const {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<AngularVelocityT>(
+        internal::angularVelocityFromMatrixDerivative(quantities_.getValues(), MatrixDerivativeT{derivative}.getValues()));
+  }
+
+  //! The derivative dq/dt = (0, w) q / 2 of the unit quaternion q for the angular velocity w, like kindr's RotationQuaternionDiff
+  //! of a GlobalAngularVelocity. It depends on the sign of q, so it takes the quaternion rather than the rotation.
+  template <AnyQuantities QuaternionOtherT_, AnyTensor AngularVelocityOtherT_>
+  static QuaternionDerivativeT quaternionDerivative(const QuaternionOtherT_& quaternion, const AngularVelocityOtherT_& angularVelocity) {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<QuaternionDerivativeT>(internal::quaternionDerivative(
+        internal::quaternionElements(QuaternionT{quaternion}), internal::elements3(AngularVelocityT{angularVelocity})));
+  }
+
+  //! The angular velocity w of the derivative dq/dt of the unit quaternion q, the vector part of 2 (dq/dt) q^*, the inverse of
+  //! quaternionDerivative().
+  template <AnyQuantities QuaternionOtherT_, AnyQuantities QuaternionDerivativeOtherT_>
+  static AngularVelocityT angularVelocityFromQuaternionDerivative(const QuaternionOtherT_& quaternion,
+                                                                  const QuaternionDerivativeOtherT_& derivative) {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<AngularVelocityT>(internal::angularVelocityFromQuaternionDerivative(
+        internal::quaternionElements(QuaternionT{quaternion}), internal::quaternionElements(QuaternionDerivativeT{derivative})));
+  }
+
+  //! The derivatives of the Euler angles ZYX (yaw, pitch, roll) for the angular velocity w, like kindr's EulerAnglesZyxDiff.
+  //! They depend on the angles, not only on the rotation, so it takes the angles. At the gimbal lock, cos(pitch) = 0, they are
+  //! not defined: the results are not finite or arbitrarily large.
+  template <AnyQuantities EulerAnglesOtherT_, AnyTensor AngularVelocityOtherT_>
+  static EulerAnglesDerivativeT eulerAnglesZyxDerivative(const EulerAnglesOtherT_& angles, const AngularVelocityOtherT_& angularVelocity) {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<EulerAnglesDerivativeT>(internal::eulerAnglesZyxDerivative(
+        internal::elements3(EulerAnglesT{angles}), internal::elements3(AngularVelocityT{angularVelocity})));
+  }
+
+  //! The angular velocity w of the derivatives of the Euler angles ZYX, w = dyaw/dt e_z + dpitch/dt R_z(yaw) e_y + droll/dt
+  //! R_z(yaw) R_y(pitch) e_x, the inverse of eulerAnglesZyxDerivative().
+  template <AnyQuantities EulerAnglesOtherT_, AnyQuantities EulerAnglesDerivativeOtherT_>
+  static AngularVelocityT angularVelocityFromEulerAnglesZyxDerivative(const EulerAnglesOtherT_& angles,
+                                                                      const EulerAnglesDerivativeOtherT_& derivative) {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<AngularVelocityT>(internal::angularVelocityFromEulerAnglesZyxDerivative(
+        internal::elements3(EulerAnglesT{angles}), internal::elements3(EulerAnglesDerivativeT{derivative})));
+  }
+
+  //! The derivatives of the Euler angles XYZ for the angular velocity w, like kindr's EulerAnglesXyzDiff. At the gimbal lock,
+  //! cos(a1) = 0, they are not defined: the results are not finite or arbitrarily large.
+  template <AnyQuantities EulerAnglesOtherT_, AnyTensor AngularVelocityOtherT_>
+  static EulerAnglesDerivativeT eulerAnglesXyzDerivative(const EulerAnglesOtherT_& angles, const AngularVelocityOtherT_& angularVelocity) {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<EulerAnglesDerivativeT>(internal::eulerAnglesXyzDerivative(
+        internal::elements3(EulerAnglesT{angles}), internal::elements3(AngularVelocityT{angularVelocity})));
+  }
+
+  //! The angular velocity w of the derivatives of the Euler angles XYZ, w = da0/dt e_x + da1/dt R_x(a0) e_y + da2/dt R_x(a0)
+  //! R_y(a1) e_z, the inverse of eulerAnglesXyzDerivative().
+  template <AnyQuantities EulerAnglesOtherT_, AnyQuantities EulerAnglesDerivativeOtherT_>
+  static AngularVelocityT angularVelocityFromEulerAnglesXyzDerivative(const EulerAnglesOtherT_& angles,
+                                                                      const EulerAnglesDerivativeOtherT_& derivative) {
+    static_assert(RequireParameterizableT::value);
+    return internal::fromElements<AngularVelocityT>(internal::angularVelocityFromEulerAnglesXyzDerivative(
+        internal::elements3(EulerAnglesT{angles}), internal::elements3(EulerAnglesDerivativeT{derivative})));
   }
 
  private:

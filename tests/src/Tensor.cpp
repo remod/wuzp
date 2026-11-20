@@ -1112,3 +1112,21 @@ TEST(TestTensor, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasDeterminant<ScalarInA>);
   static_assert(HasDeterminant<MatrixInA>);
 }
+
+// The skew-symmetric matrix [v]x of a vector is the linear map of the cross product with it, with the unit of the vector.
+TEST(TestTensor, SkewSymmetricMatrix) {  // NOLINT
+  const PositionVector3<ValueMatrix, double, CoordinateSystemA> position{1.0, 2.0, 3.0};
+  const ForceVector3<ValueMatrix, double, CoordinateSystemA> force{-1.0, 0.5, 2.0};
+  const auto skew = skewSymmetricMatrix(position);
+  static_assert(std::is_same_v<decltype(skew), const Tensor<Indices<Up, Down>, TestQuantities<3, 3>, CoordinateSystemA, Relative>>);
+  EXPECT_EQ(skew, (TestTensor<Indices<Up, Down>, 3, 3>{0.0, -3.0, 2.0, 3.0, 0.0, -1.0, -2.0, 1.0, 0.0}));
+  // The torque r x F.
+  const TorqueVector3<ValueMatrix, double, CoordinateSystemA> torque = innerProduct(skew, force);
+  EXPECT_EQ(torque, position.crossProduct(force));
+  // It is skew-symmetric, and its vector is the vector.
+  EXPECT_EQ(skew.transpose().getQuantities(), (skew * -1.0).getQuantities());
+  EXPECT_EQ(vectorOfSkewSymmetricMatrix(skew), position);
+  // The vector of the skew-symmetric part of a matrix averages the elements of each pair.
+  const TestTensor<Indices<Up, Down>, 3, 3> matrix{5.0, -3.5, 2.0, 2.5, 6.0, -1.0, -2.0, 1.0, 7.0};
+  EXPECT_EQ(vectorOfSkewSymmetricMatrix(matrix), (PositionVector3<ValueMatrix, double, CoordinateSystemA>{1.0, 2.0, 3.0}));
+}

@@ -19,7 +19,7 @@ template <typename From, typename To>
 using RigidTransformation = wuzp::PassiveProperRigidTransformation3<wuzp_eigen::ValueMatrix, From, To, double>;
 using TransformationFromAToB = RigidTransformation<CoordinateSystemA, CoordinateSystemB>;
 
-const TransformationFromAToB::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+const TransformationFromAToB::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // B is A rotated by pi/2 around x.
 const TransformationFromAToB::Translation translation{0.0, 0.0, -1.0};
 const TransformationFromAToB transformation{rotation, translation};
 const ForceInB force = transformation.transform(forceInA);  // Only rotated: a force is a vector.
@@ -66,8 +66,8 @@ Other combinations are rejected, e.g. a translation with a scaling, whose compos
 The inverse of a rotation is its transpose `R^T`, that of a Lorentz transformation `η Λ^T η`, and that of a proper rigid transformation `(R^T, -R^T t)`: they need no matrix inverse and add no rounding errors.
 The inverse of a linear transformation is the matrix inverse.
 
-An active transformation and the passive transformation with the same parameters cancel each other: e.g. the active rotation by `R` and the passive rotation by the same angle around the same axis, whose matrix is `R^T`.
-For proper rigid transformations, the passive one with the parameters `(R, t)` of a motion has the matrix and vector `(R^T, -R^T t)`, not `-t`.
+A motion and the change of coordinates to the coordinate system that it moves `From` onto cancel each other: e.g. the active rotation `R` and the passive rotation to the coordinate system rotated by `R`, whose matrix is `R^T`.
+For proper rigid transformations, the passive one to the coordinate system moved by `(R, t)` has the matrix and vector `(R^T, -R^T t)`, not `-t`.
 
 ## Validity of rotations and Lorentz transformations
 
@@ -86,6 +86,49 @@ rotation.isValid()                                     // Checks in every build.
 The tolerance is `1e-9` for `double`, `1e-4` for `float` and `0` for `int` (`ValidityTolerance`).
 `projectToRotation()` computes the orthogonal factor of the polar decomposition by the Newton-Schulz iteration (Higham, Functions of Matrices, SIAM 2008, section 8.3), which works with every value matrix backend.
 `createBoostMatrix()` creates a Lorentz boost from the velocity of `To` relative to `From`, which must be smaller than the speed of light.
+
+## Parameterizations of rotations
+
+Three-dimensional rotations convert from and to unit quaternions, angle-axis, rotation vectors and Euler angles ZYX and XYZ ([#27](https://github.com/remod/wuzp/issues/27), [#77](https://github.com/remod/wuzp/issues/77)).
+The matrix stays their only representation, so the conversions work with every value matrix backend.
+A quaternion `(w, x, y, z)` and Euler angles are quantities, without a coordinate system; the axis, the rotation vector and the angular velocity are vectors in the coordinate system of the rotation:
+
+```cpp
+using Rotation = wuzp::ActiveSpatialRotation3<ValueMatrix, double, CoordinateSystemA>;
+const Rotation rotation = Rotation::fromEulerAnglesZyx(Rotation::EulerAnglesT{0.3, 0.2, 0.1});  // Yaw, pitch, roll.
+const Rotation::QuaternionT quaternion = rotation.toQuaternion();  // Hamilton, (w, x, y, z), w >= 0.
+const auto [angle, axis] = rotation.toAngleAxis();                 // The angle in [0, pi], the axis in A.
+Rotation::fromRotationVector(rotation.toRotationVector())          // The exponential and the logarithmic map.
+Rotation::fromRotationVector(positionInA)                          // Error: Units do not match.
+Rotation::fromEulerAnglesZyx(lengths)                              // Error: Units do not match.
+rotation2D.toQuaternion()                                          // Error: Quaternions, ... are only defined for three-dimensional rotations.
+```
+
+The parameters of a passive rotation describe its own matrix, like those of the active rotation with the same matrix, in the convention of robotics: the quaternion `q_AB` of the passive rotation from `B` to `A` gives `R_AB`, which maps the coordinates in `B` to those in `A`, the orientation of `B` relative to `A`, like Drake's `R_AB` and kindr's `C_AB`, the passive rotations from `B` to `A` with the same parameters (see [Conventions](../conventions.md#rotations)).
+The change of coordinates to the coordinate system that an active rotation moves `From` onto is the inverse of the passive rotation with its parameters.
+
+Rotations are a manifold: `boxPlus(v)` rotates further by the rotation vector `v`, `Exp(v) R`, `boxMinus()` is its inverse, `angularDistance()` the angle between two rotations and `exponentialMapJacobian(v)` the Jacobian of the exponential map, like kindr's (Solà, Deray and Atchuthan, ["A micro Lie theory for state estimation in robotics"](https://arxiv.org/abs/1812.01537)).
+`fromTwoVectors(a, b)` is the rotation with the smallest angle under which `a` has the direction of `b`.
+The increments and angular velocities of a passive rotation may be expressed in `To` or in `From`, which gives the same result for the same vector:
+
+```cpp
+using Attitude = wuzp::PassiveSpatialRotation3<ValueMatrix, double, Body, World>;  // C_WB in kindr's notation, R_WB in Drake's.
+const Attitude attitude = Attitude::fromQuaternion(quaternionWB);  // q_WB, the orientation of Body relative to World.
+Attitude::fromTwoVectors(measuredGravityInBody, gravityInWorld)  // Under it, the measured gravity has the direction of the gravity.
+attitude.boxPlus(incrementInWorld)               // Exp(v) R, like kindr's boxPlus(), and attitude.boxPlus(incrementInBody).
+attitude.boxPlus(gyroscopeInBody * timeStep)     // Integrates the angular velocity measured in Body.
+attitude.boxPlus(incrementInC)                   // Error: The vector must be expressed in From or To of the passive rotation.
+Attitude::quaternionDerivative(quaternionWB, gyroscopeInBody)  // dq/dt for the angular velocity in From, like kindr's local one.
+Attitude::angularVelocityFromEulerAnglesZyxDerivative<Body>(angles, rates)  // The angular velocity in From.
+attitude.matrixDerivative(angularVelocityInWorld)  // dR/dt = [w]x R.
+```
+
+The angular velocity is that of `From` relative to `To`, e.g. of `Body` relative to `World`, so the coordinate system of the vector replaces kindr's distinction of global (`To`) and local (`From`) angular velocities.
+The derivatives of quaternions and Euler angles take the parameters, since they depend on the sign of the quaternion and on the choice of the Euler angles.
+
+The skew-symmetric matrix of a vector, the linear map of its cross product, is `skewSymmetricMatrix(v)`, and `vectorOfSkewSymmetricMatrix()` its inverse.
+`pseudoInverse()` of quantities and Jacobians is the Moore-Penrose pseudo-inverse of a matrix of full rank, e.g. `jacobian.pseudoInverse().transform(taskVelocity)` are the joint velocities of the smallest norm of a redundant robot.
+The units of the coordinates it sums over must be equal, e.g. of all joints of a redundant robot, otherwise it fails with "Units do not match.": the pseudo-inverse of other units depends on the choice of units.
 
 ## Jacobians
 

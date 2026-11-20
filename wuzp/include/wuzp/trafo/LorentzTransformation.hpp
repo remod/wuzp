@@ -224,6 +224,9 @@ auto getInvariant(const Vector<QuantitiesT_, CoordinateSystemT_>& vector) {
  * The composition of two boosts along the same direction is the boost with the relativistic sum of their velocities, e.g. 0.5 c
  * and 0.5 c give 0.8 c; the composition of boosts along different directions also rotates (Wigner rotation).
  * From and To are Minkowski coordinate systems, like those of every LorentzTransformation.
+ * The velocity follows the convention of physics, the motion of To relative to From, unlike the parameters of the passive
+ * rotations, which describe their matrices, the orientation of From relative to To, in the convention of robotics (see
+ * PassiveSpatialRotation).
  * @param velocity The velocity of To relative to From, i.e. of the origin of To measured in From, expressed in From: its
  * components are those of the spatial axes of From. Its magnitude, velocity.getQuantities().norm(), must be smaller than the
  * speed of light. velocity.norm() is rejected, since the velocity is expressed in From, which is a Minkowski coordinate system,

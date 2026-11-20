@@ -19,7 +19,7 @@ TEST(TestActiveAndPassiveRotation, CancelEachOtherWhenTransformingPositionVector
   const Object object{1.0, 2.0, 3.0};
   const TransformedObject transformedObject{1.0, 2.0, 3.0};
   const ActiveTransformation activeTransformation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};    // Active rotation of pi/2 around x.
-  const PassiveTransformation passiveTransformation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const PassiveTransformation passiveTransformation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // To is From rotated by pi/2 around x.
   EXPECT_EQ(passiveTransformation.transform(activeTransformation.transform(object)), transformedObject);
 }
 
@@ -31,6 +31,6 @@ TEST(TestActiveAndPassiveRotation, CancelEachOtherWhenTransformingPositionPoint)
   const Object object{1.0, 2.0, 3.0};
   const TransformedObject transformedObject{1.0, 2.0, 3.0};
   const ActiveTransformation activeTransformation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0};    // Active rotation of pi/2 around x.
-  const PassiveTransformation passiveTransformation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const PassiveTransformation passiveTransformation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // To is From rotated by pi/2 around x.
   EXPECT_EQ(passiveTransformation.transform(activeTransformation.transform(object)), transformedObject);
 }

@@ -26,6 +26,7 @@ There are two variants:
 * `min`: Ubuntu 22.04 with the oldest supported dependency versions (GCC 11, Clang 14, CMake 3.22, Eigen 3.4, Boost 1.74).
 * `latest`: Ubuntu 26.04 with the newest supported dependency versions (GCC 15, Clang 21, CMake 4.2, Eigen 5.0, Boost 1.90, mp-units 2.5).
   mp-units is only tested here: it needs newer compilers than those of `min`.
+  It also has [kindr](https://github.com/ANYbotics/kindr) 1.2, an optional dependency of the tests: `tests/src/KindrConventions.cpp`, which compares the conventions of the rotations with those of kindr, only builds if CMake finds it.
 
 Open the repository in VS Code or CLion and choose *Reopen in Container*, or use the [Dev Container CLI](https://github.com/devcontainers/cli):
 

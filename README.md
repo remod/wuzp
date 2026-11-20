@@ -52,7 +52,7 @@ using PointInB = wuzp::PositionPoint3<wuzp_eigen::ValueMatrix, double, Coordinat
 using X_BA = wuzp::PassiveProperRigidTransformation3<wuzp_eigen::ValueMatrix, CoordinateSystemA, CoordinateSystemB, double>;
 
 int main() {
-  const X_BA::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const X_BA::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // B is A rotated by pi/2 around x.
   const X_BA::Translation translation{0.0, 0.0, -1.0};
   const X_BA transformation{rotation, translation};
 
@@ -97,6 +97,7 @@ The backends are optional components:
 
 Rotations, translations and proper rigid transformations, each active and passive, Lorentz transformations and Jacobians.
 They compose with `*` in the order of [Drake's monogram notation](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html), `X_AB * X_BC = X_AC`, and have an `inverse()`.
+Rotations convert from and to quaternions, angle-axis, rotation vectors and Euler angles, with the manifold operations and the time derivatives of [kindr](https://github.com/ANYbotics/kindr).
 Points are rotated and translated, vectors only rotated:
 
 | | Point | Vector |

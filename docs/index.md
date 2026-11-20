@@ -26,7 +26,7 @@ using RotationFromAToB = wuzp::PassiveSpatialRotation3<wuzp_eigen::ValueMatrix, 
 int main() {
   const ForceInA forceInA{1.0, 2.0, 3.0};
   const ForceInB forceInB{4.0, 5.0, 6.0};
-  const RotationFromAToB rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const RotationFromAToB rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // B is A rotated by pi/2 around x.
   // const ForceInB sum = forceInA + forceInB;  // Error: Coordinate systems do not match.
   const ForceInB sum = rotation.transform(forceInA) + forceInB;
   return 0;

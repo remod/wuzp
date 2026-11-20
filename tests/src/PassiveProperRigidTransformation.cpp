@@ -20,7 +20,7 @@ TEST(TestPassiveProperRigidTransformation2, TransformPosition) {  // NOLINT
   using TransformedObject = PositionPoint2<ValueMatrix, double, CoordinateSystemB>;
   const Object object{1.0, 2.0};
   const TransformedObject transformedObject{4.0, 2.0};
-  const Transformation::Rotation rotation{0.0, 1.0, -1.0, 0.0};  // Passive rotation of pi/2.
+  const Transformation::Rotation rotation{0.0, 1.0, -1.0, 0.0};  // To is From rotated by pi/2.
   const Transformation::Translation translation{2.0, 3.0};
   const Transformation transformation{rotation, translation};
   EXPECT_EQ(transformation.transform(object), transformedObject);
@@ -32,7 +32,7 @@ TEST(TestPassiveProperRigidTransformation3, TransformVector) {  // NOLINT
   using TransformedObject = PositionVector3<ValueMatrix, double, CoordinateSystemB>;
   const Object object{1.0, 2.0, 3.0};
   const TransformedObject transformedObject{1.0, 3.0, -2.0};
-  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // To is From rotated by pi/2 around x.
   const Transformation::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
   const Transformation transformation{rotation, translation};
   EXPECT_EQ(transformation.transform(object), transformedObject);
@@ -44,7 +44,7 @@ TEST(TestPassiveProperRigidTransformation3, TransformPosition) {  // NOLINT
   using TransformedObject = PositionPoint3<ValueMatrix, double, CoordinateSystemB>;
   const Object object{1.0, 2.0, 3.0};
   const TransformedObject transformedObject{1.0, 3.0, -3.0};
-  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // To is From rotated by pi/2 around x.
   const Transformation::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
   const Transformation transformation{rotation, translation};
   EXPECT_EQ(transformation.transform(object), transformedObject);
@@ -56,7 +56,7 @@ TEST(TestPassiveProperRigidTransformation3, TransformVelocityVector) {  // NOLIN
   using TransformedObject = VelocityVector3<ValueMatrix, double, CoordinateSystemB>;
   const Object object{1.0, 2.0, 3.0};
   const TransformedObject transformedObject{1.0, 3.0, -2.0};
-  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // To is From rotated by pi/2 around x.
   const Transformation::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
   const Transformation transformation{rotation, translation};
   EXPECT_EQ(transformation.transform(object), transformedObject);
@@ -67,7 +67,7 @@ TEST(TestPassiveProperRigidTransformation3, TransformVelocityVector) {  // NOLIN
 // still pairs with the vectors like before.
 TEST(TestPassiveProperRigidTransformation3, TransformCovector) {  // NOLINT
   using Transformation = PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemB, double>;
-  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // To is From rotated by pi/2 around x.
   const Transformation::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
   const Transformation transformation{rotation, translation};
   const ForceCovector3<ValueMatrix, double, CoordinateSystemA> force{1.0, 2.0, 3.0};
@@ -81,7 +81,7 @@ TEST(TestPassiveProperRigidTransformation3, TransformCovector) {  // NOLINT
 TEST(TestPassiveProperRigidTransformation3, TransformCovariance) {  // NOLINT
   using Transformation = PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemA, CoordinateSystemB, double>;
   using QuantitiesT = Quantities<ValueMatrix<double, 3, 3>, TypeMatrix<3, 3, Area>>;
-  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // To is From rotated by pi/2 around x.
   const Transformation::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
   const Transformation transformation{rotation, translation};
   const Tensor<Indices<Up, Up>, QuantitiesT, CoordinateSystemA, Relative> object{1.0, 0.5, 0.0, 0.5, 2.0, 0.0, 0.0, 0.0, 3.0};
@@ -97,7 +97,7 @@ TEST(TestPassiveProperRigidTransformation3, TransformPointCloud) {  // NOLINT
   using TransformedObject = Tensor<Indices<Up>, MyQuantityMatrix, CoordinateSystemB, Absolute>;
   const Object object{1.0, 4.0, 2.0, 5.0, 3.0, 6.0};
   const TransformedObject transformedObject{1.0, 4.0, 3.0, 6.0, -3.0, -6.0};
-  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+  const Transformation::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // To is From rotated by pi/2 around x.
   const Transformation::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
   const Transformation transformation{rotation, translation};
   EXPECT_EQ(transformation.transform(object), transformedObject);
@@ -117,10 +117,10 @@ using TransformationCA = PassiveProperRigidTransformation3<ValueMatrix, Coordina
 using TransformationAB = PassiveProperRigidTransformation3<ValueMatrix, CoordinateSystemB, CoordinateSystemA, double>;
 using PointInA = PositionPoint3<ValueMatrix, double, CoordinateSystemA>;
 
-// A passive rotation of pi/2 around x, and a passive translation of 1 along z.
+// B is A rotated by pi/2 around x, and the origin of A is at (0, 0, -1) in B.
 const TransformationBA rigidBA{TransformationBA::Rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0},
                                TransformationBA::Translation{0.0, 0.0, -1.0}};
-// A passive rotation of pi/2 around z, with the origin of B at (1, 0, 0) in C.
+// C is B rotated by pi/2 around z, with the origin of B at (1, 0, 0) in C.
 const TransformationCB rigidCB{TransformationCB::Rotation{0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0},
                                TransformationCB::Translation{1.0, 0.0, 0.0}};
 
@@ -211,8 +211,8 @@ using RotationBA = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystem
 using RotationCB = PassiveSpatialRotation3<ValueMatrix, double, CoordinateSystemB, CoordinateSystemC>;
 using PointInC = PositionPoint3<ValueMatrix, double, CoordinateSystemC>;
 
-const RotationBA rotationBA{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
-const RotationCB rotationCB{0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0};  // Passive rotation of pi/2 around z.
+const RotationBA rotationBA{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // To is From rotated by pi/2 around x.
+const RotationCB rotationCB{0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0};  // To is From rotated by pi/2 around z.
 
 }  // namespace
 

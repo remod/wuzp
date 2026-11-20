@@ -13,6 +13,7 @@
 #include "wuzp/core/ValuesWrapper.hpp"
 #include "wuzp/core/concepts.hpp"
 #include "wuzp/core/helpers.hpp"
+#include "wuzp/core/internal/skew_symmetric.hpp"
 #include "wuzp/core/traits.hpp"
 
 namespace wuzp {
@@ -780,6 +781,54 @@ auto outerProduct(const Tensor<IndicesLhsT_, QuantitiesLhsT_, CoordinateSystemLh
 }
 
 /**
+ * The skew-symmetric matrix [v]x of a three-dimensional vector v, the linear map of the cross product with v:
+ * innerProduct(skewSymmetricMatrix(v), w) is v.crossProduct(w), e.g. for the velocity w x r of a point of a rotating body or the
+ * derivative dR/dt = [w]x R of a rotation. It is the "hat" operator of the Lie algebra so(3) (Solà, Deray and Atchuthan, "A micro
+ * Lie theory for state estimation in robotics", https://arxiv.org/abs/1812.01537, eq. 9), and kindr's getSkewMatrixFromVector().
+ * It is a linear map, a tensor with an upper and a lower index, whose elements all have the unit of the components of v, which
+ * must be the same. Like the cross product, it uses the Levi-Civita symbol of a right-handed orthonormal basis, so it is only
+ * rotated like a tensor by proper rotations, and it requires a Euclidean coordinate system and rejects points and batches (see
+ * crossProduct()).
+ */
+template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
+auto skewSymmetricMatrix(const Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& vector) {
+  using VectorT = Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>;
+  // The checks of the cross product: a single three-dimensional vector in a Euclidean coordinate system, not a point.
+  static_assert(AnyTensor<typename CrossProduct<VectorT, VectorT>::type>);
+  using ValueT = typename QuantitiesT_::ValueT;
+  using UnitT = typename GetType<typename GetType<QuantitiesT_>::type::UnitsT>::type;
+  using MatrixT =
+      Tensor<Indices<Up, Down>, Quantities<typename Rebind<typename QuantitiesT_::ValuesT, ValueT, 3, 3>::type, TypeMatrix<3, 3, UnitT>>,
+             CoordinateSystemT_, Relative>;
+  const auto& values = vector.getValues();
+  return internal::skewSymmetric<MatrixT, ValueT>(values.template get<0, 0>(), values.template get<1, 0>(), values.template get<2, 0>());
+}
+
+/**
+ * The vector v of the skew-symmetric matrix [v]x, the inverse of skewSymmetricMatrix(): for a three-dimensional linear map M, the
+ * vector of its skew-symmetric part (M - M^T) / 2, v = (M_21 - M_12, M_02 - M_20, M_10 - M_01) / 2, which averages out rounding
+ * errors of a matrix that is skew-symmetric only approximately, e.g. dR/dt R^T. kindr's getVectorFromSkewMatrix() takes the
+ * elements below the diagonal. The elements of each pair must have the same unit, the unit of the component of v, and the
+ * coordinate system must be Euclidean, like for skewSymmetricMatrix().
+ */
+template <typename IndicesT_, typename QuantitiesT_, typename CoordinateSystemT_, typename AbsoluteT_>
+auto vectorOfSkewSymmetricMatrix(const Tensor<IndicesT_, QuantitiesT_, CoordinateSystemT_, AbsoluteT_>& matrix) {
+  static_assert(std::is_same_v<IndicesT_, Indices<Up, Down>> && Rows<QuantitiesT_>::value == 3,
+                "The vector of a skew-symmetric matrix is only defined for three-dimensional linear maps, tensors with an upper and a "
+                "lower index.");
+  using ValueT = typename QuantitiesT_::ValueT;
+  const auto [first, second, third] = internal::vectorOfSkewSymmetricPart(matrix.getQuantities());
+  using UnitsT = TypeMatrixImpl<MatrixSize<3, 1>, std::tuple<typename GetType<typename decltype(first)::UnitsT>::type,
+                                                             typename GetType<typename decltype(second)::UnitsT>::type,
+                                                             typename GetType<typename decltype(third)::UnitsT>::type>>;
+  using VectorT = Tensor<Indices<Up>, Quantities<typename Rebind<typename QuantitiesT_::ValuesT, ValueT, 3, 1>::type, UnitsT>,
+                         CoordinateSystemT_, Relative>;
+  // The checks of the cross product, e.g. a Euclidean coordinate system.
+  static_assert(AnyTensor<typename CrossProduct<VectorT, VectorT>::type>);
+  return VectorT{typename VectorT::QuantitiesT{first, second, third}};
+}
+
+/**
  * The elementwise (Hadamard) product of the components of two tensors in the same coordinate system. It depends on the basis, so
  * it is not a tensor: it returns quantities, without indices or a coordinate system, like the products of Eigen's arrays
  * (https://eigen.tuxfamily.org/dox/group__TutorialArrayClass.html). Points are rejected, since their components depend on the
@@ -919,6 +968,16 @@ template <template <typename, int, int> typename ValuesT_, typename ValueT_, typ
 using DirectionVector2 = DirectionVector<2, ValuesT_, ValueT_, CoordinateSystemT_>;
 template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using DirectionVector3 = DirectionVector<3, ValuesT_, ValueT_, CoordinateSystemT_>;
+
+/**
+ * A rotation vector, the angle of a rotation times its unit axis, e.g. the logarithm of a rotation, an increment of boxPlus() or
+ * the angular velocity times a time step (see ActiveSpatialRotation::fromRotationVector()). Rotation vectors are
+ * three-dimensional. Angles are dimensionless (see "Angles are dimensionless" in DESIGN.md), so it is the type of a
+ * DirectionVector3.
+ */
+template <template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
+using RotationVector3 =
+    HomogeneousVector<3, ValuesT_, ValueT_, typename AccessUnits<AccessImplementation<ValueT_>>::Angle, CoordinateSystemT_>;
 
 template <int DimensionV_, template <typename, int, int> typename ValuesT_, typename ValueT_, typename CoordinateSystemT_>
 using PositionPoint =

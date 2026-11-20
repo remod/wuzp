@@ -21,6 +21,16 @@
 
 namespace wuzp {
 
+namespace internal {
+
+//! The pseudo-inverse of quantities with more columns than rows (1), more rows than columns (-1) or as many (0), see
+//! Quantities::pseudoInverse(). These are specializations rather than `if constexpr`: MSVC compiles both branches of an
+//! `if constexpr` in member functions of class templates, and the units of the other branches need not have products.
+template <int ShapeV_>
+struct PseudoInverse;
+
+}  // namespace internal
+
 /**
  * Container to store quantities.
  * Every quantity consists of a value and a unit.
@@ -201,6 +211,29 @@ class Quantities {
   //! The matrix inverse of a square matrix, whose units must describe a linear map, M_ij = a_i / b_j: the units of the inverse are
   //! (M^-1)_ij = b_i / a_j (see Inverse<TypeMatrixImpl<...>> in Units.hpp).
   auto inverse() const { return typename Evaluate<typename Inverse<ThisT>::type>::type{values_.inverse()}; }
+
+  /**
+   * The Moore-Penrose pseudo-inverse A^+ of a matrix A of full rank: A^T (A A^T)^-1 if it has fewer rows than columns, i.e. full
+   * row rank, e.g. the joint velocities q' = J^+ x' of the smallest norm for a redundant robot, (A^T A)^-1 A^T if it has more,
+   * i.e. full column rank, the least squares solution, and the inverse A^-1 if it is square. Its units are those of an inverse,
+   * (A^+)_ij = b_i / a_j for A_ij = a_i / b_j. A A^T and A^T A sum over the columns or the rows, so the columns of a matrix with
+   * fewer rows must have the same unit, and the rows of a matrix with more rows, otherwise it fails with "Units do not match.":
+   * the pseudo-inverse minimizes a Euclidean norm, which needs components with the same unit, and for other units it depends on
+   * the choice of units (Doty, Melchiorri and Bonivento, "A theory of generalized inverses applied to robotics", The
+   * International Journal of Robotics Research 12(1), 1993). Use a weighted pseudo-inverse for them. A matrix that does not have
+   * full rank has no pseudo-inverse of this form, the inverse of A A^T or A^T A is not finite or huge, unlike kindr's pseudoInverse(),
+   * which takes the singular value decomposition, which not every value matrix backend provides. It needs matrix inverses
+   * (InvertibleValueMatrixBackend) and floating-point values.
+   */
+  auto pseudoInverse() const {
+    constexpr int rows = Rows<ThisT>::value;
+    constexpr int cols = Cols<ThisT>::value;
+    // 1, -1 or 0 (see internal::PseudoInverse), as a difference rather than with conditional operators, whose branches the
+    // compiler evaluates, so that it leaves no code that coverage reports as never executed.
+    constexpr int shape = static_cast<int>(rows < cols) - static_cast<int>(rows > cols);
+    return internal::PseudoInverse<shape>::value(*this);
+  }
+
   //! The elementwise reciprocal, whose units are the reciprocals of the units.
   auto cwiseInverse() const { return typename Evaluate<typename CwiseInverse<ThisT>::type>::type{values_.cwiseInverse()}; }
 
@@ -496,6 +529,39 @@ template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValuesRhsT_, typen
 auto outerProduct(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const Quantities<ValuesRhsT_, UnitsRhsT_>& rhs) {
   return lhs.outerProduct(rhs);
 }
+
+namespace internal {
+
+//! The pseudo-inverse A^T (A A^T)^-1 of a matrix with more columns than rows, of full row rank.
+template <>
+struct PseudoInverse<1> {
+  template <typename QuantitiesT_>
+  static auto value(const QuantitiesT_& matrix) {
+    const auto transpose = matrix.transpose();
+    return innerProduct(transpose, innerProduct(matrix, transpose).inverse());
+  }
+};
+
+//! The pseudo-inverse (A^T A)^-1 A^T of a matrix with more rows than columns, of full column rank.
+template <>
+struct PseudoInverse<-1> {
+  template <typename QuantitiesT_>
+  static auto value(const QuantitiesT_& matrix) {
+    const auto transpose = matrix.transpose();
+    return innerProduct(innerProduct(transpose, matrix).inverse(), transpose);
+  }
+};
+
+//! The pseudo-inverse of a square matrix of full rank, its inverse.
+template <>
+struct PseudoInverse<0> {
+  template <typename QuantitiesT_>
+  static auto value(const QuantitiesT_& matrix) {
+    return matrix.inverse();
+  }
+};
+
+}  // namespace internal
 
 template <typename ValuesLhsT_, typename UnitsLhsT_, typename ValueRhsT_>
 auto division(const Quantities<ValuesLhsT_, UnitsLhsT_>& lhs, const ValueRhsT_ rhs) {

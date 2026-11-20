@@ -93,6 +93,10 @@ add_executable(wuzp_tests
     src/ActiveRotation.cpp
     src/PassiveRotation.cpp
     src/ActiveAndPassiveRotation.cpp
+    src/RotationParameterizations.cpp
+    src/RotationManifold.cpp
+    src/RotationDerivatives.cpp
+    src/EigenConventions.cpp
     src/Jacobian.cpp
     src/ActiveProperRigidTransformation.cpp
     src/PassiveProperRigidTransformation.cpp
@@ -106,6 +110,16 @@ wuzp_set_warnings(wuzp_tests)
 target_compile_definitions(wuzp_tests PRIVATE ${WUZP_TEST_DEFINITIONS})
 target_include_directories(wuzp_tests PRIVATE src)
 target_link_libraries(wuzp_tests PRIVATE GTest::gtest_main ${WUZP_TEST_LINK_LIBRARIES})
+
+# kindr (https://github.com/ANYbotics/kindr), if found, for the tests that compare the conventions of the rotations with those
+# of kindr. It is header-only and needs Eigen, which the tests use anyway. The latest dev container has it; its CMake project
+# predates CMake 3.5, so it is found by its headers.
+find_path(WUZP_KINDR_INCLUDE_DIR kindr/Core)
+if(WUZP_KINDR_INCLUDE_DIR)
+    message(STATUS "Found kindr in ${WUZP_KINDR_INCLUDE_DIR}: testing the conventions of the rotations against it.")
+    target_sources(wuzp_tests PRIVATE src/KindrConventions.cpp)
+    target_include_directories(wuzp_tests SYSTEM PRIVATE ${WUZP_KINDR_INCLUDE_DIR})
+endif()
 
 if(WUZP_ENABLE_COVERAGE)
     if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")

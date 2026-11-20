@@ -14,8 +14,8 @@
 using namespace wuzp;  // NOLINT
 
 // The active transformation G = (R, t) moves the coordinate system A onto B: the axes of B are those of A rotated by R, and the
-// origin of B is at t in A. The passive transformation from A to B with the same parameters, the rotation R and the translation
-// t, cancels it: it is its inverse, X_BA = (R^T, -R^T t), whose translation -R^T t is expressed in B (see DESIGN.md).
+// origin of B is at t in A. The passive transformation from A to B, to the coordinate system moved by the rotation R and the
+// translation t, cancels it: it is its inverse, X_BA = (R^T, -R^T t), whose translation -R^T t is expressed in B (see DESIGN.md).
 
 namespace {
 
@@ -25,7 +25,8 @@ using PassiveRigidTransformation = PassiveProperRigidTransformation3<ValueMatrix
 // An active rotation of pi/2 around x, then a translation of 1 along z.
 const ActiveRigidTransformation activeTransformation{ActiveRigidTransformation::Rotation{1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0},
                                                      ActiveRigidTransformation::Translation{0.0, 0.0, 1.0}};
-// A passive rotation of pi/2 around x, R^T, and the translation -R^T t = -(0, 1, 0), expressed in B.
+// The change of coordinates to B, which the active transformation moves A onto: the rotation R^T, B is A rotated by pi/2 around
+// x, and the translation -R^T t = -(0, 1, 0), expressed in B.
 const PassiveRigidTransformation passiveTransformation{PassiveRigidTransformation::Rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0},
                                                        PassiveRigidTransformation::Translation{0.0, -1.0, 0.0}};
 
@@ -50,7 +51,7 @@ TEST(TestActiveAndPassiveProperRigidTransformation, PassiveIsTheInverseOfActive)
   EXPECT_EQ(passiveTransformation.getTranslation().getQuantities(), inverse.getTranslation().getQuantities());
 }
 
-// The translation -t, which a passive translation with the same parameters as an active translation has, does not cancel a
+// The translation -t, which the passive translation to the coordinate system moved by an active translation t has, does not cancel a
 // rotation and a translation, unless R t = t: (1, 2, 3) becomes (1, 3, 2).
 TEST(TestActiveAndPassiveProperRigidTransformation, NegatedTranslationDoesNotCancel) {  // NOLINT
   const PassiveRigidTransformation negatedTranslation{passiveTransformation.getRotation(),

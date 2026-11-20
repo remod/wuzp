@@ -53,7 +53,7 @@ struct Body {};
 using BodyFrame = wuzp::CoordinateSystem<Body>;
 using RotationToBody = wuzp::PassiveSpatialRotation3<ValueMatrix, double, InertialFrame, BodyFrame>;
 
-const RotationToBody rotation{0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0};  // Passive rotation of pi/2 around z.
+const RotationToBody rotation{0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0};  // The body frame is the inertial frame rotated by pi/2 around z.
 const wuzp::VelocityVector3<ValueMatrix, double, BodyFrame> velocityInBody = rotation.transform(velocityOfPoint);
 ```
 

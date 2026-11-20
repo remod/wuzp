@@ -120,6 +120,17 @@ class Jacobian
     return internal::makeJacobian<ValuesT_, ToT_, FromT_>(quantities_.inverse());
   }
 
+  /**
+   * The pseudo-inverse J^+, from To to From, of a Jacobian of full rank (see Quantities::pseudoInverse()), like kindr's
+   * pseudoInverse(): e.g. for a redundant robot, whose joint space From has more dimensions than its task space To, J^+ x' are
+   * the joint velocities of the smallest norm for a task space velocity x', and the pullback by J^+ of the joint torques
+   * tau = J^T F of a force F at the end effector, J^+T tau, is F. The coordinates of From must have the same unit if it has more
+   * dimensions, e.g. all joints revolute, and those of To if it has fewer, otherwise it fails with "Units do not match.": the
+   * pseudo-inverse of other units depends on the choice of units. It is not the Jacobian of an inverse change of coordinates,
+   * but it pushes vectors forward from To to From and pulls covectors back like one.
+   */
+  auto pseudoInverse() const { return internal::makeJacobian<ValuesT_, ToT_, FromT_>(quantities_.pseudoInverse()); }
+
   //! Whether both Jacobians, which must transform between the same coordinate systems, are approximately equal: their matrices
   //! are compared like the components of tensors (see Tensor::isApprox()), also those that are not square.
   template <template <typename, int, int> typename ValuesOtherT_, typename ValueOtherT_, typename FromOtherT_, typename ToOtherT_,

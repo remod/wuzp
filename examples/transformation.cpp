@@ -42,7 +42,7 @@ int main() {
     // ForceInB totalForce = forceInA + forceInB;  // error: static assertion failed: Coordinate systems do not match.
 
     // Instead, we need to transform one of the forces into the coordinate system of the other force:
-    TransformationFromAToB::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // Passive rotation of pi/2 around x.
+    TransformationFromAToB::Rotation rotation{1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0};  // B is A rotated by pi/2 around x.
     TransformationFromAToB::Translation translation{0.0, 0.0, -1.0};                          // Passive translation of 1 along z.
     TransformationFromAToB transformationFromAToB{rotation, translation};
     ForceVectorInB totalForce = transformationFromAToB.transform(forceInA) + forceInB;

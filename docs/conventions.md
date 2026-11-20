@@ -41,7 +41,9 @@ A Jacobian `J` of a change of coordinates from `From` to `To` maps tangent objec
 * A passive transformation from `From` to `To` expresses the objects of `From` in `To`, and only takes objects expressed in `From` ([Active and passive transformation](https://en.wikipedia.org/wiki/Active_and_passive_transformation)).
 * `PassiveTransformation<From = B, To = A>` is `X_AB` in the [monogram notation of Drake](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html) and `^A_B T` in the notation of Craig (Introduction to Robotics, chapter 2): it maps the coordinates of a point in `B` to its coordinates in `A`.
 * Passive transformations compose like Drake's, `X_AB * X_BC = X_AC`, i.e. `^A_C T = ^A_B T ^B_C T` in the notation of Craig, and the coordinate systems that meet must match.
-* An active transformation and the passive transformation with the same parameters cancel each other: the passive rotation by the angle of an active rotation `R` has the matrix `R^T`, the passive translation by `t` the vector `-t`, and the passive proper rigid transformation with the parameters `(R, t)` of a motion `(R^T, -R^T t)`.
+* A motion and the change of coordinates to the coordinate system that it moves `From` onto cancel each other: the passive rotation to the coordinate system rotated by an active rotation `R` has the matrix `R^T`, the passive translation to the coordinate system translated by `t` the vector `-t`, and the passive proper rigid transformation to the coordinate system moved by `(R, t)` the rotation and translation `(R^T, -R^T t)`.
+* The parameters of a passive rotation, e.g. its quaternion, describe its own matrix, in the convention of robotics: those of `PassiveSpatialRotation<From = B, To = A>` describe `R_AB`, the orientation of `B` relative to `A`, like Drake's `R_AB` of `q_AB`, kindr's `C_IB` of `q_IB` and Craig's `^A_B R` (see [Rotations](#rotations)).
+  The Lorentz boost keeps the convention of physics: its velocity is that of `To` relative to `From` (see [Metrics and spacetime](#metrics-and-spacetime)).
 
 ## Translations and rigid transformations
 
@@ -51,12 +53,68 @@ A Jacobian `J` of a change of coordinates from `From` to `To` maps tangent objec
 * Rigid transformations compose as `(R1, t1) * (R2, t2) = (R1 R2, R1 t2 + t1)` and invert as `(R, t)^-1 = (R^T, -R^T t)` (Solà, Deray and Atchuthan, ["A micro Lie theory for state estimation in robotics"](https://arxiv.org/abs/1812.01537), eqs. 170 and 171).
 * Translations leave vectors, covectors and tensors with two upper indices unchanged, move points, and reject the other tensors, which may depend on the origin.
 
+## Rotations
+
+The parameterizations, the manifold operations and the time derivatives of three-dimensional rotations (see [Parameterizations of rotations](concepts/transformations.md#parameterizations-of-rotations)):
+
+* **Quaternions** follow Hamilton's convention, `ij = k`, with the real part first, `(w, x, y, z)`: the unit quaternion `q = (cos(θ/2), sin(θ/2) n)` rotates a vector `v` into `q v q^*`, by the right-handed angle `θ` around the axis `n` (Solà, ["Quaternion kinematics for the error-state Kalman filter"](https://arxiv.org/abs/1711.02508)), like Eigen, kindr, Drake and ROS, unlike the JPL convention.
+  Its matrix is that of Eigen's `Quaternion::toRotationMatrix()`.
+  `toQuaternion()` returns the unique quaternion, whose first element that is not zero is positive, like kindr's `getUnique()`, so its angle is in `[0, π]`.
+* **Angle-axis and rotation vectors** are right-handed, with the angle in `[0, π]` when converted from a rotation; the rotation vector is the angle times the unit axis.
+* **Euler angles** are intrinsic: ZYX `(yaw, pitch, roll)` is `R = R_z(yaw) R_y(pitch) R_x(roll)`, i.e. around `z`, then the new `y`, then the newest `x`, and XYZ `(a0, a1, a2)` is `R = R_x(a0) R_y(a1) R_z(a2)`, the extrinsic rotations in the opposite order.
+  Converted from a rotation, the first and the last angle are in `[-π, π)` and the second in `[-π/2, π/2]`, like kindr's `getUnique()`; at the gimbal lock, a second angle of `±π/2`, only the sum or the difference of the others is defined.
+* **The parameters of a passive rotation** describe its own matrix, in the convention of robotics: the parameters of `PassiveSpatialRotation<From = B, To = A>`, e.g. the quaternion `q_AB`, give its matrix `R_AB = R(q_AB)`, which maps the coordinates in `B` to those in `A`, the orientation of `B` relative to `A`, like Drake's `RotationMatrix` `R_AB` of `q_AB` ([monogram notation](https://drake.mit.edu/doxygen_cxx/group__multibody__notation.html)), kindr's `C_IB` of `q_IB` and Craig's `^A_B R` (Introduction to Robotics, chapter 2).
+  An active and a passive rotation with the same parameters have the same matrix.
+* **The exponential and the logarithmic map** of SO(3) are `fromRotationVector()` and `toRotationVector()`.
+* **boxPlus and boxMinus** perturb on the left, `R (+) v = Exp(v) R` and `R (-) S = Log(R S^T)`, the left plus and minus of Solà, Deray and Atchuthan, ["A micro Lie theory for state estimation in robotics"](https://arxiv.org/abs/1812.01537) (eqs. 27 and 28), with the increment in the coordinate system of an active rotation, or in `To` of a passive rotation, which equals `R Exp(v')` for the same vector `v'` expressed in `From`.
+* **The Jacobian of the exponential map** is the left Jacobian of SO(3), `J(v) = I + (1 - cos|v|) / |v|^2 [v]x + (|v| - sin|v|) / |v|^3 [v]x^2`, so that `Exp(v + dv) = Exp(J dv) Exp(v)` to first order (Solà et al., eq. 145); for a rotation vector of a passive rotation expressed in `From`, it is the right Jacobian `J(-v) = J(v)^T`, so that `Exp(v + dv) = Exp(v) Exp(J dv)` (eq. 143).
+* **Angular velocities** `w` are defined by `dR/dt = [w]x R`, for an active rotation expressed in its coordinate system; for a passive rotation, `w` is the angular velocity of `From` relative to `To`, expressed in `To`, and `dR/dt = R [w']x` for the same vector `w'` expressed in `From`. The derivative of a quaternion is `dq/dt = (0, w) q / 2 = q (0, w') / 2`.
+* **The skew-symmetric matrix** of a vector is `[v]x = [[0, -v_z, v_y], [v_z, 0, -v_x], [-v_y, v_x, 0]]`, with `[v]x w = v x w`.
+* **The pseudo-inverse** is the Moore-Penrose pseudo-inverse of a matrix of full rank, `A^T (A A^T)^-1` with fewer rows than columns and `(A^T A)^-1 A^T` with more.
+
+### Comparison with kindr
+
+[kindr](https://github.com/ANYbotics/kindr) 1.2, whose conventions the tests check (`tests/src/KindrConventions.cpp`), has passive rotations and Hamilton quaternions since its 1.0 (see its [cheat sheet](https://opensource.docs.anymal.com/doxygen/kindr/master/cheatsheet_latest.pdf)).
+Its rotation `C_IB` maps the coordinates of a vector in `B` to those in `I`, `I_r = C_IB B_r`, and its parameters, e.g. the quaternion `q_IB`, are those of the matrix `C_IB`, like those of *wuzp*: `C_IB` is `PassiveSpatialRotation<From = B, To = I>` with the same parameters.
+
+| Topic | kindr | *wuzp* |
+| --- | --- | --- |
+| Rotation | `C_IB`, `C_IB.rotate(B_r)` is `I_r`, `inverseRotate()` the inverse | `PassiveSpatialRotation<B, I>`, `X_IB` in Drake's notation: its `transform()` and the `transform()` of its `inverse()` |
+| Parameters | `RotationQuaternion(w, x, y, z)` `q_IB`, `AngleAxis`, `RotationVector`, `EulerAnglesZyx(yaw, pitch, roll)`, `EulerAnglesXyz(roll, pitch, yaw)` | `fromQuaternion((w, x, y, z))`, `fromAngleAxis()`, `fromRotationVector()` (axis and vector in `I`, where their components are those in `B`), `fromEulerAnglesZyx((yaw, pitch, roll))`, `fromEulerAnglesXyz((roll, pitch, yaw))`: the same matrix |
+| Active rotations | none | `ActiveSpatialRotation` with the same parameters has the same matrix |
+| Composition | `C_IB * C_BC = C_IC` | `X_IB * X_BC = X_IC`, with the same parameters |
+| Unique parameters | `getUnique()` of a quaternion and of Euler angles, with the angles in `[-π, π)`, `[-π/2, π/2)` and `[-π, π)` | `toQuaternion()` and `toEulerAngles...()` return them, with the second angle in `[-π/2, π/2]`; kindr's conversion into Euler angles returns the yaw in `[0, π]` (Eigen's `eulerAngles()`), until `getUnique()`. Within `1e-3` of the gimbal lock, kindr's `getUnique()` moves the yaw into the roll (ZYX) or the third angle into the first (XYZ), which changes the rotation; *wuzp* keeps the rotation, with the first angle 0 at an exact gimbal lock |
+| Exponential and logarithmic map | `exponentialMap(v)`, `logarithmicMap()` | `fromRotationVector(v)`, `toRotationVector()` |
+| boxPlus, boxMinus | `C.boxPlus(I_v) = Exp(I_v) C`, `C1.boxMinus(C2) = Log(C1 C2^-1)` in `I` | `boxPlus(v)` with `v` in `I` (`To`), or the same vector in `B` (`From`), e.g. `boxPlus(B_w_IB * dt)`; `boxMinus()` in `I`, `boxMinus<B>()` in `B` |
+| Jacobian of the exponential map | `getJacobianOfExponentialMap(v)` | `exponentialMapJacobian(v)`, the left Jacobian |
+| Angle between rotations | `getDisparityAngle()` | `angularDistance()` |
+| Rotation between two vectors | `C_IB.setFromVectors(B_v, I_v)`, `I_v = C_IB B_v` | `PassiveSpatialRotation<B, I>::fromTwoVectors(B_v, I_v)` |
+| Angular velocities | `LocalAngularVelocity` `B_w_IB`, `GlobalAngularVelocity` `I_w_IB` | The angular velocity of `B` relative to `I`, expressed in `B` (`From`) or `I` (`To`), which the coordinate system of the vector tells apart |
+| Derivatives | `RotationQuaternionDiff`, `RotationMatrixDiff`, `EulerAnglesZyxDiff`, `EulerAnglesXyzDiff`, and the angular velocities of them | `quaternionDerivative()`, `matrixDerivative()`, `eulerAnglesZyxDerivative()`, `eulerAnglesXyzDerivative()`, and the `angularVelocityFrom...()`, in `To` by default; at the gimbal lock, kindr asserts, *wuzp* returns values that are not finite or arbitrarily large |
+| Skew-symmetric matrix | `getSkewMatrixFromVector()`, `getVectorFromSkewMatrix()` | `skewSymmetricMatrix()`, `vectorOfSkewSymmetricMatrix()`, which averages the elements of each pair |
+| Pseudo-inverse | `pseudoInverse()`, by a singular value decomposition, also of lower rank | `pseudoInverse()` of matrices of full rank, with checked units |
+| Units | `AngularVelocity` and `Torque` are types of their own | Angles are dimensionless, so an angular velocity is in `1/s` and a torque in `N m` |
+| Twists and wrenches | Linear part first | Not yet ([#76](https://github.com/remod/wuzp/issues/76)) |
+
+### Comparison with Eigen
+
+The tests compare with Eigen's geometry module too (`tests/src/EigenConventions.cpp`), with every value matrix backend; tf2 and Drake are not in the dev containers, so their conventions are not tested.
+
+| Eigen | *wuzp* |
+| --- | --- |
+| `Quaternion(w, x, y, z)`, stored as `(x, y, z, w)` in `coeffs()` | `QuaternionT{w, x, y, z}` |
+| `q.toRotationMatrix()`, `q * v` | the matrix and `transform()` of `fromQuaternion(q)`, of an active and of a passive rotation |
+| `AngleAxis(angle, axis)` | `fromAngleAxis(angle, axis)` |
+| `AngleAxis(z) * AngleAxis(y) * AngleAxis(x)`, `eulerAngles(2, 1, 0)` with the first angle in `[0, π]`, `canonicalEulerAngles(2, 1, 0)` (Eigen 5) | `fromEulerAnglesZyx()`, `toEulerAnglesZyx()` with the ranges of `canonicalEulerAngles()` |
+| `Quaternion::FromTwoVectors(a, b)` | `fromTwoVectors(a, b)` |
+| `angularDistance()` | `angularDistance()` |
+
 ## Metrics and spacetime
 
 * The default metric of a coordinate system is Euclidean, the identity of orthonormal axes, where a vector and the covector it lowers to have the same components (Carroll, after eq. 1.62).
 * `Minkowski` is `η = diag(1, -1, ..., -1)`, with the signature `(+, -, ..., -)` and the time component first, in length units (`x^0 = c t`).
   Carroll uses the signature `(-, +, +, +)`, whose metric is `-η`; both give the same Lorentz transformations, defined by `η = Λ^T η Λ` (eq. 1.14).
-* The passive Lorentz boost has the standard form with `Λ_0i = -γ β_i`, for the velocity of `To` relative to `From`, expressed in `From`.
+* The passive Lorentz boost has the standard form with `Λ_0i = -γ β_i`, for the velocity of `To` relative to `From`, expressed in `From`, in the convention of physics, unlike the parameters of passive rotations, which describe `From` relative to `To` (see [Rotations](#rotations)).
 * The inverse of a Lorentz transformation is `η Λ^T η`, which follows from `η = Λ^T η Λ`; that of a rotation is `R^T`.
 
 ## Units

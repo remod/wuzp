@@ -23,6 +23,11 @@ Write the transport formulas where they are needed (see [Rigid body kinematics](
 The functions of one argument, e.g. `sqrt()`, `abs()` and `exp()`, apply elementwise: there are no matrix functions, e.g. no matrix exponential.
 `atan2()`, `hypot()`, `min()` and `max()` only take single quantities (see [Functions of quantities](concepts/units.md#functions-of-quantities)).
 
+**Rotations.**
+Quaternions are only conversions of the rotations, without a quaternion algebra of their own.
+At the gimbal lock of Euler angles, their derivatives are not defined, and the results are not finite or arbitrarily large.
+`pseudoInverse()` only takes matrices of full rank, and rejects units for which the pseudo-inverse would depend on the choice of units: use a weighted pseudo-inverse for them.
+
 **Unit conversions.**
 *wuzp* does not convert units: quantities with different units, e.g. `m` and `km`, cannot be added.
 With mp-units, `wuzp_mp_units::UnitType` accepts named units such as `si::newton`, but only coherent SI units, e.g. not kilometres, grams or degrees.

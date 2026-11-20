@@ -635,3 +635,23 @@ TEST(TestQuantities, MembersRequireTheirDimension) {  // NOLINT
   static_assert(HasDeterminant<TestQuantities<1, 1>>);
   static_assert(HasDeterminant<TestQuantities<3, 3>>);
 }
+
+// The Moore-Penrose pseudo-inverse of a matrix of full rank, with the units of an inverse.
+TEST(TestQuantities, PseudoInverse) {  // NOLINT
+  using Wide = Quantities<TestValues<2, 3>, TypeMatrix<2, 3, Length>>;
+  using WidePseudoInverse = Quantities<TestValues<3, 2>, TypeMatrix<3, 2, Inverse<Length>::type>>;
+  const Wide wide{1.0, 2.0, 3.0, -1.0, 0.5, 2.0};
+  const WidePseudoInverse widePseudoInverse = wide.pseudoInverse();
+  // A A^+ = I for a matrix with fewer rows than columns, and A^+ is a solution of A x = b with the smallest norm.
+  EXPECT_TRUE(innerProduct(wide, widePseudoInverse)
+                  .isApprox(Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Dimensionless>>{1.0, 0.0, 0.0, 1.0}, 1e-14));
+  EXPECT_TRUE(widePseudoInverse.isApprox(innerProduct(wide.transpose(), innerProduct(wide, wide.transpose()).inverse()), 1e-15));
+  // (A^T A)^-1 A^T for a matrix with more rows than columns: A^+ A = I.
+  const auto tall = wide.transpose();
+  EXPECT_TRUE(innerProduct(tall.pseudoInverse(), tall)
+                  .isApprox(Quantities<TestValues<2, 2>, TypeMatrix<2, 2, Dimensionless>>{1.0, 0.0, 0.0, 1.0}, 1e-14));
+  EXPECT_TRUE(tall.pseudoInverse().isApprox(widePseudoInverse.transpose(), 1e-14));
+  // The inverse of a square matrix.
+  const TestQuantities<2, 2> square{1.0, 2.0, 3.0, 4.0};
+  EXPECT_EQ(square.pseudoInverse(), square.inverse());
+}

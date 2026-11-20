@@ -309,3 +309,26 @@ TEST(TestJacobian, Inverse) {  // NOLINT
   const VelocityInB velocityInB{1.0, 2.0};
   EXPECT_TRUE(jacobianBA.transform(jacobianAB.transform(velocityInB)).isApprox(velocityInB, 1e-12));
 }
+
+// The pseudo-inverse of the Jacobian of a redundant robot maps a task space velocity to the joint velocities of the smallest norm,
+// and its pullback the joint torques J^T F back to the force F.
+TEST(TestJacobian, PseudoInverse) {  // NOLINT
+  using JointSpace = CoordinateSystemA;
+  using TaskSpace = CoordinateSystemB;
+  using JointVelocities = Vector<Quantities<ValueMatrix<double, 3, 1>, TypeMatrix<3, 1, AngularVelocity>>, JointSpace>;
+  using TaskVelocity = VelocityVector2<ValueMatrix, double, TaskSpace>;
+  using TaskJacobian = Jacobian<ValueMatrix, double, JointSpace, TaskSpace, 3, 2, Length>;
+  const TaskJacobian jacobian{1.0, 2.0, 3.0, -1.0, 0.5, 2.0};
+  const auto pseudoInverse = jacobian.pseudoInverse();
+  static_assert(std::is_same_v<std::remove_cvref_t<decltype(pseudoInverse)>,
+                               Jacobian<ValueMatrix, double, TaskSpace, JointSpace, 2, 3, Inverse<Length>::type>>);
+  const TaskVelocity taskVelocity{0.3, -0.4};
+  const JointVelocities jointVelocities = pseudoInverse.transform(taskVelocity);
+  EXPECT_TRUE(jacobian.transform(jointVelocities).isApprox(taskVelocity, 1e-14));
+  // The joint velocities of the smallest norm have no component in the null space of J, along the cross product of its rows.
+  const JointVelocities nullSpace{2.5, -5.0, 2.5};
+  EXPECT_NEAR(jointVelocities.dotProduct(nullSpace).getValue(), 0.0, 1e-14);
+  // The joint torques J^T F of a force F at the end effector.
+  const ForceCovector2<ValueMatrix, double, TaskSpace> force{1.5, -2.0};
+  EXPECT_TRUE(pseudoInverse.pullback(jacobian.pullback(force)).isApprox(force, 1e-14));
+}
