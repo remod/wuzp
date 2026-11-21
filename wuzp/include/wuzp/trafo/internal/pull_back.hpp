@@ -34,8 +34,9 @@ auto pullBack(const MatrixT_& matrix, const Tensor<Indices<Down, Down>, Quantiti
 
 //! Every other tensor is rejected, which only Jacobian::pullback() passes on: vectors and tensors with two upper indices are
 //! pushed forward instead (see pushForward()), and the indices of a mixed tensor would have to be mapped in opposite directions.
+//! The return type is deduced, so that the message is the first error (see FailOnInstantiation).
 template <typename FromT_, typename ToT_, typename MatrixT_, typename ObjectT_>
-void pullBack(const MatrixT_& /*matrix*/, const ObjectT_& /*object*/) {
+auto pullBack(const MatrixT_& /*matrix*/, const ObjectT_& /*object*/) {
   static_assert(FailOnInstantiation<ObjectT_>::value,
                 "The pullback by a Jacobian maps covectors and tensors with two lower indices. Use transform() for vectors and tensors "
                 "with two upper indices.");

@@ -9,6 +9,14 @@
 
 namespace wuzp {
 
+/**
+ * False for every type, so that a `static_assert` on it fails only when the template that names it is instantiated, e.g. a
+ * specialization or an overload that rejects its arguments with a message.
+ * Such an overload has a deduced return type (`auto`), not `void`: every use then instantiates its body to deduce the type
+ * (https://eel.is/c++draft/dcl.spec.auto.general#15), so that the `static_assert` is the first error. With `void`, a use of the
+ * result, e.g. `const auto result = f(x)`, fails first, since the body may be instantiated only at the end of the translation
+ * unit (https://eel.is/c++draft/temp.point#7), and MSVC then no longer reports the `static_assert` (#85).
+ */
 template <typename T>
 struct FailOnInstantiation : public std::false_type {};
 

@@ -115,11 +115,12 @@ class SpatialAcceleration : public SpatialVector<SpatialAcceleration<ValuesT_, V
 /**
  * Rejected with a message: the adjoint map of a rigid transformation maps spatial velocities and spatial forces, but a spatial
  * acceleration of Drake shifts with the angular velocity of its frame (see SpatialAcceleration::shift()). Re-express it with the
- * rigid transformation, X_AB.transform(acceleration), and shift() it.
+ * rigid transformation, X_AB.transform(acceleration), and shift() it. The return type is deduced, so that the message is the first
+ * error (see FailOnInstantiation).
  */
 template <typename FromT_, typename ToT_, typename RotationT_, typename TranslationT_, template <typename, int, int> typename ValuesT_,
           typename ValueT_, typename MeasuredInT_, typename FrameT_, typename PointT_, typename ExpressedInT_>
-void adjoint(const PassiveProperRigidTransformationTemplate<FromT_, ToT_, RotationT_, TranslationT_>& /*transformation*/,
+auto adjoint(const PassiveProperRigidTransformationTemplate<FromT_, ToT_, RotationT_, TranslationT_>& /*transformation*/,
              const SpatialAcceleration<ValuesT_, ValueT_, MeasuredInT_, FrameT_, PointT_, ExpressedInT_>& /*acceleration*/) {
   static_assert(FailOnInstantiation<SpatialAcceleration<ValuesT_, ValueT_, MeasuredInT_, FrameT_, PointT_, ExpressedInT_>>::value,
                 "The adjoint map of a rigid transformation maps spatial velocities and spatial forces. Shifting a spatial acceleration "

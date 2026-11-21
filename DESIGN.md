@@ -135,6 +135,7 @@ Template parameters used to be unconstrained: a test passed a `TypeMatrix` of co
 Decision: the template parameters are constrained with C++20 concepts (`wuzp/core/concepts.hpp`, #36), e.g. the coordinate system of a tensor must be a `CoordinateSystem`.
 A parameter of the wrong kind fails with a constraint error, whose notes name the unsatisfied concept.
 Invalid combinations of valid types, e.g. matrix sizes that do not match, are rejected with a `static_assert` and a clear message instead.
+A function that rejects its arguments this way has a deduced return type, so that the message is the first error, also with MSVC, which reported a use of a `void` result instead (see `FailOnInstantiation`, [#85](https://github.com/remod/wuzp/issues/85)).
 
 ### The backend interface
 

@@ -345,7 +345,8 @@ class Tensor {
   //! exists for every tensor, so that vectors, covectors and batches are rejected with a clear message.
   auto determinant() const { return typename Determinant<ThisT>::type{quantities_.determinant()}; }
 
-  void hyperdeterminant() const { static_assert(FailOnInstantiation<ThisT>::value, "Not implemented"); }
+  //! Not implemented. The return type is deduced, so that the message is the first error (see FailOnInstantiation).
+  auto hyperdeterminant() const { static_assert(FailOnInstantiation<ThisT>::value, "Not implemented"); }
 
   auto evaluate() const& { return typename Evaluate<ThisT>::type{quantities_.evaluate()}; }
   auto evaluate() && { return typename Evaluate<ThisT>::type{std::move(quantities_).evaluate()}; }
